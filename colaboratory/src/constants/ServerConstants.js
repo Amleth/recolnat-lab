@@ -1,0 +1,11 @@
+'use strict';
+
+export default {
+  ActionTypes: {
+    SERVER_SESSION_OPEN: 0,
+    SERVER_CHILD_ENTITIES: 10,
+    SERVER_NEW_CHILD_ENTITY_CREATED: 11,
+    SERVER_CHILD_ENTITY_MOVED: 12,
+    SERVER_CHILD_ENTITY_REMOVED: 13
+  }
+};

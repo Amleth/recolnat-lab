@@ -1,0 +1,547 @@
+'use strict';
+
+import {EventEmitter} from 'events';
+import d3 from 'd3';
+
+import ViewActions from '../actions/ViewActions.js';
+import MinimapActions from "../actions/MinimapActions.js";
+import ToolActions from "../actions/ToolActions.js";
+
+import Classes from '../constants/CommonSVGClasses';
+
+import ShapesConf from "../conf/shapes";
+
+import workbenchImageUrl from '../images/book_300.png';
+import markerSVG from '../images/marker.svg';
+
+class D3FreeSpace {
+  constructor() {
+    this.zoom = d3.behavior.zoom()
+      //.scaleExtent([0.1, 100])
+      .on('zoom', () => {
+        ViewActions.updateViewport(
+          d3.event.translate[0],
+          d3.event.translate[1],
+          d3.select('svg').node().parentNode.offsetWidth,
+          d3.select('svg').node().parentNode.offsetHeight,
+          d3.event.scale
+        );
+      });
+
+    this.view = {};
+    this.view.x = 0;
+    this.view.y = 0;
+    this.view.scale = 1.0;
+
+    this.workbench = null;
+    this.displayData = {
+      xMin: Number.POSITIVE_INFINITY,
+      xMax: Number.NEGATIVE_INFINITY,
+      yMin: Number.POSITIVE_INFINITY,
+      yMax: Number.NEGATIVE_INFINITY};
+  }
+
+  create(el, props) {
+    this.el = el;
+
+    var self = this;
+    let svg = d3.select(el).append('svg')
+      .attr('width', props.width)
+      .attr('height', props.height)
+      .on('contextmenu', function(d,i) {
+        self.contextMenu.call(this, self);
+      })
+      .on('click', function(d,i) {
+        if (d3.event.button == 0) {
+          self.leftClick.call(this, self);
+        }
+      })
+      .call(this.zoom)
+      .style('cursor', 'default');
+
+    var root = svg.append('g').attr('class', Classes.ROOT_CLASS);
+    root.append('g').attr('class', Classes.OBJECTS_CONTAINER_CLASS);
+    root.append('g').attr('class', Classes.ACTIVE_TOOL_DISPLAY_CLASS);
+
+  }
+
+  // External methods
+  clearDisplay() {
+    d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
+    d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
+  }
+
+  newWorkbench(childEntities, workbench) {
+    this.displayData.xMin = Number.POSITIVE_INFINITY;
+    this.displayData.xMax = Number.NEGATIVE_INFINITY;
+    this.displayData.yMin = Number.POSITIVE_INFINITY;
+    this.displayData.yMax = Number.NEGATIVE_INFINITY;
+
+    this.drawChildEntities(childEntities, workbench);
+  }
+
+  updateChildEntities(childEntities) {
+    // Position, transparency
+    var children = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(childEntities, function(d) {return d.id});
+    for(var i = 0; i < childEntities.length; ++i) {
+      var entity = childEntities[i];
+
+      var group = d3.select("#GROUP-" + entity.id);
+      var image = d3.select("#NODE-" + entity.id);
+
+      if(group.empty() || image.empty()) {
+        continue;
+      }
+
+      // Update position
+      this.updateAllAttributes(entity.id);
+
+      this.displayData.xMin = Math.min(this.displayData.xMin, entity.x-20);
+      this.displayData.yMin = Math.min(this.displayData.yMin, entity.y-20);
+
+      this.displayData.xMax = Math.max(parseInt(image.attr("width")) + entity.x + 20, this.displayData.xMax);
+      this.displayData.yMax = Math.max(parseInt(image.attr("height")) + entity.y + 20, this.displayData.yMax);
+
+      // TODO Update transparency
+    }
+  }
+
+  updateWorkbenchMetadata(metadata){
+    // Remove borders around selections
+    d3.selectAll('.' + Classes.BORDER_CLASS)
+      .style('fill', '#AAAAAA');
+
+    if(metadata.selected) {
+      d3.select('#BORDER-' + metadata.selected.id)
+        .style('stroke', '#708D23')
+        .style('fill', '#708D23');
+
+      var image = d3.select('#NODE-' + metadata.selected.id);
+      window.setTimeout((function(url, width, height, x, y) {
+          return function() {
+            MinimapActions.initMinimap(url, width, height, x, y);
+          };
+        })(image.attr("xlink:href"), image.datum().width, image.datum().height, image.datum().x, image.datum().y),
+        10);
+    }
+    else {
+      window.setTimeout(function() {
+        MinimapActions.unsetMinimap();
+      }, 10);
+    }
+  }
+
+  updateEntitiesMetadata(metadata) {
+    for(var i = 0; i < metadata.length; ++i) {
+      var metadataAboutId = metadata[i];
+      var id = metadataAboutId.id;
+      if(metadataAboutId.pois) {
+        this.displayPointsOfInterest(id, metadataAboutId.pois);
+      }
+      if(metadataAboutId.rois) {
+
+      }
+      if(metadataAboutId.paths) {
+
+      }
+    }
+  }
+
+  updateViewWithProperties(properties) {
+    d3.selectAll('.' + Classes.POI_CLASS)
+      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')scale(' + properties.sizeOfTextAndObjects + ')');
+  }
+
+  fitViewportToData() {
+    let group = d3.select('.' + Classes.ROOT_CLASS);
+
+    var scale = 1.0;
+    if(this.displayData.xMin == Number.POSITIVE_INFINITY ||
+      this.displayData.xMax == Number.NEGATIVE_INFINITY ||
+      this.displayData.yMin == Number.POSITIVE_INFINITY ||
+      this.displayData.yMax == Number.NEGATIVE_INFINITY ) {
+      console.log("Not enough data to calculate fitness");
+      return;
+    }
+
+    var xLen = this.displayData.xMax - this.displayData.xMin;
+    var yLen = this.displayData.yMax - this.displayData.yMin;
+    var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
+    var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
+    if (scaleX > scaleY) {
+      scale = scaleY;
+    }
+    else {
+      scale = scaleX;
+    }
+
+    var x = -this.displayData.xMin*scale;
+    var y = -this.displayData.yMin*scale;
+
+    window.setTimeout(function() {
+        ViewActions.updateViewport(
+          x,
+          y,
+          d3.select('svg').node().parentNode.offsetWidth,
+          d3.select('svg').node().parentNode.offsetHeight,
+          scale);
+      },
+      10);
+  }
+
+  updateViewport(x, y, width, height, scale) {
+    this.view.x = x;
+    this.view.y = y;
+    this.view.scale = scale;
+
+    this.viewportTransition();
+  }
+
+//
+// Internal methods
+//
+
+  viewportTransition() {
+    this.zoom.translate([this.view.x, this.view.y]);
+    this.zoom.scale(this.view.scale);
+
+    d3.select('.' + Classes.ROOT_CLASS)
+      .transition()
+      .duration(250)
+      .ease('linear')
+      .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
+  }
+
+  drawChildEntities(childEntities, workbench) {
+    let group = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
+    var elements = [];
+    var bags = [];
+    var contentToLoad = childEntities.length;
+    var contentLoaded = 0;
+
+    for (var j = 0; j < childEntities.length; ++j) {
+      var child = childEntities[j];
+      child.workbench = workbench;
+      this.displayData.xMin = Math.min(this.displayData.xMin, child.x-60);
+      this.displayData.yMin = Math.min(this.displayData.yMin, child.y-60);
+      elements.push(child);
+    }
+
+    // Append new entries
+    var children = group.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(elements);
+    var childGroupEnter = children.enter().append('g')
+      .attr('class', Classes.CHILD_GROUP_CLASS)
+      .attr('id', d => 'GROUP-' + d.id)
+      .attr('transform', d => 'translate(1000000,1000000)');
+
+    var underChildGroupEnter = childGroupEnter
+      .append('g')
+      .attr('class', Classes.UNDER_CHILD_CLASS)
+      .attr('id', d => 'UNDER-' + d.id);
+
+    underChildGroupEnter.append("rect")
+      .attr('class', Classes.BORDER_CLASS)
+      .attr('id', d => 'BORDER-' + d.id)
+      .attr('x', -4)
+      .attr('y', -104)
+      .attr('rx', 15)
+      .attr('ry', 15)
+      .style('fill', '#AAAAAA');
+
+    underChildGroupEnter.append('text')
+      .attr('id', d => 'NAME-' + d.id)
+      .attr('x', 10)
+      .attr('y', -40)
+      .attr('dy', '.20em')
+      .attr('font-family', 'Verdana')
+      .attr('font-size', '80px')
+      .attr('fill', 'white')
+      .text(d => d.name);
+
+    childGroupEnter
+      .append('svg:image')
+      .attr('class', Classes.IMAGE_CLASS)
+      .attr('id', d => 'NODE-' + d.id)
+      .attr("x", 0)
+      .attr("y", 0);
+
+    var overChildClassEnter = childGroupEnter.append('g')
+      .attr('class', Classes.OVER_CHILD_CLASS)
+      .attr('id', d=> 'OVER-' + d.id);
+
+    overChildClassEnter.append('g')
+      .attr('class', Classes.ANNOTATIONS_CONTAINER_CLASS)
+      .attr('id', d=> 'ANNOTATIONS-' + d.id);
+
+    var self = this;
+
+    for(var i = 0; i < elements.length; ++i) {
+      var element = elements[i];
+      window.setTimeout((function (elt) {
+        return function () {
+          var img = new Image();
+          img.src = elt.url;
+          img.onload = function () {
+            var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+
+            var height = this.height;
+            var width = this.width;
+            var url = this.src;
+
+            group.each(function(d, i) {
+              if(d.id == elt.id) {
+                d.height = height;
+                d.width = width;
+                d.url = url;
+              }
+            });
+
+            group.select("#NODE-" + elt.id)
+              .attr("height", d => d.height)
+              .attr("width", d => d.width)
+              .attr("xlink:href", d => d.url);
+
+            group.select("#BORDER-" + elt.id)
+              .attr('width', d => d.width + 8)
+              .attr('height', d => d.height + 148);
+            //.style('stroke-width', '4px');
+
+            group.select("#NAME-" + elt.id)
+              .attr('width', d => d.width + 8)
+              .attr('height', d => d.height + 148);
+
+            self.updateAllAttributes(elt.id);
+
+            self.displayData.xMax = Math.max(this.width + elt.x+60, self.displayData.xMax);
+            self.displayData.yMax = Math.max(this.height + elt.y+60, self.displayData.yMax);
+
+            self.fitViewportToData();
+
+            ++contentLoaded;
+            window.setTimeout(function() {
+              ToolActions.updateTooltipData('Chargement des images en cours... ' + contentLoaded + '/' + contentToLoad )},10);
+
+            if(contentLoaded >= contentToLoad) {
+              window.setTimeout(function() {
+                ToolActions.updateTooltipData('Chargement terminé')},10);
+
+              window.setTimeout(function() {
+                ToolActions.updateTooltipData('')},5000);
+            }
+          };
+        }
+      })(element), 50);
+    }
+  }
+
+  updateAllAttributes(id) {
+    d3.select('#GROUP-' + id)
+      .transition()
+      .duration(200)
+      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+
+    window.setTimeout(function() {
+      ToolActions.reset();
+    }, 10);
+  }
+
+  displayPaths(id, paths) {
+    var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
+    for(var i = 0; i < paths.length; ++i) {
+      var path = paths[i];
+
+      var points = "";
+      for(var j = 0; j < path.vertices.length; ++j) {
+        var vertex = path.vertices[j];
+        points = points + vertex[0] + "," + vertex[1] + " ";
+      }
+
+      var polyline = annotationContainerGroup.append('polyline')
+        .attr('id', 'PATH-' + path.id)
+        .attr('points', points)
+        .attr('fill', 'none')
+        .attr('stroke', 'red')
+        .attr('stroke-width', 4);
+    }
+  }
+
+  displayPointsOfInterest(id, pois) {
+    var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
+    // TODO make more intelligent update using enter() and data() with the right selector
+    annotationContainerGroup.selectAll("." + Classes.POI_CONTAINER_CLASS).remove();
+    if(d3.select('#GROUP-' + id).empty()) {
+      return;
+    }
+
+    var poiContainerGroup = annotationContainerGroup.append('g')
+      .attr('class', Classes.POI_CONTAINER_CLASS)
+      .attr('id', 'POIS-' + id);
+
+    var poiContainerGroupEnter = poiContainerGroup.selectAll('.' + Classes.POI_CLASS).data(pois);
+
+    var poiGroupEnter = poiContainerGroupEnter
+      .enter()
+      .append('g')
+      .attr('class', Classes.POI_CLASS)
+      .attr('id', d => 'POI-' + d.id)
+      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+
+    poiGroupEnter.append('svg:title')
+      .text(d => d.text);
+
+    poiGroupEnter.append('rect')
+      .attr('rx', 5)
+      .attr('ry', 5)
+      .attr('width', 50)
+      .attr('height', 30)
+      .attr("x", -25)
+      .attr("y", -55)
+      .attr('fill', d => "rgb(" + JSON.parse(d.color)[0] + "," + JSON.parse(d.color)[1] + "," + JSON.parse(d.color)[2] + ")");
+
+    poiGroupEnter.append('svg:image')
+      .attr("height", 60)
+      .attr("width", 60)
+      .attr('xlink:href', markerSVG)
+      .attr("x", -30)
+      .attr("y", -60);
+
+
+    poiGroupEnter.append('text')
+      .text(d => d.letters)
+      .attr('x', 0)
+      .attr('y', -40)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '20px')
+      .attr('font-family', 'sans-serif')
+      .attr('fill', d => "rgb(" + (255 - JSON.parse(d.color)[0]) + "," + (255 - JSON.parse(d.color)[1]) + "," + (255 - JSON.parse(d.color)[2]) + ")")
+    ;
+
+
+    for(var i = 0; i < pois.length; ++i) {
+      var poi = pois[i];
+      //poi.imageX = imageX;
+      //poi.imageY = imageY;
+
+      //var poiGroup = annotationContainerGroup.append('g')
+      //  .attr('class', Classes.POI_CONTAINER_CLASS)
+      //  .attr('id', 'POIGROUP-' + poi.id)
+      //  .attr('transform', 'translate(' + poi.x + ',' + poi.y + ')')
+      //  .datum(poi);
+
+      //poiGroup
+      //  .append('svg:title')
+      //  .text(poi.text);
+
+      //var color = JSON.parse(poi.color);
+      //var red = color[0];
+      //var green = color[1];
+      //var blue = color[2];
+
+      //poiGroup.append('rect')
+      //  .datum(poi)
+      //  .attr('rx', 5)
+      //  .attr('ry', 5)
+      //  .attr('width', 50)
+      //  .attr('height', 30)
+      //  .attr("x", -25)
+      //  .attr("y", -55)
+      //  .attr('fill', "rgb(" + red + "," + green + "," + blue + ")");
+      //
+      //poiGroup.append('svg:image')
+      //  .datum(poi)
+      //  .attr("height", 60)
+      //  .attr("width", 60)
+      //  .attr('xlink:href', markerSVG)
+      //  .attr("x", -30)
+      //  .attr("y", -60);
+      //
+      //if(poi.letters) {
+      //  poiGroup.append('text')
+      //    .datum(poi)
+      //    .text(d => d.letters)
+      //    .attr('x', 0)
+      //    .attr('y', -40)
+      //    .attr('dy', '.35em')
+      //    .attr('text-anchor', 'middle')
+      //    .attr('font-size', '20px')
+      //    .attr('font-family', 'sans-serif')
+      //    .attr('fill', "rgb(" + (255 - red) + "," + (255 - green) + "," + (255 - blue) + ")")
+      //  ;
+      //}
+    }
+  }
+
+  //changeSelection(d) {
+  //  //d3.event.stopPropagation();
+  //  // Update store
+  //  window.setTimeout((function(id) {
+  //    return function() {
+  //      console.log("selecting " + id);
+  //      ViewActions.changeSelection(id, d);
+  //    }
+  //  })(d.id), 10);
+  //}
+
+//findObjectsAtCoords(coordinates) {
+//  var objects = [];
+//  // TODO grab that data from a store instead
+//  for (var i = 0; i < this.entityData.rois.length; ++i) {
+//    var polygon = this.entityData.rois[i];
+//    if (inPolygon(coordinates, polygon.vertices)) {
+//      if(objects.indexOf({id: polygon.id, type: "polygon"}) < 0) {
+//        objects.push({id: polygon.id, type: "polygon"});
+//      }
+//    }
+//  }
+//
+//  for (var j = 0; j < this.entityData.paths.length; ++j) {
+//    var path = this.entityData.paths[j];
+//    for(var k = 0; k < path.vertices.length-1; ++k) {
+//      var lineStart = path.vertices[k];
+//      var lineEnd = path.vertices[k+1];
+//      var d = kmath.point.distanceToLine(coordinates, [lineStart, lineEnd]);
+//      if(d < 5) {
+//        if(objects.indexOf({id: path.id, type: "path"}) < 0) {
+//          objects.push({id: path.id, type: "path"});
+//        }
+//        break;
+//      }
+//    }
+//  }
+//
+//  for (var k = 0; k < this.entityData.pois.length; ++k) {
+//    var poi = this.entityData.pois[k];
+//    if(kmath.point.equal(coordinates, [poi.x, poi.y], 13)) {
+//      if(objects.indexOf({id: poi.id, type: "point"}) < 0) {
+//        objects.push({id: poi.id, type: "point"});
+//      }
+//    }
+//  }
+//
+//  return objects;
+//}
+
+  leftClick(d, i) {
+    d3.event.preventDefault();
+    var coords = d3.mouse(this);
+    //var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
+    // TODO input the right data
+    ToolActions.runTool(
+      coords[0],
+      coords[1],
+      {
+        data: {},
+        objects: [],
+        button: d3.event.button
+      });
+  }
+
+  contextMenu(d, i) {
+    d3.event.preventDefault();
+
+  }
+
+}
+
+export default D3FreeSpace;

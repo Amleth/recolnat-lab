@@ -1,0 +1,34 @@
+dbConf:
+  host: localhost
+  port: 2480
+  dbName: ReColNatTest
+  dbUser: root
+  password: root
+test:
+  userUUID: 5b6b4be2-20b8-476f-86f8-54464e2893b0
+  specialSessionID: special
+  defaultWorkbench: root
+  testTGT: TGT-479-VKieFAIqcJX4YnqrN29wdZPScASaV6lH7XaxH7exsGkAJ5l45c-cas.recolnat.org
+server:
+  applicationConnectors:
+  - type: http
+    port: 10101
+#  - type: https
+#    port: 10201
+#    keyStorePath: "/home/dmitri/Tools/jdk8/jre/lib/security/cacerts"
+#    keyStorePassword: changeit
+#    validateCerts: false
+  adminConnectors:
+  - type: http
+    port: 10301
+#  - type: https
+#    port: 10401
+#    keyStorePath: "/home/dmitri/Tools/jdk8/jre/lib/security/cacerts"
+#    keyStorePassword: changeit
+#    validateCerts: false
+logging:
+  level: INFO
+  loggers:
+    "org.dicen.recolnat.services": TRACE
+    "org.dicen.recolnat.services.resources": TRACE
+    "org.dicen.recolnat.services.resources.AuthenticationResource": ALL

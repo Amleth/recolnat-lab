@@ -399,12 +399,16 @@ public class ImageEditorRESTResource {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        OrientVertex vPath = CreatorUtils.createPath(path, length, g);
+        
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        // Check write rights
-        if(AccessRights.getAccessRights(vUser, vPath, g) != DataModel.Enums.AccessRights.WRITE) {
+        OrientVertex vParent = (OrientVertex) AccessUtils.getNodeById(parent, g);
+        // Check write rights on image
+        if(AccessRights.getAccessRights(vUser, vParent, g).value() < DataModel.Enums.AccessRights.WRITE.value()) {
           throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
         }
+        
+        // Create path
+        OrientVertex vPath = CreatorUtils.createPath(path, length, g);
         
         // Link user to path as creator
         UpdateUtils.addCreator(vPath, vUser, g);

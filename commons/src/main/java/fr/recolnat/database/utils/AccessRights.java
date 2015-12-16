@@ -36,7 +36,7 @@ public class AccessRights {
       ret = DataModel.Enums.AccessRights.fromInt(accessRight);
     }
 
-    if (ret == DataModel.Enums.AccessRights.WRITE) {
+    if (ret.value() == DataModel.Enums.AccessRights.WRITE.value()) {
       // Highest rights available. No point in checking elsewhere.
       return ret;
     }

@@ -142,7 +142,7 @@ class D3FreeSpace {
 
       }
       if(metadataAboutId.paths) {
-
+        this.displayPaths(id, metadataAboutId.paths);
       }
     }
   }
@@ -347,27 +347,31 @@ class D3FreeSpace {
 
   displayPaths(id, paths) {
     var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
-    for(var i = 0; i < paths.length; ++i) {
-      var path = paths[i];
-
-      var points = "";
-      for(var j = 0; j < path.vertices.length; ++j) {
-        var vertex = path.vertices[j];
-        points = points + vertex[0] + "," + vertex[1] + " ";
-      }
-
-      var polyline = annotationContainerGroup.append('polyline')
-        .attr('id', 'PATH-' + path.id)
-        .attr('points', points)
-        .attr('fill', 'none')
-        .attr('stroke', 'red')
-        .attr('stroke-width', 4);
+    annotationContainerGroup.selectAll('.' + Classes.PATH_CONTAINER_CLASS).remove();
+    if(d3.select('#GROUP-' + id).empty()) {
+      return;
     }
+
+    var pathContainerGroup = annotationContainerGroup.append('g')
+      .attr('class', Classes.PATH_CONTAINER_CLASS)
+      .attr('id', 'PATHS-' + id);
+
+    var pathContainerGroupEnter = pathContainerGroup.selectAll('.' + Classes.PATH_CLASS)
+      .data(paths);
+
+    pathContainerGroupEnter
+      .enter()
+      .append('polyline')
+      .attr('class', Classes.PATH_CLASS)
+      .attr('id', d => 'PATH-' + d.id)
+      .attr('fill', 'none')
+      .attr('stroke', 'red')
+      .attr('points', d => d.vertices)
+      .attr('stroke-width', 4);
   }
 
   displayPointsOfInterest(id, pois) {
     var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
-    // TODO make more intelligent update using enter() and data() with the right selector
     annotationContainerGroup.selectAll("." + Classes.POI_CONTAINER_CLASS).remove();
     if(d3.select('#GROUP-' + id).empty()) {
       return;
@@ -416,60 +420,6 @@ class D3FreeSpace {
       .attr('font-family', 'sans-serif')
       .attr('fill', d => "rgb(" + (255 - JSON.parse(d.color)[0]) + "," + (255 - JSON.parse(d.color)[1]) + "," + (255 - JSON.parse(d.color)[2]) + ")")
     ;
-
-
-    for(var i = 0; i < pois.length; ++i) {
-      var poi = pois[i];
-      //poi.imageX = imageX;
-      //poi.imageY = imageY;
-
-      //var poiGroup = annotationContainerGroup.append('g')
-      //  .attr('class', Classes.POI_CONTAINER_CLASS)
-      //  .attr('id', 'POIGROUP-' + poi.id)
-      //  .attr('transform', 'translate(' + poi.x + ',' + poi.y + ')')
-      //  .datum(poi);
-
-      //poiGroup
-      //  .append('svg:title')
-      //  .text(poi.text);
-
-      //var color = JSON.parse(poi.color);
-      //var red = color[0];
-      //var green = color[1];
-      //var blue = color[2];
-
-      //poiGroup.append('rect')
-      //  .datum(poi)
-      //  .attr('rx', 5)
-      //  .attr('ry', 5)
-      //  .attr('width', 50)
-      //  .attr('height', 30)
-      //  .attr("x", -25)
-      //  .attr("y", -55)
-      //  .attr('fill', "rgb(" + red + "," + green + "," + blue + ")");
-      //
-      //poiGroup.append('svg:image')
-      //  .datum(poi)
-      //  .attr("height", 60)
-      //  .attr("width", 60)
-      //  .attr('xlink:href', markerSVG)
-      //  .attr("x", -30)
-      //  .attr("y", -60);
-      //
-      //if(poi.letters) {
-      //  poiGroup.append('text')
-      //    .datum(poi)
-      //    .text(d => d.letters)
-      //    .attr('x', 0)
-      //    .attr('y', -40)
-      //    .attr('dy', '.35em')
-      //    .attr('text-anchor', 'middle')
-      //    .attr('font-size', '20px')
-      //    .attr('font-family', 'sans-serif')
-      //    .attr('fill', "rgb(" + (255 - red) + "," + (255 - green) + "," + (255 - blue) + ")")
-      //  ;
-      //}
-    }
   }
 
   //changeSelection(d) {
@@ -523,6 +473,9 @@ class D3FreeSpace {
 //}
 
   leftClick(d, i) {
+    if(d3.event.defaultPrevented) {
+      return;
+    }
     d3.event.preventDefault();
     var coords = d3.mouse(this);
     //var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);

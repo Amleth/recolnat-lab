@@ -30,6 +30,9 @@ export default {
   POI_CONTAINER_CLASS: "pointOfInterestContainer",
   POI_CLASS: "pointOfInterest",
 
+  PATH_CONTAINER_CLASS: 'pathContainer',
+  PATH_CLASS: 'path',
+
   // TODO check the following stuff to see if it useful
 
   IMAGE_CONTAINER_CLASS: 'imageContainer',

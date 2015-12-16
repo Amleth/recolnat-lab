@@ -15,16 +15,14 @@ import Classes from "../../constants/CommonSVGClasses";
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from "../../conf/Tools-conf";
 
+import icon from '../../images/polyline.png';
+
 class CreatePath extends AbstractTool {
   constructor(props) {
     super(props);
 
-    //this.buttonName = "Nouveau chemin";
-    //this.edges = [];
-    //this.start = null;
     this.toolContainerSVGClass = "CREATE_PATH_TOOL_CLASS";
     this.activeLineClass = "CREATE_PATH_TOOL_ACTIVE_LINE_CLASS";
-    //this.interactionState = 0;
 
     var self = this;
 
@@ -43,7 +41,8 @@ class CreatePath extends AbstractTool {
     return {
       edges: [],
       start: null,
-      interactionState: 0
+      interactionState: 0,
+      active: false
     };
   }
 
@@ -52,6 +51,20 @@ class CreatePath extends AbstractTool {
    */
   click(self, x, y, data) {
     // TODO Recalculate x, y according to their position in the image
+    if(!this.props.entitystore.getSelectedImage()) {
+      window.setTimeout(function() {
+          ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de chemins.");},
+        50);
+      return;
+    }
+    var deltaX = this.props.entitystore.getSelectedImage().x;
+    var deltaY = this.props.entitystore.getSelectedImage().y;
+    var view = this.props.viewstore.getView();
+    var displayX = (x-view.left)/view.scale;
+    var displayY = (y-view.top)/view.scale;
+    var imgX = displayX-deltaX;
+    var imgY = displayY-deltaY;
+
     if(data.button == 0) {
       if (this.state.interactionState == 0) {
         // Two possibilities:
@@ -65,28 +78,17 @@ class CreatePath extends AbstractTool {
         // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will
         // close the current path. Close shape, end editing.
         // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-        var count = this.countEdges(x, y);
+        var count = this.countEdges(imgX, imgY);
         if (this.state.start == null) {
           // a
           if (count == 0) {
             // aa
-            this.setState({edges: [], start: {x: x, y: y}});
-            //self.edges = [];
-            //self.start = {};
-            //self.start.x = x;
-            //self.start.y = y;
-            //self.clearSVG();
-            //self.dataToSVG();
+            this.setState({edges: [], start: {x: imgX, y: imgY}});
           }
           else if (count == 1) {
             // ab
-            var vertex = this.matchVertex(x, y);
-            //self.start = {};
-            //self.start.x = vertex.x;
-            //self.start.y = vertex.y;
+            var vertex = this.matchVertex(imgX, imgY);
             this.setState({start: {x: vertex.x, y: vertex.y}});
-            //self.clearSVG();
-            //self.dataToSVG();
           }
           else if (count == 2) {
             // ac
@@ -110,15 +112,15 @@ class CreatePath extends AbstractTool {
                 y: this.state.start.y
               },
               end: {
-                x: x,
-                y: y
+                x: imgX,
+                y: imgY
               }
             });
-            this.setState({edges: edges, start: {x: x, y: y}});
+            this.setState({edges: edges, start: {x: imgX, y: imgY}});
           }
           else if (count == 1) {
             // bb
-            var vertex = this.matchVertex(x, y);
+            var vertex = this.matchVertex(imgX, imgY);
             var edges = this.state.edges;
             edges.push({
               start: {
@@ -174,15 +176,21 @@ class CreatePath extends AbstractTool {
   }
 
   begin() {
-    this.setState(this.initialState());
     window.setTimeout(function() {
       ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);
+    var self = this;
+    d3.select('.' + Classes.ROOT_CLASS)
+    .on('mouseover', this.activateEnter.bind(self))
+    .on('mouseout', this.deactivateEnter);
+
+    this.setState({active: true});
+
   }
 
   reset() {
-    this.setState(this.initialState());
+    this.setState({edges: [], start: null, interactionState: 0});
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);
@@ -190,11 +198,15 @@ class CreatePath extends AbstractTool {
 
   finish() {
     this.clearSVG();
-    this.setState(this.initialState());
     window.setTimeout(function() {
       ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData("");
     }, 10);
+    d3.select('.' + Classes.ROOT_CLASS)
+      .on('mouseover', null)
+      .on('mouseout', null);
+    this.setState(this.initialState());
+
   }
 
   setMode(){
@@ -204,6 +216,28 @@ class CreatePath extends AbstractTool {
   /**
    * INTERNAL METHODS
    */
+  activateEnter() {
+    var self = this;
+    d3.select("body").on('keyup', function(d, i) {self.nextInteractionState.call(this, self)});
+  }
+
+  deactivateEnter() {
+    d3.select("body").on('keyup', null);
+  }
+
+  nextInteractionState(self) {
+    if(d3.event.which == 13) {
+      // 'Enter' is pressed
+      if(self.state.interactionState == 0) {
+        self.setState({interactionState: 1});
+      }
+      else if(self.state.interactionState == 1) {
+        window.setTimeout(
+        ToolActions.save, 10);
+      }
+    }
+  }
+
   dataToSVG() {
     var selectedSheet = this.props.entitystore.getSelectedEntity();
     var overSheetGroup = d3.select('#OVER-' + selectedSheet.id);
@@ -261,7 +295,7 @@ class CreatePath extends AbstractTool {
       }
     }
 
-    if(this.state.start) {
+    if(this.state.start && this.state.interactionState == 0) {
       toolDisplayGroup.append('line')
         .attr('x1', this.state.start.x)
         .attr('y1', this.state.start.y)
@@ -271,13 +305,14 @@ class CreatePath extends AbstractTool {
         .attr('stroke-width', 2)
         .attr('stroke', 'black');
 
-      overSheetGroup
+      console.log("mounting mouse move listener");
+      d3.select('#GROUP-' + selectedSheet.id)
         .on('mousemove', function(d, i) {
           self.setLineEndPosition.call(this, self)});
 
       toolDisplayGroup.append('circle')
-        .attr("cx", this.start.x)
-        .attr("cy", this.start.y)
+        .attr("cx", this.state.start.x)
+        .attr("cy", this.state.start.y)
         .attr("r", 6)
         .style("fill", "black");
     }
@@ -286,7 +321,7 @@ class CreatePath extends AbstractTool {
   clearSVG() {
     var selectedSheet = this.props.entitystore.getSelectedEntity();
     d3.select('.' + this.toolContainerSVGClass).remove();
-    d3.select('#OVER-' + selectedSheet.id).on('mousemove', null);
+    d3.select('#GROUP-' + selectedSheet.id).on('mousemove', null);
   }
 
   /**
@@ -405,6 +440,7 @@ class CreatePath extends AbstractTool {
   }
 
   setLineEndPosition(self) {
+    console.log("set line end position");
     var coords = d3.mouse(this);
     d3.select('.' + self.activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
   }
@@ -452,13 +488,38 @@ class CreatePath extends AbstractTool {
     ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
   }
 
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.active) {
+      this.buttonStyle.backgroundColor = 'rgba(200,200,200,1.0)';
+    }
+    else {
+      this.buttonStyle.backgroundColor = null;
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
       this.clearSVG();
       this.dataToSVG();
     if(this.state.interactionState == 1) {
       window.setTimeout(function() {
-        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour créer un nouveau point en son milieu. Appuyez sur ENTREE pour sauvegarder la forme finale de la nouvelle zone.");}, 500);
+        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour la scinder en deux. Appuyez sur ENTREE pour sauvegarder le tracé.");}, 500);
     }
+    else if(this.state.interactionState == 0 && this.state.start) {
+      window.setTimeout(function() {
+        ToolActions.updateTooltipData("Cliquez sur l'image active pour créer un nouveau point et le relier au point précédent. Appuyez sur ENTREE pour terminer l'ajout de points ou cliquez sur le premier point pour terminer le tracé");}, 500);
+    }
+  }
+
+  render() {
+    return (
+      <button
+        style={this.buttonStyle}
+        className='ui button compact'
+        onClick={this.setMode}
+        data-content="Créer un nouveau chemin">
+        <img src={icon} style={this.iconStyle} height='20px' width='20px' />
+      </button>
+    );
   }
 }
 

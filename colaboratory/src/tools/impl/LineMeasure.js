@@ -2,6 +2,7 @@
 
 import React from 'react';
 import d3 from "d3";
+import UUID from 'node-uuid';
 
 import Classes from "../../constants/CommonSVGClasses";
 import Popup from "../popups/LineMeasurePopup";
@@ -21,17 +22,21 @@ class LineMeasure extends AbstractTool {
   constructor(props) {
     super(props);
 
-    this.selfSvgClass = "LINE_MEASURE_TOOL_CLASS";
-    this.selfRectSvgClass = "LINE_MEASURE_RECT_TOOL_CLASS";
-    this.selfTextSvgClass = "LINE_MEASURE_TEXT_TOOL_CLASS";
-    
+    this.dragStartVertex = d3.behavior.drag()
+      .origin(d => d)
+      .on('drag', LineMeasure.dragStartVertexDrag);
+
+    this.dragEndVertex = d3.behavior.drag()
+      .origin(d => d)
+      .on('drag', LineMeasure.dragEndVertexDrag);
+
     this.iconStyle = {
       margin: '8px 10px 0px 0px'
     };
 
     this.state = this.getInitialState();
   }
-  
+
   getInitialState() {
     return {
       active: false,
@@ -39,60 +44,118 @@ class LineMeasure extends AbstractTool {
       tooltip: null,
       start: null,
       end: null,
+      uuid: null,
       mmPerPixel: null
     };
   }
 
-  toSVG() {
+  static classes() {
+    return {
+      selfSvgClass: "LINE_MEASURE_TOOL_CLASS",
+      selfGroupSvgClass: "LINE_MEASURE_GROUP_CLASS",
+      selfRectSvgClass: "LINE_MEASURE_RECT_TOOL_CLASS",
+      selfTextSvgClass: "LINE_MEASURE_TEXT_TOOL_CLASS",
+      selfStartVertexClass: "LINE_MEASURE_RECT_START_CLASS",
+      selfEndVertexClass: "LINE_MEASURE_RECT_END_CLASS"
+    };
+  }
+
+  createActiveMeasure() {
     var activeToolGroup = d3.select('.' + Classes.ACTIVE_TOOL_DISPLAY_CLASS);
-    
-    
-    activeToolGroup
+
+    var lineData = {
+      x1: this.state.start.x,
+      y1: this.state.start.y,
+      x2: this.state.start.x,
+      y2: this.state.start.y,
+      id: this.state.uuid,
+      unit: 'px',
+      mmPerPixel: null
+    };
+
+    if(this.state.mmPerPixel) {
+      lineData.mmPerPixel = this.state.mmPerPixel;
+      lineData.unit = 'mm';
+    }
+
+    var newMeasure = activeToolGroup.append('g')
+      .datum(lineData)
+      .attr('id', d => 'MEASURE-' + d.id)
+      .attr('class', LineMeasure.classes().selfGroupSvgClass);
+
+    newMeasure
       .append('line')
-      .attr('class', this.selfSvgClass)
-      .attr('x1', this.state.start.x)
-      .attr('y1', this.state.start.y)
-      .attr('x2', this.state.start.x)
-      .attr('y2', this.state.start.y)
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfSvgClass)
       .attr('stroke-width', 2)
       .attr('stroke', '#AAAAAA');
-    
-    activeToolGroup
+
+    newMeasure
       .append('line')
-      .attr('class', this.selfSvgClass)
-      .attr('x1', this.state.start.x)
-      .attr('y1', this.state.start.y)
-      .attr('x2', this.state.start.x)
-      .attr('y2', this.state.start.y)
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfSvgClass)
       .attr('stroke-width', 2)
       .attr('stroke-dasharray', '5,5')
       .attr('stroke', 'black');
-      
-      
-      
-    activeToolGroup
+
+    newMeasure
       .append('rect')
-      .attr('class', this.selfRectSvgClass)
-      .attr('x', this.state.start.x)
-      .attr('y', this.state.start.y)
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfRectSvgClass)
       .attr('width', 30)
       .attr('height', 15)
       .attr('stroke-width', 2)
       .attr('stroke', '#AAAAAA')
       .attr('fill', '#000000');
-      
-   activeToolGroup
-    .append('text')
-    .attr('class', this.selfTextSvgClass)
-    .attr('x', this.state.start.x)
-    .attr('y', this.state.start.y)
-    .attr('dy', '.35em')
-          .attr('text-anchor', 'middle')
-          .attr('font-size', '14px')
-	  .attr('fill', '#FFFFFF')
-	  .text('0');
 
-    
+    newMeasure
+      .append('text')
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfTextSvgClass)
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .attr('fill', '#FFFFFF');
+
+    LineMeasure.updateLineDisplay(lineData.id);
+
+    var self = this;
+    d3.select('.' + Classes.ROOT_CLASS)
+      .on("mousemove", function(d, i) {
+        self.setLineEndPosition.call(this, self)
+      });
+  }
+
+  makeActiveMeasurePassive() {
+    // Grab active measure
+    var activeToolGroup = d3.select('#MEASURE-' + this.state.uuid);
+    var lineData = activeToolGroup.datum();
+    // Remove mousemove listener
+    d3.select('.' + Classes.ROOT_CLASS)
+      .on("mousemove", null);
+    // Create point (rect) at both ends with drag listeners
+    activeToolGroup.append('rect')
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfStartVertexClass)
+      .attr('height', 10)
+      .attr('width', 10)
+      .attr('fill', 'black')
+      .on('click', LineMeasure.stopEvent)
+      .on('mousedown', LineMeasure.stopEvent)
+      .call(this.dragStartVertex);
+
+    activeToolGroup.append('rect')
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfEndVertexClass)
+      .attr('height', 10)
+      .attr('width', 10)
+      .attr('fill', 'black')
+      .on('click', LineMeasure.stopEvent)
+      .on('mousedown', LineMeasure.stopEvent)
+      .call(this.dragEndVertex);
+
+    LineMeasure.updateLineDisplay(this.state.uuid);
+    // Add icon to 'save measure to server'
   }
 
   removeSVG() {
@@ -115,13 +178,15 @@ class LineMeasure extends AbstractTool {
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
     }, 10);
-    this.setState({clicks: 0, start: null, end: null});
+    this.setState({clicks: 0, start: null, end: null, uuid: null});
   }
 
   finish() {
-  d3.select('svg').style('cursor', 'default');
-  
-  this.removeMouseMoveListener();
+    d3.select('svg').style('cursor', 'default');
+    // TODO remove all measures
+    this.removeSVG();
+
+    this.removeMouseMoveListener();
     window.setTimeout(function() {
       ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData("");
@@ -136,25 +201,26 @@ class LineMeasure extends AbstractTool {
    * @returns {boolean} true if the tool has completed its task and the method toSVG() can be safely called, false when user input is still required
    */
   click(self, x, y) {
-    console.log(x);
-    console.log(y);
     if(self.state.clicks == 0) {
-      // First click somewhere, set line beginning
+      // First click somewhere, set line beginning, create uuid
+      var uuid = UUID.v4();
       var view = self.props.viewstore.getView();
-      self.setState({start: {x: (x - view.left)/view.scale, y: (y - view.top)/view.scale}, clicks: 1});
+      window.setTimeout(function () {
+        ToolActions.updateTooltipData("Cliquez sur l'image pour terminer la mesure");
+      }, 10);
+      self.setState({start: {x: (x - view.left)/view.scale, y: (y - view.top)/view.scale}, clicks: 1, uuid: uuid});
     }
     else if(self.state.clicks == 1) {
       // Second click, set line end
-// 	self.setState({end: {x: x, y: y}});
       self.removeMouseMoveListener();
       self.setState({clicks: 2});
     }
     else {
       // Line already complete, begin new measure.
       window.setTimeout(function () {
-        ToolActions.updateTooltipData("Cliquez sur l'image pour commencer la mesure");
+        ToolActions.updateTooltipData("Cliquez sur l'image pour commencer une nouvelle mesure");
       }, 10);
-      self.setState({start: null, end: null, clicks: 0});
+      self.setState({start: null, end: null, uuid: null, clicks: 0});
     }
   }
 
@@ -162,83 +228,146 @@ class LineMeasure extends AbstractTool {
     ToolActions.setTool(ToolConf.lineMeasure.id);
   }
 
+  static updateLineDisplay(id) {
+    console.log("updating " + id);
+    var measure = d3.select('#MEASURE-' + id);
+
+    measure.selectAll('.' + LineMeasure.classes().selfSvgClass)
+      .attr('x1', d => d.x1)
+      .attr('y1', d => d.y1)
+      .attr('x2', d => d.x2)
+      .attr('y2', d => d.y2);
+
+    var text = measure.select('.' + LineMeasure.classes().selfTextSvgClass)
+      .attr('x', d => (d.x2 + d.x1) / 2)
+      .attr('y', d => (d.y2 + d.y1) / 2)
+      .text(d => LineMeasure.calculateMeasuredLength(d).toFixed(2) + '' + d.unit);
+
+    var width = text.node().getBBox().width;
+    var height = text.node().getBBox().height;
+
+    measure.select('.' + LineMeasure.classes().selfRectSvgClass)
+      .attr('x', d => (d.x2 + d.x1 - width - 10) / 2)
+      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2)
+      .attr('width', width + 10)
+      .attr('height', height + 10);
+
+    measure.select('.' + LineMeasure.classes().selfStartVertexClass)
+      .attr('x', d => d.x1-5)
+      .attr('y', d => d.y1-5);
+
+    measure.select('.' + LineMeasure.classes().selfEndVertexClass)
+      .attr('x', d => d.x2-5)
+      .attr('y', d => d.y2-5);
+  }
+
+  static stopEvent(d) {
+    if(d3.event.preventDefault) {
+      d3.event.preventDefault();
+    }
+    else {
+      d3.event.returnValue = false;
+    }
+
+    if(d3.event.stopPropagation) {
+      d3.event.stopPropagation();
+    }
+
+    return false;
+  }
+
+  static dragStartVertexDrag(d) {
+    d3.event.sourceEvent.preventDefault();
+    d3.event.sourceEvent.stopPropagation();
+    d.x1 = d3.event.dx + d.x1;
+    d.y1 = d3.event.dy + d.y1;
+    d3.select('#MEASURE-' + d.id).datum(d).selectAll('*').datum(d);
+    LineMeasure.updateLineDisplay(d.id);
+    return false;
+  }
+
+  static dragEndVertexDrag(d) {
+    d3.event.sourceEvent.preventDefault();
+    d3.event.sourceEvent.stopPropagation();
+    d.x2 = d3.event.dx + d.x2;
+    d.y2 = d3.event.dy + d.y2;
+    d3.select('#MEASURE-' + d.id).datum(d).selectAll('*').datum(d);
+    LineMeasure.updateLineDisplay(d.id);
+    return false;
+  }
+
   setLineEndPosition(self) {
     var coords = d3.mouse(this);
-    self.setState({end: {x: coords[0], y: coords[1]}});
-  }
-  
-  updateLengthDisplay() {
-    if(this.state.end) {
-      var len = this.calculateMeasuredLength(this.state.end.x, this.state.end.y);
 
-      var unit = "px";
-      if (this.state.mmPerPixel) {
-        len = len * this.state.mmPerPixel;
-        var unit = "mm";
-      }
+    var measure = d3.select('#MEASURE-' + self.state.uuid);
+    var lineData = measure.datum();
+    lineData.x2 = coords[0];
+    lineData.y2 = coords[1];
+    measure.datum(lineData);
+    measure.selectAll('*').datum(lineData);
 
-      d3.selectAll('.' + this.selfSvgClass)
-        .attr('x2', this.state.end.x)
-        .attr('y2', this.state.end.y);
-
-      var text = d3.select('.' + this.selfTextSvgClass)
-        .attr('x', (this.state.end.x + this.state.start.x) / 2)
-        .attr('y', (this.state.end.y + this.state.start.y) / 2)
-        .text(len.toFixed(2) + unit);
-
-      var width = text.node().getBBox().width;
-      var height = text.node().getBBox().height;
-
-      var rect = d3.select('.' + this.selfRectSvgClass)
-        .attr('x', (this.state.end.x + this.state.start.x - width - 10) / 2)
-        .attr('y', (this.state.end.y + this.state.start.y - height - 10) / 2)
-        .attr('width', text.node().getBBox().width + 10)
-        .attr('height', text.node().getBBox().height + 10);
-
-      ToolActions.updateTooltipData(len + unit);
-    }
+    LineMeasure.updateLineDisplay(lineData.id);
   }
 
   removeMouseMoveListener() {
     d3.select('.' + Classes.ROOT_CLASS).on("mousemove", null);
   }
 
-  calculateMeasuredLength(x, y) {
-    var yMax = Math.max(this.state.start.y, y);
-    var yMin = Math.min(this.state.start.y, y);
-    var xMax = Math.max(this.state.start.x, x);
-    var xMin = Math.min(this.state.start.x, x);
-    var len = Math.sqrt(Math.pow(yMax-yMin, 2) + Math.pow(xMax-xMin, 2));
-    return len;
+  static calculateMeasuredLength(d) {
+    var yMax = Math.max(d.y1, d.y2);
+    var yMin = Math.min(d.y1, d.y2);
+    var xMax = Math.max(d.x1, d.x2);
+    var xMin = Math.min(d.x1, d.x2);
+    if(d.mmPerPixel) {
+      return Math.sqrt(Math.pow(yMax - yMin, 2) + Math.pow(xMax - xMin, 2)) * d.mmPerPixel;
+    }
+    else {
+      return Math.sqrt(Math.pow(yMax - yMin, 2) + Math.pow(xMax - xMin, 2));
+    }
   }
 
   setScale(scale) {
+    if(scale) {
+      d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
+        console.log('setting scale for ' + JSON.stringify(d));
+        d.mmPerPixel = scale;
+        d.unit = 'mm';
+        LineMeasure.updateLineDisplay(d.id);
+      });
+    }
+    else {
+      d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
+        console.log('setting scale for ' + JSON.stringify(d));
+        d.mmPerPixel = null;
+        d.unit = 'px';
+        LineMeasure.updateLineDisplay(d.id);
+      });
+    }
     this.setState({mmPerPixel: scale});
   }
 
   componentDidMount() {
     ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
   }
-  
+
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.start && !this.state.end) {
-      this.toSVG();
-      var self = this;
-      d3.select('.' + Classes.ROOT_CLASS)
-      .on("mousemove", function(d, i) {
-        self.setLineEndPosition.call(this, self)});
-    }
-    else if(this.state.clicks == 1) {
-      this.updateLengthDisplay();
-    }
-    else if(this.state.clicks == 0) {
-      this.removeSVG();
-    }
-    if(prevState.mmPerPixel != this.state.mmPerPixel) {
-      this.updateLengthDisplay();
+    if(this.state.clicks != prevState.clicks) {
+      switch(this.state.clicks) {
+        case 0:
+          break;
+        case 1:
+          this.createActiveMeasure();
+          break;
+        case 2:
+          this.makeActiveMeasurePassive();
+          this.setState({uuid: null, clicks: 0, start: null, end: null});
+          break;
+        default:
+          console.error('Invalid click count');
+      }
     }
   }
-  
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.active) {
       this.buttonStyle.backgroundColor = 'rgba(200,200,200,1.0)';
@@ -254,12 +383,12 @@ class LineMeasure extends AbstractTool {
 
   render() {
     return (
-      <button 
-	style={this.buttonStyle} 
-	className='ui button compact' 
-	onClick={this.setMode} 
-	data-content="Mesurer une longueur sur l'image sélectionnée">
-      <img src={icon} style={this.iconStyle} height='20px' width='20px' />
+      <button
+        style={this.buttonStyle}
+        className='ui button compact'
+        onClick={this.setMode}
+        data-content="Mesurer une longueur sur l'image sélectionnée">
+        <img src={icon} style={this.iconStyle} height='20px' width='20px' />
       </button>
     );
   }

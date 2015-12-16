@@ -132,7 +132,7 @@ class EditorStore extends EventEmitter {
   runTool(x, y, misc) {
     if(this.activeTool) {
       if(this.activeTool.component) {
-        this.activeTool.component.call(this.activeTool.component, this.activeTool.component, x, y, misc);
+        this.activeTool.component.click.call(this.activeTool.component, this.activeTool.component, x, y, misc);
       }
     }
   }

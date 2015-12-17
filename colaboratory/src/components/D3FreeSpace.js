@@ -139,7 +139,7 @@ class D3FreeSpace {
         this.displayPointsOfInterest(id, metadataAboutId.pois);
       }
       if(metadataAboutId.rois) {
-
+        this.displayRegionsOfInterest(id, metadataAboutId.rois);
       }
       if(metadataAboutId.paths) {
         this.displayPaths(id, metadataAboutId.paths);
@@ -422,16 +422,48 @@ class D3FreeSpace {
     ;
   }
 
-  //changeSelection(d) {
-  //  //d3.event.stopPropagation();
-  //  // Update store
-  //  window.setTimeout((function(id) {
-  //    return function() {
-  //      console.log("selecting " + id);
-  //      ViewActions.changeSelection(id, d);
-  //    }
-  //  })(d.id), 10);
-  //}
+  displayRegionsOfInterest(id, regions) {
+    var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
+    annotationContainerGroup.selectAll("." + Classes.ROI_CONTAINER_CLASS).remove();
+
+    var roiContainerGroup = annotationContainerGroup.append('g')
+      .attr('class', Classes.ROI_CONTAINER_CLASS)
+      .attr('id', 'ROIS-' + id);
+
+    var roiContainerGroupEnter = roiContainerGroup.selectAll('.' + Classes.ROI_CLASS).data(regions);
+
+    var roiGroupEnter = roiContainerGroupEnter
+      .enter()
+    .append('polygon')
+    .attr('class', Classes.ROI_CLASS)
+    .attr('id', d => 'ROI-' + d.id)
+    .attr('points', d => d.vertices)
+      .attr('fill', 'blue')
+      .attr('fill-opacity', 0.3);
+
+    //for(var i = 0; i < regions.length; ++i) {
+    //  var roi = regions[i];
+    //  var roiGroup = annotationContainerGroup.append('g')
+    //    .attr('class', Classes.ROI_CONTAINER_CLASS)
+    //    .attr('id', 'GROUP-' + roi.id);
+    //
+    //  var points = "";
+    //  for(var j = 0; j < roi.vertices.length; ++j) {
+    //    var vertex = roi.vertices[j];
+    //    points = points + vertex[0] + "," + vertex[1] + " ";
+    //  }
+    //
+    //  var polygon = roiGroup.append('polygon')
+    //    .attr('id', 'ROI-' + roi.id)
+    //    .attr('points', points)
+    //    .attr('fill', 'blue')
+    //    .attr('fill-opacity', 0.3);
+    //
+    //  if(roi.text) {
+    //    // @TODO Append text to ROI, perhaps as onhover popup?
+    //  }
+    //}
+  }
 
 //findObjectsAtCoords(coordinates) {
 //  var objects = [];

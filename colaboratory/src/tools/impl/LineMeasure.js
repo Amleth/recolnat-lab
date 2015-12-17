@@ -140,6 +140,8 @@ class LineMeasure extends AbstractTool {
       .attr('height', 10)
       .attr('width', 10)
       .attr('fill', 'black')
+      .style('cursor', '-webkit-grab')
+      .style('cursor', 'grab')
       .on('click', LineMeasure.stopEvent)
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragStartVertex);
@@ -150,6 +152,8 @@ class LineMeasure extends AbstractTool {
       .attr('height', 10)
       .attr('width', 10)
       .attr('fill', 'black')
+      .style('cursor', '-webkit-grab')
+      .style('cursor', 'drag')
       .on('click', LineMeasure.stopEvent)
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragEndVertex);

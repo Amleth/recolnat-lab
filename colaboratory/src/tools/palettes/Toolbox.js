@@ -9,6 +9,7 @@ import MoveObject from "../impl/MoveObject.js";
 import SelectObject from '../impl/SelectObject.js';
 import MoveView from '../impl/MoveView';
 import CreatePath from '../impl/CreatePath';
+import CreateRoI from '../impl/CreateRoI';
 
 import Popup from "../../components/PopupToolComponent";
 
@@ -42,6 +43,7 @@ class Toolbox extends React.Component {
           <LineMeasure entitystore={this.props.entitystore} toolstore={this.props.toolstore} viewstore={this.props.viewstore}/>
           <CreatePointOfInterest entitystore={this.props.entitystore} viewstore={this.props.viewstore} />
           <CreatePath entitystore={this.props.entitystore} viewstore={this.props.viewstore} toolstore={this.props.toolstore} />
+          <CreateRoI entitystore={this.props.entitystore} viewstore={this.props.viewstore} toolstore={this.props.toolstore} />
         </div>
         <div>
           <Popup toolstore={this.props.toolstore}/>

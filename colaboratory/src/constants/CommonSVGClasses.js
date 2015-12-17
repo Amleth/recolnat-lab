@@ -33,9 +33,12 @@ export default {
   PATH_CONTAINER_CLASS: 'pathContainer',
   PATH_CLASS: 'path',
 
+  ROI_CONTAINER_CLASS: 'regionOfInterestContainer',
+  ROI_CLASS: 'regionOfInterest',
+
   // TODO check the following stuff to see if it useful
 
-  IMAGE_CONTAINER_CLASS: 'imageContainer',
-  ROI_CLASS: "regionOfInterestContainer"
+  IMAGE_CONTAINER_CLASS: 'imageContainer'
+
 
 };

@@ -50,7 +50,6 @@ class CreatePath extends AbstractTool {
    * INHERITED API
    */
   click(self, x, y, data) {
-    // TODO Recalculate x, y according to their position in the image
     if(!this.props.entitystore.getSelectedImage()) {
       window.setTimeout(function() {
           ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de chemins.");},
@@ -291,6 +290,8 @@ class CreatePath extends AbstractTool {
         circle.datum({x: edge.start.x, y: edge.start.y})
           .attr("x", function(d) {return d.x;})
           .attr("y", function(d) {return d.y;})
+          .style('cursor', '-webkit-grab')
+          .style('cursor', 'grab')
           .call(this.drag);
       }
     }
@@ -440,7 +441,6 @@ class CreatePath extends AbstractTool {
   }
 
   setLineEndPosition(self) {
-    console.log("set line end position");
     var coords = d3.mouse(this);
     d3.select('.' + self.activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
   }

@@ -13,6 +13,8 @@ import Classes from '../../constants/CommonSVGClasses';
 
 import ToolActions from '../../actions/ToolActions';
 
+import Popup from '../popups/CreateRoIPopup';
+
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
@@ -53,7 +55,8 @@ class CreateRoI extends AbstractTool {
       edges: [],
       start: null,
       interactionState: 0,
-      active: false
+      active: false,
+      name: ''
     };
   }
 
@@ -153,14 +156,14 @@ class CreateRoI extends AbstractTool {
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
     }, 50);
-    this.setState({edges: [], start: null, interactionState: 0, active: true});
+    this.setState({edges: [], start: null, interactionState: 0, active: true, name: ''});
   }
 
   reset() {
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
     }, 10);
-    this.setState({edges: [], start: null, interactionState: 0});
+    this.setState({edges: [], start: null, interactionState: 0, name: ''});
   }
 
   finish() {
@@ -180,11 +183,16 @@ class CreateRoI extends AbstractTool {
       alert("Sauvegarde impossible: le polygone n'est pas terminé.");
       return null;
     }
+    if(this.state.name.length < 1) {
+      alert('Le nom est obligatoire');
+      return null;
+    }
     // Create polygon or polyline representation of this area..
     var data = {};
     data.serviceUrl = conf.actions.imageEditorServiceActions.createPolygon;
     data.payload = {};
     data.payload.polygon = [];
+    data.payload.name = this.state.name;
     data.payload.perimeter = 0;
     var x = null;
     var y = null;
@@ -414,6 +422,10 @@ class CreateRoI extends AbstractTool {
     this.setState({edges: edges});
   }
 
+  setData(name) {
+    this.setState({name: name});
+  }
+
   setLineEndPosition(self) {
     var coords = d3.mouse(this);
     d3.select('.' + CreateRoI.classes().activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
@@ -468,18 +480,27 @@ class CreateRoI extends AbstractTool {
     this.clearSVG();
     this.dataToSVG();
 
-    if(this.state.interactionState == 1) {
-      d3.select('.' + Classes.ROOT_CLASS)
-        .on('mouseover', CreateRoI.activateEnter)
-        .on('mouseout', CreateRoI.deactivateEnter);
+    if(this.state.active && !prevState.active) {
+      var popup = <Popup setDataCallback={this.setData.bind(this)}
+      />;
 
       window.setTimeout(function() {
-        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour créer un nouveau point en son milieu. Appuyez sur ENTREE pour sauvegarder la forme finale de la nouvelle zone.");}, 50);
+          ToolActions.activeToolPopupUpdate(popup);},
+        100);
+    }
+
+    if(this.state.interactionState == 1) {
+      d3.select('.' + Classes.ROOT_CLASS)
+        .on('mouseenter', CreateRoI.activateEnter)
+        .on('mouseleave', CreateRoI.deactivateEnter);
+
+      window.setTimeout(function() {
+        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour créer un nouveau point en son milieu.");}, 50);
     }
     else if(prevState.interactionState == 1 && this.state.interactionState != 1) {
       d3.select('.' + Classes.ROOT_CLASS)
-        .on('mouseover', null)
-        .on('mouseout', null);
+        .on('mouseenter', null)
+        .on('mouseleave', null);
     }
 
   }

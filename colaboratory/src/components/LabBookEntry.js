@@ -88,7 +88,7 @@ class LabBookEntry extends React.Component {
     }
     else if(props.action.action == "Measurement") {
       actionPre = "mesuré";
-      actionPost = "sur";
+      //actionPost = "sur";
     }
     else if(props.action.action == "Message") {
       actionPre = "ajouté le message";

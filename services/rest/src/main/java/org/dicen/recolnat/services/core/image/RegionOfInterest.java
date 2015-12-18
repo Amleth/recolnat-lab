@@ -25,6 +25,7 @@ public class RegionOfInterest {
 
   private List<List<Integer>> vertices = new ArrayList<List<Integer>>();
   private String id;
+  private String name = null;
   private List<Annotation> linkedAnnotations = new ArrayList<Annotation>();
 
   public RegionOfInterest(OrientVertex vRoi, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
@@ -34,6 +35,7 @@ public class RegionOfInterest {
 
     this.vertices = vRoi.getProperty(DataModel.Properties.vertices);
     this.id = vRoi.getProperty(DataModel.Properties.id);
+    this.name = vRoi.getProperty(DataModel.Properties.name);
     Iterator<Vertex> itAnnot = vRoi.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
     while (itAnnot.hasNext()) {
       try {
@@ -48,6 +50,9 @@ public class RegionOfInterest {
     JSONObject ret = new JSONObject();
     ret.put("vertices", this.vertices);
     ret.put("id", this.id);
+    if(this.name != null) {
+      ret.put("name", this.name);
+    }
 
     JSONArray jAnnot = new JSONArray();
     Iterator<Annotation> itAnnot = linkedAnnotations.iterator();

@@ -25,6 +25,7 @@ import org.dicen.recolnat.services.core.Globals;
 public class Path {
   private String id;
   private Long date;
+  private String name = null;
 //  private Integer length;
   private List<List<Integer>> vertices = new ArrayList<List<Integer>>();
   private List<Annotation> linkedAnnotations = new ArrayList<Annotation>();
@@ -37,6 +38,7 @@ public class Path {
     this.vertices = vPath.getProperty(DataModel.Properties.vertices);
     this.id = vPath.getProperty(DataModel.Properties.id);
     this.date = vPath.getProperty(DataModel.Properties.creationDate);
+    this.name = vPath.getProperty(DataModel.Properties.name);
 //    this.length = vPath.getProperty(DataModel.Properties.length);
 
     Iterator<Vertex> itAnnot = vPath.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
@@ -56,6 +58,9 @@ public class Path {
     ret.put(Globals.ExchangeModel.ObjectProperties.creationDate, this.date);
 //    ret.put(Globals.ExchangeModel.ObjectProperties.length, this.length);
     ret.put(Globals.ExchangeModel.ObjectProperties.vertices, this.vertices);
+    if(this.name != null) {
+      ret.put(Globals.ExchangeModel.ObjectProperties.name, this.name);
+    }
 
     JSONArray jAnnot = new JSONArray();
     Iterator<Annotation> itAnnot = linkedAnnotations.iterator();

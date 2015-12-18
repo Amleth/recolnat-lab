@@ -19,6 +19,7 @@ public class Globals {
       public static final String type = "type";
       public static final String creationDate = "date";
       public static final String text = "text";
+      public static final String name = "name";
       public static final String creator = "creator";
       public static final String x = "x";
       public static final String y = "y";

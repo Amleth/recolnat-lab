@@ -94,6 +94,7 @@ public class ImageEditorRESTResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String parent = params.getString("parent");
+    String name = params.getString("name");
     JSONObject message = params.getJSONObject("payload");
     Double area = message.getDouble("area");
     Double perimeter = message.getDouble("perimeter");
@@ -124,6 +125,7 @@ public class ImageEditorRESTResource {
         
         // Create region of interest
         OrientVertex vROI = CreatorUtils.createRegionOfInterest(polygon, g);
+        vROI.setProperty(DataModel.Properties.name, name);
         roiId = vROI.getProperty(DataModel.Properties.id);
         
         // Link region to creator
@@ -380,6 +382,7 @@ public class ImageEditorRESTResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String parent = params.getString("parent");
+    String name = params.getString("name");
     JSONObject message = params.getJSONObject("payload");
     Double length = message.getDouble("length");
     List<List<Integer>> path = new ArrayList<List<Integer>>();
@@ -409,6 +412,7 @@ public class ImageEditorRESTResource {
         
         // Create path
         OrientVertex vPath = CreatorUtils.createPath(path, length, g);
+        vPath.setProperty(DataModel.Properties.name, name);
         
         // Link user to path as creator
         UpdateUtils.addCreator(vPath, vUser, g);

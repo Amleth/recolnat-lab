@@ -53,6 +53,7 @@ class FreeSpace extends React.Component {
         height: '100%'
       }
     );
+    d3Component.setDataStore(this.props.entitystore);
     this.props.viewstore.addFitViewListener(this._onFitView);
     this.props.viewstore.addViewportListener(this._onViewportUpdate);
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);

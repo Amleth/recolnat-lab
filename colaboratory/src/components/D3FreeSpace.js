@@ -32,6 +32,7 @@ class D3FreeSpace {
     this.view.x = 0;
     this.view.y = 0;
     this.view.scale = 1.0;
+    this.store = null;
 
     this.workbench = null;
     this.displayData = {
@@ -69,6 +70,10 @@ class D3FreeSpace {
   clearDisplay() {
     d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
+  }
+  
+  setDataStore(store) {
+    this.store = store;
   }
 
   newWorkbench(childEntities, workbench) {
@@ -442,44 +447,67 @@ class D3FreeSpace {
       .attr('fill-opacity', 0.3);
   }
 
-//findObjectsAtCoords(coordinates) {
-//  var objects = [];
-//  // TODO grab that data from a store instead
-//  for (var i = 0; i < this.entityData.rois.length; ++i) {
-//    var polygon = this.entityData.rois[i];
-//    if (inPolygon(coordinates, polygon.vertices)) {
-//      if(objects.indexOf({id: polygon.id, type: "polygon"}) < 0) {
-//        objects.push({id: polygon.id, type: "polygon"});
-//      }
-//    }
-//  }
-//
-//  for (var j = 0; j < this.entityData.paths.length; ++j) {
-//    var path = this.entityData.paths[j];
-//    for(var k = 0; k < path.vertices.length-1; ++k) {
-//      var lineStart = path.vertices[k];
-//      var lineEnd = path.vertices[k+1];
-//      var d = kmath.point.distanceToLine(coordinates, [lineStart, lineEnd]);
-//      if(d < 5) {
-//        if(objects.indexOf({id: path.id, type: "path"}) < 0) {
-//          objects.push({id: path.id, type: "path"});
-//        }
-//        break;
-//      }
-//    }
-//  }
-//
-//  for (var k = 0; k < this.entityData.pois.length; ++k) {
-//    var poi = this.entityData.pois[k];
-//    if(kmath.point.equal(coordinates, [poi.x, poi.y], 13)) {
-//      if(objects.indexOf({id: poi.id, type: "point"}) < 0) {
-//        objects.push({id: poi.id, type: "point"});
-//      }
-//    }
-//  }
-//
-//  return objects;
-//}
+findObjectsAtCoords(coordinates) {
+ var objects = [];
+ if(!this.store) {
+   // Component not even mounted yet
+   return objects;
+ }
+ var store = this.store;
+ console.log("metadata=" + JSON.stringify(metadata));
+ 
+ // Find images, use images to narrow search
+ var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
+ groups.each(function(d, i) {
+   var box = this.getBBox();
+   if(coordinates[0] > box.left && coordinates[0] < box.right && coordinates[1] < box.top && coordinates[1] > box.bottom) {
+     objects.push({id: d.id, type: "sheet"});
+     // Process objects in sheet
+     var metadata = store.getEntityMetadata(d.id);
+     
+     // Find polygons
+ for (var i = 0; i < metadata.rois.length; ++i) {
+   var polygon = metadata.rois[i];
+   if (inPolygon(coordinates, polygon.vertices)) {
+     if(objects.indexOf({id: polygon.id, type: "polygon"}) < 0) {
+       objects.push({id: polygon.id, type: "polygon"});
+     }
+   }
+ }
+
+ // Find paths
+ for (var j = 0; j < metadata.paths.length; ++j) {
+   var path = metadata.paths[j];
+   for(var k = 0; k < path.vertices.length-1; ++k) {
+     var lineStart = path.vertices[k];
+     var lineEnd = path.vertices[k+1];
+     var d = kmath.point.distanceToLine(coordinates, [lineStart, lineEnd]);
+     if(d < 5) {
+       if(objects.indexOf({id: path.id, type: "path"}) < 0) {
+         objects.push({id: path.id, type: "path"});
+       }
+       break;
+     }
+   }
+ }
+
+ // Find points
+ for (var k = 0; k < metadata.pois.length; ++k) {
+   var poi = metadata.pois[k];
+   if(kmath.point.equal(coordinates, [poi.x, poi.y], 13)) {
+     if(objects.indexOf({id: poi.id, type: "point"}) < 0) {
+       objects.push({id: poi.id, type: "point"});
+     }
+   }
+ }
+   }
+ }
+);
+ 
+ 
+
+ return objects;
+}
 
   leftClick(d, i) {
     if(d3.event.defaultPrevented) {
@@ -499,9 +527,10 @@ class D3FreeSpace {
       });
   }
 
-  contextMenu(d, i) {
+  contextMenu(self) {
     d3.event.preventDefault();
-
+    var coords = d3.mouse(this);
+    var objectAtEvent = self.
   }
 
 }

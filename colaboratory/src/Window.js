@@ -14,6 +14,7 @@ import MinimapStore from './stores/MinimapStore';
 import ViewStore from './stores/ViewStore';
 import ToolStore from './stores/ToolStore';
 import UserStore from './stores/UserStore';
+import MenuStore from './stores/MenuStore';
 
 import API from './utils/API.js';
 
@@ -24,6 +25,7 @@ const viewstore = new ViewStore();
 const entitystore = new EntityStore();
 const toolstore = new ToolStore();
 const userstore = new UserStore();
+const menustore = new MenuStore();
 const api = new API();
 
 class Window extends React.Component {
@@ -171,6 +173,8 @@ class Window extends React.Component {
   componentDidMount() {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
+    viewstore.setViewportData(null, null, window.innerWidth-500, window.innerHeight -35, null);
+    viewstore.setViewportLocationInWindow(35, 200);
     window.addEventListener('resize', this.setState.bind(this));
   }
 
@@ -204,6 +208,9 @@ class Window extends React.Component {
     this.columnLeftSideStyle.height = (window.innerHeight - 35) + 'px';
     this.columnRightSideStyle.height = (window.innerHeight - 35) + 'px';
     this.columnMiddleStyle.height = (window.innerHeight - 35) + 'px';
+
+    viewstore.setViewportData(null, null, width, window.innerHeight -35, null);
+    viewstore.setViewportLocationInWindow(35, left);
   }
 
   componentWillUnmount() {
@@ -235,7 +242,14 @@ class Window extends React.Component {
           </div>
           <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
           <div style={this.columnMiddleStyle}>
-            <VirtualWorkbench userstore={userstore} viewstore={viewstore} entitystore={entitystore} toolstore={toolstore} wsconnector={api} />
+            <VirtualWorkbench
+              userstore={userstore}
+              viewstore={viewstore}
+              entitystore={entitystore}
+              toolstore={toolstore}
+              menustore={menustore}
+              ministore={ministore}
+              wsconnector={api} />
           </div>
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>

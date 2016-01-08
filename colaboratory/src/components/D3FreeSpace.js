@@ -6,8 +6,10 @@ import d3 from 'd3';
 import ViewActions from '../actions/ViewActions.js';
 import MinimapActions from "../actions/MinimapActions.js";
 import ToolActions from "../actions/ToolActions.js";
+import MenuActions from '../actions/MenuActions';
 
 import Classes from '../constants/CommonSVGClasses';
+import TypeConstants from '../constants/TypeConstants';
 
 import ShapesConf from "../conf/shapes";
 
@@ -71,7 +73,7 @@ class D3FreeSpace {
     d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
   }
-  
+
   setDataStore(store) {
     this.store = store;
   }
@@ -447,67 +449,69 @@ class D3FreeSpace {
       .attr('fill-opacity', 0.3);
   }
 
-findObjectsAtCoords(coordinates) {
- var objects = [];
- if(!this.store) {
-   // Component not even mounted yet
-   return objects;
- }
- var store = this.store;
- console.log("metadata=" + JSON.stringify(metadata));
- 
- // Find images, use images to narrow search
- var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
- groups.each(function(d, i) {
-   var box = this.getBBox();
-   if(coordinates[0] > box.left && coordinates[0] < box.right && coordinates[1] < box.top && coordinates[1] > box.bottom) {
-     objects.push({id: d.id, type: "sheet"});
-     // Process objects in sheet
-     var metadata = store.getEntityMetadata(d.id);
-     
-     // Find polygons
- for (var i = 0; i < metadata.rois.length; ++i) {
-   var polygon = metadata.rois[i];
-   if (inPolygon(coordinates, polygon.vertices)) {
-     if(objects.indexOf({id: polygon.id, type: "polygon"}) < 0) {
-       objects.push({id: polygon.id, type: "polygon"});
-     }
-   }
- }
+  findObjectsAtCoords(coordinates) {
+    var objects = [];
+    if(!this.store) {
+      // Component not even mounted yet
+      console.error("Visualisation component not mounted");
+      return objects;
+    }
+    var store = this.store;
 
- // Find paths
- for (var j = 0; j < metadata.paths.length; ++j) {
-   var path = metadata.paths[j];
-   for(var k = 0; k < path.vertices.length-1; ++k) {
-     var lineStart = path.vertices[k];
-     var lineEnd = path.vertices[k+1];
-     var d = kmath.point.distanceToLine(coordinates, [lineStart, lineEnd]);
-     if(d < 5) {
-       if(objects.indexOf({id: path.id, type: "path"}) < 0) {
-         objects.push({id: path.id, type: "path"});
-       }
-       break;
-     }
-   }
- }
+    // Find images, use images to narrow search
+    var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
+    groups.each(
+      function(d, i) {
+        var box = d3.select('#GROUP-' + d.id).node().getBoundingClientRect();
 
- // Find points
- for (var k = 0; k < metadata.pois.length; ++k) {
-   var poi = metadata.pois[k];
-   if(kmath.point.equal(coordinates, [poi.x, poi.y], 13)) {
-     if(objects.indexOf({id: poi.id, type: "point"}) < 0) {
-       objects.push({id: poi.id, type: "point"});
-     }
-   }
- }
-   }
- }
-);
- 
- 
+        if(D3FreeSpace.coordsInBoundingBox(coordinates, box)) {
+          objects.push({id: d.id, type: TypeConstants.sheet});
+          // Process objects in sheet
+          var metadata = store.getEntityMetadata(d.id);
+          // Find polygons
+          for (var m = 0; m < metadata.rois.length; ++m) {
+            var polygon = metadata.rois[m];
+            var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
+            if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
+              if(objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
+                objects.push({id: polygon.id, type: TypeConstants.region});
+              }
+            }
+          }
 
- return objects;
-}
+          // Find paths
+          for (var j = 0; j < metadata.paths.length; ++j) {
+            var path = metadata.paths[j];
+            var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
+            if(D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
+              if(objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
+                objects.push({id: path.id, type: TypeConstants.path});
+              }
+            }
+          }
+
+          // Find points
+          for (var n = 0; n < metadata.pois.length; ++n) {
+            var poi = metadata.pois[n];
+            var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
+            if(D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
+              if(objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
+                objects.push({id: poi.id, type: TypeConstants.point});
+              }
+            }
+          }
+        }
+      }
+    );
+    return objects;
+  }
+
+  static coordsInBoundingBox(coordinates, box) {
+    return coordinates[0] > box.left &&
+      coordinates[0] < box.right &&
+      coordinates[1] > box.top &&
+      coordinates[1] < box.bottom;
+  }
 
   leftClick(d, i) {
     if(d3.event.defaultPrevented) {
@@ -530,7 +534,9 @@ findObjectsAtCoords(coordinates) {
   contextMenu(self) {
     d3.event.preventDefault();
     var coords = d3.mouse(this);
-    var objectAtEvent = self.
+    var objectsAtEvent = self.findObjectsAtCoords([d3.event.clientX, d3.event.clientY]);
+    console.log(JSON.stringify(objectsAtEvent));
+    MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, objectsAtEvent);
   }
 
 }

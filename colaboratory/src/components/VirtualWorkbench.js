@@ -7,13 +7,11 @@ import React from 'react';
 
 import WorkbenchFreeSpace from './FreeSpace';
 
-
+import ContextMenu from './context-menu/ContextMenu';
 import Tooltip from "./ActiveToolTooltip";
 
 import ViewActions from "../actions/ViewActions";
 import ToolActions from '../actions/ToolActions';
-
-
 
 class VirtualWorkbench extends React.Component {
 
@@ -68,6 +66,13 @@ class VirtualWorkbench extends React.Component {
     return(
       <div style={this.componentContainerStyle}>
         <Tooltip />
+        <ContextMenu
+          menustore={this.props.menustore}
+          ministore={this.props.ministore}
+          viewstore={this.props.viewstore}
+          toolstore={this.props.toolstore}
+          entitystore={this.props.entitystore}
+        />
         <WorkbenchFreeSpace width="100%" height="100%"
                             childEntities={this.state.workbenchEntities}
                             workbench={this.state.workbench}

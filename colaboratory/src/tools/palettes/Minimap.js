@@ -45,7 +45,7 @@ class Minimap extends React.Component {
       flexDirection: "row",
       flexWrap: 'wrap'
     };
-    
+
     this.buttonStyle = {
       fontFamily: 'Roboto Condensed',
       fontWeight: '300'
@@ -265,21 +265,19 @@ class Minimap extends React.Component {
 
   resetZoom() {
     var view = this.props.viewstore.getView();
+    if(view.scale == 1.0) {
+      return;
+    }
     console.log(JSON.stringify(view));
     ViewActions.updateViewport(
-        (view.left-view.width/2)/view.scale,
-        (view.top-view.height/2)/view.scale,
-        null,
-        null,
-        1.0
-      );
-    
-//     ViewActions.updateViewport(
-//       (this.state.view.left - this.state.view.width/2)/this.state.view.scale,
-//       (this.state.view.top - this.state.view.height/2)/this.state.view.scale,
-//       null, null, 1.0);
+      (view.left-view.width/2)/view.scale,
+      (view.top-view.height/2)/view.scale,
+      null,
+      null,
+      1.0
+    );
   }
-  
+
   displayAllElementsInView() {
     ViewActions.fitView();
   }
@@ -302,37 +300,37 @@ class Minimap extends React.Component {
             ref="image"/>
           <div style={this.boundingBoxStyle} />
         </div>
-        
+
         <div className='ui fluid buttons'>
-        <button className='ui button small compact'
+          <button className='ui button small compact'
                   onMouseDown={this.zoomOut.bind(this)}
                   onMouseUp={this.endZoom.bind(this)}
                   onMouseOut={this.endZoom.bind(this)}><i className='ui large zoom out icon' /></button>
-        <button style={this.buttonStyle} 
-	  className='ui button small compact' 
-	  disabled='disabled'>{(this.state.view.zoom*100).toFixed(0)}%</button>
-        <button className='ui button small compact'
+          <button style={this.buttonStyle}
+                  className='ui button small compact'
+                  disabled='disabled'>{(this.state.view.zoom*100).toFixed(0)}%</button>
+          <button className='ui button small compact'
                   onMouseDown={this.zoomIn.bind(this)}
                   onMouseUp={this.endZoom.bind(this)}
                   onMouseOut={this.endZoom.bind(this)}><i className='ui large zoom icon' /></button>
         </div>
-        
+
         <div className='ui fluid buttons'>
-	  <AbstractTool />
+          <AbstractTool />
           <MoveObject />
           <SelectObject />
         </div>
-        
+
         <div className='ui fluid buttons'>
-          <button style={this.buttonStyle} 
-          className='ui button small compact' 
-	  onClick={this.displayAllElementsInView.bind(this)}
-	  data-content='Afficher toutes les images'>Tout</button>
+          <button style={this.buttonStyle}
+                  className='ui button small compact'
+                  onClick={this.displayAllElementsInView.bind(this)}
+                  data-content='Afficher toutes les images'>Tout</button>
           <button className='ui button small compact' data-content="Voir l'image à l'échelle 1:1"
-	  style={this.buttonStyle} 
+                  style={this.buttonStyle}
                   onClick={this.resetZoom.bind(this)}>1:1</button>
-          <button style={this.buttonStyle} 
-	    className='ui button small compact'
+          <button style={this.buttonStyle}
+                  className='ui button small compact'
                   data-content="Afficher l'image active en entier"
                   onClick={this.fitViewToImage.bind(this)}>Planche</button>
         </div>

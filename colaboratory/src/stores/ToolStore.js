@@ -118,7 +118,10 @@ class EditorStore extends EventEmitter {
   }
 
   getToolName() {
-    return this.activeTool.name;
+    if(this.activeTool) {
+      return this.activeTool.name;
+    }
+    else return null;
   }
 
   setActiveToolPopup(popup) {
@@ -149,29 +152,33 @@ class EditorStore extends EventEmitter {
       if(this.activeTool.component.canSave()) {
         var saveData = this.activeTool.component.save();
         if(saveData) {
-          console.log("Saving data about image " + this.imageId + " " + JSON.stringify(saveData));
-          request.post(saveData.serviceUrl)
-            .set("Content-Type", "application/json")
-            .send({parent: this.imageId})
-            .send({payload: saveData.payload})
-            .withCredentials()
-            .end((err, res) => {
-              if (err) {
-                console.log(err);
-                alert("Impossible de sauvegarder les changements");
-              }
-              else {
-                ViewActions.updateMetadata(this.imageId);
-                //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
-                this.resetActiveTool();
-              }
-            });
+          this.sendData(saveData, this.resetActiveTool.bind(this));
         }
         else {
           console.log("No data to save");
         }
       }
     }
+  }
+
+  sendData(data, onSuccessCallback) {
+    console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
+    request.post(data.serviceUrl)
+      .set("Content-Type", "application/json")
+      .send({parent: this.imageId})
+      .send({payload: data.payload})
+      .withCredentials()
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+          alert("Impossible de sauvegarder les changements");
+        }
+        else {
+          ViewActions.updateMetadata(this.imageId);
+          //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
+          onSuccessCallback();
+        }
+      });
   }
 
   register(name, onClickAction, component) {

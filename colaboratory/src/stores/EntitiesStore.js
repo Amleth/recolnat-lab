@@ -45,10 +45,10 @@ class EntitiesStore extends EventEmitter {
           console.log("Storing entities " + JSON.stringify(action.entities));
           this.setAll(action.entities);
           this.downloadAllMetadataFromServer();
-	  window.setTimeout(function() {
-	  ViewActions.changeSelection(action.entities[0].id, action.entities[0]);
-	  }, 100);
-	    
+          window.setTimeout(function() {
+            ViewActions.changeSelection(action.entities[0].id, action.entities[0]);
+          }, 100);
+
           this.emit(EntitiesEvents.CHANGE_DISPLAYED_ENTITIES);
           this.emit(EntitiesEvents.METADATA_UPDATE);
           break;
@@ -79,11 +79,11 @@ class EntitiesStore extends EventEmitter {
   }
 
   create(id, x, y) {
-      this.items[id] = {
-        id: id,
-        x: x,
-        y: y
-      };
+    this.items[id] = {
+      id: id,
+      x: x,
+      y: y
+    };
 
   }
 
@@ -136,6 +136,42 @@ class EntitiesStore extends EventEmitter {
     return _.values(this.metadata);
   }
 
+  getMetadataAbout(id) {
+    if(this.items[id]) {
+      return this.items[id];
+    }
+
+    var allObjectsMetadata = this.getAllMetadata();
+    for(var i = 0; i < allObjectsMetadata.length; ++i) {
+      var objectMetadata = allObjectsMetadata[i];
+      console.log(JSON.stringify(objectMetadata));
+      if(objectMetadata.pois) {
+        for(var j = 0; j < objectMetadata.pois.length; ++j) {
+          var poi = objectMetadata.pois[j];
+          if(poi.id == id) {
+            return poi;
+          }
+        }
+      }
+      if(objectMetadata.rois) {
+        for(var j = 0; j < objectMetadata.rois.length; ++j) {
+          var roi = objectMetadata.rois[j];
+          if(roi.id == id) {
+            return roi;
+          }
+        }
+      }
+      if(objectMetadata.paths) {
+        for(var j = 0; j < objectMetadata.paths.length; ++j) {
+          var path = objectMetadata.paths[j];
+          if(path.id == id) {
+            return path;
+          }
+        }
+      }
+    }
+  }
+
   getSelectedMetadata() {
     return this.metadata[this.selection.id];
   }
@@ -146,7 +182,14 @@ class EntitiesStore extends EventEmitter {
 
   getSelectedImage() {
     if(this.selection) {
-    return this.items[this.selection.id];
+      return this.items[this.selection.id];
+    }
+    return null;
+  }
+
+  getSelectedImageId() {
+    if(this.selection) {
+      return this.selection.id;
     }
     return null;
   }
@@ -164,6 +207,26 @@ class EntitiesStore extends EventEmitter {
         .send({id: items[i].id})
         .withCredentials()
         .end((err, res) => {
+            if(err) {
+              console.error("Could not get data about object " + err);
+            }
+            else {
+              var metadata = JSON.parse(res.text);
+              //console.log(JSON.stringify(metadata));
+              this.metadata[metadata.id] = metadata;
+              this.emit(EntitiesEvents.METADATA_UPDATE);
+            }
+          }
+
+        )
+    }
+  }
+
+  downloadEntityMetadataFromServer(id) {
+    request.post(conf.actions.imageEditorServiceActions.getImageData)
+      .send({id: id})
+      .withCredentials()
+      .end((err, res) => {
           if(err) {
             console.error("Could not get data about object " + err);
           }
@@ -174,27 +237,7 @@ class EntitiesStore extends EventEmitter {
             this.emit(EntitiesEvents.METADATA_UPDATE);
           }
         }
-
-      )
-    }
-  }
-
-  downloadEntityMetadataFromServer(id) {
-    request.post(conf.actions.imageEditorServiceActions.getImageData)
-      .send({id: id})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error("Could not get data about object " + err);
-        }
-        else {
-          var metadata = JSON.parse(res.text);
-          //console.log(JSON.stringify(metadata));
-          this.metadata[metadata.id] = metadata;
-          this.emit(EntitiesEvents.METADATA_UPDATE);
-        }
-      }
-    );
+      );
   }
 
   select(id, data) {

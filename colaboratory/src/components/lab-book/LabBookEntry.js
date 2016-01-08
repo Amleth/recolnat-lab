@@ -7,7 +7,7 @@ import React from 'react';
 import TimeAgo from 'react-timeago';
 import request from 'superagent';
 
-import conf from '../conf/ApplicationConfiguration';
+import conf from '../../conf/ApplicationConfiguration';
 
 class LabBookEntry extends React.Component {
   constructor(props) {
@@ -213,7 +213,6 @@ class LabBookEntry extends React.Component {
 
   componentDidUpdate() {
     $('.metadata', $(this.refs.self.getDOMNode())).popup();
-    //$('#' + this.refs.metadata.id).popup();
   }
 
   toFrString(value, unit, suffix, date) {

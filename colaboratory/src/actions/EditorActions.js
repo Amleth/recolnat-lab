@@ -25,14 +25,5 @@ export default {
       actionType: EditorConstants.ActionTypes.EDITOR_READY,
       ready: state
     });
-  },
-
-  displayContextMenu: (x, y, elements) => {
-    AppDispatcher.dispatch({
-      actionType: EditorConstants.ActionTypes.EDITOR_CONTEXT_MENU,
-      x: x,
-      y: y,
-      items: elements
-    });
   }
 };

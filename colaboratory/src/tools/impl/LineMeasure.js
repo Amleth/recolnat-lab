@@ -10,10 +10,13 @@ import Popup from "../popups/LineMeasurePopup";
 import AbstractTool from "../AbstractTool";
 
 import ToolActions from "../../actions/ToolActions";
+import ViewActions from '../../actions/ViewActions';
 
 import ToolConf from "../../conf/Tools-conf";
+import conf from '../../conf/ApplicationConfiguration';
 
 import icon from '../../images/measure.svg';
+import saveIcon from '../../images/save.png';
 
 /**
  * A tool registers itself with the ToolStore, providing its name and a callback function.
@@ -56,7 +59,8 @@ class LineMeasure extends AbstractTool {
       selfRectSvgClass: "LINE_MEASURE_RECT_TOOL_CLASS",
       selfTextSvgClass: "LINE_MEASURE_TEXT_TOOL_CLASS",
       selfStartVertexClass: "LINE_MEASURE_RECT_START_CLASS",
-      selfEndVertexClass: "LINE_MEASURE_RECT_END_CLASS"
+      selfEndVertexClass: "LINE_MEASURE_RECT_END_CLASS",
+      selfSaveClass: 'LINE_MEASURE_SAVE_CLASS'
     };
   }
 
@@ -129,6 +133,7 @@ class LineMeasure extends AbstractTool {
   makeActiveMeasurePassive() {
     // Grab active measure
     var activeToolGroup = d3.select('#MEASURE-' + this.state.uuid);
+    var self = this;
     var lineData = activeToolGroup.datum();
     // Remove mousemove listener
     d3.select('.' + Classes.ROOT_CLASS)
@@ -157,6 +162,15 @@ class LineMeasure extends AbstractTool {
       .on('click', LineMeasure.stopEvent)
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragEndVertex);
+
+    activeToolGroup.append('svg:image')
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfSaveClass)
+      .attr('xlink:href', saveIcon)
+      .attr('height', 30)
+      .attr('width', 30)
+      .style('cursor', 'default')
+      .on('click', function(d) { return self.save.call(self, d); });
 
     LineMeasure.updateLineDisplay(this.state.uuid);
     // Add icon to 'save measure to server'
@@ -232,6 +246,37 @@ class LineMeasure extends AbstractTool {
     ToolActions.setTool(ToolConf.lineMeasure.id);
   }
 
+  save(d) {
+    var name = prompt('Veuillez indiquer un nom pour cette mesure', '');
+    if(name.length < 1) {
+      alert('Le nom est obligatoire');
+      return;
+    }
+
+    var imageId = this.props.entitystore.getSelectedImageId();
+    var x1 = d.x1- this.props.entitystore.getSelectedImage().x;
+    var y1 = d.y1 - this.props.entitystore.getSelectedImage().y;
+    var x2 = d.x2 - this.props.entitystore.getSelectedImage().x;
+    var y2 = d.y2 - this.props.entitystore.getSelectedImage().y;
+
+    var data = {};
+    data.serviceUrl = conf.actions.imageEditorServiceActions.createPath;
+    data.payload = {};
+    data.payload.path = [];
+    data.payload.name = name;
+
+    data.payload.path.push([x1, y1]);
+    data.payload.path.push([x2, y2]);
+
+    data.payload.length = Math.sqrt(Math.pow(Math.abs(y2) - Math.abs(y1), 2) + Math.pow(Math.abs(x2) - Math.abs(x1), 2));
+
+
+
+    this.props.toolstore.sendData(data, ViewActions.updateMetadata.bind(null, imageId));
+
+    LineMeasure.stopEvent(d);
+  }
+
   static updateLineDisplay(id) {
     console.log("updating " + id);
     var measure = d3.select('#MEASURE-' + id);
@@ -263,6 +308,10 @@ class LineMeasure extends AbstractTool {
     measure.select('.' + LineMeasure.classes().selfEndVertexClass)
       .attr('x', d => d.x2-5)
       .attr('y', d => d.y2-5);
+
+    measure.select('.' + LineMeasure.classes().selfSaveClass)
+      .attr('x', d => (d.x2 + d.x1 - width - 10) / 2 + width/2)
+      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2 +30);
   }
 
   static stopEvent(d) {

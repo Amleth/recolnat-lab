@@ -6,9 +6,9 @@
 import React from 'react';
 
 import MetadataViewer from './MetadataViewer';
-import UserLabBook from './UserLabBook';
-import SheetLabBook from './SheetLabBook';
-import GroupLabBook from './GroupLabBook';
+import UserLabBook from './lab-book/UserLabBook';
+import SheetLabBook from './lab-book/SheetLabBook';
+import GroupLabBook from './lab-book/GroupLabBook';
 
 class RightPane extends React.Component {
 

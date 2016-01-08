@@ -125,12 +125,12 @@ class PaletteAccordion extends React.Component {
   }
 
   componentDidMount() {
-    $('.ui.accordion').accordion({exclusive: false});
+    $(this.refs.self.getDOMNode()).accordion({exclusive: false});
   }
 
   render() {
     return(
-      <div style={this.containerStyle} className='ui styled fluid accordion'>
+      <div ref='self' style={this.containerStyle} className='ui styled fluid accordion'>
         <p style={this.accordionWorkbenchStyle} className='ui title'>
         <i className='ui large save icon'></i>Bureaux
         </p>

@@ -94,8 +94,8 @@ public class ImageEditorRESTResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String parent = params.getString("parent");
-    String name = params.getString("name");
     JSONObject message = params.getJSONObject("payload");
+    String name = message.getString("name");
     Double area = message.getDouble("area");
     Double perimeter = message.getDouble("perimeter");
     List<List<Integer>> polygon = new ArrayList<List<Integer>>();
@@ -382,8 +382,8 @@ public class ImageEditorRESTResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String parent = params.getString("parent");
-    String name = params.getString("name");
     JSONObject message = params.getJSONObject("payload");
+    String name = message.getString("name");
     Double length = message.getDouble("length");
     List<List<Integer>> path = new ArrayList<List<Integer>>();
     JSONArray pathVertices = message.getJSONArray("path");

@@ -1,3 +1,4 @@
+
 'use strict';
 
 import React from 'react';
@@ -5,7 +6,7 @@ import d3 from 'd3';
 
 import ContextMenuItem from './ContextMenuItem';
 
-class Region extends ContextMenuItem {
+class Sheet extends ContextMenuItem {
   constructor(props){
     super(props);
 
@@ -16,16 +17,15 @@ class Region extends ContextMenuItem {
   }
 
   beginHilight() {
-    var comp = d3.select('#ROI-' + this.props.item.id);
+    var comp = d3.select('#BORDER-' + this.props.item.id);
     var color = comp.attr('fill');
     var newColor = 'red';
-    if(color == 'red') {
-      newColor = 'blue';
-    }
 
     this.setState(
-      {d3component: comp,
-        color: color});
+      {
+        d3component: comp,
+        color: color
+      });
 
     window.setTimeout(function() {
       ContextMenuItem.blink(comp, color, newColor, 'fill');
@@ -47,12 +47,13 @@ class Region extends ContextMenuItem {
   actions() {
     return <div className='ui inverted flowing popup'>
       <div className='vertical inverted compact menu'>
-        <a className='vertically fitted item'>Modifier</a>
+        <a className='vertically fitted item'>Sélectionner</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <a className='vertically fitted item'>Supprimer</a>
+        <a className='vertically fitted item'>Enlever de l'étude</a>
+        <a className='vertically fitted item'>Ajouter aux favoris</a>
       </div>
     </div>;
   }
 }
 
-export default Region;
+export default Sheet;

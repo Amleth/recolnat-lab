@@ -71,6 +71,7 @@ class MetadataViewer extends React.Component {
   }
 
   componentDidMount() {
+    $(this.refs.accordion.getDOMNode()).accordion({exclusive: false});
     this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
   }
 
@@ -82,7 +83,7 @@ class MetadataViewer extends React.Component {
     var self = this;
     return(
       <div style={this.placeholderStyle}>
-        <div className="ui styled fluid accordion" style={this.tableStyle}>
+        <div ref='accordion' className="ui styled fluid accordion" style={this.tableStyle}>
           <p className='ui title' style={this.accordionTitleStyle}>Métadonnées Générales</p>
           <div className='ui content'>
             <table className='ui selectable striped very compact table'>

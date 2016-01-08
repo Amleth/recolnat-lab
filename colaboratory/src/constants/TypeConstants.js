@@ -1,7 +1,8 @@
-'use strict' 
+'use strict';
 
 export default {
   point: 'pointOfInterest',
   path: 'path',
-  region: 'regionOfInterest'
+  region: 'regionOfInterest',
+  sheet: 'sheet'
 };

@@ -9,7 +9,7 @@ import uuid from 'node-uuid';
 
 import LabBookEntry from './LabBookEntry';
 
-import conf from '../conf/ApplicationConfiguration';
+import conf from '../../conf/ApplicationConfiguration';
 
 class LabBook extends React.Component {
   constructor(props) {

@@ -22,6 +22,8 @@ class ViewStore extends EventEmitter {
     this.viewport.top = 0;
     this.viewport.left = 0;
     this.viewport.scale = 1.0;
+    this.viewport.topFromWindow = null;
+    this.viewport.leftFromWindow = null;
 
     this.properties = {};
     this.properties.sizeOfTextAndObjects = 1.0;
@@ -61,6 +63,15 @@ class ViewStore extends EventEmitter {
     }
     if(scale) {
       this.viewport.scale = scale;
+    }
+  }
+
+  setViewportLocationInWindow(top, left) {
+    if(top) {
+      this.viewport.topFromWindow = top;
+    }
+    if(left) {
+      this.viewport.leftFromWindow = left;
     }
   }
 

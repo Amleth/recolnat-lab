@@ -477,8 +477,10 @@ class CreateRoI extends AbstractTool {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this.clearSVG();
-    this.dataToSVG();
+    if(this.state.active) {
+      this.clearSVG();
+      this.dataToSVG();
+    }
 
     if(this.state.active && !prevState.active) {
       var popup = <Popup setDataCallback={this.setData.bind(this)}

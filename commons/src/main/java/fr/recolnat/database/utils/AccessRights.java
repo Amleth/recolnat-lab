@@ -72,11 +72,14 @@ public class AccessRights {
   }
 
   public static OrientEdge grantAccessRights(Vertex user, Vertex node, DataModel.Enums.AccessRights rights, OrientGraph graph) {
-    OrientEdge edge = graph.addEdge("class:" + DataModel.Links.hasAccessRights, user, node, DataModel.Links.hasAccessRights);
-    edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
+    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, graph);
+    if(edge == null) {
+      edge = graph.addEdge("class:" + DataModel.Links.hasAccessRights, user, node, DataModel.Links.hasAccessRights);
+      edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
+      edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    }
+    
     edge.setProperty(DataModel.Properties.accessRights, rights.value());
-    edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
-
     return edge;
   }
 }

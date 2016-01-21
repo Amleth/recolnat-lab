@@ -204,11 +204,15 @@ public class VirtualWorkbenchRESTResource {
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    String elementToImportId = params.getString("elementToImport");
-    String parentId = params.getString("parent");
+    String workbenchId = params.getString("workbench");
+    String imageUrl = params.getString("url");
+    String thumburl = params.getString("thumburl");
+    String catalog = params.getString("catalogNumber");
+    String name = params.getString("name");
+    String specimenId = params.getString("recolnatSpecimenUUID");
 
     try {
-      String ret = runImport(elementToImportId, parentId, user);
+      String ret = runImport(imageUrl, thumburl, catalog, name, specimenId, workbenchId, user);
       if (ret != null) {
         throw new WebApplicationException(ret);
       }
@@ -375,31 +379,42 @@ public class VirtualWorkbenchRESTResource {
   }
 
   // TODO not finished, import from basket
-  private String runImport(String elementId, String parentId, String user) throws AccessDeniedException {
-    // Get element JSON
-    Client client = ClientBuilder.newClient();
-    WebTarget resource = client.target("http://api.recolnat.org/erecolnat/v1/determinations/" + elementId);
-
-    ClientResponse response = resource.request().accept("application/json").get(ClientResponse.class);
-    if (response.getStatus() != 200) {
-      log.error("Fetch entity FAILED. HTTP error code: " + response.getStatus());
-      return "Could not fetch entity data from server";
+  private String runImport(String url, String thumburl, String catalog, String name, String recolnatSpecimenId, String workbenchId, String user) throws AccessDeniedException {
+    boolean retry = true;
+    while(retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
+        OrientVertex vWorkbench = (OrientVertex) AccessUtils.getWorkbench(workbenchId, g);
+        // Check access rights
+        if (AccessRights.getAccessRights(vUser, vWorkbench, g) != DataModel.Enums.AccessRights.WRITE) {
+          throw new AccessDeniedException(null, null, "User not authorized to create elements in workbench " + workbenchId);
+        }
+        
+        OrientVertex vSheet = CreatorUtils.createHerbariumSheet(name, url, thumburl, recolnatSpecimenId, catalog, g);
+        OrientVertex vRecolnatSpecimen = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenId, "recolnat", "specimen", g);
+        
+        // Link new sheet to workbench
+        UpdateUtils.addItemToWorkbench(vSheet, vWorkbench, vUser, g);
+        
+        // Grant creator rights on sheet
+        AccessRights.grantAccessRights(vUser, vSheet, DataModel.Enums.AccessRights.WRITE, g);
+        
+        // Link sheet to original source
+        UpdateUtils.addOriginalSource(vSheet, vRecolnatSpecimen, vUser, g);
+        
+        g.commit();
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown(false);
+      }
+      
     }
-
-    String jsonString = (String) response.getEntity();
-    log.trace("Received entity from server\n" + jsonString);
-    try {
-      JSONObject entity = new JSONObject(jsonString);
-      // Create new vertex with this JSON
-      String name = entity.getString("scientificName");
-//      String imageUrl = entity.getString();
-//      String recolnatId = entity.getString();
-//      String mnhnCatalogNum = entity.getString();
-      // Add new vertex to workbench
-    } catch (JSONException e) {
-      log.error("Could not parse imported entity");
-      return "Internal server error. Import failed.";
-    }
+    
     return null;
   }
 

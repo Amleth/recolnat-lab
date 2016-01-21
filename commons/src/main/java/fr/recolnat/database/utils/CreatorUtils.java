@@ -248,12 +248,35 @@ public class CreatorUtils {
   }
 
   public static OrientVertex createHerbariumSheet(String name, String imageUrl, String recolnatId, String catalogNumber, OrientGraph g) {
-    OrientVertex sheet = g.addVertex("class:" + DataModel.Classes.CompositeTypes.herbariumSheet);
+    OrientVertex sheet = AccessUtils.getHerbariumSheet(imageUrl, g);
+    if(sheet != null) {
+      return sheet;
+    }
+    
+    sheet = g.addVertex("class:" + DataModel.Classes.CompositeTypes.herbariumSheet);
     sheet.setProperty(DataModel.Properties.id, UUID.randomUUID().toString());
     sheet.setProperty(DataModel.Properties.name, name);
     sheet.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     sheet.setProperty(DataModel.Properties.imageUrl, imageUrl);
     sheet.setProperty(DataModel.Properties.recolnatId, recolnatId);
+    sheet.setProperty(DataModel.Properties.mnhnCatalogNumber, catalogNumber);
+
+    return sheet;
+  }
+  
+  public static OrientVertex createHerbariumSheet(String name, String imageUrl, String thumbnailUrl, String recolnatSpecimenId, String catalogNumber, OrientGraph g) {
+    OrientVertex sheet = AccessUtils.getHerbariumSheet(imageUrl, g);
+    if(sheet != null) {
+      return sheet;
+    }
+    
+    sheet = g.addVertex("class:" + DataModel.Classes.CompositeTypes.herbariumSheet);
+    sheet.setProperty(DataModel.Properties.id, UUID.randomUUID().toString());
+    sheet.setProperty(DataModel.Properties.name, name);
+    sheet.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    sheet.setProperty(DataModel.Properties.imageUrl, imageUrl);
+    sheet.setProperty(DataModel.Properties.thumbUrl, thumbnailUrl);
+    sheet.setProperty(DataModel.Properties.recolnatId, recolnatSpecimenId);
     sheet.setProperty(DataModel.Properties.mnhnCatalogNumber, catalogNumber);
 
     return sheet;
@@ -268,6 +291,24 @@ public class CreatorUtils {
     polygon.setProperty(DataModel.Properties.vertices, coords);
 
     return polygon;
+  }
+  
+  public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientGraph g) {
+    Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.BaseTypes.externBaseEntity, 
+        new String[] {DataModel.Properties.id, DataModel.Properties.origin, DataModel.Properties.type}, 
+        new Object[] {id, source, type})
+        .iterator();
+    if(itWb.hasNext()) {
+      return (OrientVertex) itWb.next();
+    }
+    
+    OrientVertex entity = g.addVertex("class:" + DataModel.Classes.BaseTypes.externBaseEntity);
+    
+    entity.setProperty(DataModel.Properties.id, id);
+    entity.setProperty(DataModel.Properties.origin, source);
+    entity.setProperty(DataModel.Properties.type, type);
+    
+    return entity;
   }
 
   public static OrientVertex createPath(List<List<Integer>> coords, Double length, OrientGraph g) {

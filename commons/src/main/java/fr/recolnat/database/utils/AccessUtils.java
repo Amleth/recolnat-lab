@@ -3,6 +3,7 @@ package fr.recolnat.database.utils;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
@@ -75,13 +76,13 @@ public class AccessUtils {
     return null;
   }
 
-  public static Edge getEdgeBetweenVertices(Vertex parent, Vertex child, String label, OrientGraph graph) {
+  public static OrientEdge getEdgeBetweenVertices(Vertex parent, Vertex child, String label, OrientGraph graph) {
     Iterator<Edge> itEdge = parent.getEdges(Direction.OUT, label).iterator();
 
     while(itEdge.hasNext()) {
       Edge candidate = itEdge.next();
       if(candidate.getVertex(Direction.IN).equals(child)) {
-        return candidate;
+        return (OrientEdge) candidate;
       }
     }
     return null;
@@ -94,5 +95,16 @@ public class AccessUtils {
   
   public static String getCreatorId(OrientVertex vertex, OrientGraph g) {
     return AccessUtils.getCreator(vertex, g).getProperty(DataModel.Properties.id);
+  }
+  
+  public static OrientVertex getHerbariumSheet(String imageUrl, OrientGraph g) {
+    Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.CompositeTypes.herbariumSheet, 
+        new String[] {DataModel.Properties.imageUrl}, 
+        new Object[] {imageUrl})
+        .iterator();
+    if(itWb.hasNext()) {
+      return (OrientVertex) itWb.next();
+    }
+    return null;
   }
 }

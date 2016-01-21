@@ -8,6 +8,7 @@ import PaletteAccordion from './components/PaletteAccordion';
 import RightPane from './components/RightPane';
 import PopupToolContainer from './components/PopupToolComponent';
 import Tooltip from './components/ActiveToolTooltip';
+import TopPane from './components/TopPane';
 
 import EntityStore from './stores/EntitiesStore';
 import MinimapStore from './stores/MinimapStore';
@@ -15,6 +16,7 @@ import ViewStore from './stores/ViewStore';
 import ToolStore from './stores/ToolStore';
 import UserStore from './stores/UserStore';
 import MenuStore from './stores/MenuStore';
+import ManagerStore from './stores/ManagerStore';
 
 import API from './utils/API.js';
 
@@ -26,11 +28,15 @@ const entitystore = new EntityStore();
 const toolstore = new ToolStore();
 const userstore = new UserStore();
 const menustore = new MenuStore();
+const managerstore = new ManagerStore();
 const api = new API();
 
 class Window extends React.Component {
   constructor(props) {
     super(props);
+
+    this.menuHeight = 35;
+    this.closeTopPaneButtonHeight = 30;
 
     this.containerStyle = {
       position: 'relative',
@@ -39,13 +45,26 @@ class Window extends React.Component {
       backgroundColor: 'rgba(245,241,222, 1.0)'
     };
 
+    this.topSliderStyle = {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      height: (window.innerHeight) + 'px',
+      width: '100%',
+      zIndex: '1000',
+      paddingTop: this.menuHeight + 'px',
+      backgroundColor: 'rgba(0,0,0,0.0)',
+      WebkitTransition: 'top 1s, width 1s',
+      transition: 'top 1s, width 1s'
+    };
+
     this.columnLeftSideStyle = {
       position: 'fixed',
-      top: '35px',
+      top: this.menuHeight + 'px',
       left: '0',
       zIndex: '500',
       width: '200px',
-      height: (window.innerHeight - 35) + 'px',
+      height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'left 1s',
       transition: 'left 1s',
@@ -58,10 +77,10 @@ class Window extends React.Component {
     this.columnRightSideStyle = {
       position: 'fixed',
       right: '0px',
-      top: '35px',
+      top: this.menuHeight + 'px',
       zIndex: '500',
       width: '300px',
-      height: (window.innerHeight - 35) + 'px',
+      height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'right 1s',
       transition: 'right 1s',
@@ -74,9 +93,9 @@ class Window extends React.Component {
     this.columnMiddleStyle = {
       position: 'fixed',
       left: '200px',
-      top: '35px',
+      top: this.menuHeight + 'px',
       width: (window.innerWidth - 500) + 'px',
-      height: (window.innerHeight - 35) + 'px',
+      height: (window.innerHeight - this.menuHeight) + 'px',
       WebkitTransition: 'left 1s, width 1s',
       transition: 'left 1s, width 1s'
     };
@@ -91,6 +110,20 @@ class Window extends React.Component {
       transition: 'left 1s'
     };
 
+    this.topButtonStyle = {
+      position: 'fixed',
+      left: '35vw',
+      top: (window.innerHeight -this.closeTopPaneButtonHeight) + 'px',
+      zIndex: '1001',
+      height: this.closeTopPaneButtonHeight + 'px',
+      maxHeight: this.closeTopPaneButtonHeight + 'px',
+      width: '200px',
+      maxWidth: '200px',
+      fontSize: '12',
+      WebkitTransition: 'top 1.1s',
+      transition: 'top 1.1s'
+    };
+
     this.rightButtonStyle = {
       position: 'absolute',
       right: '300px',
@@ -103,11 +136,11 @@ class Window extends React.Component {
 
     this.recolnatMenuStyle = {
       border: 'medium none',
-      height: '35px',
+      height: this.menuHeight + 'px',
       overflow: 'hidden',
       position: 'fixed',
       width: '100%',
-      zIndex: '1000'
+      zIndex: '9000'
     };
 
     this.collabTitleStyle = {
@@ -120,11 +153,17 @@ class Window extends React.Component {
       padding: '5px 5px 5px 5px'
     };
 
+    this.loginModalStyle = {
+      zIndex: 99999
+    };
+
     this.state = {
       leftSidebar: true,
       rightSidebar: true,
+      topSidebar: true,
       leftSidebarIcon: 'left',
-      rightSidebarIcon: 'right'
+      rightSidebarIcon: 'right',
+      workbench: "Pas d'étude chargée"
     };
 
     this._onUserLogIn = () => {
@@ -136,6 +175,16 @@ class Window extends React.Component {
       const userLogOut = () => this.logout();
       return userLogOut.apply(this);
     };
+
+    this._onManagerVisibilityToggle = () => {
+      const toggle = () => this.toggleTopMenu(managerstore.getManagerVisibility());
+      return toggle.apply(this);
+    };
+
+    this._onWorkbenchChange = () => {
+      const changeDisplayedName = () => this.setWorkbenchName();
+      return changeDisplayedName.apply(this);
+    }
   }
 
   login() {
@@ -150,6 +199,25 @@ class Window extends React.Component {
     $('.ui.modal')
       .modal('setting', 'closable', false)
       .modal('show');
+  }
+
+  setWorkbenchName() {
+    console.log('estore=' + entitystore.getWorkbenchId());
+    var id = entitystore.getWorkbenchId();
+    var name = managerstore.getWorkbench(id).name;
+    //if(entitystore.getWorkbenchId()) {
+      this.setState({workbench: name});
+    //}
+    //this.setState({workbench: "Pas d'étude chargée"});
+  }
+
+  toggleTopMenu(visible = undefined) {
+    if(visible === undefined) {
+      this.setState({topSidebar: !this.state.topSidebar});
+    }
+    else {
+      this.setState({topSidebar: visible});
+    }
   }
 
   toggleLeftMenu() {
@@ -170,16 +238,23 @@ class Window extends React.Component {
     }
   }
 
+  handleResize() {
+    this.setState({});
+  }
+
   componentDidMount() {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
-    viewstore.setViewportData(null, null, window.innerWidth-500, window.innerHeight -35, null);
-    viewstore.setViewportLocationInWindow(35, 200);
-    window.addEventListener('resize', this.setState.bind(this));
+    managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
+    viewstore.setViewportData(null, null, window.innerWidth-500, window.innerHeight -this.menuHeight, null);
+    viewstore.setViewportLocationInWindow(this.menuHeight, 200);
+    entitystore.addChangeWorkbenchListener(this._onWorkbenchChange);
+    window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   componentWillUpdate(nextProps, nextState) {
     var width = window.innerWidth;
+    var height = window.innerHeight;
     var left = 0;
     console.log('window width ' + width);
     if(nextState.leftSidebar) {
@@ -203,26 +278,40 @@ class Window extends React.Component {
       this.rightButtonStyle.right = '0px';
     }
 
+    if(nextState.topSidebar) {
+      this.topSliderStyle.top = '0px';
+      this.topSliderStyle.height = height + 'px';
+      this.topButtonStyle.top = (height -this.closeTopPaneButtonHeight) + 'px';
+    }
+    else {
+      this.topSliderStyle.height = height + 'px';
+      this.topSliderStyle.top = (-height) + 'px';
+      this.topButtonStyle.top = this.menuHeight + 'px';
+    }
+
     this.columnMiddleStyle.left = left + 'px';
     this.columnMiddleStyle.width = width + 'px';
-    this.columnLeftSideStyle.height = (window.innerHeight - 35) + 'px';
-    this.columnRightSideStyle.height = (window.innerHeight - 35) + 'px';
-    this.columnMiddleStyle.height = (window.innerHeight - 35) + 'px';
+    this.columnLeftSideStyle.height = (window.innerHeight - this.menuHeight) + 'px';
+    this.columnRightSideStyle.height = (window.innerHeight - this.menuHeight) + 'px';
+    this.columnMiddleStyle.height = (window.innerHeight - this.menuHeight) + 'px';
 
-    viewstore.setViewportData(null, null, width, window.innerHeight -35, null);
-    viewstore.setViewportLocationInWindow(35, left);
+    viewstore.setViewportData(null, null, width, window.innerHeight -this.menuHeight, null);
+    viewstore.setViewportLocationInWindow(this.menuHeight, left);
   }
 
   componentWillUnmount() {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
-    window.removeEventListener('resize', this.setState({}));
+    managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
+    entitystore.removeChangeWorkbenchListener(this._onWorkbenchChange);
+    window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
   render() {
     return(
       <div style={this.containerStyle}>
-        <div className='ui modal'>
+
+        <div className='ui modal' style={this.loginModalStyle}>
           <div className='ui header'>Connexion nécessaire</div>
           <div className='ui content'>
             <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
@@ -235,6 +324,22 @@ class Window extends React.Component {
         <div>
           <iframe id="recolnatMenu" style={this.recolnatMenuStyle} seamless="seamless" scrolling="no" src="http://wp5prod.recolnat.org/menu/"></iframe>
         </div>
+
+        <div style={this.topSliderStyle}>
+          <TopPane userstore={userstore}
+                   viewstore={viewstore}
+                   entitystore={entitystore}
+                   toolstore={toolstore}
+                   menustore={menustore}
+                   ministore={ministore}
+                   managerstore={managerstore}
+                   menuHeight={this.menuHeight}
+                   windowHeight={window.innerHeight}
+                   closeButtonHeight={this.closeTopPaneButtonHeight}
+          />
+          </div>
+          <div className="ui bottom attached button mini compact"
+               style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.workbench}</div>
         <div>
           <div style={this.columnLeftSideStyle}>
             <div style={this.collabTitleStyle}>Le Collaboratoire</div>
@@ -253,7 +358,10 @@ class Window extends React.Component {
           </div>
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>
-            <RightPane viewstore={viewstore} entitystore={entitystore} userstore={userstore}/>
+            <RightPane
+              viewstore={viewstore}
+              entitystore={entitystore}
+              userstore={userstore}/>
           </div>
         </div>
       </div>

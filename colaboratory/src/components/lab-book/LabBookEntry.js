@@ -12,7 +12,7 @@ import conf from '../../conf/ApplicationConfiguration';
 class LabBookEntry extends React.Component {
   constructor(props) {
     super(props);
-    console.log(JSON.stringify(props.action));
+    //console.log(JSON.stringify(props.action));
     //console.log(props.userstore.getUser().rPlusId);
 
     this.textStyle = {

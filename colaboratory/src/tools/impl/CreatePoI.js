@@ -9,7 +9,7 @@ import d3 from "d3";
 
 import AbstractTool from "../AbstractTool";
 
-import EditorActions from "../../actions/EditorActions";
+import EditorActions from "../../actions/ManagerActions";
 import ToolActions from '../../actions/ToolActions';
 
 import Classes from "../../constants/CommonSVGClasses";

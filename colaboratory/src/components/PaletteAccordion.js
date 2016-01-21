@@ -131,13 +131,6 @@ class PaletteAccordion extends React.Component {
   render() {
     return(
       <div ref='self' style={this.containerStyle} className='ui styled fluid accordion'>
-        <p style={this.accordionWorkbenchStyle} className='ui title'>
-        <i className='ui large save icon'></i>Bureaux
-        </p>
-        <div className='ui content' style={this.accordionCategoryWorkbenchStyle}>
-          <GraphNavigator userstore={this.props.userstore}/>
-        </div>
-
         <p style={this.accordionNavigatorStyle} className='ui title'>
         <i className='ui large block layout icon'></i>Carrousel
         </p>

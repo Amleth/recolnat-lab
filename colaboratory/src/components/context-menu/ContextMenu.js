@@ -100,7 +100,6 @@ class ContextMenu extends React.Component {
 
   closeMenu(delay) {
     this.closeDelay = window.setTimeout(this.setState.bind(this, {active: false}), delay);
-    //this.setState({active: false});
   }
 
   cancelCloseMenu() {

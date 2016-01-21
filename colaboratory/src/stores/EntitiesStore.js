@@ -14,7 +14,7 @@ import EditorConstants from '../constants/EditorConstants';
 import EntitiesEvents from './events/EntitiesEvents';
 
 import ToolActions from '../actions/ToolActions';
-import EditorActions from '../actions/EditorActions';
+import EditorActions from '../actions/ManagerActions';
 import ViewActions from '../actions/ViewActions';
 
 import conf from '../conf/ApplicationConfiguration';

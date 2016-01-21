@@ -6,7 +6,7 @@
 import React from "react";
 import d3 from "d3";
 
-import EditorActions from "../../actions/EditorActions";
+import EditorActions from "../../actions/ManagerActions";
 import ToolActions from "../../actions/ToolActions";
 
 class CreateRoIPopup extends React.Component {

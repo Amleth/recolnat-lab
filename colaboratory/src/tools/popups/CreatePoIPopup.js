@@ -12,7 +12,7 @@ import Shape from "./../libs/Shape";
 import ShapesConf from "../../conf/shapes";
 import ColorsConf from "../../conf/colors";
 
-import EditorActions from "../../actions/EditorActions";
+import EditorActions from "../../actions/ManagerActions";
 import ToolActions from "../../actions/ToolActions";
 
 class CreatePoIPopup extends React.Component {
@@ -50,7 +50,7 @@ class CreatePoIPopup extends React.Component {
     this.letterInputStyle = {
       width: '30px'
     };
-    
+
     this.tagInputStyle = {
       width: '130px'
     };
@@ -59,7 +59,7 @@ class CreatePoIPopup extends React.Component {
       text: '',
       letters: ''
     };
-    
+
     this.textStyle = {
       fontFamily: 'Roboto Condensed',
       fontWeight: '300'
@@ -88,7 +88,7 @@ class CreatePoIPopup extends React.Component {
   }
 
   setColor(color) {
-      this.props.setColorCallback(color);
+    this.props.setColorCallback(color);
   }
 
   update(text, letters) {
@@ -111,35 +111,34 @@ class CreatePoIPopup extends React.Component {
         <div style={this.barContainerStyle}>
           <div style={this.horizontalContainerStyle}>
             {
-            ColorsConf.colors.map(
-              function(color) {
-                return(<Color color={color.color} key={color.key} callback={self.setColor.bind(self)} vertexClass={self.props.vertexClass} />);
-              }
-            )
-          }
+              ColorsConf.colors.map(
+                function(color) {
+                  return(<Color color={color.color} key={color.key} callback={self.setColor.bind(self)} vertexClass={self.props.vertexClass} />);
+                }
+              )
+            }
           </div>
           <div style={this.horizontalContainerStyle} className='ui left corner labeled input'>
-          <div className='ui left corner label'>
-	    <i className='ui tags icon' />
-	    </div>
+            <div className='ui left corner label'>
+              <i className='ui tags icon' />
+            </div>
             <input placeholder="Tags (facultatif)" autofocus="true" wrap="hard"/>
           </div>
           <div style={this.horizontalContainerStyle} className='ui labeled input'>
-          <div className='ui label' style={this.textStyle}>
-            Code 2 lettres
+            <div className='ui label' style={this.textStyle}>
+              Code 2 lettres
             </div>
             <input type='text'
                    style={this.letterInputStyle}
                    maxLength='2'
-                      onChange={this.onLettersChange.bind(this)}
-                      value={this.state.letters} autofocus="true"/>
+                   onChange={this.onLettersChange.bind(this)}
+                   value={this.state.letters} autofocus="true"/>
           </div>
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
             <textarea placeholder="Description (facultatif)"
                       onChange={this.onTextChange.bind(this)}
                       value={this.state.text} autofocus="true" wrap="hard"/>
           </div>
-          
         </div>
         <div style={this.buttonContainerStyle} className='ui buttons'>
           <button className='ui red button' style={this.textStyle} onClick={this.cancel.bind(this)}>Annuler</button>

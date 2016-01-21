@@ -90,6 +90,7 @@ public class DataModel {
     public static final String coordZ = "z";
     public static final String role = "role";
     public static final String imageUrl = "url";
+    public static final String thumbUrl = "thumbnail";
     public static final String recolnatId = "reColNatId";
     public static final String mnhnCatalogNumber = "catalogNum";
     public static final String vertices = "polygonVertices";

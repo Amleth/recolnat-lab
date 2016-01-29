@@ -13,12 +13,15 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import fr.recolnat.database.model.DataModel;
 import java.util.Date;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author dmitri
  */
 public class AccessRights {
+  private static final Logger log = LoggerFactory.getLogger(AccessRights.class);
 
   public static DataModel.Enums.AccessRights getAccessRights(Vertex user, Vertex node, OrientGraph graph) {
     DataModel.Enums.AccessRights ret = DataModel.Enums.AccessRights.NONE;
@@ -43,6 +46,10 @@ public class AccessRights {
 
     // Check public access rights
     Vertex vPublic = AccessUtils.getUserByUUID(DataModel.Globals.PUBLIC_USER_ID, graph);
+    if(vPublic == null) {
+      log.error("User PUBLIC does not exist in database.");
+    }
+    else {
     e = AccessUtils.getEdgeBetweenVertices(vPublic, node, DataModel.Links.hasAccessRights, graph);
     if (e != null) {
       // Public has access rights
@@ -53,6 +60,7 @@ public class AccessRights {
     if (ret == DataModel.Enums.AccessRights.WRITE) {
       // Highest rights available. No point in checking elsewhere.
       return ret;
+    }
     }
 
     // Check group access rights
@@ -71,6 +79,14 @@ public class AccessRights {
     return ret;
   }
 
+  /**
+   * Checks to see if user is allowed to grant access must be performed before calling this method. To remove rights, call revokeAccessRights instead as this method will terminate with an error.
+   * @param user
+   * @param node
+   * @param rights
+   * @param graph
+   * @return 
+   */
   public static OrientEdge grantAccessRights(Vertex user, Vertex node, DataModel.Enums.AccessRights rights, OrientGraph graph) {
     OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, graph);
     if(edge == null) {
@@ -81,5 +97,12 @@ public class AccessRights {
     
     edge.setProperty(DataModel.Properties.accessRights, rights.value());
     return edge;
+  }
+  
+  public static void revokeAccessRights(Vertex user, Vertex node, OrientGraph graph) {
+    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, graph);
+    if(edge != null) {
+      graph.removeEdge(edge);
+    }
   }
 }

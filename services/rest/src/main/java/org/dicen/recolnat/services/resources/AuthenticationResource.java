@@ -3,10 +3,12 @@ package org.dicen.recolnat.services.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.authentication.CASAuthentication;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
+import fr.recolnat.database.utils.DatabaseTester;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.AccessDeniedException;
@@ -153,6 +155,8 @@ public class AuthenticationResource {
         Vertex vUser = AccessUtils.getUserByLogin(user, g);
         if (vUser == null) {
           vUser = CreatorUtils.createNewUserAndUserData(user, g);
+          // Create sample data
+          DatabaseTester.createTestWorkbench((OrientVertex) vUser, g);
           g.commit();
         }
         userId = vUser.getProperty(DataModel.Properties.id);

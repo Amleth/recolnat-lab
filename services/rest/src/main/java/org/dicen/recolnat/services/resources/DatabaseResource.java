@@ -11,6 +11,7 @@ import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DatabaseTester;
 import java.util.Iterator;
+import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONException;
 import org.dicen.recolnat.services.core.DatabaseAccess;
@@ -41,6 +42,7 @@ public class DatabaseResource {
     OrientGraphNoTx gntx = DatabaseAccess.databaseConnector.getNonTransactionalGraph();
     try {
       StructureBuilder.createRecolnatDataModel(gntx);
+      StructureBuilder.createDefaultNodes(gntx);
       gntx.shutdown(false, true);
     } catch (IllegalAccessException e) {
       throw new WebApplicationException(e);
@@ -100,20 +102,49 @@ public class DatabaseResource {
     
     return Response.ok(data.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
-
+  
   @POST
-  @Path("/create-test-data")
+  @Path("/remove")
   @Timed
-  public String createTest(final String input) throws JSONException {
+  public Response remove(final String input, @Context HttpServletRequest request) {
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String idOfElementToDelete = null;
+    
+    try {
+      JSONObject jsonInput = new JSONObject(input);
+      idOfElementToDelete = jsonInput.getString("id");
+    } catch (JSONException ex) {
+      log.error("Unable to serialize input data as JSON: " + input);
+      throw new WebApplicationException("Input error", Response.Status.BAD_REQUEST);
+    }
+    
     OrientGraph g = DatabaseAccess.getTransactionalGraph();
     try {
-      DatabaseTester.createTestWorkbench(g);
-      g.commit();
-    }
-    finally {
+    // Don't forget to check user's rights to delete (cannot delete if object is shared
+    // The id may refer to an edge or a vertex requiring different approach.
+    // If it is a vertex we must also do some filtering
+    } finally {
       g.rollback();
       g.shutdown(false);
     }
-    return Globals.OK;
+    
+    return Response.ok("", MediaType.APPLICATION_JSON_TYPE).build();
   }
+
+//  @POST
+//  @Path("/create-test-data")
+//  @Timed
+//  public String createTest(final String input) throws JSONException {
+//    OrientGraph g = DatabaseAccess.getTransactionalGraph();
+//    try {
+//      DatabaseTester.createTestWorkbench(g);
+//      g.commit();
+//    }
+//    finally {
+//      g.rollback();
+//      g.shutdown(false);
+//    }
+//    return Globals.OK;
+//  }
 }

@@ -31,6 +31,10 @@ public class SessionManager {
   }
 
   public static void newSpecialSession(String session) {
+    if(session == null) {
+      log.warn("Unable to create special session");
+      return;
+    }
     sessionToSessionData.put(session, new SessionData(session, session, session));
   }
   

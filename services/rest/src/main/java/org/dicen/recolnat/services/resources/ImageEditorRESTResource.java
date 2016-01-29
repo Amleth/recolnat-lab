@@ -43,6 +43,7 @@ public class ImageEditorRESTResource {
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/get-image")
   @Timed
   public String getEntity(final String input, @Context HttpServletRequest request) throws JSONException {
     if (log.isTraceEnabled()) {

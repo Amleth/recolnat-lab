@@ -121,6 +121,7 @@ class API {
   closeWebsocket() {
     if(this.websocket) {
       this.websocket.close(1000, "User logged out");
+      this.websocket = null;
     }
   }
 

@@ -49,7 +49,7 @@ class CreateRoIPopup extends React.Component {
       width: '130px'
     };
 
-    this.state = CreatePathPopup.initialState();
+    this.state = CreateRoIPopup.initialState();
 
     this.textStyle = {
       fontFamily: 'Roboto Condensed',

@@ -157,7 +157,7 @@ class CreatePath extends AbstractTool {
   }
 
   save() {
-    if(!this.state.name.length < 1) {
+    if(this.state.name.length < 1) {
       alert('Le nom est obligatoire');
       return null;
     }
@@ -193,6 +193,12 @@ class CreatePath extends AbstractTool {
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', this.activateEnter.bind(self))
       .on('mouseleave', this.deactivateEnter);
+
+    var popup = <Popup setDataCallback={this.setData.bind(this)}
+    />;
+    window.setTimeout(function() {
+        ToolActions.activeToolPopupUpdate(popup);},
+      100);
 
     this.setState({active: true, name: ''});
 
@@ -417,6 +423,7 @@ class CreatePath extends AbstractTool {
   }
 
   setData(name) {
+    console.log("set data to " + name);
     this.setState({name: name});
   }
 
@@ -425,6 +432,7 @@ class CreatePath extends AbstractTool {
    */
   componentDidMount() {
     ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
+    $(this.refs.button.getDOMNode()).popup();
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -442,12 +450,12 @@ class CreatePath extends AbstractTool {
       this.dataToSVG();
     }
     if(this.state.active && !prevState.active) {
-      var popup = <Popup setDataCallback={this.setData.bind(this)}
-      />;
-
-      window.setTimeout(function() {
-          ToolActions.activeToolPopupUpdate(popup);},
-        100);
+      //var popup = <Popup setDataCallback={this.setData.bind(this)}
+      ///>;
+      //
+      //window.setTimeout(function() {
+      //    ToolActions.activeToolPopupUpdate(popup);},
+      //  100);
     }
     if(this.state.interactionState == 1 && prevState.interactionState != 1) {
       window.setTimeout(function() {
@@ -461,7 +469,7 @@ class CreatePath extends AbstractTool {
 
   render() {
     return (
-      <button
+      <button ref='button'
         style={this.buttonStyle}
         className='ui button compact'
         onClick={this.setMode}

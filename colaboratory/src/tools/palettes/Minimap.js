@@ -10,6 +10,7 @@ import ViewActions from "../../actions/ViewActions";
 
 import AbstractTool from "../AbstractTool";
 import MoveObject from "../impl/MoveObject";
+import MoveView from "../impl/MoveView";
 import SelectObject from '../impl/SelectObject';
 
 class Minimap extends React.Component {
@@ -86,7 +87,7 @@ class Minimap extends React.Component {
   componentDidMount() {
     this.props.ministore.addInitListener(this._onImageInit);
     this.props.viewstore.addViewportListener(this._onViewChange);
-    $('.ui.button.small.compact').popup();
+    $('.ui.button.small.compact', this.refs.component.getDOMNode()).popup();
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -284,7 +285,7 @@ class Minimap extends React.Component {
 
   render() {
     return(
-      <div style={this.componentStyle}>
+      <div style={this.componentStyle} ref='component'>
         <div style={this.imageContainerStyle}
              onClick={this.moveViewToClickLocation.bind(this)}
              onMouseDown={this.beginDragViewport.bind(this)}
@@ -316,7 +317,7 @@ class Minimap extends React.Component {
         </div>
 
         <div className='ui fluid buttons'>
-          <AbstractTool />
+          <MoveView />
           <MoveObject />
           <SelectObject />
         </div>

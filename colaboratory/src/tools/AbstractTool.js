@@ -89,6 +89,10 @@ class AbstractTool extends React.Component {
     ToolActions.setTool(ToolConf.nothing.id);
     ToolActions.updateTooltipData(ToolConf.nothing.tooltip);
   }
+
+  componentDidMount() {
+    $(this.refs.button.getDOMNode()).popup();
+  }
   
   componentWillUpdate(nextProps, nextState) {
     if(nextState.active) {
@@ -102,6 +106,7 @@ class AbstractTool extends React.Component {
   render() {
     return (
       <button style={this.buttonStyle}
+              ref='button'
               className='ui button compact'
               onClick={this.setMode}
               data-content="Rien">

@@ -253,6 +253,7 @@ class CreatePoI extends AbstractTool {
   componentDidMount() {
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
     ToolActions.registerTool(ToolConf.newPointOfInterest.id, this.click, this);
+    $(this.refs.button.getDOMNode()).popup();
   }
 
   componentDidUpdate() {
@@ -288,6 +289,7 @@ class CreatePoI extends AbstractTool {
   render() {
     return (
       <button className='ui button compact'
+              ref='button'
               onClick={this.setMode}
               style={this.buttonStyle}
               data-content="Marquer un point remarquable de l'image sélectionnée">

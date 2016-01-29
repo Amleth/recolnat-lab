@@ -401,6 +401,7 @@ class LineMeasure extends AbstractTool {
 
   componentDidMount() {
     ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
+    $(this.refs.button.getDOMNode()).popup();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -436,7 +437,7 @@ class LineMeasure extends AbstractTool {
 
   render() {
     return (
-      <button
+      <button ref='button'
         style={this.buttonStyle}
         className='ui button compact'
         onClick={this.setMode}

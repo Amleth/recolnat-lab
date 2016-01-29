@@ -154,8 +154,15 @@ class CreateRoI extends AbstractTool {
 
   begin() {
     window.setTimeout(function() {
+      ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
     }, 50);
+
+    var popup = <Popup setDataCallback={this.setData.bind(this)}/>;
+    window.setTimeout(function() {
+        ToolActions.activeToolPopupUpdate(popup);},
+      100);
+
     this.setState({edges: [], start: null, interactionState: 0, active: true, name: ''});
   }
 
@@ -168,6 +175,7 @@ class CreateRoI extends AbstractTool {
 
   finish() {
     window.setTimeout(function() {
+      ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData("");
     }, 10);
     this.setState(this.initialState());
@@ -467,6 +475,11 @@ class CreateRoI extends AbstractTool {
     }
   }
 
+  componentDidMount() {
+    $(this.refs.button.getDOMNode()).popup();
+    ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.active) {
       this.buttonStyle.backgroundColor = 'rgba(200,200,200,1.0)';
@@ -483,12 +496,12 @@ class CreateRoI extends AbstractTool {
     }
 
     if(this.state.active && !prevState.active) {
-      var popup = <Popup setDataCallback={this.setData.bind(this)}
-      />;
-
-      window.setTimeout(function() {
-          ToolActions.activeToolPopupUpdate(popup);},
-        100);
+      //var popup = <Popup setDataCallback={this.setData.bind(this)}
+      ///>;
+      //
+      //window.setTimeout(function() {
+      //    ToolActions.activeToolPopupUpdate(popup);},
+      //  100);
     }
 
     if(this.state.interactionState == 1) {
@@ -519,13 +532,11 @@ class CreateRoI extends AbstractTool {
     ToolActions.setTool(ToolConf.newRegionOfInterest.id);
   }
 
-  componentDidMount() {
-    ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
-  }
+
 
   render() {
     return (
-      <button
+      <button ref='button'
         style={this.buttonStyle}
         className='ui button compact'
         data-content='Créer un polygone'

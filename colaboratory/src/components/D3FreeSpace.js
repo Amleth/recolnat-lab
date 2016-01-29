@@ -117,19 +117,31 @@ class D3FreeSpace {
     // Remove borders around selections
     d3.selectAll('.' + Classes.BORDER_CLASS)
       .style('fill', '#AAAAAA');
+    console.log('updateWbMeta=' + JSON.stringify(metadata));
 
     if(metadata.selected) {
       d3.select('#BORDER-' + metadata.selected.id)
         .style('stroke', '#708D23')
         .style('fill', '#708D23');
 
-      var image = d3.select('#NODE-' + metadata.selected.id);
-      window.setTimeout((function(url, width, height, x, y) {
+      //var image = d3.select('#NODE-' + metadata.selected.id);
+      window.setTimeout((function(id) {
           return function() {
+            var image = d3.select('#NODE-' + id);
+            var url = image.attr("xlink:href");
+            var width = image.datum().width;
+            var height = image.datum().height;
+            var x = image.datum().x;
+            var y = image.datum().y;
+            console.log('init minimap url=' + url);
+            console.log('init minimap w=' + width);
+            console.log('init minimap h=' + height);
+            console.log('init minimap x=' + x);
+            console.log('init minimap y=' + y);
             MinimapActions.initMinimap(url, width, height, x, y);
           };
-        })(image.attr("xlink:href"), image.datum().width, image.datum().height, image.datum().x, image.datum().y),
-        10);
+        })(metadata.selected.id),
+        3000);
     }
     else {
       window.setTimeout(function() {
@@ -469,34 +481,40 @@ class D3FreeSpace {
           // Process objects in sheet
           var metadata = store.getEntityMetadata(d.id);
           // Find polygons
-          for (var m = 0; m < metadata.rois.length; ++m) {
-            var polygon = metadata.rois[m];
-            var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
-            if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
-              if(objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
-                objects.push({id: polygon.id, type: TypeConstants.region});
+          if(metadata.rois) {
+            for (var m = 0; m < metadata.rois.length; ++m) {
+              var polygon = metadata.rois[m];
+              var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
+              if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
+                if (objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
+                  objects.push({id: polygon.id, type: TypeConstants.region});
+                }
               }
             }
           }
 
           // Find paths
-          for (var j = 0; j < metadata.paths.length; ++j) {
-            var path = metadata.paths[j];
-            var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
-            if(D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
-              if(objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
-                objects.push({id: path.id, type: TypeConstants.path});
+          if(metadata.paths) {
+            for (var j = 0; j < metadata.paths.length; ++j) {
+              var path = metadata.paths[j];
+              var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
+              if (D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
+                if (objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
+                  objects.push({id: path.id, type: TypeConstants.path});
+                }
               }
             }
           }
 
           // Find points
-          for (var n = 0; n < metadata.pois.length; ++n) {
-            var poi = metadata.pois[n];
-            var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
-            if(D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
-              if(objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
-                objects.push({id: poi.id, type: TypeConstants.point});
+          if(metadata.pois) {
+            for (var n = 0; n < metadata.pois.length; ++n) {
+              var poi = metadata.pois[n];
+              var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
+              if (D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
+                if (objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
+                  objects.push({id: poi.id, type: TypeConstants.point});
+                }
               }
             }
           }

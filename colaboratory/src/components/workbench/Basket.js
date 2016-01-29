@@ -58,6 +58,15 @@ class Basket extends React.Component {
     })
   }
 
+  getBasketStateText() {
+    if(this.state.basketItems.length == 0) {
+      return 'Votre panier Recherche est vide. Allez sur explore.recolnat.org pour le remplir.';
+    }
+    else {
+      return this.state.basketItems.length + ' images dans le panier Recherche';
+    }
+  }
+
   setOffset(offset) {
     this.setState({offset: offset});
   }
@@ -122,7 +131,7 @@ class Basket extends React.Component {
           <i className='refresh icon' />
         </div>
         <div className={'ui disabled button'}>
-          {this.state.basketItems.length} images dans le panier eReColNat
+          {this.getBasketStateText()}
         </div>
       </div>
       <div ref='cards' style={this.cardRowStyle}>

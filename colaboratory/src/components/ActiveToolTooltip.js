@@ -16,7 +16,7 @@ class ActiveToolTooltip extends React.Component {
       borderColor: "green",
       padding: "5px",
       left: "17vw",
-      top: "5",
+      bottom: "5",
       display: "none",
       maxWidth: "200px"
     };

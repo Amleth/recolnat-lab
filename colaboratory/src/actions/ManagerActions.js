@@ -58,5 +58,14 @@ export default {
       actionType: ManagerConstants.ActionTypes.BASKET_REMOVE_ITEM,
       item: id
     });
+  },
+
+  addBasketItemsToWorkbench: (items, id, keep) => {
+    AppDispatcher.dispatch({
+      actionType: ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_WORKBENCH,
+      items: items,
+      workbench: id,
+      keepInBasket: keep
+    });
   }
 };

@@ -16,7 +16,7 @@ var Endpoints = {
 
 var Actions = {
   imageEditorServiceActions: {
-    getImageData: Endpoints.imageEditorService,
+    getImageData: Endpoints.imageEditorService + "/get-image",
     createPolygon: Endpoints.imageEditorService + "/create-polygon",
     createPointOfInterest: Endpoints.imageEditorService + "/create-vertex",
     createPath: Endpoints.imageEditorService + "/create-path",
@@ -47,7 +47,8 @@ var Actions = {
   },
 
   databaseActions: {
-    getData: Endpoints.dataAccessService + '/get-data'
+    getData: Endpoints.dataAccessService + '/get-data',
+    remove: Endpoints.dataAccessService + '/remove'
   }
 };
 

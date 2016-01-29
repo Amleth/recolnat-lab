@@ -1,41 +1,60 @@
 'use strict';
 
-var ApplicationConfiguration = {
-  imageEditorService: 'http://wp5test.recolnat.org/image-editor',
-  virtualWorkbenchService: 'http://wp5test.recolnat.org/virtual-workbench',
-  authenticationService: 'http://wp5test.recolnat.org/authentication',
-  virtualWorkbenchWebsocketService: 'ws://wp5test.recolnat.org/websockets/virtual-workbench',
-  specialUserSessionId: 'special'
+var Integration = {
+  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
 };
 
-var ApplicationConfigurationExtended = {
+var Services = {
+  laboratoryRESTService: 'https://wp5test.recolnat.org',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/websockets'
+};
+
+var Endpoints = {
+  imageEditorService: Services.laboratoryRESTService + '/image-editor',
+  virtualWorkbenchService: Services.laboratoryRESTService + '/virtual-workbench',
+  authenticationService: Services.laboratoryRESTService + '/authentication',
+  userProfileService: Services.laboratoryRESTService + '/user-profile',
+  dataAccessService: Services.laboratoryRESTService + '/database',
+  virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
+};
+
+var Actions = {
   imageEditorServiceActions: {
-    getImageData: ApplicationConfiguration.imageEditorService,
-    createPolygon: ApplicationConfiguration.imageEditorService + "/create-polygon",
-    createPointOfInterest: ApplicationConfiguration.imageEditorService + "/create-vertex",
-    createPath: ApplicationConfiguration.imageEditorService + "/create-path",
-    addAnnotation: ApplicationConfiguration.imageEditorService + "/add-annotation",
-    addScalingData: ApplicationConfiguration.imageEditorService + "/add-scaling-data"
+    getImageData: Endpoints.imageEditorService + "/get-image",
+    createPolygon: Endpoints.imageEditorService + "/create-polygon",
+    createPointOfInterest: Endpoints.imageEditorService + "/create-vertex",
+    createPath: Endpoints.imageEditorService + "/create-path",
+    addAnnotation: Endpoints.imageEditorService + "/add-annotation",
+    addScalingData: Endpoints.imageEditorService + "/add-scaling-data"
   },
 
   virtualWorkbenchServiceActions: {
-    createNewWorkbench: ApplicationConfiguration.virtualWorkbenchService + '/create-new-workbench',
-    deleteWorkbench : ApplicationConfiguration.virtualWorkbenchService + '/delete-workbench',
-    copypaste: ApplicationConfiguration.virtualWorkbenchService + '/copypaste',
-    cutpaste: ApplicationConfiguration.virtualWorkbenchService + '/cutpaste',
-    import: ApplicationConfiguration.virtualWorkbenchService + '/import',
-    importSheet: ApplicationConfiguration.virtualWorkbenchService + '/import-item-to-workbench',
-    listUserWorkbenches: ApplicationConfiguration.virtualWorkbenchService + "/list-user-workbenches",
-    addItemsToWorkbench: ApplicationConfiguration.virtualWorkbenchService + "/add-items-to-workbench"
+    createNewWorkbench: Endpoints.virtualWorkbenchService + '/create-new-workbench',
+    deleteWorkbench : Endpoints.virtualWorkbenchService + '/delete-workbench',
+    copypaste: Endpoints.virtualWorkbenchService + '/copypaste',
+    cutpaste: Endpoints.virtualWorkbenchService + '/cutpaste',
+    import: Endpoints.virtualWorkbenchService + '/import',
+    importSheet: Endpoints.virtualWorkbenchService + '/import-item-to-workbench',
+    listUserWorkbenches: Endpoints.virtualWorkbenchService + "/list-user-workbenches",
+    addItemsToWorkbench: Endpoints.virtualWorkbenchService + "/add-items-to-workbench"
   },
 
   authenticationServiceActions: {
-    isUserAuthenticated: ApplicationConfiguration.authenticationService + '/is-user-authenticated',
-    setTestCookie: ApplicationConfiguration.authenticationService + '/set-test-cookie',
-    getToken: ApplicationConfiguration.authenticationService + '/get-token',
-    checkToken: ApplicationConfiguration.authenticationService + '/check-token'
+    isUserAuthenticated: Endpoints.authenticationService + '/is-user-authenticated',
+    setTestCookie: Endpoints.authenticationService + '/set-test-cookie',
+    getToken: Endpoints.authenticationService + '/get-token',
+    checkToken: Endpoints.authenticationService + '/check-token'
+  },
+
+  userProfileServiceActions: {
+    getRecentActivity: Endpoints.userProfileService + '/get-recent-activity'
+  },
+
+  databaseActions: {
+    getData: Endpoints.dataAccessService + '/get-data',
+    remove: Endpoints.dataAccessService + '/remove'
   }
 };
 
 
-export default {urls: ApplicationConfiguration, actions: ApplicationConfigurationExtended};
+export default {urls: Endpoints, actions: Actions, integration: Integration};

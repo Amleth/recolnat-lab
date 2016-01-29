@@ -36,8 +36,8 @@ class WorkbenchManager extends React.Component {
       minHeight: '100%',
       maxHeight: '100%',
       height: '100%',
-      overflowX: 'auto',
-      overflowY: 'auto'
+      overflowX: 'auto'
+      //overflowY: 'auto'
     };
 
     this._onUserLogIn = () => {
@@ -107,11 +107,20 @@ class WorkbenchManager extends React.Component {
                        managerstore={this.props.managerstore}
         />
         {this.state.workbenches.map(function(wb, idx) {
-          return <WorkbenchNodeDisplay key={'WB-NODE-' + wb.id}
-                                       workbench={wb}
-                                       index={idx}
-                                       managerstore={self.props.managerstore}
-          />;
+          if(wb) {
+            return <WorkbenchNodeDisplay key={'WB-NODE-' + wb.id}
+                                         workbench={wb}
+                                         index={idx}
+                                         managerstore={self.props.managerstore}
+            />;
+          }
+          else {
+            return <WorkbenchNodeDisplay key={'WB-NODE-loading'}
+                                  workbench={wb}
+                                  index={idx}
+                                  managerstore={self.props.managerstore}
+            />;
+          }
         })}
       </div>
     </div>

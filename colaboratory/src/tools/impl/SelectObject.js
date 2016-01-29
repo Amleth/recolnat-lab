@@ -18,7 +18,7 @@ import ToolConf from '../../conf/Tools-conf.js';
 class SelectObject extends AbstractTool {
   constructor(props) {
     super(props);
-    
+
     this.state = {active: false};
   }
 
@@ -55,9 +55,10 @@ class SelectObject extends AbstractTool {
   }
 
   componentDidMount() {
+    $(this.refs.button.getDOMNode()).popup();
     ToolActions.registerTool(ToolConf.selectObject.id, this.click, this);
   }
-  
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.active) {
       this.buttonStyle.backgroundColor = 'rgba(200,200,200,1.0)';
@@ -73,12 +74,13 @@ class SelectObject extends AbstractTool {
 
   render() {
     return(
-      <button style={this.buttonStyle}
-              className='ui button compact' 
-	      onClick={this.setMode} 
-	      data-content="Sélectionner une image pour travailler dessus">
-	      <i className='ui large location arrow icon'></i>
-	      </button>
+      <button ref='button'
+              style={this.buttonStyle}
+              className='ui button compact'
+              onClick={this.setMode}
+              data-content="Sélectionner une image pour travailler dessus">
+        <i className='ui large location arrow icon'></i>
+      </button>
     );
   }
 }

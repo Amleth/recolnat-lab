@@ -98,6 +98,9 @@ class ManagerStore extends EventEmitter {
           this.setActive(action.workbenchIndex, action.itemIndex);
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
+        case ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_WORKBENCH:
+          this.addBasketItemsToWorkbench(action.items, action.workbench, action.keepInBasket);
+          break;
         default:
           break;
       }
@@ -164,9 +167,9 @@ class ManagerStore extends EventEmitter {
   getBaseData() {
     var children = [];
     children.push(this.base.root);
-    children.push(this.base.favorites);
-    children.push(this.base.recent);
-    return ManagerStore.buildWorkbench('zero', 'Etudes utilisateur', children, null, this.base.activeIdx);
+    //children.push(this.base.favorites);
+    //children.push(this.base.recent);
+    return ManagerStore.buildWorkbench('zero', 'Espaces de travail', children, null, this.base.activeIdx);
   }
 
   getWorkbenches() {
@@ -174,6 +177,11 @@ class ManagerStore extends EventEmitter {
   }
 
   getWorkbench(id) {
+    if(id == 'zero') {
+      return {
+        name: 'vos études'
+      }
+    }
     for(var i = 0; i < this.workbenches.length; ++i) {
       var workbench = this.workbenches[i];
       console.log('wb=' + JSON.stringify(workbench));
@@ -203,7 +211,9 @@ class ManagerStore extends EventEmitter {
 
   reloadWorkbenches() {
     var rememberActiveItemInWorkbench = function(wb, oldWb) {
-      wb.activeIdx = oldWb.activeIdx;
+      if(oldWb) {
+        wb.activeIdx = oldWb.activeIdx;
+      }
     };
 
     var self = this;
@@ -222,11 +232,26 @@ class ManagerStore extends EventEmitter {
     this.requestGraphAround('root', 'bag', -1, updateRootCallback.bind(this));
   }
 
+  loadFavoritesWorkbench() {
+    this.base.favorites.name = "Favoris indisponibles dans la démo";
+  }
+
+  loadRecentWorkbench() {
+    this.base.recent.name = "";
+  }
+
   requestGraphAround(id, type, wbIdx, replacementCallback = undefined, workbenchPostProcessCallback = undefined, splice = false) {
     if(type == 'item') {
       //alert("L'élément sélectionné n'est pas un bureau de travail");
       return;
     }
+    var previousWorkbench = null;
+    if(this.workbenches[wbIdx]) {
+      previousWorkbench = JSON.parse(JSON.stringify(this.workbenches[wbIdx]));
+    }
+
+    this.workbenches[wbIdx] = null;
+    this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
     request
       .get(conf.urls.virtualWorkbenchService)
       .query({id: id})
@@ -235,6 +260,8 @@ class ManagerStore extends EventEmitter {
       .end((err, res)=> {
         if(err) {
           console.error("Error occurred when retrieving workbench. Server returned: " + err);
+          this.workbenches.splice(wbIdx);
+          this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
         }
         else {
           console.log("Received response " + res.text);
@@ -250,7 +277,7 @@ class ManagerStore extends EventEmitter {
               _.sortBy(response.parents, 'name'));
 
             if(workbenchPostProcessCallback) {
-              workbenchPostProcessCallback(workbench, this.workbenches[wbIdx]);
+              workbenchPostProcessCallback(workbench, previousWorkbench);
             }
 
             this.workbenches[wbIdx] = workbench;
@@ -262,6 +289,55 @@ class ManagerStore extends EventEmitter {
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
         }
       });
+  }
+
+  addBasketItemsToWorkbench(items, workbenchId, keepInBasket) {
+
+    if(!workbenchId) {
+      alert('Vous devez choisir une étude de destination');
+      return;
+    }
+
+      //var basketSelection = this.props.managerstore.getBasketSelection();
+      //var selectedWorkbench = this.props.managerstore.getSelected().id;
+      //console.log('parent= ' + selectedWorkbench);
+
+      for(var i = 0; i < items.length; ++i) {
+        var itemId = items[i];
+        var itemUuid = itemId.slice(0, 8) + '-'
+          + itemId.slice(8, 12) + '-'
+          + itemId.slice(12, 16) + '-'
+          + itemId.slice(16, 20) + '-'
+          + itemId.slice(20);
+
+        var itemData = this.getBasketItem(itemId);
+        console.log('uuid=' + itemUuid);
+        (function(uuid, workbench, id, data) {
+          request.post(conf.actions.virtualWorkbenchServiceActions.import)
+            .set('Content-Type', "application/json")
+            .send({workbench: workbench})
+            .send({recolnatSpecimenUUID: uuid})
+            .send({url: data.image[0].url})
+            .send({thumburl: data.image[0].thumburl})
+            .send({catalogNumber: data.catalognumber})
+            .send({name: data.scientificname})
+            .withCredentials()
+            .end((err, res) => {
+              if (err) {
+                alert('Import de ' + data.scientificname + ' a échoué. Les autres planches ne sont pas impactées');
+                console.error(err);
+              }
+              else {
+                console.log(res);
+                ManagerActions.reloadDisplayedWorkbenches();
+                ManagerActions.changeBasketSelectionState(id, false);
+                if (!keepInBasket) {
+                  ManagerActions.removeItemFromBasket(id);
+                }
+              }
+            });
+        })(itemUuid, workbenchId, itemId, itemData)
+      }
   }
 
   addManagerVisibilityListener(callback) {

@@ -51,7 +51,7 @@ class Window extends React.Component {
       left: '0',
       height: (window.innerHeight) + 'px',
       width: '100%',
-      zIndex: '1000',
+      zIndex: '502',
       paddingTop: this.menuHeight + 'px',
       backgroundColor: 'rgba(0,0,0,0.0)',
       WebkitTransition: 'top 1s, width 1s',
@@ -114,7 +114,7 @@ class Window extends React.Component {
       position: 'fixed',
       left: '35vw',
       top: (window.innerHeight -this.closeTopPaneButtonHeight) + 'px',
-      zIndex: '1001',
+      zIndex: '502',
       height: this.closeTopPaneButtonHeight + 'px',
       maxHeight: this.closeTopPaneButtonHeight + 'px',
       width: '200px',
@@ -158,6 +158,7 @@ class Window extends React.Component {
     };
 
     this.state = {
+      userLoggedIn: false,
       leftSidebar: true,
       rightSidebar: true,
       topSidebar: true,
@@ -188,27 +189,65 @@ class Window extends React.Component {
   }
 
   login() {
+    console.log('calling login in window');
+    // Open connection to websocket
     api.openWebsocket();
-    $('.ui.modal')
-      .modal('setting', 'closable', false)
-      .modal('hide');
+
+    // Send message to recolnat-menu
+
+
+    this.setState({userLoggedIn: true});
+    // Hide login modal
+    //$('.ui.modal')
+    //  .modal('setting', 'closable', false)
+    //  .modal('hide');
+
+
   }
 
   logout() {
     api.closeWebsocket();
-    $('.ui.modal')
-      .modal('setting', 'closable', false)
-      .modal('show');
+    this.setState({userLoggedIn: false});
+
+    //$('.ui.modal')
+    //  .modal('setting', 'closable', false)
+    //  .modal('show');
+  }
+
+  receiveMessage(event) {
+    if(event.origin.indexOf('https://www.recolnat.org') == 0) {
+      switch(event.data.action) {
+        case 'login':
+          this.redirectCASLogin();
+          break;
+        case 'logout':
+          this.redirectCASLogout();
+          break;
+        case 'profile':
+          alert('Profil utilisateur indisponible dans la démo');
+          break;
+        default:
+          console.log('Unknown event action ' + event.data.action);
+      }
+    }
+    else {
+      console.log('Rejected unauthorized event from ' + event.origin + ' : ' + JSON.stringify(event.data));
+    }
+  }
+
+  redirectCASLogin() {
+    window.location.href = 'https://cas.recolnat.org/login';
+  }
+
+  redirectCASLogout() {
+    window.location.href = 'https://cas.recolnat.org/logout';
   }
 
   setWorkbenchName() {
     console.log('estore=' + entitystore.getWorkbenchId());
     var id = entitystore.getWorkbenchId();
     var name = managerstore.getWorkbench(id).name;
-    //if(entitystore.getWorkbenchId()) {
       this.setState({workbench: name});
-    //}
-    //this.setState({workbench: "Pas d'étude chargée"});
   }
 
   toggleTopMenu(visible = undefined) {
@@ -250,6 +289,12 @@ class Window extends React.Component {
     viewstore.setViewportLocationInWindow(this.menuHeight, 200);
     entitystore.addChangeWorkbenchListener(this._onWorkbenchChange);
     window.addEventListener('resize', this.handleResize.bind(this));
+    // Add recolnat-menu listeners
+    window.addEventListener("message", this.receiveMessage.bind(this));
+  }
+
+  signalIframeReady() {
+    this.setState({menuIframe: true});
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -299,6 +344,22 @@ class Window extends React.Component {
     viewstore.setViewportLocationInWindow(this.menuHeight, left);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if(!this.state.userLoggedIn) {
+      $(this.refs.loginPromptModal.getDOMNode())
+        .modal('setting', 'closable', false)
+        .modal('show');
+    }
+    else {
+      $(this.refs.loginPromptModal.getDOMNode())
+        .modal('setting', 'closable', false)
+        .modal('hide');
+
+      var frame = this.refs.recolnatMenu.getDOMNode().contentWindow;
+      frame.postMessage({type: "user", username: userstore.getUser().login, userProfile: ''}, 'https://www.recolnat.org/menu');
+    }
+  }
+
   componentWillUnmount() {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
@@ -311,7 +372,7 @@ class Window extends React.Component {
     return(
       <div style={this.containerStyle}>
 
-        <div className='ui modal' style={this.loginModalStyle}>
+        <div ref='loginPromptModal' className='ui modal' style={this.loginModalStyle}>
           <div className='ui header'>Connexion nécessaire</div>
           <div className='ui content'>
             <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
@@ -321,8 +382,15 @@ class Window extends React.Component {
                href='http://signup.recolnat.org/#/register'>Créer compte</a>
           </div>
         </div>
+
         <div>
-          <iframe id="recolnatMenu" style={this.recolnatMenuStyle} seamless="seamless" scrolling="no" src="http://wp5prod.recolnat.org/menu/"></iframe>
+          <iframe id="recolnatMenu"
+                  ref='recolnatMenu'
+                  style={this.recolnatMenuStyle}
+                  seamless="seamless"
+                  scrolling="no"
+                  onLoad={this.signalIframeReady.bind(this)}
+                  src='https://www.recolnat.org/menu'></iframe>
         </div>
 
         <div style={this.topSliderStyle}>

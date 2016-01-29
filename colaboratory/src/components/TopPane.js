@@ -8,6 +8,7 @@ import React from 'react';
 import Basket from './workbench/Basket';
 import WorkbenchActions from './workbench/WorkbenchActions';
 import WorkbenchManager from './workbench/WorkbenchManager';
+import MetadataDisplay from './workbench/WorkbenchManagerMetadataDisplay';
 
 class TopPane extends React.Component {
   constructor(props) {
@@ -30,7 +31,7 @@ class TopPane extends React.Component {
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      width: '65%'
+      width: '85%'
     };
 
     this.metadataColumnStyle = {
@@ -72,9 +73,10 @@ class TopPane extends React.Component {
           managerstore={this.props.managerstore} /></div>
         <div style={this.basketContainerStyle}><Basket managerstore={this.props.managerstore}/></div>
       </div>
-      <div style={this.metadataColumnStyle}><p>Données</p></div>
     </div>;
   }
 }
+
+//<div style={this.metadataColumnStyle}><MetadataDisplay managerstore={this.props.managerstore}/></div>
 
 export default TopPane;

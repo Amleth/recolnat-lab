@@ -20,13 +20,15 @@ class UserStore extends EventEmitter {
     this.userRplusId = null;
     this.userLogin = null;
 
-    request.get(conf.actions.authenticationServiceActions.setTestCookie)
-      .withCredentials()
-      .end((err, res) => {
-        // Check if user is logged in
-        this.checkAuthStatus();
-      });
+    //request.get(conf.actions.authenticationServiceActions.setTestCookie)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //     Check if user is logged in
+    //    this.checkAuthStatus();
+    //  });
 
+    // Perform initial check
+    this.checkAuthStatus();
     // Check if user is still logged in every minute
     this.loginCheck = window.setInterval(this.checkAuthStatus.bind(this),
       60000
@@ -45,7 +47,6 @@ class UserStore extends EventEmitter {
         }
         else {
           if(!this.userAuthorized) {
-            console.log(res.text);
             var response = JSON.parse(res.text);
             this.userAuthorized = true;
             this.userRplusId = response.userId;

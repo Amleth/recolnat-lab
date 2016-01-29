@@ -52,6 +52,7 @@ class MoveView extends AbstractTool {
 
   componentDidMount() {
     ToolActions.registerTool(ToolConf.moveView.id, this.click, this);
+    $(this.refs.button.getDOMNode()).popup();
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -66,6 +67,7 @@ class MoveView extends AbstractTool {
   render() {
     return (
       <button style={this.buttonStyle}
+              ref='button'
               className='ui button compact'
               onClick={this.setMode}
               data-content="Déplacer la vue">

@@ -72,6 +72,10 @@ class WorkbenchActions extends React.Component {
           alert('Vous devez sélectionner un élement à supprimer');
           return;
         }
+        if(this.props.managerstore.getSelected().parent == 'zero') {
+          alert('Vous ne pouvez pas supprimer les collections à la racine');
+          return;
+        }
         this.setState({optionsModal: modalReference});
         break;
       default:
@@ -124,42 +128,8 @@ class WorkbenchActions extends React.Component {
     var selectedWorkbench = this.props.managerstore.getSelected().id;
     console.log('parent= ' + selectedWorkbench);
 
-    for(var i = 0; i < basketSelection.length; ++i) {
-      var selectedId = basketSelection[i];
-      var selectedUuid = selectedId.slice(0, 8) + '-'
-        + selectedId.slice(8, 12) + '-'
-        + selectedId.slice(12, 16) + '-'
-        + selectedId.slice(16, 20) + '-'
-        + selectedId.slice(20);
+    ManagerActions.addBasketItemsToWorkbench(basketSelection, selectedWorkbench, false);
 
-      var selectionData = this.props.managerstore.getBasketItem(selectedId);
-      console.log('uuid=' + selectedUuid);
-      (function(uuid, workbench, id, data) {
-        request.post(conf.actions.virtualWorkbenchServiceActions.import)
-          .set('Content-Type', "application/json")
-          .send({workbench: workbench})
-          .send({recolnatSpecimenUUID: uuid})
-          .send({url: data.image[0].url})
-          .send({thumburl: data.image[0].thumburl})
-          .send({catalogNumber: data.catalognumber})
-          .send({name: data.scientificname})
-          .withCredentials()
-          .end((err, res) => {
-            if (err) {
-              alert('Import de ' + data.scientificname + ' a échoué. Les autres planches ne sont pas impactées');
-              console.error(err);
-            }
-            else {
-              console.log(res);
-              ManagerActions.reloadDisplayedWorkbenches();
-              ManagerActions.changeBasketSelectionState(id, false);
-              if (!keepSelectionInBasket) {
-                ManagerActions.removeItemFromBasket(id);
-              }
-            }
-          });
-      })(selectedUuid, selectedWorkbench, selectedId, selectionData)
-    }
     this.hideOptions();
   }
 
@@ -223,6 +193,9 @@ class WorkbenchActions extends React.Component {
   }
 
   getDeleteText() {
+    if(this.props.managerstore.getSelected().parent == 'zero') {
+      return "Vous ne pouvez pas supprimer cette étude";
+    }
     if(this.props.managerstore.getSelected().id) {
       return this.props.managerstore.getSelected().name + ' de ' + this.props.managerstore.getWorkbench(this.props.managerstore.getSelected().parent).name;
     }
@@ -296,40 +269,12 @@ class WorkbenchActions extends React.Component {
         else {
           console.log("Delete received response " + res.text);
         }
+        ManagerActions.setSelectedWorkbenchGraphNode(null, null, null, null, null);
         ManagerActions.reloadDisplayedWorkbenches();
       });
 
     this.hideOptions();
   }
-
-  promptDelete() {
-    if(this.state.selected === null) {
-      alert("Veuillez sélectionner un élément à supprimmer");
-    }
-    else {
-      var process = confirm("Vous confirmez la suppression de l'élément séléctionné ?");
-      if(process) {
-        request.post(conf.actions.virtualWorkbenchServiceActions.deleteWorkbench)
-          .set('Content-Type', 'application/json')
-          .send({container: this.state.current.id})
-          .send({target: this.state.selected.id})
-          .send({linkId: this.state.selected.linkId})
-          .withCredentials()
-          .end((err, res) => {
-            if (err) {
-              console.log(err);
-              alert(err);
-            }
-            else {
-              console.log("Delete received response " + res.text);
-            }
-            this.getGraphAround(this.state.current);
-          });
-      }
-    }
-  }
-
-
 
   callFileInput() {
     React.findDOMNode(this.refs.fileInput).click();

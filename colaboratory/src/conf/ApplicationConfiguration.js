@@ -1,8 +1,12 @@
 'use strict';
 
+var Integration = {
+  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
+};
+
 var Services = {
-  laboratoryRESTService: 'http://localhost:10101',
-  laboratorySocketService: 'ws://localhost:8888/websockets'
+  laboratoryRESTService: 'https://wp5test.recolnat.org',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/websockets'
 };
 
 var Endpoints = {
@@ -16,7 +20,7 @@ var Endpoints = {
 
 var Actions = {
   imageEditorServiceActions: {
-    getImageData: Endpoints.imageEditorService,
+    getImageData: Endpoints.imageEditorService + "/get-image",
     createPolygon: Endpoints.imageEditorService + "/create-polygon",
     createPointOfInterest: Endpoints.imageEditorService + "/create-vertex",
     createPath: Endpoints.imageEditorService + "/create-path",
@@ -47,9 +51,10 @@ var Actions = {
   },
 
   databaseActions: {
-    getData: Endpoints.dataAccessService + '/get-data'
+    getData: Endpoints.dataAccessService + '/get-data',
+    remove: Endpoints.dataAccessService + '/remove'
   }
 };
 
 
-export default {urls: Endpoints, actions: Actions};
+export default {urls: Endpoints, actions: Actions, integration: Integration};

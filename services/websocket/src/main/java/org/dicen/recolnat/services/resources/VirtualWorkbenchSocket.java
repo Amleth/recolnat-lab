@@ -46,7 +46,11 @@ public class VirtualWorkbenchSocket {
   private static final Map<String, String> sessionIdToUser = new HashMap<String, String>();
   private static final Lock mapAccessLock = new ReentrantLock(false);
 //  private static final RemoteDatabaseConnector conn = new RemoteDatabaseConnector("localhost", 2480, "ReColNatPlus", "root", "d54b3ebxthupbcer");
-  private static final RemoteDatabaseConnector conn = new RemoteDatabaseConnector("localhost", 2480, "ReColNatTest", "root", "root");
+  private static RemoteDatabaseConnector conn = new RemoteDatabaseConnector("localhost", 2480, "ReColNatTest", "root", "root");
+  
+  public static void initDatabase(String host, int port, String dbName, String dbUser, String dbPass) {
+    VirtualWorkbenchSocket.conn = new RemoteDatabaseConnector(host, port, dbName, dbUser, dbPass);
+  }
 
   @OnMessage
   public void onMessage(String message, Session session) throws NotFoundException, IllegalAccessException {

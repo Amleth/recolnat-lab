@@ -88,6 +88,12 @@
       <version>2.0.1</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.12</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 
   <build>

@@ -32,8 +32,18 @@ public class WorkbenchObject implements Comparable<WorkbenchObject> {
       throw new IllegalAccessException("User not authorized to access object");
     }
     // Current child types taken into account: Image
-    this.positionFromLeft = (Integer) linkToParent.getProperty(DataModel.Properties.coordX);
-    this.positionFromTop = (Integer) linkToParent.getProperty(DataModel.Properties.coordY);
+//    if(linkToParent.getProperty(DataModel.Properties.coordX) == null) {
+//    this.positionFromLeft = null;
+//    }
+//    else {
+      this.positionFromLeft = (Integer) linkToParent.getProperty(DataModel.Properties.coordX);
+//    }
+//    if(linkToParent.getProperty(DataModel.Properties.coordY) == null) {
+//      this.positionFromTop = null;
+//    }
+//    else {
+      this.positionFromTop = (Integer) linkToParent.getProperty(DataModel.Properties.coordY);
+//    }
     this.zIndex = (Integer) linkToParent.getProperty(DataModel.Properties.coordZ);
     this.opacity = (Double) linkToParent.getProperty(DataModel.Properties.opacity);
 
@@ -58,10 +68,10 @@ public class WorkbenchObject implements Comparable<WorkbenchObject> {
     if(this.opacity == null) {
       this.opacity = 1.0;
     }
-    if(this.positionFromLeft == null) {
-      this.positionFromLeft = 10;
-      this.positionFromTop = 10;
-    }
+//    if(this.positionFromLeft == null) {
+//      this.positionFromLeft = 10;
+//      this.positionFromTop = 10;
+//    }
     if(this.zIndex == null) {
       this.zIndex = 0;
     }

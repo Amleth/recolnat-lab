@@ -83,7 +83,14 @@ class ManagerStore extends EventEmitter {
           this.reloadWorkbenches();
           break;
         case ManagerConstants.ActionTypes.BASKET_CHANGE_SELECTION:
-          this.updateBasketSelection(action.id, action.selected);
+          if(action.id) {
+            this.updateBasketSelection(action.id, action.selected);
+          }
+          else {
+            for(var i = 0; i < this.basket.length; ++i) {
+              this.updateBasketSelection(this.basket[i].id, action.selected);
+            }
+          }
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
         case ManagerConstants.ActionTypes.SET_BASKET:
@@ -273,7 +280,9 @@ class ManagerStore extends EventEmitter {
           else {
             var workbench = ManagerStore.buildWorkbench(response.current.id,
               response.current.name,
-              _.sortBy(response.children, 'name'),
+              _(response.children).chain()
+                .sortBy(function(child) {return child.name.toLowerCase()})
+                .sortBy(function(child) {return child.type}).value(),
               _.sortBy(response.parents, 'name'));
 
             if(workbenchPostProcessCallback) {

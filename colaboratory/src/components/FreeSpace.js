@@ -84,6 +84,18 @@ class FreeSpace extends React.Component {
     this.props.entitystore.removeMetadataUpdateListener(this._onMetadataUpdate);
   }
 
+  displayDragged(event) {
+    if(this.props.drag.getType() == 'inboxMove') {
+      event.preventDefault();
+      d3Component.displayShadow(this.props.drag.getData());
+    }
+  }
+
+  //updateDraggedPosition(event) {
+  //  //var data = JSON.parse(event.dataTransfer.getData('text'));
+  //  d3Component.moveShadow();
+  //}
+
   fitView() {
     d3Component.fitViewportToData();
   }
@@ -95,7 +107,9 @@ class FreeSpace extends React.Component {
 
   render() {
     return (
-      <div className="freespace" style={this.style}></div>
+      <div className="freespace"
+           onDragEnter={this.displayDragged.bind(this)}
+           style={this.style}></div>
     );
   }
 }

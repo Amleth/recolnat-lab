@@ -18,6 +18,8 @@ import UserStore from './stores/UserStore';
 import MenuStore from './stores/MenuStore';
 import ManagerStore from './stores/ManagerStore';
 
+import ViewActions from './actions/ViewActions';
+
 import API from './utils/API.js';
 
 import conf from './conf/ApplicationConfiguration';
@@ -192,26 +194,12 @@ class Window extends React.Component {
     console.log('calling login in window');
     // Open connection to websocket
     api.openWebsocket();
-
-    // Send message to recolnat-menu
-
-
     this.setState({userLoggedIn: true});
-    // Hide login modal
-    //$('.ui.modal')
-    //  .modal('setting', 'closable', false)
-    //  .modal('hide');
-
-
   }
 
   logout() {
     api.closeWebsocket();
     this.setState({userLoggedIn: false});
-
-    //$('.ui.modal')
-    //  .modal('setting', 'closable', false)
-    //  .modal('show');
   }
 
   receiveMessage(event) {
@@ -252,6 +240,7 @@ class Window extends React.Component {
 
   toggleTopMenu(visible = undefined) {
     if(visible === undefined) {
+      ViewActions.setActiveWorkbench(entitystore.getWorkbenchId());
       this.setState({topSidebar: !this.state.topSidebar});
     }
     else {

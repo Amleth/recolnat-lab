@@ -9,9 +9,14 @@ import WorkbenchFreeSpace from './FreeSpace';
 
 import ContextMenu from './context-menu/ContextMenu';
 import Tooltip from "./ActiveToolTooltip";
+import Inbox from './Inbox';
+
+import DragNDropStore from '../stores/DragNDropStore';
 
 import ViewActions from "../actions/ViewActions";
 import ToolActions from '../actions/ToolActions';
+
+const drag = new DragNDropStore();
 
 class VirtualWorkbench extends React.Component {
 
@@ -41,6 +46,8 @@ class VirtualWorkbench extends React.Component {
     };
   }
 
+
+
   componentDidMount() {
     this.props.entitystore.addChangeEntitiesListener(this._onChangeEntities);
     this.props.entitystore.addChangeWorkbenchListener(this._onChangeWorkbench);
@@ -66,6 +73,9 @@ class VirtualWorkbench extends React.Component {
     return(
       <div style={this.componentContainerStyle}>
         <Tooltip />
+        <Inbox entitystore={this.props.entitystore}
+               content={this.state.workbenchEntities}
+               drag={drag}/>
         <ContextMenu
           menustore={this.props.menustore}
           ministore={this.props.ministore}
@@ -79,6 +89,7 @@ class VirtualWorkbench extends React.Component {
                             metadata={metadata}
                             entitystore={this.props.entitystore}
                             viewstore={this.props.viewstore}
+                            drag={drag}
           />
       </div>
     );

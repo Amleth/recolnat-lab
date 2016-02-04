@@ -95,10 +95,12 @@ class WorkbenchNodeDisplay extends React.Component {
 
     // Content received but workbench is empty at the moment.
     if(this.props.workbench.children.length == 0) {
-      return <div className='ui segment' style={this.containerStyle}>
-        <div className='ui top attached blue label' style={this.labelStyle}>{this.props.workbench.name}</div>
-        <div className='ui compact info message'>
-          <div className='center aligned header'><i className='inbox icon' /></div>
+      return <div className='ui segments' style={this.containerStyle}>
+        <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.workbench.name}</div>
+        <div className='ui compact info message segment'>
+          <div className='ui center aligned justified header'>
+            <i className='large inbox icon' />
+          </div>
           <div className='content'>
             <p>Cette étude est vide. Vous pouvez la remplir avec le panier ci-dessous ou en important des images externes via les options du menu à gauche de l'écran</p>
           </div>

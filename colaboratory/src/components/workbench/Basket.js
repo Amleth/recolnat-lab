@@ -71,6 +71,17 @@ class Basket extends React.Component {
     this.setState({offset: offset});
   }
 
+  toggleSelectionAll() {
+    if(this.props.managerstore.getBasketSelection().length == this.props.managerstore.getBasket().length) {
+      // Unselect all
+      ManagerActions.changeBasketSelectionState(null, false);
+    }
+    else {
+      // Select all
+      ManagerActions.changeBasketSelectionState(null, true);
+    }
+  }
+
   componentDidMount() {
     var self = this;
     xdLocalStorage.init({
@@ -85,6 +96,12 @@ class Basket extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
+    if(this.props.managerstore.getBasketSelection().length == this.props.managerstore.getBasket().length) {
+      nextState.checkbox = 'checkmark box';
+    }
+    else {
+      nextState.checkbox = 'square outline';
+    }
     //if(nextState.basketItems.length == 0) {
     //  nextState.offset = 0;
     //}
@@ -129,6 +146,9 @@ class Basket extends React.Component {
       <div className='ui buttons'>
         <div className='ui button' onClick={this.reloadBasket.bind(this)}>
           <i className='refresh icon' />
+        </div>
+        <div className='ui button' onClick={this.toggleSelectionAll.bind(this)}>
+          <i className={this.state.checkbox + ' icon'} />
         </div>
         <div className={'ui disabled button'}>
           {this.getBasketStateText()}

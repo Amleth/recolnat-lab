@@ -36,6 +36,11 @@ class D3FreeSpace {
     this.view.scale = 1.0;
     this.store = null;
 
+    this._onEndDragFromInbox = () => {
+      const addFromInbox = () => this.fixShadow();
+      return addFromInbox.apply(this);
+    };
+
     this.workbench = null;
     this.displayData = {
       xMin: Number.POSITIVE_INFINITY,
@@ -59,6 +64,9 @@ class D3FreeSpace {
           self.leftClick.call(this, self);
         }
       })
+      .on('dragover', function(d, i) {
+        d3.event.preventDefault();
+      })
       .call(this.zoom)
       .style('cursor', 'default');
 
@@ -79,6 +87,7 @@ class D3FreeSpace {
   }
 
   newWorkbench(childEntities, workbench) {
+    this.workbench = workbench;
     this.displayData.xMin = Number.POSITIVE_INFINITY;
     this.displayData.xMax = Number.NEGATIVE_INFINITY;
     this.displayData.yMin = Number.POSITIVE_INFINITY;
@@ -103,11 +112,13 @@ class D3FreeSpace {
       // Update position
       this.updateAllAttributes(entity.id);
 
-      this.displayData.xMin = Math.min(this.displayData.xMin, entity.x-20);
-      this.displayData.yMin = Math.min(this.displayData.yMin, entity.y-20);
+      if(entity.x) {
+        this.displayData.xMin = Math.min(this.displayData.xMin, entity.x - 20);
+        this.displayData.yMin = Math.min(this.displayData.yMin, entity.y - 20);
 
-      this.displayData.xMax = Math.max(parseInt(image.attr("width")) + entity.x + 20, this.displayData.xMax);
-      this.displayData.yMax = Math.max(parseInt(image.attr("height")) + entity.y + 20, this.displayData.yMax);
+        this.displayData.xMax = Math.max(parseInt(image.attr("width")) + entity.x + 20, this.displayData.xMax);
+        this.displayData.yMax = Math.max(parseInt(image.attr("height")) + entity.y + 20, this.displayData.yMax);
+      }
 
       // TODO Update transparency
     }
@@ -133,11 +144,6 @@ class D3FreeSpace {
             var height = image.datum().height;
             var x = image.datum().x;
             var y = image.datum().y;
-            console.log('init minimap url=' + url);
-            console.log('init minimap w=' + width);
-            console.log('init minimap h=' + height);
-            console.log('init minimap x=' + x);
-            console.log('init minimap y=' + y);
             MinimapActions.initMinimap(url, width, height, x, y);
           };
         })(metadata.selected.id),
@@ -183,6 +189,11 @@ class D3FreeSpace {
       return;
     }
 
+    //console.log('xMin=' + this.displayData.xMin);
+    //console.log('yMin=' + this.displayData.yMin);
+    //console.log('xMax=' + this.displayData.xMax);
+    //console.log('yMax=' + this.displayData.yMax);
+
     var xLen = this.displayData.xMax - this.displayData.xMin;
     var yLen = this.displayData.yMax - this.displayData.yMin;
     var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
@@ -216,9 +227,76 @@ class D3FreeSpace {
     this.viewportTransition();
   }
 
+  displayShadow(data) {
+    var self = this;
+    if(d3.select('#SHADOW').empty()) {
+
+      d3.select('svg')
+        .attr('pointer-events', 'all')
+        .on('dragover', function(){D3FreeSpace.updateShadowPosition()});
+
+      window.addEventListener('dragend', this._onEndDragFromInbox);
+
+
+
+      d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS)
+        .append('g')
+        .attr('id', 'SHADOW')
+        .datum(data)
+        .append('svg:image')
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("height", 200)
+        .attr("width", 100)
+        .attr("xlink:href", data.url)
+        .style('opacity', 0.3);
+
+      var img = new Image();
+      img.src = data.url;
+      img.onload = function () {
+        d3.select('#SHADOW').select('image')
+          .attr("height", this.height)
+          .attr("width", this.width);
+      }
+    }
+  }
+
+  hideShadow() {
+    d3.select('#SHADOW').remove();
+    window.removeEventListener('dragend', this._onEndDragFromInbox);
+    d3.select('svg')
+      .on('dragover', null)
+      .on('dragend', null);
+  }
+
+  fixShadow() {
+    var shadow = d3.select('#SHADOW');
+    var data = shadow.datum();
+    var image = shadow.select('image');
+    var x = parseInt(image.attr('x'))+50;
+    var y = parseInt(image.attr('y'))+100;
+    console.log('setting shadow to location (' + x + ',' + y + ')');
+    console.log(this.workbench);
+    ViewActions.moveEntity(this.workbench,
+      data.id,
+      x,
+      y
+    );
+    this.hideShadow();
+  }
+
 //
 // Internal methods
 //
+
+  static updateShadowPosition() {
+    var container = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
+    var coords = d3.mouse(container.node());
+    //console.log('new shadow coords=' + JSON.stringify(coords));
+    d3.select('#SHADOW').select('image')
+      .attr('x', coords[0]-50)
+      .attr('y', coords[1]-100);
+  }
 
   viewportTransition() {
     this.zoom.translate([this.view.x, this.view.y]);
@@ -241,8 +319,10 @@ class D3FreeSpace {
     for (var j = 0; j < childEntities.length; ++j) {
       var child = childEntities[j];
       child.workbench = workbench;
-      this.displayData.xMin = Math.min(this.displayData.xMin, child.x-60);
-      this.displayData.yMin = Math.min(this.displayData.yMin, child.y-60);
+      if(child.x) {
+        this.displayData.xMin = Math.min(this.displayData.xMin, child.x - 60);
+        this.displayData.yMin = Math.min(this.displayData.yMin, child.y - 60);
+      }
       elements.push(child);
     }
 
@@ -331,8 +411,10 @@ class D3FreeSpace {
 
             self.updateAllAttributes(elt.id);
 
-            self.displayData.xMax = Math.max(this.width + elt.x+60, self.displayData.xMax);
-            self.displayData.yMax = Math.max(this.height + elt.y+60, self.displayData.yMax);
+            if(elt.x) {
+              self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
+              self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
+            }
 
             self.fitViewportToData();
 
@@ -354,10 +436,13 @@ class D3FreeSpace {
   }
 
   updateAllAttributes(id) {
+    // Update displayed positions for all elements.
+    // Do not display any non-spatialized elements (null coordinate)
     d3.select('#GROUP-' + id)
       .transition()
       .duration(200)
-      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      .attr('transform', d => !d.x ? null : 'translate(' + d.x + ',' + d.y + ')')
+      .attr('display', d => !d.x ? 'none' : null);
 
     window.setTimeout(function() {
       ToolActions.reset();

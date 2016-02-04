@@ -23,9 +23,9 @@ class UserStore extends EventEmitter {
     //request.get(conf.actions.authenticationServiceActions.setTestCookie)
     //  .withCredentials()
     //  .end((err, res) => {
-    //     Check if user is logged in
-    //    this.checkAuthStatus();
-    //  });
+         //Check if user is logged in
+        //this.checkAuthStatus();
+      //});
 
     // Perform initial check
     this.checkAuthStatus();

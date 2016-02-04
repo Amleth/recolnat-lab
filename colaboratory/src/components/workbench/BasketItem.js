@@ -90,7 +90,7 @@ class BasketItem extends React.Component {
     ManagerActions.removeItemFromBasket(this.props.content.id);
   }
 
-  addSelfToBasket() {
+  addSelfToSelectedWorkbench() {
     ManagerActions.addBasketItemsToWorkbench([this.props.content.id], this.props.managerstore.getSelected().id, true);
   }
 
@@ -154,7 +154,7 @@ class BasketItem extends React.Component {
 
             <div className='ui green compact icon circular button'
                  style={this.floatDownLeftStyle}
-                 onClick={this.addSelfToBasket.bind(this)}>
+                 onClick={this.addSelfToSelectedWorkbench.bind(this)}>
               <i className='icons'>
                 <i className='folder icon' />
                 <i className='corner add icon' />

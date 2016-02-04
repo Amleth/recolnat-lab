@@ -128,7 +128,7 @@ class WorkbenchActions extends React.Component {
     var selectedWorkbench = this.props.managerstore.getSelected().id;
     console.log('parent= ' + selectedWorkbench);
 
-    ManagerActions.addBasketItemsToWorkbench(basketSelection, selectedWorkbench, false);
+    ManagerActions.addBasketItemsToWorkbench(basketSelection, selectedWorkbench, keepSelectionInBasket);
 
     this.hideOptions();
   }
@@ -280,6 +280,14 @@ class WorkbenchActions extends React.Component {
     React.findDOMNode(this.refs.fileInput).click();
   }
 
+  componentDidMount() {
+    $('.item', this.refs.options.getDOMNode()).popup({
+      position: 'right center',
+      prefer: 'adjacent',
+      lastResort: 'bottom right'
+    });
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(this.state.optionsModal) {
       if(this.state.optionsModal != nextState.optionsModal) {
@@ -337,18 +345,18 @@ class WorkbenchActions extends React.Component {
         </div>
         <div className='actions'>
           <div className='three fluid ui buttons'>
-            <div className="ui button" onClick={this.hideOptions.bind(this)}>
+            <div className="ui tiny button" onClick={this.hideOptions.bind(this)}>
               <i className="remove icon" />
               Annuler l'ajout
             </div>
-            <div className="ui button" onClick={this.addBasketSelectionToWorkbench.bind(this, false)}>
+            <div className="ui tiny button" onClick={this.addBasketSelectionToWorkbench.bind(this, false)}>
               <i className="trash icon" />
-              Retirer les objets sélectionnés du panier
+              Ajouter les objets à l'étude et les retirer du panier.
             </div>
-            <div className="ui button"
+            <div className="ui medium button"
                  onClick={this.addBasketSelectionToWorkbench.bind(this, true)}>
               <i className="checkmark icon" />
-              Conserver les objets sélectionnés dans le panier
+              Ajouter les objets à l'étude et les conserver dans le panier
             </div>
           </div>
         </div>
@@ -428,14 +436,18 @@ class WorkbenchActions extends React.Component {
         </div>
       </div>
 
-      <div className='ui selection list'>
-        <a className='item' onClick={this.loadWorkbenchInView.bind(this)}>
+      <div className='ui selection list' ref='options'>
+        <a className='item'
+           onClick={this.loadWorkbenchInView.bind(this)}
+           data-content="Ouvre l'étude sélectionnée dans l'espace de travail.">
           <div>
             <i className='folder open icon' />
             Ouvrir l'étude
           </div>
         </a>
-        <a className='item' onClick={this.showOptions.bind(this, 'createNewWorkbenchModal')}>
+        <a className='item'
+           onClick={this.showOptions.bind(this, 'createNewWorkbenchModal')}
+        data-content="Crée une nouvelle étude dans l'étude sélectionnée">
           <div>
             <i className='icons'>
               <i className='folder icon' />
@@ -444,37 +456,48 @@ class WorkbenchActions extends React.Component {
             Nouvelle étude
           </div>
         </a>
-        <a className='item' onClick={this.showOptions.bind(this, 'basketSelectionToWorkbenchModal')}>
+        <a className='item'
+           onClick={this.showOptions.bind(this, 'basketSelectionToWorkbenchModal')}
+        data-content="Ajoute les éléments choisis dans le panier (en bas) à l'étude sélectionnée">
           <div>
             <i className='linkify icon' />
             Ajouter la sélection à l'étude
           </div>
         </a>
-        <a className='item' onClick={this.showOptions.bind(this, 'importCSVModal')} >
+        <a className='item'
+           onClick={this.showOptions.bind(this, 'importCSVModal')}
+        data-content="Ajoute des images extérieures à ReColNat dans l'étude sélectionnée">
           <div>
             <i className='upload icon' />
             Importer une liste
           </div>
         </a>
-        <a className='item' onClick={this.beginCopy.bind(this)}>
+        <a className='item'
+           onClick={this.beginCopy.bind(this)}
+        data-content="Envoie l'étude sélectionnée vers le presse-papier du collaboratoire pour copie vers une autre étude. Pour terminer la copie, sélectionnez l'étude de destination et appuyez sur 'Coller'">
           <div>
             <i className='copy icon' />
             Copier l'élement
           </div>
         </a>
-        <a className='item' onClick={this.beginCut.bind(this)}>
+        <a className='item'
+           onClick={this.beginCut.bind(this)}
+        data-content="Envoie l'étude sélectionnée vers le presse-papier du collaboratoire pour coller dans une autre étude. Pour terminer l'opération, sélectionnez l'étude de destination et appuyez sur 'Coller'">
           <div>
             <i className='cut icon' />
             Couper
           </div>
         </a>
-        <a className='item' onClick={this.showOptions.bind(this, 'pasteModal')}>
+        <a className='item'
+           onClick={this.showOptions.bind(this, 'pasteModal')}
+        data-content="Copie/colle l'étude dans le presse-papier du collaboratoire dans l'étude sélectionnée">
           <div>
             <i className='paste icon' />
             Coller
           </div>
         </a>
-        <a className='item' onClick={this.showOptions.bind(this, 'deleteModal')}>
+        <a className='item' onClick={this.showOptions.bind(this, 'deleteModal')}
+        data-content="Supprime l'étude/planche sélectionnée de l'étude la contenant.">
           <div>
             <i className='trash icon' />
             Supprimer

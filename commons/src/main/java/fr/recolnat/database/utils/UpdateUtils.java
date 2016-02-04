@@ -34,8 +34,8 @@ public class UpdateUtils {
 
     String role = item.getProperty(DataModel.Properties.role);
     if(role != null) {
-        hasChild.setProperty(DataModel.Properties.coordX, 10);
-        hasChild.setProperty(DataModel.Properties.coordY, 10);
+        hasChild.setProperty(DataModel.Properties.coordX, null);
+        hasChild.setProperty(DataModel.Properties.coordY, null);
         hasChild.setProperty(DataModel.Properties.coordZ, 0);
     }
     return hasChild;

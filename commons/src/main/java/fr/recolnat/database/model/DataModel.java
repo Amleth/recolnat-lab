@@ -19,7 +19,11 @@ public class DataModel {
     }
 
     public static class RelationshipTypes {
+      // A Tag is the definition of a tag in the database. The TagAssociation is an intermediate node between the tag and the tagged object.
+      // This distinction exists in order for each to be able to have different sharing and ownership status.
+      // For example a Tag may be public, however a user may choose to keep private that he has associated the Tag with another object (for example if the user is uncertain).
       public static final String tag = "Tag";
+      public static final String tagging = "TagAssociation";
     }
 
 
@@ -73,6 +77,9 @@ public class DataModel {
     public static final String hasScalingData = "hasScalingData";
     public static final String hasAccessRights = "hasAccessRights";
     public static final String isMemberOfGroup = "isMemberOfGroup";
+    // Tags
+    public static final String hasDefinition = "hasDefinition";
+    public static final String isTagged = "isTagged";
   }
 
   // Property 'id' is reserved by OrientDB. Use something else.

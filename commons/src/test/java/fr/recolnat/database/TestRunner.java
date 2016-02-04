@@ -19,7 +19,7 @@ public class TestRunner {
 
     OrientGraph g = conn.getTransactionalGraph();
     try {
-      DatabaseTester.createTestWorkbench(g);
+//      DatabaseTester.createTestWorkbench(g);
       g.commit();
     }
     finally {

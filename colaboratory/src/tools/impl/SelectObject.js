@@ -47,7 +47,7 @@ class SelectObject extends AbstractTool {
       return function() {
         ViewActions.changeSelection(id, d);
       }
-    })(d.id), 10);
+    })(d.id), 100);
   }
 
   setMode() {

@@ -37,10 +37,10 @@ class LineMeasure extends AbstractTool {
       margin: '8px 10px 0px 0px'
     };
 
-    this.state = this.getInitialState();
+    this.state = this.initialState();
   }
 
-  getInitialState() {
+  initialState() {
     return {
       active: false,
       clicks: 0,
@@ -209,7 +209,7 @@ class LineMeasure extends AbstractTool {
       ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData("");
     }, 10);
-    this.setState(this.getInitialState());
+    this.setState(this.initialState());
   }
 
   /**

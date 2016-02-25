@@ -19,13 +19,14 @@ class Minimap extends React.Component {
 
     this.componentStyle = {
 //       display: "none",
-      flexDirection: "row"
+      display: 'flex',
+      flexDirection: "column"
     };
 
     this.imageContainerStyle = {
       position: "relative",
-      left: "0px",
-      top: "0px",
+      //left: "0px",
+      //top: "0px",
       overflow: "hidden"
     };
 
@@ -42,7 +43,7 @@ class Minimap extends React.Component {
     };
 
     this.buttonColumnStyle = {
-      display: "none",
+      display: "flex",
       flexDirection: "row",
       flexWrap: 'wrap'
     };
@@ -104,14 +105,14 @@ class Minimap extends React.Component {
       this.boundingBoxStyle.height = nextState.view.height + "px";
     }
 
-    if(nextState.init.imgUrl) {
-      this.componentStyle.display = "flex";
-      this.buttonColumnStyle.display = 'flex';
-    }
-    else {
-      this.componentStyle.display = "none";
-      this.buttonColumnStyle.display = 'none';
-    }
+    //if(nextState.init.imgUrl) {
+    //  this.componentStyle.display = "flex";
+    //  this.buttonColumnStyle.display = 'flex';
+    //}
+    //else {
+    //  this.componentStyle.display = "none";
+    //  this.buttonColumnStyle.display = 'none';
+    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -302,27 +303,32 @@ class Minimap extends React.Component {
           <div style={this.boundingBoxStyle} />
         </div>
 
-        <div className='ui fluid buttons'>
+        <div className='ui three fluid buttons'>
           <button className='ui button small compact'
                   onMouseDown={this.zoomOut.bind(this)}
                   onMouseUp={this.endZoom.bind(this)}
-                  onMouseOut={this.endZoom.bind(this)}><i className='ui large zoom out icon' /></button>
+                  onMouseOut={this.endZoom.bind(this)}>
+            <i className='ui large zoom out icon' />
+          </button>
           <button style={this.buttonStyle}
                   className='ui button small compact'
-                  disabled='disabled'>{(this.state.view.zoom*100).toFixed(0)}%</button>
+                  disabled='disabled'>{(this.state.view.zoom*100).toFixed(0)}%
+          </button>
           <button className='ui button small compact'
                   onMouseDown={this.zoomIn.bind(this)}
                   onMouseUp={this.endZoom.bind(this)}
-                  onMouseOut={this.endZoom.bind(this)}><i className='ui large zoom icon' /></button>
+                  onMouseOut={this.endZoom.bind(this)}>
+            <i className='ui large zoom icon' />
+          </button>
         </div>
 
-        <div className='ui fluid buttons'>
+        <div className='ui three fluid buttons'>
           <MoveView />
           <MoveObject />
           <SelectObject />
         </div>
 
-        <div className='ui fluid buttons'>
+        <div className='ui three fluid buttons'>
           <button style={this.buttonStyle}
                   className='ui button small compact'
                   onClick={this.displayAllElementsInView.bind(this)}

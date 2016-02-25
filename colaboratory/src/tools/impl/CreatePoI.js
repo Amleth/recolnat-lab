@@ -33,7 +33,7 @@ class CreatePoI extends AbstractTool {
       .on('drag', this.dragged)
       .on('dragend', this.dragended);
 
-    this.state = this.getInitialState();
+    this.state = this.initialState();
 
     this._onViewPropertiesUpdate = () => {
       const viewPropsUpdate = () => d3.select('.' + this.vertexClass).attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + this.props.viewstore.getViewProperties().sizeOfTextAndObjects + ')');
@@ -41,7 +41,7 @@ class CreatePoI extends AbstractTool {
     }
   }
 
-  getInitialState() {
+  initialState() {
     return {
       active: false,
       x: null,
@@ -137,7 +137,7 @@ class CreatePoI extends AbstractTool {
       10);
     this.clearSVG();
     d3.select('svg').style('cursor', 'default');
-    this.setState(this.getInitialState());
+    this.setState(this.initialState());
   }
 
   /**

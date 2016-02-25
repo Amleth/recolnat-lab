@@ -129,11 +129,11 @@ class CollectionNavigator extends React.Component {
   }
 
   setSelectedItem(selectedItem) {
-    console.log(JSON.stringify(selectedItem));
+    //console.log(JSON.stringify(selectedItem));
     if(selectedItem) {
       var workbenchItems = _.sortBy(this.props.entitystore.getItems(), this.state.sortBy);
       var index = this.getIndexOfItem(selectedItem.id, workbenchItems);
-      console.log(index);
+      //console.log(index);
       this.setState({activeItemIdx: index, displayedItemIdx: index+1, workbenchItems: workbenchItems});
     }
     else {

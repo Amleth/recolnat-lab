@@ -9,6 +9,7 @@ import React from 'react';
 import AbstractTool from '../AbstractTool';
 
 import Classes from '../../constants/CommonSVGClasses.js';
+import TypeConstants from '../../constants/TypeConstants';
 
 import ViewActions from '../../actions/ViewActions.js';
 import ToolActions from '../../actions/ToolActions.js';
@@ -47,10 +48,10 @@ class MoveObject extends AbstractTool {
           .style('cursor', '-webkit-grab')
           .style('cursor', 'grab')
           .style('opacity', 0.0);
-
       });
 
     d3.selectAll('.' + this.className)
+      .on('mouseup', this.select)
       .call(this.drag);
 //     d3.select('svg').style('cursor', 'grab');
     window.setTimeout(function() {
@@ -71,17 +72,36 @@ class MoveObject extends AbstractTool {
     d3.select('svg').style('cursor', 'default');
     window.setTimeout(function() {
       ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData('')},1);
+      ToolActions.updateTooltipData('')},10);
 
     this.setState({active: false});
   }
 
   click(self, x, y, data) {
-    // Doesn't do anything by itself. This is not a clickable tool.
+    // Find images under cursor in data.objects
+    //console.log(JSON.stringify(data));
+    //for(var i = 0; i < data.objects.length; ++i) {
+    //  if(data.objects[i].type == TypeConstants.sheet) {
+    //    window.setTimeout((function(id) {
+    //      return function() {
+    //        ViewActions.changeSelection(id, null);
+    //      }
+    //    })(data.objects[i].id), 100);
+    //    return;
+    //  }
+    //}
   }
 
   setMode() {
     ToolActions.setTool(ToolConf.moveObject.id);
+  }
+
+  select(d, i) {
+    window.setTimeout((function(id) {
+      return function() {
+        ViewActions.changeSelection(id, null);
+      }
+    })(d.id), 100);
   }
 
   dragstarted(d) {

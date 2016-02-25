@@ -8,7 +8,7 @@ import ToolConstants from '../constants/ToolConstants';
 
 export default {
   setTool: (toolName) => {
-    console.log("ToolActions setTool");
+    //console.log("ToolActions setTool");
     AppDispatcher.dispatch({
       actionType: ToolConstants.ActionTypes.TOOL_SET_ACTIVE_TOOL,
       tool: toolName
@@ -16,14 +16,14 @@ export default {
   },
 
   clearTool: () => {
-    console.log("ToolActions clearTool");
+    //console.log("ToolActions clearTool");
     AppDispatcher.dispatch({
       actionType: ToolConstants.ActionTypes.TOOL_CLEAR
     });
   },
 
   registerTool: (name, onClickAction, component) => {
-    console.log("ToolActions registerTool");
+    //console.log("ToolActions registerTool");
     AppDispatcher.dispatch({
       actionType: ToolConstants.ActionTypes.TOOL_REGISTER,
       name: name,

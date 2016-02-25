@@ -45,7 +45,7 @@ class ManagerStore extends EventEmitter {
         name: 'Chargement des études récentes...',
         type: 'bag'
       },
-      activeIdx: null
+      activeId: null
     };
 
     this.basket = [];
@@ -59,7 +59,6 @@ class ManagerStore extends EventEmitter {
           break;
         case ManagerConstants.ActionTypes.SET_SELECTED_NODE:
           if(action.selection) {
-            console.log(JSON.stringify(action.selection));
             this.selectedNode = {
               id: action.selection.id,
               name: action.selection.name,
@@ -102,7 +101,33 @@ class ManagerStore extends EventEmitter {
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
         case ManagerConstants.ActionTypes.SET_ACTIVE_IN_WORKBENCH:
-          this.setActive(action.workbenchIndex, action.itemIndex);
+          var wbIdx = null;
+          var itemId = null;
+          if(action.workbenchId) {
+            // Find indices
+            this.workbenches.forEach(function(wb, idx) {
+              if(wb) {
+                if (wb.id == action.workbenchId) {
+                  wbIdx = idx;
+                }
+              }
+            });
+            itemId = action.itemId;
+          }
+          else if(action.workbenchIndex != undefined) {
+            wbIdx = action.workbenchIndex;
+            if(wbIdx == -1) {
+              itemId = this.getBaseData().children[action.itemIndex].id;
+            }
+            else {
+              itemId = this.workbenches[wbIdx].children[action.itemIndex].id;
+            }
+          }
+          else {
+            console.error('Unprocessable action content ' + JSON.stringify(action));
+            break;
+          }
+          this.setActive(wbIdx, itemId);
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
         case ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_WORKBENCH:
@@ -154,12 +179,13 @@ class ManagerStore extends EventEmitter {
     }
   }
 
-  setActive(wbIdx, itemIdx) {
+  setActive(wbIdx, itemId) {
+    //console.log('setActive(' + wbIdx + ',' + itemId + ')');
     if(wbIdx == -1) {
-      this.base.activeIdx = itemIdx;
+      this.base.activeId = itemId;
     }
     else {
-      this.workbenches[wbIdx].activeIdx = itemIdx;
+      this.workbenches[wbIdx].activeId = itemId;
     }
   }
 
@@ -176,7 +202,7 @@ class ManagerStore extends EventEmitter {
     children.push(this.base.root);
     //children.push(this.base.favorites);
     //children.push(this.base.recent);
-    return ManagerStore.buildWorkbench('zero', 'Espaces de travail', children, null, this.base.activeIdx);
+    return ManagerStore.buildWorkbench('zero', 'Espaces de travail', children, null, this.base.activeId);
   }
 
   getWorkbenches() {
@@ -191,8 +217,12 @@ class ManagerStore extends EventEmitter {
     }
     for(var i = 0; i < this.workbenches.length; ++i) {
       var workbench = this.workbenches[i];
-      console.log('wb=' + JSON.stringify(workbench));
-      console.log('id=' + id);
+      if(!workbench) {
+        // Sometimes we end up with a temporarily null workbench in there.
+        continue;
+      }
+      //console.log('wb=' + JSON.stringify(workbench));
+      //console.log('id=' + id);
       if(workbench.id == id) {
         return workbench;
       }
@@ -212,20 +242,22 @@ class ManagerStore extends EventEmitter {
       name: name,
       children: children,
       parents: parents,
-      activeIdx: active
+      activeId: active
     };
   }
 
   reloadWorkbenches() {
     var rememberActiveItemInWorkbench = function(wb, oldWb) {
       if(oldWb) {
-        wb.activeIdx = oldWb.activeIdx;
+        wb.activeId = oldWb.activeId;
       }
     };
 
     var self = this;
     this.workbenches.forEach(function(workbench, index) {
-      this.requestGraphAround(workbench.id, 'bag', index, undefined, rememberActiveItemInWorkbench.bind(self));
+      if(workbench) {
+        this.requestGraphAround(workbench.id, 'bag', index, undefined, rememberActiveItemInWorkbench.bind(this));
+      }
     }, this);
   }
 
@@ -252,6 +284,9 @@ class ManagerStore extends EventEmitter {
       //alert("L'élément sélectionné n'est pas un bureau de travail");
       return;
     }
+    if(wbIdx == null) {
+      wbIdx = this.workbenches.length;
+    }
     var previousWorkbench = null;
     if(this.workbenches[wbIdx]) {
       previousWorkbench = JSON.parse(JSON.stringify(this.workbenches[wbIdx]));
@@ -271,10 +306,10 @@ class ManagerStore extends EventEmitter {
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
         }
         else {
-          console.log("Received response " + res.text);
+          //console.log("Received response " + res.text);
           var response = JSON.parse(res.text);
           if(replacementCallback) {
-            console.log('running callback');
+            //console.log('running callback');
             replacementCallback(response);
           }
           else {
@@ -294,7 +329,7 @@ class ManagerStore extends EventEmitter {
               this.workbenches.splice(wbIdx+1);
             }
           }
-          console.log('emit screen update event');
+          //console.log('emit screen update event');
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
         }
       });
@@ -320,7 +355,7 @@ class ManagerStore extends EventEmitter {
           + itemId.slice(20);
 
         var itemData = this.getBasketItem(itemId);
-        console.log('uuid=' + itemUuid);
+        //console.log('uuid=' + itemUuid);
         (function(uuid, workbench, id, data) {
           request.post(conf.actions.virtualWorkbenchServiceActions.import)
             .set('Content-Type', "application/json")
@@ -337,7 +372,7 @@ class ManagerStore extends EventEmitter {
                 console.error(err);
               }
               else {
-                console.log(res);
+                //console.log(res);
                 ManagerActions.reloadDisplayedWorkbenches();
                 ManagerActions.changeBasketSelectionState(id, false);
                 if (!keepInBasket) {

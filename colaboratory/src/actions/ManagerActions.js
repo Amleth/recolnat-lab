@@ -32,6 +32,14 @@ export default {
     });
   },
 
+  setActiveIdInWorkbench: (wbId, itemId) => {
+    AppDispatcher.dispatch({
+      actionType: ManagerConstants.ActionTypes.SET_ACTIVE_IN_WORKBENCH,
+      workbenchId: wbId,
+      itemId: itemId
+    });
+  },
+
   reloadDisplayedWorkbenches: () => {
     AppDispatcher.dispatch({
       actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_WORKBENCHES

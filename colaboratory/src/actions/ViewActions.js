@@ -57,5 +57,12 @@ export default {
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_PROPERTIES,
       properties: properties
     });
+  },
+
+  changeLoaderState: (text) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.LOADER_CHANGE_STATE,
+      text: text
+    });
   }
 }

@@ -33,22 +33,27 @@ class EntitiesStore extends EventEmitter {
       //console.log('EntitiesStore received ACTION', action.actionType);
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Server.VIEW_SET_WORKBENCH:
-          console.log('Store received new workbench ' + action.workbench);
+          //console.log('Store received new workbench ' + action.workbench);
           window.setTimeout(function() {
-            ToolActions.updateTooltipData("Chargement en cours...")}, 1);
+            ViewActions.changeLoaderState("Chargement en cours.")}, 1);
           this.select(null, null);
           this.setWorkbenchId(action.workbench);
           this.emit(EntitiesEvents.CHANGE_DISPLAYED_WORKBENCH);
           this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
           break;
         case ServerConstants.ActionTypes.SERVER_CHILD_ENTITIES:
-          console.log("Storing entities " + JSON.stringify(action.entities));
+          //console.log("Storing entities " + JSON.stringify(action.entities));
           this.setAll(action.entities);
+          //this.select(null, null);
           this.downloadAllMetadataFromServer();
-          window.setTimeout(function() {
-            ViewActions.changeSelection(action.entities[0].id, action.entities[0]);
-          }, 100);
-
+          var items = this.getItems();
+          if(items.length > 0) {
+            this.select(items[0].id, items[0]);
+          }
+          //window.setTimeout(function() {
+          //  ViewActions.changeSelection(action.entities[0].id, action.entities[0]);
+          //}, 500);
+          this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
           this.emit(EntitiesEvents.CHANGE_DISPLAYED_ENTITIES);
           this.emit(EntitiesEvents.METADATA_UPDATE);
           break;
@@ -57,7 +62,7 @@ class EntitiesStore extends EventEmitter {
           this.emit(EntitiesEvents.CHANGE_DISPLAYED_ENTITIES);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_SET_SELECTION:
-          console.log("EntitiesStore setting new selection " + action.selection.id);
+          //console.log("EntitiesStore setting new selection " + action.selection.id);
           this.select(action.selection.id, action.selection.data);
           this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
           break;
@@ -65,6 +70,7 @@ class EntitiesStore extends EventEmitter {
           this.downloadEntityMetadataFromServer(action.entityId);
           break;
         default:
+          //console.log('selected=' + JSON.stringify(this.selection));
           break;
       }
     });
@@ -144,7 +150,7 @@ class EntitiesStore extends EventEmitter {
     var allObjectsMetadata = this.getAllMetadata();
     for(var i = 0; i < allObjectsMetadata.length; ++i) {
       var objectMetadata = allObjectsMetadata[i];
-      console.log(JSON.stringify(objectMetadata));
+      //console.log(JSON.stringify(objectMetadata));
       if(objectMetadata.pois) {
         for(var j = 0; j < objectMetadata.pois.length; ++j) {
           var poi = objectMetadata.pois[j];
@@ -199,10 +205,10 @@ class EntitiesStore extends EventEmitter {
   }
 
   downloadAllMetadataFromServer() {
-    console.log('Downloading metadata');
+    //console.log('Downloading metadata');
     var items = this.getItems();
     for(var i = 0; i < items.length; ++i) {
-      console.log('Downloading metadata for ' + items[i].id);
+      //console.log('Downloading metadata for ' + items[i].id);
       request.post(conf.actions.imageEditorServiceActions.getImageData)
         .send({id: items[i].id})
         .withCredentials()

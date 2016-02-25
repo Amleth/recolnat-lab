@@ -35,6 +35,7 @@ class D3FreeSpace {
     this.view.y = 0;
     this.view.scale = 1.0;
     this.store = null;
+    this.imageSourceLevel = 0;
 
     this._onEndDragFromInbox = () => {
       const addFromInbox = () => this.fixShadow();
@@ -122,32 +123,27 @@ class D3FreeSpace {
 
       // TODO Update transparency
     }
+
+    window.setTimeout(function() {
+      ViewActions.changeLoaderState(null)},100);
   }
 
   updateWorkbenchMetadata(metadata){
     // Remove borders around selections
     d3.selectAll('.' + Classes.BORDER_CLASS)
       .style('fill', '#AAAAAA');
-    console.log('updateWbMeta=' + JSON.stringify(metadata));
+    //console.log('updateWbMeta=' + JSON.stringify(metadata));
 
     if(metadata.selected) {
       d3.select('#BORDER-' + metadata.selected.id)
         .style('stroke', '#708D23')
         .style('fill', '#708D23');
 
-      //var image = d3.select('#NODE-' + metadata.selected.id);
       window.setTimeout((function(id) {
-          return function() {
-            var image = d3.select('#NODE-' + id);
-            var url = image.attr("xlink:href");
-            var width = image.datum().width;
-            var height = image.datum().height;
-            var x = image.datum().x;
-            var y = image.datum().y;
-            MinimapActions.initMinimap(url, width, height, x, y);
-          };
-        })(metadata.selected.id),
-        3000);
+        return function() {
+          D3FreeSpace.sendToMinimap(id);
+        }
+      })(metadata.selected.id), 100);
     }
     else {
       window.setTimeout(function() {
@@ -194,8 +190,9 @@ class D3FreeSpace {
     //console.log('xMax=' + this.displayData.xMax);
     //console.log('yMax=' + this.displayData.yMax);
 
-    var xLen = this.displayData.xMax - this.displayData.xMin;
-    var yLen = this.displayData.yMax - this.displayData.yMin;
+    // Add 100px offset from borders
+    var xLen = this.displayData.xMax - this.displayData.xMin + 600;
+    var yLen = this.displayData.yMax - this.displayData.yMin + 600;
     var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
     var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
     if (scaleX > scaleY) {
@@ -205,8 +202,8 @@ class D3FreeSpace {
       scale = scaleX;
     }
 
-    var x = -this.displayData.xMin*scale;
-    var y = -this.displayData.yMin*scale;
+    var x = -(this.displayData.xMin-300)*scale;
+    var y = -(this.displayData.yMin-300)*scale;
 
     window.setTimeout(function() {
         ViewActions.updateViewport(
@@ -237,8 +234,6 @@ class D3FreeSpace {
 
       window.addEventListener('dragend', this._onEndDragFromInbox);
 
-
-
       d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS)
         .append('g')
         .attr('id', 'SHADOW')
@@ -252,12 +247,12 @@ class D3FreeSpace {
         .style('opacity', 0.3);
 
       var img = new Image();
-      img.src = data.url;
       img.onload = function () {
         d3.select('#SHADOW').select('image')
           .attr("height", this.height)
           .attr("width", this.width);
-      }
+      };
+      img.src = data.url;
     }
   }
 
@@ -275,8 +270,7 @@ class D3FreeSpace {
     var image = shadow.select('image');
     var x = parseInt(image.attr('x'))+50;
     var y = parseInt(image.attr('y'))+100;
-    console.log('setting shadow to location (' + x + ',' + y + ')');
-    console.log(this.workbench);
+    //console.log('setting shadow to location (' + x + ',' + y + ')');
     ViewActions.moveEntity(this.workbench,
       data.id,
       x,
@@ -298,7 +292,37 @@ class D3FreeSpace {
       .attr('y', coords[1]-100);
   }
 
+  static sendToMinimap(id) {
+    var image = d3.select('#NODE-' + id);
+    if(!image.empty()) {
+      var url = image.attr("xlink:href");
+      var width = image.datum().width;
+      var height = image.datum().height;
+      var x = image.datum().x;
+      var y = image.datum().y;
+      if(url && width != null && height !=null  && x != null && y != null) {
+        MinimapActions.initMinimap(url, width, height, x, y);
+        return;
+      }
+    }
+    window.setTimeout((function(id) {
+      return function() {
+        D3FreeSpace.sendToMinimap(id);
+      }
+    })(id), 500);
+  }
+
   viewportTransition() {
+    // if the new zoom level is above a certain value, replace thumbnails with full-size images if available
+    if(this.view.scale > 0.1 && this.imageSourceLevel != 1) {
+      console.log("Switch to full scale images");
+      this.switchImageSources(1);
+    }
+    else if(this.view.scale < 0.1 && this.imageSourceLevel != 2) {
+      console.log("Switch to thumbnail images");
+      this.switchImageSources(2);
+    }
+
     this.zoom.translate([this.view.x, this.view.y]);
     this.zoom.scale(this.view.scale);
 
@@ -309,12 +333,33 @@ class D3FreeSpace {
       .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
   }
 
+  switchImageSources(level) {
+    var paramName = null;
+    switch(level) {
+      case 1:
+        paramName = 'url';
+        break;
+      case 2:
+        paramName = 'thumburl';
+        break;
+      default:
+        console.log('Unknown image source level ' + level);
+        paramName = 'url';
+        break;
+    }
+
+    this.imageSourceLevel = level;
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).select('.' + Classes.IMAGE_CLASS)
+      .attr('xlink:href', d => d[paramName] ? d[paramName] : d.url);
+  }
+
   drawChildEntities(childEntities, workbench) {
     let group = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
     var elements = [];
     var bags = [];
-    var contentToLoad = childEntities.length;
-    var contentLoaded = 0;
+    this.loadData = {};
+    this.loadData.contentToLoad = childEntities.length;
+    this.loadData.contentLoaded = 0;
 
     for (var j = 0; j < childEntities.length; ++j) {
       var child = childEntities[j];
@@ -376,63 +421,89 @@ class D3FreeSpace {
 
     for(var i = 0; i < elements.length; ++i) {
       var element = elements[i];
-      window.setTimeout((function (elt) {
-        return function () {
-          var img = new Image();
-          img.src = elt.url;
-          img.onload = function () {
-            var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
-
-            var height = this.height;
-            var width = this.width;
-            var url = this.src;
-
-            group.each(function(d, i) {
-              if(d.id == elt.id) {
-                d.height = height;
-                d.width = width;
-                d.url = url;
-              }
-            });
-
-            group.select("#NODE-" + elt.id)
-              .attr("height", d => d.height)
-              .attr("width", d => d.width)
-              .attr("xlink:href", d => d.url);
-
-            group.select("#BORDER-" + elt.id)
-              .attr('width', d => d.width + 8)
-              .attr('height', d => d.height + 148);
-            //.style('stroke-width', '4px');
-
-            group.select("#NAME-" + elt.id)
-              .attr('width', d => d.width + 8)
-              .attr('height', d => d.height + 148);
-
-            self.updateAllAttributes(elt.id);
-
-            if(elt.x) {
-              self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
-              self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
-            }
-
-            self.fitViewportToData();
-
-            ++contentLoaded;
-            window.setTimeout(function() {
-              ToolActions.updateTooltipData('Chargement des images en cours... ' + contentLoaded + '/' + contentToLoad )},10);
-
-            if(contentLoaded >= contentToLoad) {
-              window.setTimeout(function() {
-                ToolActions.updateTooltipData('Chargement terminé')},10);
-
-              window.setTimeout(function() {
-                ToolActions.updateTooltipData('')},5000);
-            }
-          };
-        }
-      })(element), 50);
+      window.setTimeout(this.loadImage(element, self), 50);
     }
+
+    if(this.loadData.contentLoaded >= this.loadData.contentToLoad) {
+      D3FreeSpace.endLoad();
+    }
+  }
+
+  static endLoad() {
+    window.setTimeout(function() {
+      ViewActions.changeLoaderState('Chargement terminé')},10);
+
+    window.setTimeout(function() {
+      ViewActions.changeLoaderState(null)},2000);
+  }
+
+  loadImage(elt, self) {
+    //console.log(JSON.stringify(elt));
+    var img = new Image();
+    img.onload = function () {
+      //console.log('loaded ' + JSON.stringify(elt));
+      var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+
+      var height = this.height;
+      var width = this.width;
+      var url = this.src;
+
+      group.each(function(d, i) {
+        if(d.id == elt.id) {
+          d.height = height;
+          d.width = width;
+          //d.url = url;
+        }
+      });
+
+      group.select("#NODE-" + elt.id)
+        .attr("height", d => d.height)
+        .attr("width", d => d.width)
+        .attr("xlink:href", d => d.thumburl ? d.thumburl : d.url);
+
+      group.select("#BORDER-" + elt.id)
+        .attr('width', d => d.width + 8)
+        .attr('height', d => d.height + 148);
+      //.style('stroke-width', '4px');
+
+      group.select("#NAME-" + elt.id)
+        .attr('width', d => d.width + 8)
+        .attr('height', d => d.height + 148);
+
+      self.updateAllAttributes(elt.id);
+
+      if(elt.x) {
+        self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
+        self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
+      }
+
+      self.fitViewportToData();
+
+      self.loadData.contentLoaded += 1;
+      window.setTimeout(function() {
+        ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.contentLoaded + '/' + self.loadData.contentToLoad )},10);
+
+      if(self.loadData.contentLoaded >= self.loadData.contentToLoad) {
+        D3FreeSpace.endLoad();
+      }
+    };
+
+    img.onerror = function() {
+      console.error('Failed to load ' + this.src + '. Retrying...');
+      self.loadImage(elt, self);
+    };
+
+    img.src = elt.url;
+
+    // If image takes too long to load, reload it
+    window.setTimeout(function() {
+      if(!img.complete) {
+        console.log('Image load timeout reached. Attempting to reload');
+        img.src = '';
+        self.loadImage(elt, self);
+      }
+    }, 10000);
+
   }
 
   updateAllAttributes(id) {
@@ -616,20 +687,20 @@ class D3FreeSpace {
       coordinates[1] < box.bottom;
   }
 
-  leftClick(d, i) {
+  leftClick(self) {
     if(d3.event.defaultPrevented) {
       return;
     }
     d3.event.preventDefault();
     var coords = d3.mouse(this);
-    //var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
+    var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
     // TODO input the right data
     ToolActions.runTool(
       coords[0],
       coords[1],
       {
         data: {},
-        objects: [],
+        objects: objectsAtEvent,
         button: d3.event.button
       });
   }
@@ -638,7 +709,7 @@ class D3FreeSpace {
     d3.event.preventDefault();
     var coords = d3.mouse(this);
     var objectsAtEvent = self.findObjectsAtCoords([d3.event.clientX, d3.event.clientY]);
-    console.log(JSON.stringify(objectsAtEvent));
+    //console.log(JSON.stringify(objectsAtEvent));
     MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, objectsAtEvent);
   }
 

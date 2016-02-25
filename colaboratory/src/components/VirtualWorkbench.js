@@ -29,7 +29,18 @@ class VirtualWorkbench extends React.Component {
       width: '100%'
     };
 
-    this.state = {workbenchEntities : [], workbench: "", selection : null, metadata: null};
+    this.loadingModalStyle = {
+      zIndex: 99999
+    };
+
+    this.state = {
+      workbenchEntities : [],
+      workbench: "",
+      selection : null,
+      metadata: null,
+      loader: null,
+      loading: ''
+    };
 
     this._onChangeWorkbench = () => {
       const fetchWorkbench = () =>
@@ -44,6 +55,10 @@ class VirtualWorkbench extends React.Component {
       const toggleButtons = () => this.setState({selection:  this.props.entitystore.getSelectedEntity()});
       return toggleButtons.apply(this);
     };
+    this._onLoaderUpdate = () => {
+      const updateLoader = () => this.setState({loader: this.props.viewstore.getLoader().text});
+      return updateLoader.apply(this);
+    }
   }
 
 
@@ -52,26 +67,38 @@ class VirtualWorkbench extends React.Component {
     this.props.entitystore.addChangeEntitiesListener(this._onChangeEntities);
     this.props.entitystore.addChangeWorkbenchListener(this._onChangeWorkbench);
     this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
+    this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
     this.props.wsconnector.fetchData(this.props.entitystore.getWorkbenchId());
     this.setState({workbench: this.props.entitystore.getWorkbenchId()});
-  }
-
-  componentWillUnmount() {
-    this.props.entitystore.removeChangeEntitiesListener(this._onChangeEntities);
-    this.props.entitystore.removeChangeWorkbenchListener(this._onChangeWorkbench);
-    this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
   }
 
   componentWillUpdate(nextProps, nextState) {
     if(nextState.workbench !== this.state.workbench) {
       console.log("VirtualWorkbench: Loading workbench " + nextState.workbench);
     }
+    if(nextState.loader) {
+      nextState.loading = 'active'
+    }
+    if(!nextState.loader) {
+      nextState.loading = '';
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.entitystore.removeChangeEntitiesListener(this._onChangeEntities);
+    this.props.entitystore.removeChangeWorkbenchListener(this._onChangeWorkbench);
+    this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
+    this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
   }
 
   render() {
     var metadata = {selected : this.state.selection};
     return(
       <div style={this.componentContainerStyle}>
+            <div className={"ui " + this.state.loading + " dimmer"}>
+              <div className='ui large header'>Chargement en cours</div>
+              <div className="ui large text loader">{this.state.loader}</div>
+            </div>
         <Tooltip />
         <Inbox entitystore={this.props.entitystore}
                content={this.state.workbenchEntities}
@@ -90,7 +117,7 @@ class VirtualWorkbench extends React.Component {
                             entitystore={this.props.entitystore}
                             viewstore={this.props.viewstore}
                             drag={drag}
-          />
+        />
       </div>
     );
   }

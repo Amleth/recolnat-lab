@@ -6,6 +6,7 @@ import request from 'superagent';
 
 import ServerActions from '../actions/ServerActions.js';
 import ToolActions from '../actions/ToolActions';
+import ViewActions from '../actions/ViewActions';
 
 import ServerConstants from '../constants/ServerConstants.js'
 import ViewConstants from '../constants/ViewConstants.js';
@@ -32,9 +33,9 @@ class API {
       //console.log('API received view ACTION', action.actionType);
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY:
-          console.log("Demande de déplacement de l'entité", action.id, "à la position", action.x, action.y, "transmise au serveur.");
+          //console.log("Demande de déplacement de l'entité", action.id, "à la position", action.x, action.y, "transmise au serveur.");
           var actionJSON = {workbench: action.workbench, object: action.id, action: ServerConstants.ActionTypes.SERVER_CHILD_ENTITY_MOVED, x: action.x, y: action.y};
-          console.log("Sending to server " + JSON.stringify(actionJSON));
+          //console.log("Sending to server " + JSON.stringify(actionJSON));
           that.sendPayloadWhenReady(that, actionJSON);
           break;
         default:
@@ -64,7 +65,7 @@ class API {
             var self = this;
 
             websocket.onerror = function (message) {
-              console.log('Connection failed with error: ' + JSON.stringify(message));
+              console.error('Connection failed with error: ' + JSON.stringify(message));
             };
             websocket.onopen = function (message) {
               console.log('Client connected ' + JSON.stringify(message));
@@ -76,20 +77,20 @@ class API {
             websocket.onmessage = function (message) {
               //console.log("Received " + message);
               var response = JSON.parse(message.data);
-              console.log("Received data " + response.toString());
+              //console.log("Received data " + response.toString());
               switch (response.action) {
                 case ServerConstants.ActionTypes.SERVER_CHILD_ENTITY_MOVED:
                   // move
-                  console.log("Received MOVE action from server " + JSON.stringify(response));
+                  //console.log("Received MOVE action from server " + JSON.stringify(response));
                   ServerActions.childEntityMoved(response.object, response.x, response.y);
                   break;
                 case ServerConstants.ActionTypes.SERVER_NEW_CHILD_ENTITY_CREATED:
                   //add
-                  console.log("Add not implemented");
+                  console.error("Add not implemented");
                   break;
                 case ServerConstants.ActionTypes.SERVER_CHILD_ENTITY_REMOVED:
                   //delete
-                  console.log("Delete not implemented");
+                  console.error("Delete not implemented");
                   break;
                 case ServerConstants.ActionTypes.SERVER_SESSION_OPEN:
                   console.log("Obtained session id " + response.session);
@@ -97,14 +98,14 @@ class API {
                   break;
                 case ServerConstants.ActionTypes.SERVER_CHILD_ENTITIES:
                   window.setTimeout(function () {
-                    ToolActions.updateTooltipData('Données du serveur reçues...')
+                    ViewActions.changeLoaderState('Données du serveur reçues...')
                   }, 1);
-                  console.log("Received workbench " + response.workbench.toString());
+                  //console.log("Received workbench " + response.workbench.toString());
                   ServerActions.childEntities(response.workbench);
                   break;
                 default:
                   // action not implemented
-                  console.log("Response to action " + response.action + " not implemented");
+                  console.error("Response to action " + response.action + " not implemented");
                   break;
               }
             };
@@ -130,7 +131,7 @@ class API {
    */
   fetchData(workbenchUri) {
     if(workbenchUri) {
-      console.log("Fetching data");
+      //console.log("Fetching data");
       var payload = {
         workbench: workbenchUri,
         action: ServerConstants.ActionTypes.SERVER_CHILD_ENTITIES
@@ -142,12 +143,12 @@ class API {
   sendPayloadWhenReady(that, json) {
     if (that.websocket) {
       if (that.websocket.readyState === that.websocket.CONNECTING || !that.sessionId) {
-        console.log("waiting for connection");
+        //console.log("waiting for connection");
         setTimeout(that.sendPayloadWhenReady, 1000, that, json);
       }
       else {
         json.sender = that.sessionId;
-        console.log("sending message " + JSON.stringify(json));
+        //console.log("sending message " + JSON.stringify(json));
         that.websocket.send(JSON.stringify(json));
       }
     }

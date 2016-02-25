@@ -28,6 +28,9 @@ class ViewStore extends EventEmitter {
     this.properties = {};
     this.properties.sizeOfTextAndObjects = 1.0;
 
+    this.loader = {};
+    this.loader.text = null;
+
     AppDispatcher.register((action) => {
       //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
@@ -42,10 +45,30 @@ class ViewStore extends EventEmitter {
           this.setViewProperties(action.properties);
           this.emit(ViewEvents.UPDATE_VIEW_PROPERTIES);
           break;
+        case ViewConstants.ActionTypes.Local.LOADER_CHANGE_STATE:
+          this.setLoaderText(action.text);
+          this.emit(ViewEvents.UPDATE_LOADER);
+          break;
         default:
           break;
       }
     });
+  }
+
+  setLoaderText(text) {
+    if(!text) {
+      this.loader.text = null;
+    }
+    else if(text.length == 0) {
+      this.loader.text = null;
+    }
+    else {
+      this.loader.text = text;
+    }
+  }
+
+  getLoader() {
+    return this.loader;
   }
 
   setViewportData(x, y, width, height, scale) {
@@ -111,6 +134,14 @@ class ViewStore extends EventEmitter {
 
   removeViewPropertiesUpdateListener(callback) {
     this.removeListener(ViewEvents.UPDATE_VIEW_PROPERTIES, callback);
+  }
+
+  addLoaderListener(callback) {
+    this.on(ViewEvents.UPDATE_LOADER, callback);
+  }
+
+  removeLoaderListener(callback) {
+    this.removeListener(ViewEvents.UPDATE_LOADER, callback);
   }
 }
 

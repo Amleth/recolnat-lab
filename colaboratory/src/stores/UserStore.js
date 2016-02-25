@@ -31,7 +31,7 @@ class UserStore extends EventEmitter {
     this.checkAuthStatus();
     // Check if user is still logged in every minute
     this.loginCheck = window.setInterval(this.checkAuthStatus.bind(this),
-      60000
+      60000*10
     );
   }
 

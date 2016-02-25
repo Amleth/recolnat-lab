@@ -191,7 +191,7 @@ class Window extends React.Component {
   }
 
   login() {
-    console.log('calling login in window');
+    //console.log('calling login in window');
     // Open connection to websocket
     api.openWebsocket();
     this.setState({userLoggedIn: true});
@@ -219,7 +219,7 @@ class Window extends React.Component {
       }
     }
     else {
-      console.log('Rejected unauthorized event from ' + event.origin + ' : ' + JSON.stringify(event.data));
+      //console.log('Rejected unauthorized event from ' + event.origin + ' : ' + JSON.stringify(event.data));
     }
   }
 
@@ -232,15 +232,23 @@ class Window extends React.Component {
   }
 
   setWorkbenchName() {
-    console.log('estore=' + entitystore.getWorkbenchId());
-    var id = entitystore.getWorkbenchId();
-    var name = managerstore.getWorkbench(id).name;
-      this.setState({workbench: name});
+    if(entitystore.getWorkbenchId()) {
+      var id = entitystore.getWorkbenchId();
+      var workbench = managerstore.getWorkbench(id);
+      if(workbench) {
+        this.setState({workbench: workbench.name});
+      }
+      else {
+        window.setTimeout(this.setWorkbenchName.bind(this), 500);
+      }
+    }
   }
 
   toggleTopMenu(visible = undefined) {
     if(visible === undefined) {
-      ViewActions.setActiveWorkbench(entitystore.getWorkbenchId());
+      if(entitystore.getWorkbenchId()) {
+        ViewActions.setActiveWorkbench(entitystore.getWorkbenchId());
+      }
       this.setState({topSidebar: !this.state.topSidebar});
     }
     else {
@@ -270,6 +278,13 @@ class Window extends React.Component {
     this.setState({});
   }
 
+  componentWillMount() {
+    var locationParts = window.location.href.split(/[?#]/);
+    if(locationParts.length > 1) {
+      window.location.href = locationParts[0];
+    }
+  }
+
   componentDidMount() {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
@@ -290,7 +305,7 @@ class Window extends React.Component {
     var width = window.innerWidth;
     var height = window.innerHeight;
     var left = 0;
-    console.log('window width ' + width);
+    //console.log('window width ' + width);
     if(nextState.leftSidebar) {
       width = width - 200;
       left = 200;
@@ -366,7 +381,7 @@ class Window extends React.Component {
           <div className='ui content'>
             <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
             <a className='ui button'
-               href='https://cas.recolnat.org/login?service=https://wp5test.recolnat.org/labo'>Me Connecter</a>
+               href={'https://cas.recolnat.org/login?service=' + window.location.protocol  + '//' + window.location.hostname + '/' + window.location.pathname}>Me Connecter</a>
             <a className='ui button'
                href='http://signup.recolnat.org/#/register'>Créer compte</a>
           </div>

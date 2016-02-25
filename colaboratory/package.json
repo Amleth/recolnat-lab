@@ -5,7 +5,10 @@
   "main": "src/main.js",
   "scripts": {
     "dev": "gulp build-dev",
+    "ddev": "gulp deploy-dev",
     "test": "gulp deploy-test",
+    "test-demo": "gulp deploy-demo-test",
+    "demo": "gulp deploy-demo",
     "prod": "gulp deploy-prod"
   },
   "author": "DICEN",

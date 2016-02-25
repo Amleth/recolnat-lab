@@ -47,7 +47,8 @@ var Actions = {
   },
 
   databaseActions: {
-    getData: Endpoints.dataAccessService + '/get-data'
+    getData: Endpoints.dataAccessService + '/get-data',
+    getLog: Endpoints.dataAccessService + '/get-change-log'
   }
 };
 

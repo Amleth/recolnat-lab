@@ -5,8 +5,8 @@ var Integration = {
 };
 
 var Services = {
-  laboratoryRESTService: 'https://wp5test.recolnat.org',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/websockets'
+  laboratoryRESTService: 'https://wp5test.recolnat.org/demo-test/',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/demo-test/websockets'
 };
 
 var Endpoints = {

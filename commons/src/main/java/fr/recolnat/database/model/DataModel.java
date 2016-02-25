@@ -61,6 +61,7 @@ public class DataModel {
 
   public static class Links {
     // isAbout && relatedEntities (generic links)
+    // Discussion isLinkedTo Object
     public static final String isLinkedTo = "isLinkedTo";
     //static String relatedEntities = "relatedEntitites";
     //static String isAbout = "isAbout";
@@ -80,6 +81,8 @@ public class DataModel {
     // Tags
     public static final String hasDefinition = "hasDefinition";
     public static final String isTagged = "isTagged";
+    // Discussions
+    public static final String hasMessage = "hasMessage";
   }
 
   // Property 'id' is reserved by OrientDB. Use something else.

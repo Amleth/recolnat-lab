@@ -46,9 +46,8 @@ public class StructureBuilder {
   }
   
   public static void createDefaultNodes(OrientGraphNoTx graph) {
-    OrientVertex groupPublic = graph.addVertex("class:" + DataModel.Classes.LevelOneHeirTypes.socialEntity);
+    OrientVertex groupPublic = graph.addVertex("class:" + DataModel.Classes.CompositeTypes.user);
     groupPublic.setProperty(DataModel.Properties.id, DataModel.Globals.PUBLIC_USER_ID);
-    
   }
 
   private static void addFieldsAsChildrenOfClass(OrientVertexType parent, Field[] children, OrientGraphNoTx graph) throws IllegalAccessException {

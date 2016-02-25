@@ -89,7 +89,7 @@ public class AccessUtils {
   }
 
   public static OrientVertex getCreator(OrientVertex vertex, OrientGraph g) {
-    OrientVertex creator = (OrientVertex) vertex.getVertices(Direction.IN, DataModel.Links.createdBy).iterator().next();
+    OrientVertex creator = (OrientVertex) vertex.getVertices(Direction.OUT, DataModel.Links.createdBy).iterator().next();
     return creator;
   }
   

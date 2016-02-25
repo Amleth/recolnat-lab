@@ -9,6 +9,7 @@ import fs from 'filereader-stream';
 import request from 'superagent';
 
 import ManagerActions from '../../actions/ManagerActions';
+import ViewActions from '../../actions/ViewActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
@@ -98,6 +99,7 @@ class WorkbenchActions extends React.Component {
   }
 
   createNewWorkbench() {
+    var self = this;
     var name = this.state.nameInputText;
     var parentWorkbenchId = this.props.managerstore.getSelected().id;
     if(name.length < 1) {
@@ -116,6 +118,10 @@ class WorkbenchActions extends React.Component {
         }
         else {
           console.log("Received response " + res.text);
+          var response = JSON.parse(res.text);
+          ManagerActions.setSelectedWorkbenchGraphNode(response.workbench, 'bag', name, parentWorkbenchId,  response.link);
+          ManagerActions.setActiveIdInWorkbench(parentWorkbenchId, response.workbench);
+          self.props.managerstore.requestGraphAround(response.workbench, 'bag', undefined);
           ManagerActions.reloadDisplayedWorkbenches();
         }
       });

@@ -3,9 +3,12 @@ package org.dicen.recolnat.services.core.workbench;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -27,16 +30,18 @@ public class WorkbenchGraphGroupNode {
   private String linkId = null;
   private String type;
   private String name;
+  private boolean userCanDelete = false;
 
   private WorkbenchGraphGroupNode() {
   }
 
-  public WorkbenchGraphGroupNode(Vertex node, Edge edge, Vertex vUser, OrientGraph g) throws AccessDeniedException {
+  public WorkbenchGraphGroupNode(OrientVertex node, OrientEdge edge, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     if (AccessRights.getAccessRights(vUser, node, g) == DataModel.Enums.AccessRights.NONE) {
       throw new AccessDeniedException((String) node.getProperty(DataModel.Properties.id));
     }
     
     this.type = "bag";
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(node, vUser, g);
     this.name = (String) node.getProperty(DataModel.Properties.name);
     this.id = (String) node.getProperty(DataModel.Properties.id);
     if (edge != null) {
@@ -69,6 +74,7 @@ public class WorkbenchGraphGroupNode {
     ret.put("id", this.id);
     ret.put("name", this.name);
     ret.put("type", this.type);
+    ret.put("deletable", this.userCanDelete);
     if (this.linkId != null) {
       ret.put("linkId", this.linkId);
     }

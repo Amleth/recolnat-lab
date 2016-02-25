@@ -25,6 +25,7 @@ public class WorkbenchObject implements Comparable<WorkbenchObject> {
   private Double opacity;
   private List<List<Integer>> polygonMask = new ArrayList<List<Integer>>();
   private String imageSource;
+  private String thumbnailSource;
   private Set<String> parentIds = new HashSet<String>();
 
   public WorkbenchObject(Vertex vObject, Edge linkToParent, OrientVertex vUser, OrientGraph g) throws IllegalAccessException {
@@ -32,24 +33,15 @@ public class WorkbenchObject implements Comparable<WorkbenchObject> {
       throw new IllegalAccessException("User not authorized to access object");
     }
     // Current child types taken into account: Image
-//    if(linkToParent.getProperty(DataModel.Properties.coordX) == null) {
-//    this.positionFromLeft = null;
-//    }
-//    else {
       this.positionFromLeft = (Integer) linkToParent.getProperty(DataModel.Properties.coordX);
-//    }
-//    if(linkToParent.getProperty(DataModel.Properties.coordY) == null) {
-//      this.positionFromTop = null;
-//    }
-//    else {
       this.positionFromTop = (Integer) linkToParent.getProperty(DataModel.Properties.coordY);
-//    }
     this.zIndex = (Integer) linkToParent.getProperty(DataModel.Properties.coordZ);
     this.opacity = (Double) linkToParent.getProperty(DataModel.Properties.opacity);
 
     this.id = vObject.getProperty(DataModel.Properties.id);
     this.name = vObject.getProperty(DataModel.Properties.name);
     this.imageSource = vObject.getProperty(DataModel.Properties.imageUrl);
+    this.thumbnailSource = vObject.getProperty(DataModel.Properties.thumbUrl);
 
     // If this object is a region of interest which has been extracted as a separate image.
     if(vObject.getProperty("@class").equals(DataModel.Classes.LeafTypes.regionOfInterest)) {
@@ -100,6 +92,9 @@ public class WorkbenchObject implements Comparable<WorkbenchObject> {
       ret.put("polygonMask", this.polygonMask);
     }
     ret.put("url", this.imageSource);
+    if(this.thumbnailSource != null) {
+      ret.put("thumburl", this.thumbnailSource);
+    }
     ret.put("parentIds", new JSONArray(this.parentIds));
 
     return ret;

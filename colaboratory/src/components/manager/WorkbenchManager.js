@@ -103,22 +103,22 @@ class WorkbenchManager extends React.Component {
       <div style={this.optionBarStyle}></div>
       <div style={this.workbenchExplorerStyle} ref='workbenches'>
         <WorkbenchNodeDisplay workbench={this.state.base}
-                       index={-1}
-                       managerstore={this.props.managerstore}
+                              index={-1}
+                              managerstore={this.props.managerstore}
         />
         {this.state.workbenches.map(function(wb, idx) {
           if(wb) {
-            return <WorkbenchNodeDisplay key={'WB-NODE-' + wb.id}
+            return <WorkbenchNodeDisplay key={'WB-NODE-' + wb.id + '-' + idx}
                                          workbench={wb}
                                          index={idx}
                                          managerstore={self.props.managerstore}
             />;
           }
           else {
-            return <WorkbenchNodeDisplay key={'WB-NODE-loading'}
-                                  workbench={wb}
-                                  index={idx}
-                                  managerstore={self.props.managerstore}
+            return <WorkbenchNodeDisplay key={'WB-NODE-loading-' + idx}
+                                         workbench={wb}
+                                         index={idx}
+                                         managerstore={self.props.managerstore}
             />;
           }
         })}

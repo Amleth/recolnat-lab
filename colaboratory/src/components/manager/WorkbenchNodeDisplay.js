@@ -64,14 +64,14 @@ class WorkbenchNodeDisplay extends React.Component {
   }
 
   setActive(idx, node) {
-    window.setTimeout(ManagerActions.setSelectedWorkbenchGraphNode.bind(null,node.id, node.type, node.name, this.props.workbench.id, node.linkId),1);
-    window.setTimeout(this.props.managerstore.requestGraphAround(node.id, node.type, this.props.index+1, undefined, undefined, true), 1);
+    window.setTimeout(ManagerActions.setSelectedWorkbenchGraphNode.bind(null,node.id, node.type, node.name, this.props.workbench.id, node.linkId),10);
+    window.setTimeout(this.props.managerstore.requestGraphAround(node.id, node.type, this.props.index+1, undefined, undefined, true), 100);
     ManagerActions.setActiveItemInWorkbench(this.props.index, idx);
   }
 
   selectAndLoadWorkbench(idx, item) {
-    window.setTimeout(ManagerActions.toggleWorkbenchManagerVisibility.bind(null,false),1);
-    window.setTimeout(ViewActions.setActiveWorkbench.bind(null, item.id), 1);
+    window.setTimeout(ViewActions.setActiveWorkbench.bind(null, item.id), 10);
+    window.setTimeout(ManagerActions.toggleWorkbenchManagerVisibility.bind(null,false),20);
   }
 
   componentDidMount() {
@@ -131,7 +131,7 @@ class WorkbenchNodeDisplay extends React.Component {
                 break;
             }
 
-            if(idx == self.props.workbench.activeIdx) {
+            if(item.id == self.props.workbench.activeId) {
               linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
             }
 

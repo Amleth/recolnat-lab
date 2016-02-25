@@ -3,7 +3,9 @@ package org.dicen.recolnat.services.core.workbench;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -30,13 +32,13 @@ public class WorkbenchGraphFocus {
   private Set<WorkbenchGraphLeafNode> childLeaves = new HashSet<WorkbenchGraphLeafNode>();
   private Object focusData;
 
-  public WorkbenchGraphFocus(@NotNull String workbench, @NotNull Vertex user, @NotNull OrientGraph graph) throws AccessDeniedException {
+  public WorkbenchGraphFocus(@NotNull String workbench, @NotNull OrientVertex user, @NotNull OrientGraph graph) throws AccessDeniedException {
     // Retrieve workbench with input id or root workbench if root
-    Vertex vWorkbench = null;
+    OrientVertex vWorkbench = null;
     if (workbench.equals("root")) {
-      vWorkbench = AccessUtils.getRootWorkbench(user, graph);
+      vWorkbench = (OrientVertex) AccessUtils.getRootWorkbench(user, graph);
     } else {
-      vWorkbench = AccessUtils.getWorkbench(workbench, graph);
+      vWorkbench = (OrientVertex) AccessUtils.getWorkbench(workbench, graph);
     }
 
     if (AccessRights.getAccessRights(user, vWorkbench, graph) == DataModel.Enums.AccessRights.NONE) {
@@ -66,8 +68,8 @@ public class WorkbenchGraphFocus {
     if (!workbench.equals("root")) {
       Iterator<Edge> itEdges = vWorkbench.getEdges(Direction.IN, DataModel.Links.hasChild).iterator();
       while (itEdges.hasNext()) {
-        Edge linkEdge = itEdges.next();
-        Vertex parent = linkEdge.getVertex(Direction.OUT);
+        OrientEdge linkEdge = (OrientEdge) itEdges.next();
+        OrientVertex parent = linkEdge.getVertex(Direction.OUT);
         try {
           this.parents.add(new WorkbenchGraphGroupNode(parent, linkEdge, user, graph));
         } catch (AccessDeniedException e) {
@@ -79,8 +81,8 @@ public class WorkbenchGraphFocus {
     // Get workbench children (bags or leaves, filter by type)
     Iterator<Edge> itEdges = vWorkbench.getEdges(Direction.OUT, DataModel.Links.hasChild).iterator();
     while (itEdges.hasNext()) {
-      Edge linkEdge = itEdges.next();
-      Vertex child = linkEdge.getVertex(Direction.IN);
+      OrientEdge linkEdge = (OrientEdge) itEdges.next();
+      OrientVertex child = linkEdge.getVertex(Direction.IN);
       String childRole = child.getProperty(DataModel.Properties.role);
       if ("workbench".equals(childRole)) {
         try {

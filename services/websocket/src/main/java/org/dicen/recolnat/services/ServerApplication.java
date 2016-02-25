@@ -22,13 +22,16 @@ public class ServerApplication {
     Map conf = (Map) yaml.load(input);
     Map dbConf = (Map) conf.get("database");
     String host = (String) dbConf.get("host");
-    Integer port = (Integer) dbConf.get("port");
+    Integer dbPort = (Integer) dbConf.get("port");
     String dbName = (String) dbConf.get("dbName");
     String dbUser = (String) dbConf.get("dbUser");
     String dbPass = (String) dbConf.get("password");
-    VirtualWorkbenchSocket.initDatabase(host, port, dbName, dbUser, dbPass);
+    VirtualWorkbenchSocket.initDatabase(host, dbPort, dbName, dbUser, dbPass);
     
-    final Server server = new Server("localhost", 8888, "/websockets", null, VirtualWorkbenchSocket.class);
+    Map serverConf = (Map) conf.get("server");
+    Integer srvPort = (Integer) serverConf.get("port");
+    
+    final Server server = new Server("localhost", srvPort, "/websockets", null, VirtualWorkbenchSocket.class);
 
     server.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {

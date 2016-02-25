@@ -25,10 +25,6 @@ class Basket extends React.Component {
     this.state = {
       basketItems: [],
       basketReady: false
-      //offset: 0,
-      //displaySize: 6,
-      //previousPageActive: 'disabled',
-      //nextPageActive: 'disabled'
     };
 
     this._onBasketUpdate = () => {
@@ -43,9 +39,7 @@ class Basket extends React.Component {
       return;
     }
 
-    //var self = this;
     xdLocalStorage.getItem('panier_erecolnat', function(data) {
-      console.log(data);
       var basket;
       if (data.value == null) {
         basket = [];
@@ -54,7 +48,6 @@ class Basket extends React.Component {
         basket = JSON.parse(data.value);
       }
       ManagerActions.setBasket(basket);
-      //self.setState({basketItems: basket});
     })
   }
 
@@ -82,12 +75,17 @@ class Basket extends React.Component {
     }
   }
 
+  scrollHorizontal(event) {
+    event.preventDefault();
+    var node = this.refs.cards.getDOMNode();
+    node.scrollLeft = node.scrollLeft + event.deltaY;
+  }
+
   componentDidMount() {
     var self = this;
     xdLocalStorage.init({
       iframeUrl:'https://wp5test.recolnat.org/basket',
       initCallback: function() {
-        console.log('Got iframe ready');
         self.setState({basketReady: true});
       }
     });
@@ -102,21 +100,6 @@ class Basket extends React.Component {
     else {
       nextState.checkbox = 'square outline';
     }
-    //if(nextState.basketItems.length == 0) {
-    //  nextState.offset = 0;
-    //}
-    //if(nextState.offset == 0) {
-    //  nextState.previousPageActive = 'disabled';
-    //}
-    //else {
-    //  nextState.previousPageActive = '';
-    //}
-    //if(nextState.offset+this.state.displaySize < nextState.basketItems.length) {
-    //  nextState.nextPageActive = '';
-    //}
-    //else {
-    //  nextState.nextPageActive = 'disabled';
-    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -128,6 +111,7 @@ class Basket extends React.Component {
         on: 'hover',
         opacity: 0.2
       });
+      $('.ui.button', this.refs.buttons.getDOMNode()).popup({delay: {show: 1000, hide:0}});
     }
   }
 
@@ -143,22 +127,23 @@ class Basket extends React.Component {
     }
     var self = this;
     return <div>
-      <div className='ui buttons'>
-        <div className='ui button' onClick={this.reloadBasket.bind(this)}>
+      <div className='ui buttons' ref='buttons'>
+        <div className='ui button'
+             onClick={this.reloadBasket.bind(this)}
+             data-content='Mettre à jour le panier'>
           <i className='refresh icon' />
         </div>
-        <div className='ui button' onClick={this.toggleSelectionAll.bind(this)}>
+        <div className='ui button'
+             onClick={this.toggleSelectionAll.bind(this)}
+             data-content='Tout cocher/decocher'>
           <i className={this.state.checkbox + ' icon'} />
         </div>
         <div className={'ui disabled button'}>
           {this.getBasketStateText()}
         </div>
       </div>
-      <div ref='cards' style={this.cardRowStyle}>
+      <div ref='cards' style={this.cardRowStyle} onWheel={this.scrollHorizontal.bind(this)}>
         {this.state.basketItems.map(function(item, idx) {
-          //if(idx < self.state.offset || idx > self.state.offset+self.state.displaySize-1) {
-          //  return null;
-          //}
           return <BasketItem content={item} key={'EXPLORE-BASKET-ITEM-' + item.id} managerstore={self.props.managerstore} />
         })}
       </div>

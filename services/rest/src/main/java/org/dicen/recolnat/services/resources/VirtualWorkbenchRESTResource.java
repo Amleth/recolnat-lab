@@ -4,6 +4,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
@@ -33,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -100,7 +102,7 @@ public class VirtualWorkbenchRESTResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Path("/create-new-workbench")
   @Timed
-  public String createNewWorkbench(final String input, @Context HttpServletRequest request) throws JSONException {
+  public Response createNewWorkbench(final String input, @Context HttpServletRequest request) throws JSONException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createNewWorkbench");
     }
@@ -109,13 +111,15 @@ public class VirtualWorkbenchRESTResource {
     String user = SessionManager.getUserLogin(session);
     String name = (String) params.get("name");
     String parent = (String) params.get("parent");
+    
+    JSONObject ret = null;
 
     try {
-      this.createNewWorkbench(name, parent, user);
+      ret = this.createNewWorkbench(name, parent, user);
     } catch (AccessDeniedException e) {
       throw new WebApplicationException(e.getCause(), Response.Status.FORBIDDEN);
     }
-    return Globals.OK;
+    return Response.ok(ret.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
   @POST
@@ -278,8 +282,17 @@ public class VirtualWorkbenchRESTResource {
     return Globals.OK;
   }
 
-  private void createNewWorkbench(@NotNull String name, @NotNull String parent, @NotNull String user) throws AccessDeniedException {
+  /**
+   * 
+   * @param name
+   * @param parent
+   * @param user
+   * @return json containing 'workbench' (the new workbench id) and 'link' (the id of the link to the parent)
+   * @throws AccessDeniedException 
+   */
+  private JSONObject createNewWorkbench(@NotNull String name, @NotNull String parent, @NotNull String user) throws AccessDeniedException {
     boolean retry = true;
+    JSONObject ret = new JSONObject();
     while (retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
@@ -296,7 +309,11 @@ public class VirtualWorkbenchRESTResource {
         OrientVertex vWorkbench = (OrientVertex) CreatorUtils.createWorkbenchContent(name, "workbench", g);
 
         // Add new workbench to parent
-        UpdateUtils.addWorkbenchToWorkbench(parent, vWorkbench, vUser, g);
+        OrientEdge eParentToChildLink = UpdateUtils.addWorkbenchToWorkbench(parent, vWorkbench, vUser, g);
+        
+        // Build return object
+        ret.put("workbench", (String) vWorkbench.getProperty(DataModel.Properties.id));
+        ret.put("link", (String) eParentToChildLink.getProperty(DataModel.Properties.id));
 
         // Grant creator rights on new workbench
         AccessRights.grantAccessRights(vUser, vWorkbench, DataModel.Enums.AccessRights.WRITE, g);
@@ -304,11 +321,15 @@ public class VirtualWorkbenchRESTResource {
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
+      } catch (JSONException ex) {
+        log.error("Could not serialize response", ex);
+        throw new WebApplicationException("Could not send response", ex);
       } finally {
         g.rollback();
         g.shutdown(false);
       }
     }
+    return ret;
   }
 
   private String copyPaste(@NotNull String elementToCopyId, @NotNull String parentWorkbenchId, @NotNull String user) throws AccessDeniedException {

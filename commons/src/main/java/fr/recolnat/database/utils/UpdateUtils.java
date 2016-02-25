@@ -41,16 +41,18 @@ public class UpdateUtils {
     return hasChild;
   }
 
-  public static void addWorkbenchToWorkbench(OrientVertex parent, OrientVertex child, OrientVertex user, OrientGraph g) {
+  public static OrientEdge addWorkbenchToWorkbench(OrientVertex parent, OrientVertex child, OrientVertex user, OrientGraph g) {
     OrientEdge e = g.addEdge("class:" + DataModel.Links.hasChild, parent, child, DataModel.Links.hasChild);
     e.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(g));
     e.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     e.setProperty(DataModel.Properties.creator, user.getProperty(DataModel.Properties.id));
+    
+    return e;
   }
 
-  public static void addWorkbenchToWorkbench(String parent, OrientVertex child, OrientVertex user, OrientGraph g) {
+  public static OrientEdge addWorkbenchToWorkbench(String parent, OrientVertex child, OrientVertex user, OrientGraph g) {
     OrientVertex vParent = (OrientVertex) AccessUtils.getWorkbench(parent, g);
-    UpdateUtils.addWorkbenchToWorkbench(vParent, child, user, g);
+    return UpdateUtils.addWorkbenchToWorkbench(vParent, child, user, g);
   }
 
   public static OrientEdge linkRegionOfInterestToEntity(String entity, OrientVertex regionOfInterest, OrientGraph g) {

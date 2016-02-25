@@ -230,7 +230,7 @@ public class CreatorUtils {
    */
   public static OrientVertex createNewUserAndUserData(String loginName, OrientGraph g) {
     OrientVertex vUser = CreatorUtils.createUser(loginName, g);
-    OrientVertex vRootWorkbench = CreatorUtils.createWorkbenchContent("Mes Bureaux", "workbench-root", g);
+    OrientVertex vRootWorkbench = CreatorUtils.createWorkbenchContent("Mes espaces de travail", "workbench-root", g);
     UpdateUtils.addCreator(vRootWorkbench, vUser, g);
     AccessRights.grantAccessRights(vUser, vRootWorkbench, DataModel.Enums.AccessRights.WRITE, g);
     

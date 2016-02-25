@@ -36,6 +36,7 @@ import java.util.List;
 public class RecolnatImage {
 
   private String url = null;
+  private String thumburl = null;
   private String id = null;
   private String name = null;
   private List<RegionOfInterest> regionsOfInterest = new ArrayList<RegionOfInterest>();
@@ -43,6 +44,7 @@ public class RecolnatImage {
   private List<Path> paths = new ArrayList<Path>();
   private List<ScalingData> scalingDataRefs = new ArrayList<ScalingData>();
   private Metadata rawImageMetadata = null;
+  private OriginalSourceItem source = null;
 
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
 
@@ -54,10 +56,17 @@ public class RecolnatImage {
       return;
     }
     this.url = (String) vImage.getProperty(DataModel.Properties.imageUrl);
+    this.thumburl = (String) vImage.getProperty(DataModel.Properties.thumbUrl);
     this.name = (String) vImage.getProperty(DataModel.Properties.name);
 
     if (AccessRights.getAccessRights(user, vImage, g) == DataModel.Enums.AccessRights.NONE) {
       throw new AccessDeniedException(id);
+    }
+    
+    Iterator<Vertex> itOriginalSource = vImage.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
+    if(itOriginalSource.hasNext()) {
+      OrientVertex vOriginalSource = (OrientVertex) itOriginalSource.next();
+      source = new OriginalSourceItem(vOriginalSource, g);
     }
 
     Iterator<Vertex> itRois = vImage.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
@@ -126,6 +135,10 @@ public class RecolnatImage {
     ret.put("name", this.name);
     ret.put("id", this.id);
     ret.put("url", this.url);
+    
+    if(this.source != null) {
+      ret.put("linkToSource", this.source.toJSON());
+    }
 
     JSONArray jRois = new JSONArray();
     Iterator<RegionOfInterest> itRois = this.regionsOfInterest.iterator();
@@ -166,8 +179,13 @@ public class RecolnatImage {
       }
       ret.put("metadata", jMetadata);
     }
-    if (log.isInfoEnabled()) {
-      log.info(ret.toString());
+    
+    if(this.thumburl != null) {
+      ret.put("thumburl", this.thumburl);
+    }
+    
+    if (log.isTraceEnabled()) {
+      log.trace(ret.toString());
     }
 
     return ret;

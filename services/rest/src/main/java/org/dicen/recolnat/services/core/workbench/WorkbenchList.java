@@ -23,8 +23,8 @@ public class WorkbenchList {
 
   private Set<Workbench> workbenches = new HashSet<Workbench>();
 
-  public WorkbenchList(Vertex user, OrientGraph g) {
-    Vertex vRootWorkbench = AccessUtils.getRootWorkbench(user, g);
+  public WorkbenchList(OrientVertex user, OrientGraph g) {
+    OrientVertex vRootWorkbench = (OrientVertex) AccessUtils.getRootWorkbench(user, g);
     
     try {
       workbenches.add(new Workbench(vRootWorkbench, user, g));
@@ -34,10 +34,10 @@ public class WorkbenchList {
     this.recursivelyAddChildWorkbenches(vRootWorkbench, user, g);
   }
 
-  private void recursivelyAddChildWorkbenches(Vertex vWb, Vertex vUser, OrientGraph g) {
+  private void recursivelyAddChildWorkbenches(OrientVertex vWb, OrientVertex vUser, OrientGraph g) {
     Iterator<Vertex> itChildren = vWb.getVertices(Direction.OUT, DataModel.Links.hasChild).iterator();
     while (itChildren.hasNext()) {
-      Vertex child = itChildren.next();
+      OrientVertex child = (OrientVertex) itChildren.next();
       if (child.getProperty("@class").equals(DataModel.Classes.CompositeTypes.workbench)) {
         try {
           Workbench childWb = new Workbench(child, vUser, g);

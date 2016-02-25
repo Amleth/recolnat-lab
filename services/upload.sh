@@ -1,0 +1,27 @@
+#!bin/sh
+if [ $# -eq 0 ]
+then
+	echo "No main argument supplied\n"
+	echo "Available: dev, test, demo-test, demo"
+	echo "Optional: conf to upload configuration files"
+	exit 1
+fi
+
+SFTP_COMMANDS="put rest/target/virtual-workbench-rest-service-1.0-SNAPSHOT.jar /home/cnamuser/services/$1/jars/virtual-workbench-rest-service-1.0-SNAPSHOT.jar
+	put websocket/target/virtual-workbench-service-1.0-SNAPSHOT.jar /home/cnamuser/services/$1/jars/virtual-workbench-service-1.0-SNAPSHOT.jar"
+	
+
+if [ $# -gt 1 ]
+then
+if [ $2 = "conf" ]
+then
+SFTP_COMMANDS="$SFTP_COMMANDS
+put rest/virtual-workbench-rest-service.yml /home/cnamuser/services/$1/conf/virtual-workbench-rest-service.yml
+put websocket/virtual-workbench-service.yml /home/cnamuser/services/$1/conf/virtual-workbench-service.yml
+"
+fi
+fi
+
+sftp cnamuser@wp5test.recolnat.org << EOF
+	$SFTP_COMMANDS
+EOF

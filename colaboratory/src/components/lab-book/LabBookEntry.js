@@ -121,6 +121,9 @@ class LabBookEntry extends React.Component {
   }
 
   getUserMetadata() {
+    if(this.state.actorMetadata.length > 1) {
+      return;
+    }
     request.get(conf.actions.databaseActions.getData)
       .query({id: this.props.action.user})
     .withCredentials()
@@ -142,6 +145,9 @@ class LabBookEntry extends React.Component {
   }
 
   getDataMetadata() {
+    if(this.state.dataMetadata.length > 1) {
+      return;
+    }
     request.get(conf.actions.databaseActions.getData)
       .query({id: this.props.action.data})
       .withCredentials()
@@ -171,6 +177,9 @@ class LabBookEntry extends React.Component {
   }
 
   getTargetMetadata() {
+    if(this.state.targetMetadata.length > 1) {
+      return;
+    }
     request.get(conf.actions.databaseActions.getData)
       .query({id: this.props.action.target})
       .withCredentials()
@@ -209,6 +218,20 @@ class LabBookEntry extends React.Component {
     if(this.props.action.target) {
       this.getTargetMetadata();
     }
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    //if(nextProps.active) {
+    //  if(this.props.action.user) {
+    //    this.getUserMetadata();
+    //  }
+    //  if(this.props.action.data) {
+    //    this.getDataMetadata();
+    //  }
+    //  if(this.props.action.target) {
+    //    this.getTargetMetadata();
+    //  }
+    //}
   }
 
   componentDidUpdate() {

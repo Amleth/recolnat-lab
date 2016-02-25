@@ -33,7 +33,8 @@ class RightPane extends React.Component {
     };
 
     this.tabContentStyle = {
-      height: '95%'
+      height: '95%',
+      padding: '2px 2px 2px 2px'
       //overflow: 'auto'
     };
 
@@ -95,7 +96,7 @@ class RightPane extends React.Component {
           <div className='ui bottom attached tab segment'
                data-tab='journal-sheet'
                style={this.tabContentStyle}>
-            <SheetLabBook userstore={this.props.userstore}/>
+            <SheetLabBook userstore={this.props.userstore} entitystore={this.props.entitystore}/>
           </div>
           <div className='ui bottom attached tab segment'
                data-tab='journal-group'

@@ -13,6 +13,10 @@ class GroupLabBook extends LabBook {
 
     this.title = "Cahier de laboratoire de groupe";
   }
+
+  loadLog() {
+
+  }
 }
 
 export default GroupLabBook;

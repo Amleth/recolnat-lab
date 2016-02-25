@@ -7,123 +7,77 @@ import React from 'react';
 
 import MetadataTable from './MetadataTable';
 
-class HarvestMetadataTable extends MetadataTable {
+class LocationMetadataTable extends MetadataTable {
   constructor(props) {
     super(props);
   }
 
   buildDisplayTableBody() {
+    if(this.props.loading) {
+      return <tbody>
+      <tr><td colSpan='2' className='ui center aligned'>Chargement en cours...</td></tr>
+        </tbody>
+    }
     return <tbody>
     <tr>
-      <td className='ui right aligned' >verbatimEventDate</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.verbatimEventDate}</td>
+      <td className='ui right aligned' >Longitude</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.decimallongitude}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >fieldnotes</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnotes}</td>
+      <td className='ui right aligned' >Localité originale</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.verbatimlocality}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >eventDate</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventDate}</td>
+      <td className='ui right aligned' >Code pays</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.countrycode}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >eventRemarks</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventRemarks}</td>
+      <td className='ui right aligned' >Profondeur minimale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.minimumdepthinmeters}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >eday</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eday}</td>
+      <td className='ui right aligned' >Système géodésique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.geodeticdatum}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >eyear</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eyear}</td>
+      <td className='ui right aligned' >Municipalité</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.municipality}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >decade</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.decade}</td>
+      <td className='ui right aligned' >Remarques sur le lieu</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locationremarks}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >smonth</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.smonth}</td>
+      <td className='ui right aligned' >ID du lieu</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locationID}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >eventid</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventid}</td>
+      <td className='ui right aligned' >Références de géolocalisation</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.georeferencesources}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >fieldnumber</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnumber}</td>
+      <td className='ui right aligned' >Altitude originale</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.verbatimelevation}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >syear</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.syear}</td>
+      <td className='ui right aligned' >Pays</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.country}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >habitat</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.habitat}</td>
+      <td className='ui right aligned' >Altitude maximale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.maximumelevationInmeters}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >emonth</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.emonth}</td>
+      <td className='ui right aligned' >Altitude moyenne</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.averagealtituderounded}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >sday</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.sday}</td>
+      <td className='ui right aligned' >Département</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.county}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >recordedBy</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.recordedBy}</td>
-    </tr>
-    <tr><td colSpan='2'>Données géographiques de récolte</td></tr>
-    <tr>
-      <td className='ui right aligned' >decimallongitude</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.decimallongitude}</td>
+      <td className='ui right aligned' >Continent</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.continent}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >verbatimlocality</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.verbatimlocality}</td>
+      <td className='ui right aligned' >Localité</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locality}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >countrycode</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.countrycode}</td>
+      <td className='ui right aligned' >Etat/Province</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.stateprovince}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >minimumdepthinmeters</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.minimumdepthinmeters}</td>
+      <td className='ui right aligned' >Profondeur maximale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.maximumdepthinmeters}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >geodeticdatum</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.geodeticdatum}</td>
+      <td className='ui right aligned' >Altitude minimale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.minimumelevationinmeters}</td>
     </tr>
-    <tr>
-      <td className='ui right aligned' >municipality</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.municipality}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >locationremarks</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.locationremarks}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >locationID</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.locationID}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >georeferencesources</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.georeferencesources}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >verbatimelevation</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.verbatimelevation}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >country</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.country}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >maximumelevationInmeters</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.maximumelevationInmeters}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >averagealtituderounded</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.averagealtituderounded}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >county</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.county}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >continent</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.continent}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >county</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.county}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >locality</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.locality}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >stateprovince</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.stateprovince}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >maximumdepthinmeters</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.maximumdepthinmeters}</td>
-    </tr>
-    <tr>
-      <td className='ui right aligned' >minimumelevationinmeters</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.localisation.minimumelevationinmeters}</td>
-    </tr>
-
-
     </tbody>
   }
 }
 
-export default HarvestMetadataTable;
+export default LocationMetadataTable;

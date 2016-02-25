@@ -5,10 +5,12 @@
 
 import React from 'react';
 
-import Basket from './workbench/Basket';
-import WorkbenchActions from './workbench/WorkbenchActions';
-import WorkbenchManager from './workbench/WorkbenchManager';
-import MetadataDisplay from './workbench/WorkbenchManagerMetadataDisplay';
+import Basket from './manager/Basket';
+import WorkbenchActions from './manager/WorkbenchActions';
+import WorkbenchManager from './manager/WorkbenchManager';
+import SheetMetadataDisplay from './manager/SheetMetadataDisplay';
+import WorkbenchMetadataDisplay from './manager/WorkbenchMetadataDisplay';
+import MetadataDisplay from './manager/AbstractManagerMetadataDisplay';
 
 class TopPane extends React.Component {
   constructor(props) {
@@ -31,15 +33,17 @@ class TopPane extends React.Component {
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      width: '85%'
+      width: '60%'
     };
 
     this.metadataColumnStyle = {
       height: '100%',
-      width: '20%'
+      width: '25%'
     };
 
     this.managerContainerStyle = {
+      display: 'flex',
+      flexDirection: 'column',
       minHeight: '50%',
       maxHeight: '50%',
       height: '50%',
@@ -73,10 +77,16 @@ class TopPane extends React.Component {
           managerstore={this.props.managerstore} /></div>
         <div style={this.basketContainerStyle}><Basket managerstore={this.props.managerstore}/></div>
       </div>
+      <div style={this.metadataColumnStyle}>
+        <div className='ui segment'>
+          <WorkbenchMetadataDisplay managerstore={this.props.managerstore}/>
+        </div>
+        <div className='ui segment'>
+          <SheetMetadataDisplay managerstore={this.props.managerstore}/>
+        </div>
+      </div>
     </div>;
   }
 }
-
-//<div style={this.metadataColumnStyle}><MetadataDisplay managerstore={this.props.managerstore}/></div>
 
 export default TopPane;

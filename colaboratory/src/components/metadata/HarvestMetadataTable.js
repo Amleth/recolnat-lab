@@ -7,42 +7,54 @@ import React from 'react';
 
 import MetadataTable from './MetadataTable';
 
-class DeterminationMetadataTable extends MetadataTable {
+class HarvestMetadataTable extends MetadataTable {
   constructor(props) {
     super(props);
   }
 
   buildDisplayTableBody() {
+    if(this.props.loading) {
+      return <tbody>
+      <tr><td colSpan='2' className='ui center aligned'>Chargement en cours...</td></tr>
+      </tbody>
+    }
+
     return <tbody>
     <tr>
-      <td className='ui right aligned' >Identifié par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identifiedby}</td>
+      <td className='ui right aligned' >Date originale de l'événement</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.verbatimEventDate).toLocaleString()}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >identificationqualifier</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationqualifier}</td>
+      <td className='ui right aligned' >Notes de terrain</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnotes}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >Date de création</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.created}</td>
+      <td className='ui right aligned' >Date de l'événement</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventDate}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >typestatus</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.typestatus}</td>
+      <td className='ui right aligned' >Remarques sur l'événement</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventRemarks}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >identificationid</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationid}</td>
+      <td className='ui right aligned' >Jour</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eday} {this.state.metadata.sday}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >identificationverificationStatus</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationverificationStatus}</td>
+      <td className='ui right aligned' >Mois</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.smonth} {this.state.metadata.emonth}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >dateidentified</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.dateidentified}</td>
+      <td className='ui right aligned' >Année</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.syear} {this.state.metadata.eyear}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >identificationremarks</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationremarks}</td>
+      <td className='ui right aligned' >Décennie</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.decade}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >Dernière modification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.modified}</td>
+      <td className='ui right aligned' >Numéro de terrain</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnumber}</td>
+    </tr>
+    <tr>
+      <td className='ui right aligned' >Habitat</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.habitat}</td>
+    </tr>
+    <tr>
+      <td className='ui right aligned' >Enregistré par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.recordedBy}</td>
     </tr>
     </tbody>
   }
 }
 
-export default DeterminationMetadataTable;
+export default HarvestMetadataTable;

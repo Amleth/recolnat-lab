@@ -3,7 +3,6 @@
 import {EventEmitter} from 'events';
 import request from 'superagent';
 import fs from "filereader-stream";
-import loadImage from "blueimp-load-image-npm";
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
 
@@ -48,12 +47,13 @@ class EntitiesStore extends EventEmitter {
           this.downloadAllMetadataFromServer();
           var items = this.getItems();
           if(items.length > 0) {
-            this.select(items[0].id, items[0]);
+            //this.select(items[0].id, items[0]);
+            window.setTimeout(function() {
+              ViewActions.changeSelection(items[0].id, items[0]);
+            }, 100);
           }
-          //window.setTimeout(function() {
-          //  ViewActions.changeSelection(action.entities[0].id, action.entities[0]);
-          //}, 500);
-          this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
+
+          //this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
           this.emit(EntitiesEvents.CHANGE_DISPLAYED_ENTITIES);
           this.emit(EntitiesEvents.METADATA_UPDATE);
           break;
@@ -67,7 +67,12 @@ class EntitiesStore extends EventEmitter {
           this.emit(EntitiesEvents.CHANGE_SELECTED_ENTITY);
           break;
         case ViewConstants.ActionTypes.Local.RELOAD_METADATA:
-          this.downloadEntityMetadataFromServer(action.entityId);
+          if(action.entityId) {
+            this.downloadEntityMetadataFromServer(action.entityId);
+          }
+          else {
+            this.downloadAllMetadataFromServer();
+          }
           break;
         default:
           //console.log('selected=' + JSON.stringify(this.selection));
@@ -238,7 +243,7 @@ class EntitiesStore extends EventEmitter {
           }
           else {
             var metadata = JSON.parse(res.text);
-            //console.log(JSON.stringify(metadata));
+            console.log(JSON.stringify(metadata));
             this.metadata[metadata.id] = metadata;
             this.emit(EntitiesEvents.METADATA_UPDATE);
           }

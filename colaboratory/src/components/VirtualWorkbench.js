@@ -8,8 +8,10 @@ import React from 'react';
 import WorkbenchFreeSpace from './FreeSpace';
 
 import ContextMenu from './context-menu/ContextMenu';
+import OrbalContextMenu from './context-menu/OrbalContextMenu';
 import Tooltip from "./ActiveToolTooltip";
 import Inbox from './Inbox';
+import WorkbenchBorders from './WorkbenchBorders';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
@@ -79,7 +81,7 @@ class VirtualWorkbench extends React.Component {
     if(nextState.loader) {
       nextState.loading = 'active'
     }
-    if(!nextState.loader) {
+    else {
       nextState.loading = '';
     }
   }
@@ -103,13 +105,14 @@ class VirtualWorkbench extends React.Component {
         <Inbox entitystore={this.props.entitystore}
                content={this.state.workbenchEntities}
                drag={drag}/>
-        <ContextMenu
+        <OrbalContextMenu
           menustore={this.props.menustore}
           ministore={this.props.ministore}
           viewstore={this.props.viewstore}
           toolstore={this.props.toolstore}
           entitystore={this.props.entitystore}
         />
+        <WorkbenchBorders viewstore={this.props.viewstore} />
         <WorkbenchFreeSpace width="100%" height="100%"
                             childEntities={this.state.workbenchEntities}
                             workbench={this.state.workbench}

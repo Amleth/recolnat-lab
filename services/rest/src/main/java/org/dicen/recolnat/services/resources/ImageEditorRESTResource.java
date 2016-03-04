@@ -412,17 +412,26 @@ public class ImageEditorRESTResource {
         }
         
         // Create path
-        OrientVertex vPath = CreatorUtils.createPath(path, length, g);
-        vPath.setProperty(DataModel.Properties.name, name);
+        OrientVertex vPath = CreatorUtils.createPath(path, name, g);
+        
+        // Create measure
+        OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
         
         // Link user to path as creator
         UpdateUtils.addCreator(vPath, vUser, g);
+        
+        // Link measure to path
+        UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
         
         // Link path to parent entity
         UpdateUtils.linkPathToEntity(parent, vPath, g);
         
         // Grant creator rights on path
         AccessRights.grantAccessRights(vUser, vPath, DataModel.Enums.AccessRights.WRITE, g);
+        
+        // Grant creator rights on measure
+        AccessRights.grantAccessRights(vUser, mRefPx, DataModel.Enums.AccessRights.WRITE, g);
+        
         g.commit();
       }
       catch(OConcurrentModificationException e) {

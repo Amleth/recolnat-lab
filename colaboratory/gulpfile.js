@@ -32,7 +32,7 @@ gulp.task('build-deploy-dev', ['conf-deploy-dev', 'html'], shell.task([
 ]));
 
 gulp.task('conf-deploy-dev', function() {
-  gulp.src('./conf/ApplicationConfiguration-test.js')
+  gulp.src('./conf/ApplicationConfiguration-dev-server.js')
     .pipe(rename('ApplicationConfiguration.js'))
     .pipe(gulp.dest('./src/conf'));
 });

@@ -322,7 +322,7 @@ class CreatePath extends AbstractTool {
         .attr('stroke-width', 2)
         .attr('stroke', 'black');
 
-      console.log("mounting mouse move listener");
+      //console.log("mounting mouse move listener");
       d3.select('#GROUP-' + selectedSheet.id)
         .on('mousemove', function(d, i) {
           self.setLineEndPosition.call(this, self)});
@@ -423,7 +423,7 @@ class CreatePath extends AbstractTool {
   }
 
   setData(name) {
-    console.log("set data to " + name);
+    //console.log("set data to " + name);
     this.setState({name: name});
   }
 

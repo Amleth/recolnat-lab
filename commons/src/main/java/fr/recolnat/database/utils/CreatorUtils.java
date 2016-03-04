@@ -311,15 +311,13 @@ public class CreatorUtils {
     return entity;
   }
 
-  public static OrientVertex createPath(List<List<Integer>> coords, Double length, OrientGraph g) {
+  public static OrientVertex createPath(List<List<Integer>> coords, String name, OrientGraph g) {
     OrientVertex path = g.addVertex("class:" + DataModel.Classes.LeafTypes.path);
 
     path.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
+    path.setProperty(DataModel.Properties.name, name);
     path.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     path.setProperty(DataModel.Properties.vertices, coords);
-
-    OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
-    UpdateUtils.linkAnnotationToEntity(path, mRefPx, g);
 
     return path;
   }
@@ -393,7 +391,6 @@ public class CreatorUtils {
   public static OrientVertex createMeasurement(Double value, DataModel.Enums.Measurement type, OrientGraph g) {
     OrientVertex annotation = CreatorUtils.createAnnotation(DataModel.Classes.LeafTypes.measurement, g);
 
-//    annotation.setProperty(DataModel.Properties.unit, unit);
     annotation.setProperty(DataModel.Properties.pxValue, value);
     annotation.setProperty(DataModel.Properties.type, type.value());
 

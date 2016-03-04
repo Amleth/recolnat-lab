@@ -17,6 +17,7 @@ import ToolStore from './stores/ToolStore';
 import UserStore from './stores/UserStore';
 import MenuStore from './stores/MenuStore';
 import ManagerStore from './stores/ManagerStore';
+import ImageStore from './stores/ImageStore';
 
 import ViewActions from './actions/ViewActions';
 
@@ -31,6 +32,7 @@ const toolstore = new ToolStore();
 const userstore = new UserStore();
 const menustore = new MenuStore();
 const managerstore = new ManagerStore();
+const imagestore = new ImageStore();
 const api = new API();
 
 class Window extends React.Component {

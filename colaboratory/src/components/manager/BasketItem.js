@@ -6,6 +6,7 @@
 import React from 'react';
 
 import ManagerActions from '../../actions/ManagerActions';
+import ViewActions from '../../actions/ViewActions';
 
 import notFound from '../../images/image-not-found.png';
 
@@ -99,23 +100,52 @@ class BasketItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    var self = this;
+    //var self = this;
     if(this.state.modalSrc && !prevState.modalSrc) {
       // Show modal only after image has loaded successfully. Otherwise the modal will not be scrollable and the bottom of the image will not be visible.
-      $(this.refs.loadingModal.getDOMNode()).modal({
-        onHidden: function() {
-          self.refs.image.getDOMNode().onload = null;
-        }
-      }).modal('show');
-      this.refs.image.getDOMNode().src = this.state.modalSrc;
-      this.refs.image.getDOMNode().onload = function() {
-        $(self.refs.loadingModal.getDOMNode()).modal('hide');
-        $(self.refs.imageModal.getDOMNode()).modal({
+      if(!this.refs.image.getDOMNode().src) {
+        $(this.refs.loadingModal.getDOMNode()).modal({
           onHidden: function () {
-            self.setState({modalSrc: null});
+            //self.setState({modalSrc: null});
           }
         }).modal('show');
+      }
+
+      var showImageCallback = function(image) {
+        //if(this.state.modalSrc) {
+          var self = this;
+        //this.refs.image.getDOMNode().height = image.naturalHeight;
+        //this.refs.image.getDOMNode().width = image.naturalWidth;
+          this.refs.image.getDOMNode().src = image.src;
+          $(this.refs.loadingModal.getDOMNode()).modal('hide');
+          $(this.refs.imageModal.getDOMNode()).modal({
+            onHidden: function () {
+              self.refs.image.getDOMNode().src = null;
+              self.setState({modalSrc: null});
+            }
+          }).modal('show');
+        //}
       };
+
+      window.setTimeout(
+        ViewActions.loadImage.bind(null, this.state.modalSrc, showImageCallback.bind(this)),
+        10);
+
+
+      //$(this.refs.loadingModal.getDOMNode()).modal({
+      //  onHidden: function() {
+      //    self.refs.image.getDOMNode().onload = null;
+      //  }
+      //}).modal('show');
+      //this.refs.image.getDOMNode().src = this.state.modalSrc;
+      //this.refs.image.getDOMNode().onload = function() {
+      //  $(self.refs.loadingModal.getDOMNode()).modal('hide');
+      //  $(self.refs.imageModal.getDOMNode()).modal({
+      //    onHidden: function () {
+      //      self.setState({modalSrc: null});
+      //    }
+      //  }).modal('show');
+      //};
     }
   }
 
@@ -139,7 +169,7 @@ class BasketItem extends React.Component {
         <div className='header'>{this.props.content.scientificname}</div>
         <div className='content'>
           <div className='description'>
-            <img className='ui image' ref='image' src={this.state.modalSrc} alt='Image indisponible'/>
+            <img className='ui image' ref='image' src={null} alt='Image indisponible'/>
           </div>
         </div>
       </div>

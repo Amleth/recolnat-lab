@@ -243,16 +243,26 @@ class D3FreeSpace {
         .attr("y", 0)
         .attr("height", 200)
         .attr("width", 100)
-        .attr("xlink:href", data.url)
+        //.attr("xlink:href", data.url)
         .style('opacity', 0.3);
 
-      var img = new Image();
-      img.onload = function () {
+      //var img = new Image();
+      //img.onload = function () {
+      //  d3.select('#SHADOW').select('image')
+      //    .attr("height", this.height)
+      //    .attr("width", this.width);
+      //};
+      //img.src = data.url;
+
+      var appendShadowCallback = function (image) {
         d3.select('#SHADOW').select('image')
-          .attr("height", this.height)
-          .attr("width", this.width);
+          .attr("height", image.height)
+          .attr("width", image.width)
+          .attr("xlink:href", image.src);
       };
-      img.src = data.url;
+
+      window.setTimeout(
+      ViewActions.loadImage(data.url, appendShadowCallback.bind(this)),10);
     }
   }
 
@@ -439,14 +449,62 @@ class D3FreeSpace {
 
   loadImage(elt, self) {
     //console.log(JSON.stringify(elt));
-    var img = new Image();
-    img.onload = function () {
+    //var img = new Image();
+    //img.onload = function () {
+    //  //console.log('loaded ' + JSON.stringify(elt));
+    //  var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+    //
+    //  var height = this.height;
+    //  var width = this.width;
+    //  var url = this.src;
+    //
+    //  group.each(function(d, i) {
+    //    if(d.id == elt.id) {
+    //      d.height = height;
+    //      d.width = width;
+    //      //d.url = url;
+    //    }
+    //  });
+    //
+    //  group.select("#NODE-" + elt.id)
+    //    .attr("height", d => d.height)
+    //    .attr("width", d => d.width)
+    //    .attr("xlink:href", d => d.thumburl ? d.thumburl : d.url);
+    //
+    //  group.select("#BORDER-" + elt.id)
+    //    .attr('width', d => d.width + 8)
+    //    .attr('height', d => d.height + 148);
+    //  //.style('stroke-width', '4px');
+    //
+    //  group.select("#NAME-" + elt.id)
+    //    .attr('width', d => d.width + 8)
+    //    .attr('height', d => d.height + 148);
+    //
+    //  self.updateAllAttributes(elt.id);
+    //
+    //  if(elt.x) {
+    //    self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
+    //    self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
+    //  }
+    //
+    //  self.fitViewportToData();
+    //
+    //  self.loadData.contentLoaded += 1;
+    //  window.setTimeout(function() {
+    //    ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.contentLoaded + '/' + self.loadData.contentToLoad )},10);
+    //
+    //  if(self.loadData.contentLoaded >= self.loadData.contentToLoad) {
+    //    D3FreeSpace.endLoad();
+    //  }
+    //};
+
+    var displayLoadedImageCallback = function (image) {
       //console.log('loaded ' + JSON.stringify(elt));
       var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
 
-      var height = this.height;
-      var width = this.width;
-      var url = this.src;
+      var height = image.height;
+      var width = image.width;
+      var url = image.src;
 
       group.each(function(d, i) {
         if(d.id == elt.id) {
@@ -470,39 +528,43 @@ class D3FreeSpace {
         .attr('width', d => d.width + 8)
         .attr('height', d => d.height + 148);
 
-      self.updateAllAttributes(elt.id);
+      this.updateAllAttributes(elt.id);
 
       if(elt.x) {
-        self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
-        self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
+        this.displayData.xMax = Math.max(image.width + elt.x + 60, this.displayData.xMax);
+        this.displayData.yMax = Math.max(image.height + elt.y + 60, this.displayData.yMax);
       }
 
-      self.fitViewportToData();
+      this.fitViewportToData();
 
-      self.loadData.contentLoaded += 1;
+      this.loadData.contentLoaded += 1;
       window.setTimeout(function() {
         ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.contentLoaded + '/' + self.loadData.contentToLoad )},10);
 
-      if(self.loadData.contentLoaded >= self.loadData.contentToLoad) {
+      if(this.loadData.contentLoaded >= this.loadData.contentToLoad) {
         D3FreeSpace.endLoad();
       }
     };
 
-    img.onerror = function() {
-      console.error('Failed to load ' + this.src + '. Retrying...');
-      self.loadImage(elt, self);
-    };
+    //img.onerror = function() {
+    //  console.error('Failed to load ' + img.src + '. Retrying...');
+    //  self.loadImage(elt, self);
+    //};
 
-    img.src = elt.url;
+    //img.src = elt.url;
+
+    window.setTimeout(
+      ViewActions.loadImage.bind(null, elt.url, displayLoadedImageCallback.bind(this)),
+    10);
 
     // If image takes too long to load, reload it
-    window.setTimeout(function() {
-      if(!img.complete) {
-        console.log('Image load timeout reached. Attempting to reload');
-        img.src = '';
-        self.loadImage(elt, self);
-      }
-    }, 10000);
+    //window.setTimeout(function() {
+    //  if(!img.complete) {
+    //    console.log('Image load timeout reached. Attempting to reload');
+    //    img.src = '';
+    //    self.loadImage(elt, self);
+    //  }
+    //}, 10000);
 
   }
 
@@ -636,40 +698,42 @@ class D3FreeSpace {
           objects.push({id: d.id, type: TypeConstants.sheet});
           // Process objects in sheet
           var metadata = store.getEntityMetadata(d.id);
-          // Find polygons
-          if(metadata.rois) {
-            for (var m = 0; m < metadata.rois.length; ++m) {
-              var polygon = metadata.rois[m];
-              var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
-              if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
-                if (objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
-                  objects.push({id: polygon.id, type: TypeConstants.region});
+          if(metadata) {
+            // Find polygons
+            if (metadata.rois) {
+              for (var m = 0; m < metadata.rois.length; ++m) {
+                var polygon = metadata.rois[m];
+                var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
+                if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
+                  if (objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
+                    objects.push({id: polygon.id, type: TypeConstants.region});
+                  }
                 }
               }
             }
-          }
 
-          // Find paths
-          if(metadata.paths) {
-            for (var j = 0; j < metadata.paths.length; ++j) {
-              var path = metadata.paths[j];
-              var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
-              if (D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
-                if (objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
-                  objects.push({id: path.id, type: TypeConstants.path});
+            // Find paths
+            if (metadata.paths) {
+              for (var j = 0; j < metadata.paths.length; ++j) {
+                var path = metadata.paths[j];
+                var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
+                if (D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
+                  if (objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
+                    objects.push({id: path.id, type: TypeConstants.path});
+                  }
                 }
               }
             }
-          }
 
-          // Find points
-          if(metadata.pois) {
-            for (var n = 0; n < metadata.pois.length; ++n) {
-              var poi = metadata.pois[n];
-              var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
-              if (D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
-                if (objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
-                  objects.push({id: poi.id, type: TypeConstants.point});
+            // Find points
+            if (metadata.pois) {
+              for (var n = 0; n < metadata.pois.length; ++n) {
+                var poi = metadata.pois[n];
+                var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
+                if (D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
+                  if (objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
+                    objects.push({id: poi.id, type: TypeConstants.point});
+                  }
                 }
               }
             }

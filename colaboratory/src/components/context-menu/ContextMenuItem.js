@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+import ViewActions from '../../actions/ViewActions';
+
 class ContextMenuItem extends React.Component {
   constructor(props) {
     super(props);
@@ -34,6 +36,15 @@ class ContextMenuItem extends React.Component {
         .each('end', repeat);
     }
     repeat();
+  }
+
+  logError(err) {
+    console.error(err);
+    alert('La suppression a échoué');
+  }
+
+  reloadMetadata(res) {
+    ViewActions.updateMetadata(this.props.entitystore.getSelectedImageId());
   }
 
   componentDidMount() {

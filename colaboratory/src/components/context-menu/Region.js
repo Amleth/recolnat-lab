@@ -49,7 +49,7 @@ class Region extends ContextMenuItem {
       <div className='vertical inverted compact menu'>
         <a className='vertically fitted item'>Modifier</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <a className='vertically fitted item'>Supprimer</a>
+        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} metadata={this.props.metadata}/>
       </div>
     </div>;
   }

@@ -42,15 +42,6 @@ class Path extends ContextMenuItem {
     this.setState({d3component: null,  color: null});
   }
 
-  logError(err) {
-    console.error(err);
-    alert('La suppression a échoué');
-  }
-
-  reloadMetadata(res) {
-    ViewActions.updateMetadata(this.props.item.id);
-  }
-
   componentWillUnmount() {
     if(this.state.d3component) {
       this.state.d3component.interrupt().transition().attr('stroke', this.state.color);
@@ -63,7 +54,7 @@ class Path extends ContextMenuItem {
         <a className='vertically fitted item'>Chemin vers polygone</a>
         <a className='vertically fitted item'>Modifier</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} />
+        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} metadata={this.props.metadata}/>
       </div>
     </div>;
   }

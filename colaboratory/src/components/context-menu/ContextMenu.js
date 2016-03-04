@@ -61,7 +61,7 @@ class ContextMenu extends React.Component {
         else {
           item.name = metadata.name;
         }
-        return <Point item={item} key={'CTX-POINT-' + item.id} metadata={metadata}/>;
+        return <Point item={item} key={'CTX-POINT-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
         break;
       case TypeConstants.path:
         var metadata = this.props.entitystore.getMetadataAbout(item.id);
@@ -71,7 +71,7 @@ class ContextMenu extends React.Component {
         else {
           item.name = metadata.name;
         }
-        return <Path item={item} key={'CTX-PATH-' + item.id} metadata={metadata}/>;
+        return <Path item={item} key={'CTX-PATH-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
         break;
       case TypeConstants.region:
         var metadata = this.props.entitystore.getMetadataAbout(item.id);
@@ -81,7 +81,7 @@ class ContextMenu extends React.Component {
         else {
           item.name = metadata.name;
         }
-        return <Region item={item} key={'CTX-REGION-' + item.id} metadata={metadata}/>;
+        return <Region item={item} key={'CTX-REGION-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
         break;
       case TypeConstants.sheet:
         var metadata = this.props.entitystore.getMetadataAbout(item.id);
@@ -91,7 +91,7 @@ class ContextMenu extends React.Component {
         else {
           item.name = metadata.name;
         }
-        return <Sheet item={item} key={'CTX-SHEET-' + item.id} metadata={metadata}/>;
+        return <Sheet item={item} key={'CTX-SHEET-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
         break;
       default:
         return null;

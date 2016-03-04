@@ -38,6 +38,15 @@ class Point extends ContextMenuItem {
     this.setState({rect: null, text: null, rectColor: null, textColor: null});
   }
 
+  logError(err) {
+    console.error(err);
+    alert('La suppression a échoué');
+  }
+
+  reloadMetadata(res) {
+    ViewActions.updateMetadata(this.props.item.id);
+  }
+
   componentWillUnmount() {
     if(this.state.rect) {
       this.state.rect.interrupt().transition().attr('fill', this.state.rectColor);
@@ -50,7 +59,7 @@ class Point extends ContextMenuItem {
       <div className='vertical inverted compact menu'>
         <a className='vertically fitted item'>Modifier</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <a className='vertically fitted item'>Supprimer</a>
+        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} metadata={this.props.metadata}/>
       </div>
     </div>;
   }

@@ -1,6 +1,7 @@
 package org.dicen.recolnat.services.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -78,9 +79,9 @@ public class DatabaseResource {
         if (AccessRights.getAccessRights(vUser, v, g).value() == DataModel.Enums.AccessRights.NONE.value()) {
           throw new WebApplicationException("User not authorized to access data", Response.Status.UNAUTHORIZED);
         }
-        
+
         metadata = this.getVertexMetadata(v, vUser, g).toJSON();
-        
+
       } else {
         OrientEdge e = (OrientEdge) AccessUtils.getEdgeById(id, g);
         // Perhaps we should check access rights on both sides of the edge ?
@@ -98,22 +99,21 @@ public class DatabaseResource {
       g.shutdown(false);
     }
 
-    if(metadata == null) {
+    if (metadata == null) {
       throw new WebApplicationException("No metadata", Response.Status.INTERNAL_SERVER_ERROR);
-    }
-    else {
-    return Response.ok(metadata.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+    } else {
+      return Response.ok(metadata.toString(), MediaType.APPLICATION_JSON_TYPE).build();
     }
   }
 
   /**
-   * To be deletable: 
-   *  - the user must have write access to the object;
-   *  - sheets are not deletable;
-   *  - the object must not be shared with a group or with PUBLIC.
+   * To be deletable: - the user must have write access to the object; - sheets
+   * are not deletable; - the object must not be shared with a group or with
+   * PUBLIC.
+   *
    * @param input
    * @param request
-   * @return 
+   * @return
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -123,6 +123,7 @@ public class DatabaseResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String idOfElementToDelete = null;
+    boolean retry = true;
 
     try {
       JSONObject jsonInput = new JSONObject(input);
@@ -132,23 +133,30 @@ public class DatabaseResource {
       throw new WebApplicationException("Input error", Response.Status.BAD_REQUEST);
     }
 
-    OrientGraph g = DatabaseAccess.getTransactionalGraph();
-    try {
-      OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-      OrientVertex vObject = (OrientVertex) AccessUtils.getNodeById(idOfElementToDelete, g);
-      if(vObject == null) {
-        log.error("Attempt to delete null vertex. Could it be an edge? Id=" + idOfElementToDelete);
-        throw new WebApplicationException("No object in database corresponding to provided id.", Response.Status.INTERNAL_SERVER_ERROR);
+    while (retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
+        OrientVertex vObject = (OrientVertex) AccessUtils.getNodeById(idOfElementToDelete, g);
+        if (vObject == null) {
+          log.error("Attempt to delete null vertex. Could it be an edge? Id=" + idOfElementToDelete);
+          throw new WebApplicationException("No object in database corresponding to provided id.", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+
+        // Checking deletability is relegated to the method
+        String reason = DeleteUtils.deleteVertex(vObject, vUser, g);
+        if (reason != null) {
+          throw new WebApplicationException("User " + user + " is not allowed to delete object " + idOfElementToDelete + ". Reason: " + reason);
+        }
+        g.commit();
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown(false);
       }
-     
-      // Checking deletability is relegated to the method
-      String reason = DeleteUtils.deleteVertex(vObject, vUser, g);
-      if(reason != null) {
-        throw new WebApplicationException("User " + user + " is not allowed to delete object " + idOfElementToDelete + ". Reason: " + reason);
-      }
-    } finally {
-      g.rollback();
-      g.shutdown(false);
     }
 
     return Response.ok("", MediaType.APPLICATION_JSON_TYPE).build();
@@ -217,10 +225,10 @@ public class DatabaseResource {
       g.shutdown();
     }
   }
-  
+
   private AbstractObjectMetadata getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException {
     String cl = v.getProperty("@class");
-    switch(cl) {
+    switch (cl) {
       case DataModel.Classes.CompositeTypes.workbench:
         return new WorkbenchMetadata(v, vUser, g);
       case DataModel.Classes.CompositeTypes.herbariumSheet:
@@ -230,10 +238,10 @@ public class DatabaseResource {
         return new AbstractObjectMetadata(v, vUser, g);
     }
   }
-  
+
   private AbstractObjectMetadata getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientGraph g) {
     String cl = e.getProperty("@class");
-    switch(cl) {
+    switch (cl) {
       default:
         log.warn("No specific handler for extracting metadata from edge class " + cl);
         return new AbstractObjectMetadata(e, vUser, g);

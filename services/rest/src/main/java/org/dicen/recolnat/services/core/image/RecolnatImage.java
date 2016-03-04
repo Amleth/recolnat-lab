@@ -29,6 +29,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.dicen.recolnat.services.core.Globals;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
@@ -45,6 +46,7 @@ public class RecolnatImage {
   private List<ScalingData> scalingDataRefs = new ArrayList<ScalingData>();
   private Metadata rawImageMetadata = null;
   private OriginalSourceItem source = null;
+  private boolean userCanDelete = false;
 
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
 
@@ -135,6 +137,7 @@ public class RecolnatImage {
     ret.put("name", this.name);
     ret.put("id", this.id);
     ret.put("url", this.url);
+    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
     
     if(this.source != null) {
       ret.put("linkToSource", this.source.toJSON());

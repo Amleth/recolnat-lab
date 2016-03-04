@@ -28,6 +28,7 @@ public class Globals {
       public static final String length = "length";
       public static final String vertices = "vertices";
       public static final String letters = "letters";
+      public static final String userCanDelete = "deletable";
     }
   }
 }

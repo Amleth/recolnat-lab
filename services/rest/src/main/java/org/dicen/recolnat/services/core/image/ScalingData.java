@@ -6,20 +6,23 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import java.util.Iterator;
+import org.dicen.recolnat.services.core.Globals;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 30/09/15.
  */
 public class ScalingData {
 
-  String id;
-  String name;
-  Double mmPerPixel;
+  private String id;
+  private String name;
+  private Double mmPerPixel;
+  private boolean userCanDelete = false;
 
   public ScalingData(OrientVertex scale, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     if (AccessRights.getAccessRights(vUser, scale, g) == DataModel.Enums.AccessRights.NONE) {
@@ -28,6 +31,7 @@ public class ScalingData {
 
     this.id = scale.getProperty(DataModel.Properties.id);
     this.name = scale.getProperty(DataModel.Properties.name);
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(scale, vUser, g);
     Double lengthInMm = scale.getProperty(DataModel.Properties.length);
 
     Iterator<Vertex> itLines = scale.getVertices(Direction.IN, DataModel.Links.hasAnnotation).iterator();
@@ -52,6 +56,7 @@ public class ScalingData {
     ret.put("id", this.id);
     ret.put("name", this.name);
     ret.put("mmPerPixel", this.mmPerPixel);
+    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
 
     return ret;
   }

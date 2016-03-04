@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -26,6 +27,7 @@ public class Path {
   private String id;
   private Long date;
   private String name = null;
+  private boolean userCanDelete = false;
 //  private Integer length;
   private List<List<Integer>> vertices = new ArrayList<List<Integer>>();
   private List<Annotation> linkedAnnotations = new ArrayList<Annotation>();
@@ -39,12 +41,13 @@ public class Path {
     this.id = vPath.getProperty(DataModel.Properties.id);
     this.date = vPath.getProperty(DataModel.Properties.creationDate);
     this.name = vPath.getProperty(DataModel.Properties.name);
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vPath, vUser, g);
 //    this.length = vPath.getProperty(DataModel.Properties.length);
 
     Iterator<Vertex> itAnnot = vPath.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
     while(itAnnot.hasNext()) {
       try {
-        linkedAnnotations.add(new Annotation(itAnnot.next(), vUser, g));
+        linkedAnnotations.add(new Annotation((OrientVertex) itAnnot.next(), vUser, g));
       }
       catch(AccessDeniedException e) {
         // Access denied, move to next path
@@ -58,6 +61,7 @@ public class Path {
     ret.put(Globals.ExchangeModel.ObjectProperties.creationDate, this.date);
 //    ret.put(Globals.ExchangeModel.ObjectProperties.length, this.length);
     ret.put(Globals.ExchangeModel.ObjectProperties.vertices, this.vertices);
+    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
     if(this.name != null) {
       ret.put(Globals.ExchangeModel.ObjectProperties.name, this.name);
     }

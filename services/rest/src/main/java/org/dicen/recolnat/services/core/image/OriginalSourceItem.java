@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.dicen.recolnat.services.core.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ public class OriginalSourceItem {
   private String source = null;
   private String type = null;
   private String id = null;
+  private boolean userCanDelete = false;
   
   private final static Logger log = LoggerFactory.getLogger(OriginalSourceItem.class);
   
@@ -40,6 +42,7 @@ public class OriginalSourceItem {
     ret.put("id", id);
     ret.put("source", source);
     ret.put("type", type);
+    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
     
     return ret;
   }

@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -32,6 +33,8 @@ public class PointOfInterest {
   private String letters;
   private String color;
   private String text;
+  private String name = null;
+  private boolean userCanDelete = false;
   private List<Annotation> linkedAnnotations = new ArrayList<Annotation>();
 
   public PointOfInterest(OrientVertex vPoint, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
@@ -45,10 +48,12 @@ public class PointOfInterest {
     this.letters = vPoint.getProperty(DataModel.Properties.letters);
     this.color = vPoint.getProperty(DataModel.Properties.color);
     this.text = vPoint.getProperty(DataModel.Properties.text);
+    this.name = this.text;
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vPoint, vUser, g);
     Iterator<Vertex> itAnnot = vPoint.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
     while (itAnnot.hasNext()) {
       try {
-        linkedAnnotations.add(new Annotation(itAnnot.next(), vUser, g));
+        linkedAnnotations.add(new Annotation((OrientVertex) itAnnot.next(), vUser, g));
       } catch (AccessDeniedException ex) {
         // Do nothing
       }
@@ -64,7 +69,9 @@ public class PointOfInterest {
 //        ret.put(Globals.ExchangeModel.ObjectProperties.shape, this.symbol);
     ret.put(Globals.ExchangeModel.ObjectProperties.color, this.color);
     ret.put(Globals.ExchangeModel.ObjectProperties.text, this.text);
+    ret.put(Globals.ExchangeModel.ObjectProperties.name, this.name);
     ret.put(Globals.ExchangeModel.ObjectProperties.letters, this.letters);
+    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
 
     JSONArray jAnnot = new JSONArray();
     Iterator<Annotation> itAnnot = linkedAnnotations.iterator();

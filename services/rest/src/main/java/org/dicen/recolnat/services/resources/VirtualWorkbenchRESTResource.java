@@ -75,7 +75,7 @@ public class VirtualWorkbenchRESTResource {
       throw new WebApplicationException("User not authorized to access resource " + workbenchId, Response.Status.FORBIDDEN);
     } finally {
       g.rollback();
-      g.shutdown(false);
+      g.shutdown();
     }
     if (wbG == null) {
       throw new WebApplicationException("Workbench not found " + workbenchId);
@@ -326,7 +326,7 @@ public class VirtualWorkbenchRESTResource {
         throw new WebApplicationException("Could not send response", ex);
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
     return ret;
@@ -359,7 +359,7 @@ public class VirtualWorkbenchRESTResource {
         retry = true;
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
     return null;
@@ -393,7 +393,7 @@ public class VirtualWorkbenchRESTResource {
         retry = true;
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
     return ret;
@@ -431,7 +431,7 @@ public class VirtualWorkbenchRESTResource {
         retry = true;
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
       
     }
@@ -467,7 +467,7 @@ public class VirtualWorkbenchRESTResource {
         retry = true;
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
     return null;
@@ -480,7 +480,7 @@ public class VirtualWorkbenchRESTResource {
       return new WorkbenchList(vUser, g);
     } finally {
       g.rollback();
-      g.shutdown(false);
+      g.shutdown();
     }
   }
 }

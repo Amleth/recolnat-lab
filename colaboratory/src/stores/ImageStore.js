@@ -35,7 +35,7 @@ class ImageStore extends EventEmitter {
   addImageToLoad(source, callback) {
     // Check if image is already loaded
     if(this.imagesLoaded[source]) {
-      console.log("Image already loaded " + JSON.stringify(this.imagesLoaded[source]));
+      //console.log("Image already loaded " + JSON.stringify(this.imagesLoaded[source]));
       // Image is already loaded, just call callback
       window.setTimeout((function(callback, image) {
         callback(image);
@@ -43,19 +43,19 @@ class ImageStore extends EventEmitter {
       //callback(this.imagesLoaded[source].image);
     }
     else if(this.currentlyLoadingImage) {
-      console.log("Image currently loading " + this.currentlyLoadingImage.image);
+      //console.log("Image currently loading " + this.currentlyLoadingImage.image);
       if (this.currentlyLoadingImage.source = source) {
         // Image is currently loading, add callback
         this.currentlyLoadingImage.callbacks.push(callback);
       }
     }
     else if(this.imagesToLoad[source]) {
-      console.log("Image already scheduled to load " + this.imagesToLoad[source].image);
+      //console.log("Image already scheduled to load " + this.imagesToLoad[source].image);
       // Image is waiting to be loaded already, add callback to existing
       this.imagesToLoad[source].callbacks.push(callback);
     }
     else {
-      console.log("Image will be scheduled to load ");
+      //console.log("Image will be scheduled to load ");
       // Add new image to load queue
       this.imagesToLoad[source] = {
         source: source,
@@ -78,7 +78,7 @@ class ImageStore extends EventEmitter {
           image: this.currentlyLoadingImage.image
         };
 
-        console.log(JSON.stringify(this.currentlyLoadingImage));
+        //console.log(JSON.stringify(this.currentlyLoadingImage));
 
         // Call the callbacks
         for(var i = 0; i < this.currentlyLoadingImage.callbacks.length; ++i) {
@@ -103,13 +103,13 @@ class ImageStore extends EventEmitter {
 
       delete this.imagesToLoad[keys[0]];
 
-      console.log(this.currentlyLoadingImage.image);
+      //console.log(this.currentlyLoadingImage.image);
       var self = this;
       this.currentlyLoadingImage.image.onload = function() {
         self.loadNextImage.bind(self);
       };
 
-      console.log(this.currentlyLoadingImage.image);
+      //console.log(this.currentlyLoadingImage.image);
       this.currentlyLoadingImage.image.onerror = function() {
         this.src = imageNotFound;
       };

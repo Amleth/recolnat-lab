@@ -96,7 +96,7 @@ public class DatabaseResource {
       throw new WebApplicationException("Server error while writing response", Response.Status.INTERNAL_SERVER_ERROR);
     } finally {
       g.rollback();
-      g.shutdown(false);
+      g.shutdown();
     }
 
     if (metadata == null) {
@@ -155,7 +155,7 @@ public class DatabaseResource {
         retry = true;
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
 
@@ -259,7 +259,7 @@ public class DatabaseResource {
 //    }
 //    finally {
 //      g.rollback();
-//      g.shutdown(false);
+//      g.shutdown();
 //    }
 //    return Globals.OK;
 //  }

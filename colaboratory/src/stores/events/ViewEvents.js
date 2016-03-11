@@ -7,5 +7,6 @@ export default {
   UPDATE_VIEWPORT: "updateViewport",
   UPDATE_VIEW_PROPERTIES: 'updateViewProperties',
   FIT_WORKBENCH_IN_VIEW: "fitWorkbenchInView",
-  UPDATE_LOADER: 'updateLoader'
+  UPDATE_LOADER: 'updateLoader',
+  SHOW_ENTITY_METADATA_MODAL: 'showEntityMetadataModal'
 };

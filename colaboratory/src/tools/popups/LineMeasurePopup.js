@@ -27,12 +27,12 @@ class LineMeasurePopup extends React.Component {
   }
 
   setScale(event) {
-    console.log("Set scale " + event.target.value);
+    //console.log("Set scale " + event.target.value);
     this.setState({scale: event.target.value});
   }
 
   addExifScale(scales, store) {
-    console.log(JSON.stringify(store.getSelectedImage()));
+    //console.log(JSON.stringify(store.getSelectedImage()));
     if(store.getSelectedMetadata()) {
       if(store.getSelectedMetadata().metadata) {
         if (store.getSelectedMetadata().metadata["X Resolution"]) {
@@ -56,7 +56,7 @@ class LineMeasurePopup extends React.Component {
 
   componentDidMount() {
     if(this.props.entitystore.getSelectedImage()) {
-      console.log(JSON.stringify(this.props.entitystore.getSelectedMetadata()));
+      //console.log(JSON.stringify(this.props.entitystore.getSelectedMetadata()));
       var scales = this.props.entitystore.getSelectedMetadata().scales;
       this.addExifScale(scales, this.props.entitystore);
       this.setState({scales: scales});

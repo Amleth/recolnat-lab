@@ -14,6 +14,8 @@ public class UpdateUtils {
     OrientEdge edge = graph.addEdge("class:" + DataModel.Links.createdBy, item, creator, DataModel.Links.createdBy);
     edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
     edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    
+    AccessRights.grantAccessRights(creator, item, DataModel.Enums.AccessRights.WRITE, graph);
     return edge;
   }
 

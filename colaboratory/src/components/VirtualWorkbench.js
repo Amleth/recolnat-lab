@@ -12,6 +12,7 @@ import OrbalContextMenu from './context-menu/OrbalContextMenu';
 import Tooltip from "./ActiveToolTooltip";
 import Inbox from './Inbox';
 import WorkbenchBorders from './WorkbenchBorders';
+import MetadataModal from './metadata/MetadataModal';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
@@ -97,10 +98,11 @@ class VirtualWorkbench extends React.Component {
     var metadata = {selected : this.state.selection};
     return(
       <div style={this.componentContainerStyle}>
-            <div className={"ui " + this.state.loading + " dimmer"}>
-              <div className='ui large header'>Chargement en cours</div>
-              <div className="ui large text loader">{this.state.loader}</div>
-            </div>
+        <div className={"ui " + this.state.loading + " dimmer"}>
+          <div className='ui large header'>Chargement en cours</div>
+          <div className="ui large text loader">{this.state.loader}</div>
+        </div>
+        <MetadataModal entitystore={this.props.entitystore} viewstore={this.props.viewstore}/>
         <Tooltip />
         <Inbox entitystore={this.props.entitystore}
                content={this.state.workbenchEntities}

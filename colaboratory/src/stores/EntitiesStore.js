@@ -152,6 +152,10 @@ class EntitiesStore extends EventEmitter {
       return this.items[id];
     }
 
+    if(this.bags[id]) {
+      return this.bags[id];
+    }
+
     var allObjectsMetadata = this.getAllMetadata();
     for(var i = 0; i < allObjectsMetadata.length; ++i) {
       var objectMetadata = allObjectsMetadata[i];
@@ -183,8 +187,43 @@ class EntitiesStore extends EventEmitter {
     }
   }
 
+  getContainingImageId(id) {
+    var allObjectsMetadata = this.getAllMetadata();
+    for(var i = 0; i < allObjectsMetadata.length; ++i) {
+      var objectMetadata = allObjectsMetadata[i];
+      //console.log(JSON.stringify(objectMetadata));
+      if(objectMetadata.pois) {
+        for(var j = 0; j < objectMetadata.pois.length; ++j) {
+          var poi = objectMetadata.pois[j];
+          if(poi.id == id) {
+            return objectMetadata.id;
+          }
+        }
+      }
+      if(objectMetadata.rois) {
+        for(var j = 0; j < objectMetadata.rois.length; ++j) {
+          var roi = objectMetadata.rois[j];
+          if(roi.id == id) {
+            return objectMetadata.id;
+          }
+        }
+      }
+      if(objectMetadata.paths) {
+        for(var j = 0; j < objectMetadata.paths.length; ++j) {
+          var path = objectMetadata.paths[j];
+          if(path.id == id) {
+            return objectMetadata.id;
+          }
+        }
+      }
+    }
+  }
+
   getSelectedMetadata() {
-    return this.metadata[this.selection.id];
+    if(this.selection) {
+      return this.metadata[this.selection.id];
+    }
+    return null;
   }
 
   getEntityMetadata(id) {
@@ -243,7 +282,7 @@ class EntitiesStore extends EventEmitter {
           }
           else {
             var metadata = JSON.parse(res.text);
-            console.log(JSON.stringify(metadata));
+            //console.log(JSON.stringify(metadata));
             this.metadata[metadata.id] = metadata;
             this.emit(EntitiesEvents.METADATA_UPDATE);
           }

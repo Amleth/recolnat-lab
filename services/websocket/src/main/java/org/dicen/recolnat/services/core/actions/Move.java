@@ -86,7 +86,7 @@ public class Move extends WorkbenchAction {
     }
     finally {
       graph.rollback();
-      graph.shutdown(false);
+      graph.shutdown();
     }
     return this;
   }

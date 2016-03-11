@@ -67,7 +67,7 @@ public class ImageEditorRESTResource {
     finally {
       if(!g.isClosed()) {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
     try {
@@ -146,7 +146,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }
@@ -180,7 +180,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }
@@ -236,7 +236,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }
@@ -301,7 +301,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }
@@ -358,7 +358,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }
@@ -441,7 +441,7 @@ public class ImageEditorRESTResource {
       finally {
         if (!g.isClosed()) {
           g.rollback();
-          g.shutdown(false);
+          g.shutdown();
         }
       }
     }

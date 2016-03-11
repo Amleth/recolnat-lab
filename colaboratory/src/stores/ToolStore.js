@@ -52,9 +52,11 @@ class EditorStore extends EventEmitter {
           break;
         case ViewConstants.ActionTypes.Local.VIEW_SET_SELECTION:
           if(this.imageId != action.selection.id) {
+            //console.log('new sel=' + action.selection.id);
             this.resetActiveTool();
             this.imageId = action.selection.id;
           }
+          //console.log('post sel=' + this.imageId);
           break;
         case ToolConstants.ActionTypes.TOOL_SAVE:
           this.saveToolData();

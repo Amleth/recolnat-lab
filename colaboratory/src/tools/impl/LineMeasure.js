@@ -56,6 +56,7 @@ class LineMeasure extends AbstractTool {
     return {
       selfSvgClass: "LINE_MEASURE_TOOL_CLASS",
       selfGroupSvgClass: "LINE_MEASURE_GROUP_CLASS",
+      selfDataContainerClass: "LINE_MEASURE_GROUP_DATA_CONTAINER_CLASS",
       selfRectSvgClass: "LINE_MEASURE_RECT_TOOL_CLASS",
       selfTextSvgClass: "LINE_MEASURE_TEXT_TOOL_CLASS",
       selfStartVertexClass: "LINE_MEASURE_RECT_START_CLASS",
@@ -102,7 +103,11 @@ class LineMeasure extends AbstractTool {
       .attr('stroke-dasharray', '5,5')
       .attr('stroke', 'black');
 
-    newMeasure
+    var group = newMeasure.append('g')
+      .datum(lineData)
+      .attr('class', LineMeasure.classes().selfDataContainerClass);
+
+    group
       .append('rect')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfRectSvgClass)
@@ -112,7 +117,7 @@ class LineMeasure extends AbstractTool {
       .attr('stroke', '#AAAAAA')
       .attr('fill', '#000000');
 
-    newMeasure
+    group
       .append('text')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfTextSvgClass)
@@ -163,7 +168,7 @@ class LineMeasure extends AbstractTool {
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragEndVertex);
 
-    activeToolGroup.append('svg:image')
+    activeToolGroup.select('.' + LineMeasure.classes().selfDataContainerClass).append('svg:image')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfSaveClass)
       .attr('xlink:href', saveIcon)
@@ -278,7 +283,7 @@ class LineMeasure extends AbstractTool {
   }
 
   static updateLineDisplay(id) {
-    console.log("updating " + id);
+    //console.log("updating " + id);
     var measure = d3.select('#MEASURE-' + id);
 
     measure.selectAll('.' + LineMeasure.classes().selfSvgClass)
@@ -310,8 +315,8 @@ class LineMeasure extends AbstractTool {
       .attr('y', d => d.y2-5);
 
     measure.select('.' + LineMeasure.classes().selfSaveClass)
-      .attr('x', d => (d.x2 + d.x1 - width - 10) / 2 + width/2)
-      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2 +30);
+      .attr('x', d => (d.x2 + d.x1 - width + 10) / 2 + width)
+      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2);
   }
 
   static stopEvent(d) {
@@ -382,7 +387,7 @@ class LineMeasure extends AbstractTool {
   setScale(scale) {
     if(scale) {
       d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-        console.log('setting scale for ' + JSON.stringify(d));
+        //console.log('setting scale for ' + JSON.stringify(d));
         d.mmPerPixel = scale;
         d.unit = 'mm';
         LineMeasure.updateLineDisplay(d.id);
@@ -390,7 +395,7 @@ class LineMeasure extends AbstractTool {
     }
     else {
       d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-        console.log('setting scale for ' + JSON.stringify(d));
+        //console.log('setting scale for ' + JSON.stringify(d));
         d.mmPerPixel = null;
         d.unit = 'px';
         LineMeasure.updateLineDisplay(d.id);

@@ -270,7 +270,7 @@ class Minimap extends React.Component {
     if(view.scale == 1.0) {
       return;
     }
-    console.log(JSON.stringify(view));
+    //console.log(JSON.stringify(view));
     ViewActions.updateViewport(
       (view.left-view.width/2)/view.scale,
       (view.top-view.height/2)/view.scale,

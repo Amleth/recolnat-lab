@@ -25,6 +25,7 @@ class API {
     this.websocketServerMethod = "";
     this.sessionId = null;
     this.websocket = null;
+    this.ping = null;
     var that = this;
 
 
@@ -69,9 +70,11 @@ class API {
             };
             websocket.onopen = function (message) {
               console.log('Client connected ' + JSON.stringify(message));
+              self.ping = window.setInterval(self.sendPing.bind(self), 60000);
             };
             websocket.onclose = function (message) {
               console.log('Connection closed ' + JSON.stringify(message));
+              self.clearInterval(self.ping);
               self.sessionId = null;
             };
             websocket.onmessage = function (message) {
@@ -155,6 +158,10 @@ class API {
     else {
       console.error("Websocket not connected");
     }
+  }
+
+  sendPing() {
+    this.websocket.send('PING');
   }
 
 }

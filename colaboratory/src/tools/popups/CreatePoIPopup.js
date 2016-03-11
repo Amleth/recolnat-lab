@@ -96,11 +96,11 @@ class CreatePoIPopup extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    console.log(JSON.stringify(nextProps));
+    //console.log(JSON.stringify(nextProps));
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log("save " + this.state.text+ " " + this.state.letters);
+    //console.log("save " + this.state.text+ " " + this.state.letters);
     this.props.setDataCallback(this.state.text, this.state.letters);
   }
 

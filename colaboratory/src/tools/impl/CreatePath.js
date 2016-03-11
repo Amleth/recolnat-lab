@@ -205,7 +205,7 @@ class CreatePath extends AbstractTool {
   }
 
   reset() {
-    this.setState({edges: [], start: null, interactionState: 0, name: ''});
+    this.setState({edges: [], start: null, interactionState: 0});
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);

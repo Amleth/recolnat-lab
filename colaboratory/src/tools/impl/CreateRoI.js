@@ -55,8 +55,7 @@ class CreateRoI extends AbstractTool {
       edges: [],
       start: null,
       interactionState: 0,
-      active: false,
-      name: ''
+      active: false
     };
   }
 
@@ -186,7 +185,7 @@ class CreateRoI extends AbstractTool {
   }
 
   save() {
-    console.log("CreateROI: building save data");
+    //console.log("CreateROI: building save data");
     if(this.state.interactionState != 1) {
       alert("Sauvegarde impossible: le polygone n'est pas terminé.");
       return null;
@@ -215,7 +214,7 @@ class CreateRoI extends AbstractTool {
     }
     data.payload.area = Math.abs(polygonArea(data.payload.polygon));
 
-    console.log("CreateROI: sending save data " + JSON.stringify(data));
+    //console.log("CreateROI: sending save data " + JSON.stringify(data));
     return data;
   }
 
@@ -246,7 +245,7 @@ class CreateRoI extends AbstractTool {
       return;
     }
 
-    console.log("create roi received click with button=" + data.button);
+    //console.log("create roi received click with button=" + data.button);
 
     var deltaX = this.props.entitystore.getSelectedImage().x;
     var deltaY = this.props.entitystore.getSelectedImage().y;

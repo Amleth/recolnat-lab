@@ -56,20 +56,20 @@ class LabBook extends React.Component {
   }
 
   loadLog() {
-    request.post(conf.actions.userProfileServiceActions.getRecentActivity)
-      .send({user: this.props.userstore.getUser().rPlusId})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error("Could not get data about object " + err);
-        } else {
-          var response = JSON.parse(res.text);
-          response.actions.forEach(function(value, index, array) {
-            value.key = "KEY-" + uuid.v4();
-          });
-          this.setState({actions: _.sortBy(response.actions, function(action) {return -action.date})});
-        }
-      });
+    //request.post(conf.actions.userProfileServiceActions.getRecentActivity)
+    //  .send({user: this.props.userstore.getUser().rPlusId})
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error("Could not get data about object " + err);
+    //    } else {
+    //      var response = JSON.parse(res.text);
+    //      response.actions.forEach(function(value, index, array) {
+    //        value.key = "KEY-" + uuid.v4();
+    //      });
+    //      this.setState({actions: _.sortBy(response.actions, function(action) {return -action.date})});
+    //    }
+    //  });
   }
 
   previousActions() {
@@ -87,7 +87,7 @@ class LabBook extends React.Component {
   }
 
   activate() {
-    console.log('setting active lab book');
+    //console.log('setting active lab book');
     this.setState({active: true});
   }
 

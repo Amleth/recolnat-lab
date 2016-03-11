@@ -145,35 +145,35 @@ class LabBookEntry extends React.Component {
   }
 
   getDataMetadata() {
-    if(this.state.dataMetadata.length > 1) {
-      return;
-    }
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: this.props.action.data})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error(err);
-        }
-        else {
-          var response = JSON.parse(res.text);
-          var dataTable = "<table class='ui celled table'><tbody>";
-          Object.keys(response).forEach(function(key) {
-            dataTable = dataTable + "<tr><td class='ui cell'>" + key + "</td><td class='ui cell'>" + response[key] + "</td></tr>";
-          });
-          dataTable = dataTable + "</tbody></table>";
-
-          var display = "objet sans nom";
-          if(response.name) {
-            display = response.name;
-          }
-          if(response.text) {
-            display = response.text;
-          }
-
-          this.setState({data: display, dataMetadata: dataTable});
-        }
-      });
+    //if(this.state.dataMetadata.length > 1) {
+    //  return;
+    //}
+    //request.get(conf.actions.databaseActions.getData)
+    //  .query({id: this.props.action.data})
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error(err);
+    //    }
+    //    else {
+    //      var response = JSON.parse(res.text);
+    //      var dataTable = "<table class='ui celled table'><tbody>";
+    //      Object.keys(response).forEach(function(key) {
+    //        dataTable = dataTable + "<tr><td class='ui cell'>" + key + "</td><td class='ui cell'>" + response[key] + "</td></tr>";
+    //      });
+    //      dataTable = dataTable + "</tbody></table>";
+    //
+    //      var display = "objet sans nom";
+    //      if(response.name) {
+    //        display = response.name;
+    //      }
+    //      if(response.text) {
+    //        display = response.text;
+    //      }
+    //
+    //      this.setState({data: display, dataMetadata: dataTable});
+    //    }
+    //  });
   }
 
   getTargetMetadata() {

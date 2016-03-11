@@ -35,7 +35,7 @@ export default {
   },
 
   updateViewport: (x, y, width, height, scale) => {
-    console.log('updateViewport(' + x + ',' + y + ',' + width + ',' + height + ',' + scale + ')');
+    //console.log('updateViewport(' + x + ',' + y + ',' + width + ',' + height + ',' + scale + ')');
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT,
       x: x,
@@ -72,6 +72,13 @@ export default {
       actionType: ViewConstants.ActionTypes.Local.SCHEDULE_IMAGE_LOAD,
       source: source,
       callback: onLoadCallback
+    });
+  },
+
+  displayMetadataAboutEntity: (id) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.METADATA_ABOUT_ENTITY_REQUESTED,
+      entityId: id
     });
   }
 }

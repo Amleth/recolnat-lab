@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import OrbPoint from './options/OrbOptions';
+import OrbOptions from './options/OrbOptions';
 
 import ViewActions from '../../actions/ViewActions';
 
@@ -67,7 +67,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
       transition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #00FF22, #000)'
+      backgroundColor: '#C3FF68'
+      //background: 'radial-gradient(circle at 20px 20px, #00FF22, #000)'
     };
     this.orbNStyle = {
       position: 'absolute',
@@ -83,7 +84,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
       transition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #FAEBD7, #000)'
+      backgroundColor: 'grey'
+      //background: 'radial-gradient(circle at 20px 20px, #FAEBD7, #000)'
     };
     this.orbNEStyle = {
       position: 'absolute',
@@ -99,7 +101,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'top ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
       transition: 'top ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #DEB887, #000)'
+      backgroundColor: '#FF9999'
+      //background: 'radial-gradient(circle at 20px 20px, #DEB887, #000)'
     };
 
     this.orbWStyle = {
@@ -116,7 +119,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
       transition: 'top ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #6495ED, #000)'
+      backgroundColor: '#A0D4A4'
+      //background: 'radial-gradient(circle at 20px 20px, #6495ED, #000)'
     };
     this.orbCStyle = {
       position: 'absolute',
@@ -152,7 +156,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'top ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
       transition: 'top ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #FFD700, #000)'
+      backgroundColor: '#A0D4A4'
+      //background: 'radial-gradient(circle at 20px 20px, #FFD700, #000)'
     };
 
     this.orbSWStyle = {
@@ -169,7 +174,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'bottom ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
       transition: 'bottom ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #FFA500, #000)'
+      backgroundColor: '#C0ADDB'
+      //background: 'radial-gradient(circle at 20px 20px, #FFA500, #000)'
     };
     this.orbSStyle = {
       position: 'absolute',
@@ -185,7 +191,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'bottom ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
       transition: 'bottom ' + this.animDuration + ' linear 0s, left ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #EE82EE, #000)'
+      backgroundColor: '#F14D4C'
+      //background: 'radial-gradient(circle at 20px 20px, #8B0000, #000)'
     };
     this.orbSEStyle = {
       position: 'absolute',
@@ -201,7 +208,8 @@ class OrbalContextMenu extends React.Component {
       borderRadius: this.orbCurve + 'px',
       WebkitTransition: 'bottom ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
       transition: 'bottom ' + this.animDuration + ' linear 0s, right ' + this.animDuration + ' linear 0s',
-      background: 'radial-gradient(circle at 20px 20px, #8B0000, #000)'
+      backgroundColor: '#A1BEE6'
+      //background: 'radial-gradient(circle at 20px 20px, #EE82EE, #000)'
     };
 
     this.northWestAction = null;
@@ -220,7 +228,10 @@ class OrbalContextMenu extends React.Component {
   }
 
   setContextMenuData(elements) {
-    this.setState({itemsAtCursor: elements, active: true, activeItemIndex: 0});
+    //elements.unshift({type: 'workbench', id: this.props.entitystore.getWorkbenchId()});
+    if(elements.length > 0) {
+      this.setState({itemsAtCursor: elements, active: true, activeItemIndex: elements.length - 1});
+    }
   }
 
   closeMenu(event) {
@@ -328,12 +339,12 @@ class OrbalContextMenu extends React.Component {
     switch(item.type) {
       case TypeConstants.point:
         this.displayText = '(Point) ' + this.displayText;
-        this.northWestAction = OrbPoint.annotate.bind(null, item);
-        this.northAction = OrbPoint.zoomToObject.bind(null, '#POI-' + item.id, this.props.viewstore.getView());
-        this.northEastAction;
-        this.southWestAction;
+        this.northWestAction = OrbOptions.notAvailable.bind(null);
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + item.id, this.props.viewstore.getView());
+        this.northEastAction = OrbOptions.notAvailable.bind(null);;
+        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
-          this.southAction = OrbPoint.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, item,
             function (err) {
               console.error(err);
             },
@@ -342,7 +353,7 @@ class OrbalContextMenu extends React.Component {
             }
           );
 
-          this.southEastAction = OrbPoint.edit.bind(null, item);
+          this.southEastAction = OrbOptions.notAvailable.bind(null);
         }
 
         this.northWestIcon = 'edit';
@@ -361,12 +372,12 @@ class OrbalContextMenu extends React.Component {
         break;
       case TypeConstants.path:
         this.displayText = '(Chemin) ' + this.displayText;
-        this.northWestAction = OrbPoint.annotate.bind(null, item);
-        this.northAction = OrbPoint.zoomToObject.bind(null, '#PATH-' + item.id, this.props.viewstore.getView());
-        this.northEastAction;
-        this.southWestAction;
+        this.northWestAction = OrbOptions.notAvailable.bind(null);
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#PATH-' + item.id, this.props.viewstore.getView());
+        this.northEastAction = OrbOptions.notAvailable.bind(null);
+        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
-          this.southAction = OrbPoint.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, item,
             function (err) {
               console.error(err);
             },
@@ -374,8 +385,7 @@ class OrbalContextMenu extends React.Component {
               ViewActions.updateMetadata(null);
             }
           );
-
-          this.southEastAction = OrbPoint.edit.bind(null, item);
+          this.southEastAction = OrbOptions.notAvailable.bind(null);
         }
 
         this.northWestIcon = 'edit';
@@ -393,12 +403,12 @@ class OrbalContextMenu extends React.Component {
         break;
       case TypeConstants.region:
         this.displayText = '(Zone) ' + this.displayText;
-        this.northWestAction = OrbPoint.annotate.bind(null, item);
-        this.northAction = OrbPoint.zoomToObject.bind(null, '#ROI-' + item.id, this.props.viewstore.getView());
-        this.northEastAction;
-        this.southWestAction;
+        this.northWestAction = OrbOptions.notAvailable.bind(null);
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#ROI-' + item.id, this.props.viewstore.getView());
+        this.northEastAction = OrbOptions.notAvailable.bind(null);
+        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
-          this.southAction = OrbPoint.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, item,
             function (err) {
               console.error(err);
             },
@@ -407,7 +417,7 @@ class OrbalContextMenu extends React.Component {
             }
           );
 
-          this.southEastAction = OrbPoint.edit.bind(null, item);
+          this.southEastAction = OrbOptions.notAvailable.bind(null);
         }
 
         this.northWestIcon = 'edit';
@@ -425,12 +435,12 @@ class OrbalContextMenu extends React.Component {
         break;
       case TypeConstants.sheet:
         this.displayText = '(Planche) ' + this.displayText;
-        this.northWestAction = OrbPoint.annotate.bind(null, item);
-        this.northAction = OrbPoint.zoomToObject.bind(null, '#GROUP-' + item.id, this.props.viewstore.getView());
-        this.northEastAction;
-        this.southWestAction;
+        this.northWestAction = OrbOptions.notAvailable.bind(null);
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#GROUP-' + item.id, this.props.viewstore.getView());
+        this.northEastAction = OrbOptions.notAvailable.bind(null);
+        this.southWestAction = OrbOptions.notAvailable.bind(null);;
         if(metadata.deletable) {
-          this.southAction = OrbPoint.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, item,
             function (err) {
               console.error(err);
             },
@@ -439,13 +449,13 @@ class OrbalContextMenu extends React.Component {
             }
           );
 
-          this.southEastAction = OrbPoint.edit.bind(null, item);
+          this.southEastAction = OrbOptions.notAvailable.bind(null);
         }
 
         this.northWestIcon = 'edit';
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
-        this.southWestIcon = 'info';
+        //this.southWestIcon = 'info';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
@@ -454,7 +464,21 @@ class OrbalContextMenu extends React.Component {
           this.orbSStyle.visibility = 'hidden';
           this.orbSEStyle.visibility = 'hidden';
         }
+
+        this.orbSWStyle.visibility = 'hidden';
         break;
+      //case 'workbench':
+      //  this.orbNWStyle.visibility = 'hidden';
+      //  this.orbNEStyle.visibility = 'hidden';
+      //  this.orbSWStyle.visibility = 'hidden';
+      //  this.orbSStyle.visibility = 'hidden';
+      //  this.orbSEStyle.visibility = 'hidden';
+      //
+      //  this.northIcon = 'eye';
+      //
+      //  this.northAction = ViewActions.fitView.bind(null);
+      //
+      //  break;
       default:
         log.warning('No specific orbal context menu for type ' + item.type);
         break;
@@ -467,6 +491,15 @@ class OrbalContextMenu extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
+    this.orbNWStyle.visibility = '';
+    this.orbNStyle.visibility = '';
+    this.orbNEStyle.visibility = '';
+    this.orbWStyle.visibility = '';
+    this.orbEStyle.visibility = '';
+    this.orbSWStyle.visibility = '';
+    this.orbSStyle.visibility = '';
+    this.orbSEStyle.visibility = '';
+
     if(nextState.active && !this.state.active) {
       // Transition from closed to open
       this.menuIsActivated();
@@ -476,12 +509,22 @@ class OrbalContextMenu extends React.Component {
       this.menuIsDeactivated();
     }
 
+    if(this.state.animationData) {
+      OrbOptions.stopAnimation(this.state.itemsAtCursor[this.state.activeItemIndex], this.state.animationData);
+      nextState.animationData = null;
+    }
+
     if(nextState.active) {
+      if(nextState.itemsAtCursor.length == 1) {
+        this.orbEStyle.visibility = 'hidden';
+        this.orbWStyle.visibility = 'hidden';
+      }
+
       if(nextState.itemsAtCursor.length > 0) {
         // Set actions according to object type
         var item = nextState.itemsAtCursor[nextState.activeItemIndex];
         this.setMenuDataByContext(item);
-
+        nextState.animationData = OrbOptions.beginAnimation(item);
         //console.log(JSON.stringify(item));
         //this.displayText = item.name;
       }
@@ -510,38 +553,38 @@ class OrbalContextMenu extends React.Component {
 
         <div style={this.orbNWStyle}
              onClick={this.northWestAction}>
-          <i className={'ui ' + this.northWestIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.northWestIcon + ' big icon'}/>
         </div>
         <div style={this.orbNStyle}
              onClick={this.northAction}>
-          <i className={'ui ' + this.northIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.northIcon + ' big icon'}/>
         </div>
         <div style={this.orbNEStyle}
              onClick={this.northEastAction}>
-          <i className={'ui ' + this.northEastIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.northEastIcon + ' big icon'}/>
         </div>
 
         <div style={this.orbWStyle}
              onClick={this.previousItem.bind(this)}>
-          <i className='ui arrow left big inverted icon'/>
+          <i className='ui arrow left big icon'/>
         </div>
 
         <div style={this.orbEStyle}
              onClick={this.nextItem.bind(this)}>
-          <i className='ui arrow right big inverted icon'/>
+          <i className='ui arrow right big icon'/>
         </div>
 
         <div style={this.orbSWStyle}
         onClick={this.southWestAction}>
-          <i className={'ui ' + this.southWestIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.southWestIcon + ' big icon'}/>
         </div>
         <div style={this.orbSStyle}
              onClick={this.southAction}>
-          <i className={'ui ' + this.southIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.southIcon + ' big icon'}/>
         </div>
         <div style={this.orbSEStyle}
              onClick={this.southEastAction}>
-          <i className={'ui ' + this.southEastIcon + ' big inverted icon'}/>
+          <i className={'ui ' + this.southEastIcon + ' big icon'}/>
         </div>
       </div>
     )

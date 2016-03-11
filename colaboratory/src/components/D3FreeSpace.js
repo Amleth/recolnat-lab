@@ -11,6 +11,8 @@ import MenuActions from '../actions/MenuActions';
 import Classes from '../constants/CommonSVGClasses';
 import TypeConstants from '../constants/TypeConstants';
 
+import LineMeasure from '../tools/impl/LineMeasure';
+
 import ShapesConf from "../conf/shapes";
 
 import workbenchImageUrl from '../images/book_300.png';
@@ -171,6 +173,12 @@ class D3FreeSpace {
   updateViewWithProperties(properties) {
     d3.selectAll('.' + Classes.POI_CLASS)
       .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')scale(' + properties.sizeOfTextAndObjects + ')');
+
+    d3.selectAll('.' + LineMeasure.classes().selfDataContainerClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
+
+    //d3.selectAll('.' + LineMeasure.classes().selfRectSvgClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
+    //d3.selectAll('.' + LineMeasure.classes().selfTextSvgClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
+    //d3.selectAll('.' + LineMeasure.classes().selfSaveClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 +50) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
   }
 
   fitViewportToData() {
@@ -325,11 +333,11 @@ class D3FreeSpace {
   viewportTransition() {
     // if the new zoom level is above a certain value, replace thumbnails with full-size images if available
     if(this.view.scale > 0.1 && this.imageSourceLevel != 1) {
-      console.log("Switch to full scale images");
+      //console.log("Switch to full scale images");
       this.switchImageSources(1);
     }
     else if(this.view.scale < 0.1 && this.imageSourceLevel != 2) {
-      console.log("Switch to thumbnail images");
+      //console.log("Switch to thumbnail images");
       this.switchImageSources(2);
     }
 

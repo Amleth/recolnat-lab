@@ -78,7 +78,7 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
         }
         else {
           var specimen = JSON.parse(res.text);
-          console.log('specimen=' + res.text);
+          //console.log('specimen=' + res.text);
           this.setState({
             type: 'specimen',
             source: 'recolnat',
@@ -101,7 +101,7 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
         }
         else {
           var determinations = JSON.parse(res.text);
-          console.log('determinations=' + res.text);
+          //console.log('determinations=' + res.text);
           if(determinations.length > 0) {
             var determination = determinations[0];
             this.setState({
@@ -126,7 +126,7 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
         }
         else {
           var harvest = JSON.parse(res.text);
-          console.log('harvest=' + res.text);
+          //console.log('harvest=' + res.text);
 
           if(harvest.recordedBy) {
             this.setState({harvester: harvest.recordedBy});

@@ -52,7 +52,7 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
           }
           else {
             var metadata = JSON.parse(res.text);
-            console.log(res.text);
+            //console.log(res.text);
             this.processCoLabMetadata(metadata);
           }
         }

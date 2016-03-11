@@ -31,6 +31,8 @@ class ViewStore extends EventEmitter {
     this.loader = {};
     this.loader.text = null;
 
+    this.metadataModalAbout = null;
+
     AppDispatcher.register((action) => {
       //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
@@ -49,10 +51,18 @@ class ViewStore extends EventEmitter {
           this.setLoaderText(action.text);
           this.emit(ViewEvents.UPDATE_LOADER);
           break;
+        case ViewConstants.ActionTypes.Local.METADATA_ABOUT_ENTITY_REQUESTED:
+          this.metadataModalAbout = action.entityId;
+          this.emit(ViewEvents.SHOW_ENTITY_METADATA_MODAL);
+          break;
         default:
           break;
       }
     });
+  }
+
+  getMetadataModalEntity() {
+    return this.metadataModalAbout;
   }
 
   setLoaderText(text) {
@@ -142,6 +152,14 @@ class ViewStore extends EventEmitter {
 
   removeLoaderListener(callback) {
     this.removeListener(ViewEvents.UPDATE_LOADER, callback);
+  }
+
+  addMetadataListener(callback) {
+    this.on(ViewEvents.SHOW_ENTITY_METADATA_MODAL, callback);
+  }
+
+  removeMetadataListener(callback) {
+    this.removeListener(ViewEvents.SHOW_ENTITY_METADATA_MODAL, callback);
   }
 }
 

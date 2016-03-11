@@ -20,14 +20,14 @@ class WorkbenchBorders extends React.Component {
       pointerEvents: 'none'
     };
 
-    this.borderSize = '30px';
+    this.borderSize = '20px';
     this.leftBorderStyle = {
       position: 'absolute',
       left: 0,
       top: 0,
       width: this.borderSize,
       height: '100%',
-      backgroundColor: 'rgba(127,127,127,0.3)',
+      //backgroundColor: 'rgba(127,127,127,0.3)',
       pointerEvents: 'auto'
     };
 
@@ -37,7 +37,7 @@ class WorkbenchBorders extends React.Component {
       top: 0,
       width: this.borderSize,
       height: '100%',
-      backgroundColor: 'rgba(127,127,127,0.3)',
+      //backgroundColor: 'rgba(127,127,127,0.3)',
       pointerEvents: 'auto'
     };
 
@@ -47,7 +47,7 @@ class WorkbenchBorders extends React.Component {
       top: 0,
       width: '100%',
       height: this.borderSize,
-      backgroundColor: 'rgba(127,127,127,0.3)',
+      //backgroundColor: 'rgba(127,127,127,0.3)',
       pointerEvents: 'auto'
     };
 
@@ -57,7 +57,7 @@ class WorkbenchBorders extends React.Component {
       bottom: 0,
       width: '100%',
       height: this.borderSize,
-      backgroundColor: 'rgba(127,127,127,0.3)',
+      //backgroundColor: 'rgba(127,127,127,0.3)',
       pointerEvents: 'auto'
     };
 

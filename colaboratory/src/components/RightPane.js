@@ -41,7 +41,7 @@ class RightPane extends React.Component {
   }
 
   componentDidMount() {
-    $('.menu .item').tab();
+    $('.menu .worktab', $(this.refs.tabs.getDOMNode())).tab();
   }
 
   componentWillUnmount() {
@@ -57,8 +57,9 @@ class RightPane extends React.Component {
     return(
       <div style={this.containerStyle}>
         <div className='ui top attached tabular menu'
+             ref='tabs'
              style={this.tabTitleStyle}>
-          <a className={"ui active item"}
+          <a className={"ui active item worktab"}
              data-tab="metadata">
             <i className="ui find icon"></i>
           </a>

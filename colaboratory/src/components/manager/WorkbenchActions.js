@@ -117,7 +117,7 @@ class WorkbenchActions extends React.Component {
           alert('La création a échoué. Veuillez recommencer');
         }
         else {
-          console.log("Received response " + res.text);
+          //console.log("Received response " + res.text);
           var response = JSON.parse(res.text);
           ManagerActions.setSelectedWorkbenchGraphNode(response.workbench, 'bag', name, parentWorkbenchId,  response.link);
           ManagerActions.setActiveIdInWorkbench(parentWorkbenchId, response.workbench);
@@ -132,7 +132,7 @@ class WorkbenchActions extends React.Component {
   addBasketSelectionToWorkbench(keepSelectionInBasket) {
     var basketSelection = this.props.managerstore.getBasketSelection();
     var selectedWorkbench = this.props.managerstore.getSelected().id;
-    console.log('parent= ' + selectedWorkbench);
+    //console.log('parent= ' + selectedWorkbench);
 
     ManagerActions.addBasketItemsToWorkbench(basketSelection, selectedWorkbench, keepSelectionInBasket);
 
@@ -153,7 +153,7 @@ class WorkbenchActions extends React.Component {
     var parser = fastcsv({objectMode: true, headers: true, ignoreEmpty: true, discardUnmappedColumns: true, trim: true})
       .on("data", function(data) {
         if(data.url && data.name) {
-          console.log("data=" + JSON.stringify(data));
+          //console.log("data=" + JSON.stringify(data));
           request.post(conf.actions.virtualWorkbenchServiceActions.importSheet)
             .set('Content-Type', "application/json")
             .send({workbench: workbench})
@@ -273,7 +273,7 @@ class WorkbenchActions extends React.Component {
           alert(err);
         }
         else {
-          console.log("Delete received response " + res.text);
+          //console.log("Delete received response " + res.text);
         }
         ManagerActions.setSelectedWorkbenchGraphNode(null, null, null, null, null);
         ManagerActions.reloadDisplayedWorkbenches();

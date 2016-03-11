@@ -162,7 +162,7 @@ public class AuthenticationResource {
         userId = vUser.getProperty(DataModel.Properties.id);
       } finally {
         g.rollback();
-        g.shutdown(false);
+        g.shutdown();
       }
     }
 

@@ -33,7 +33,7 @@ export default {
   },
 
   runTool: (x, y, miscData) => {
-    console.log("ToolActions executeTool");
+    //console.log("ToolActions executeTool");
     AppDispatcher.dispatch({
       actionType: ToolConstants.ActionTypes.TOOL_RUN,
       x: x,

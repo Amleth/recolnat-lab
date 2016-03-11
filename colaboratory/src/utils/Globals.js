@@ -101,6 +101,35 @@ class GlobalFunctions {
       }
     }
   }
+
+  /**
+   * Returns number of mm per pixel
+   * @param imageId
+   * @param store
+   * @returns {*}
+   */
+  static getEXIFScalingData(imageId, store) {
+    var imageMetadata = store.getEntityMetadata(imageId);
+    //console.log(JSON.stringify(imageMetadata));
+    if(imageMetadata) {
+      if(imageMetadata.metadata) {
+        if(imageMetadata.metadata["X Resolution"]) {
+          var xResolution = imageMetadata.metadata["X Resolution"].split(" ");
+          var dotsPerUnit = _.parseInt(xResolution[0]);
+          var mmPerPixel = null;
+          var unit = imageMetadata.metadata["Resolution Units"];
+          if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
+            mmPerPixel = 25.4/dotsPerUnit;
+          }
+          else {
+            console.error("Unprocessed unit " + unit);
+          }
+          return mmPerPixel;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 export default GlobalFunctions;

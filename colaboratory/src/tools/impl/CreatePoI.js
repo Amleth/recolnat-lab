@@ -106,7 +106,7 @@ class CreatePoI extends AbstractTool {
     data.payload.text = this.state.text;
     data.payload.letters = this.state.letters;
 
-    console.log(JSON.stringify(data));
+    //console.log(JSON.stringify(data));
     return data;
   }
 
@@ -127,7 +127,7 @@ class CreatePoI extends AbstractTool {
         ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
       10);
     this.clearSVG();
-    this.setState({x: null, y: null, displayX: null, displayY: null, text: "", letters: ""});
+    this.setState({x: null, y: null, displayX: null, displayY: null});
   }
 
   finish() {
@@ -199,12 +199,12 @@ class CreatePoI extends AbstractTool {
   }
 
   setData(text, letters) {
-    console.log("set data " + text + " " + letters);
+    //console.log("set data " + text + " " + letters);
     this.setState({letters: letters, text: text});
   }
 
   setColor(color) {
-    console.log("set color " + JSON.stringify(color));
+    //console.log("set color " + JSON.stringify(color));
     this.setState({color: color});
   }
 

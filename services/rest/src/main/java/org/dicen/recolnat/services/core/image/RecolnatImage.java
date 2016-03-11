@@ -122,10 +122,11 @@ public class RecolnatImage {
         FileUtils.copyURLToFile(imageUrl, imageFile);
         Metadata imageMetadata = ImageMetadataReader.readMetadata(imageFile);
         this.rawImageMetadata = imageMetadata;
+        imageFile.delete();
       } catch (MalformedURLException e) {
         log.warn("EXIF failed, URL malformed " + this.url, e);
       } catch (IOException e) {
-        log.error("EXIF failed, could not create temporary file", e);
+        log.error("EXIF failed, could not create/delete temporary file", e);
       } catch (ImageProcessingException e) {
         log.warn("EXIF failed, could not read metadata " + this.url, e);
       }

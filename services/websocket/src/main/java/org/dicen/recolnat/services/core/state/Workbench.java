@@ -3,6 +3,7 @@ package org.dicen.recolnat.services.core.state;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
@@ -18,50 +19,59 @@ import java.util.*;
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  */
 public class Workbench {
+
   private String id;
   private String name;
   private String type;
   private Set<WorkbenchObject> nodes = new HashSet<WorkbenchObject>();
   private Set<WorkbenchLink> links = new HashSet<WorkbenchLink>();
+  private WorkbenchView view = null;
 
   public Workbench(String id, OrientVertex vUser, OrientGraph g) throws IllegalAccessException {
     // Build a workbench from given graph by extracting all data pertaining to workbench 'id' accessible by user
-    OrientVertex vWorkbench = (OrientVertex) AccessUtils.getWorkbench(id, g);
-    if(AccessRights.getAccessRights(vUser, vWorkbench, g).value() < DataModel.Enums.AccessRights.READ.value()) {
-      throw new IllegalAccessException("User not authorized to access workbench " + id );
+    OrientVertex vSet = (OrientVertex) AccessUtils.getSet(id, g);
+    if (AccessRights.getAccessRights(vUser, vSet, g).value() < DataModel.Enums.AccessRights.READ.value()) {
+      throw new IllegalAccessException("User not authorized to access workbench " + id);
     }
-    
-    this.name = vWorkbench.getProperty(DataModel.Properties.name);
-      this.id = id;
-      if("workbench-root".equals(vWorkbench.getProperty(DataModel.Properties.role))) {
-        this.type = "root";
+
+    this.name = vSet.getProperty(DataModel.Properties.name);
+    this.id = id;
+    if (DataModel.Globals.ROOT_SET_ROLE.equals(vSet.getProperty(DataModel.Properties.role))) {
+      this.type = "root";
+    } else {
+      this.type = "bag";
+    }
+
+    // Get children. Each child class must check access rights internally.
+    Iterator<Edge> itChildLinks = vSet.getEdges(Direction.OUT, DataModel.Links.hasChild).iterator();
+    while (itChildLinks.hasNext()) {
+      OrientEdge cl = (OrientEdge) itChildLinks.next();
+      OrientVertex child = AccessUtils.findLatestVersion(cl.getVertex(Direction.IN));
+      
+      if(AccessRights.getAccessRights(vUser, child, g).value() < DataModel.Enums.AccessRights.READ.value()) {
+        continue;
       }
-      else {
-        this.type = "bag";
-      }
-    
-      // Get children. Each child class must check access rights internally.
-      Iterator<Edge> itChildLinks = vWorkbench.getEdges(Direction.OUT, DataModel.Links.hasChild).iterator();
-      while(itChildLinks.hasNext()) {
-        Edge cl = itChildLinks.next();
-        Vertex child = cl.getVertex(Direction.IN);
-        // Check what the child is
-        if(child.getProperty("@class").equals(DataModel.Classes.LevelOneHeirTypes.relationship)) {
-          // If it's a Relationship, it's a WorkbenchLink
+
+      // Check what the child is
+      switch ((String) child.getProperty("@class")) {
+        case DataModel.Classes.relationship:
           WorkbenchLink l = new WorkbenchLink(child, vUser, g);
-        }
-        else if(DataModel.Classes.CompositeTypes.workbench.equals(child.getProperty("@class"))) {
+          break;
+        case DataModel.Classes.set:
           // TODO handle this carefully, it could create processing loops
           // For now there is no need to populate children in the 2D view.
-          continue;
-        }
-        else {
+          break;
+        default:
           WorkbenchObject obj = new WorkbenchObject(child, cl, vUser, g);
           this.nodes.add(obj);
-        }
       }
+    }
     
-    
+    // Process views associated with workbench.
+    // @TODO For now only one view per WB until Vm
+    OrientVertex vView = AccessUtils.findLatestVersion(vSet.getVertices(Direction.OUT, DataModel.Links.hasView).iterator(), g);
+    this.view = new WorkbenchView(vView, this.nodes, this.links, vUser, g);
+
   }
 
   public JSONArray toJSON() throws JSONException {
@@ -81,6 +91,10 @@ public class Workbench {
     wb.put("containsIds", children);
 
     wb.put("parentIds", new ArrayList());
+    
+    if(this.view != null) {
+      wb.put("view", this.view.toJSON());
+    }
 
     ret.put(wb);
 

@@ -41,7 +41,7 @@ public class ScalingData {
       Iterator<Vertex> itAnnots = vLine.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
       while (itAnnots.hasNext()) {
         Vertex vLineMeasurement = itAnnots.next();
-        if (vLineMeasurement.getProperty("@class").equals(DataModel.Classes.LeafTypes.measurement)) {
+        if (vLineMeasurement.getProperty("@class").equals(DataModel.Classes.measurement)) {
           Double lengthInPixels = vLineMeasurement.getProperty(DataModel.Properties.pxValue);
           this.mmPerPixel = lengthInMm / lengthInPixels;
           break;

@@ -17,7 +17,7 @@ public class Delete extends WorkbenchAction {
   public Delete(String object, TargetType type, String workbench) {
     this.targetId = object;
     this.targetType = type;
-    this.workbench = workbench;
+    this.setId = workbench;
   }
 
   @Override

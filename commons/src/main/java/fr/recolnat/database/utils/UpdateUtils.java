@@ -1,15 +1,63 @@
 package fr.recolnat.database.utils;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 26/03/15.
  */
 public class UpdateUtils {
+  public static OrientVertex createNewVertexVersion(OrientVertex vToUpdate, String userId, OrientGraph g) {
+    OrientVertex updatedVertex = g.addVertex("class:" + vToUpdate.getProperty("@class"));
+    // Copy properties
+    updatedVertex.setProperties(vToUpdate.getProperties());
+    
+    // Copy edges
+    Iterator<Edge> itEdges = vToUpdate.getEdges(Direction.IN).iterator();
+    while(itEdges.hasNext()) {
+      OrientEdge oldEdge = (OrientEdge) itEdges.next();
+      if(oldEdge.getLabel().equals(DataModel.Links.hasNewerVersion)) {
+        // Do NOT copy edge from previous version
+        continue;
+      }
+      OrientVertex v = (OrientVertex) oldEdge.getVertex(Direction.OUT);
+      // Create same edge to new version of vertex
+      UpdateUtils.createNewEdgeVersion(v, updatedVertex, oldEdge, g);
+    }
+    
+    itEdges = vToUpdate.getEdges(Direction.OUT).iterator();
+    while(itEdges.hasNext()) {
+      OrientEdge oldEdge = (OrientEdge) itEdges.next();
+      OrientVertex v = (OrientVertex) oldEdge.getVertex(Direction.IN);
+      // Create same edge to new version of vertex
+      UpdateUtils.createNewEdgeVersion(updatedVertex, v, oldEdge, g);
+    }
+    
+    // Link versions
+    OrientEdge edgeToNewVersion = (OrientEdge) vToUpdate.addEdge(DataModel.Links.hasNewerVersion, updatedVertex);
+    edgeToNewVersion.setProperties(new String[] {DataModel.Properties.id, DataModel.Properties.creationDate, DataModel.Properties.creator}, new Object[] {CreatorUtils.newEdgeUUID(g), new Date(), userId});
+    
+    return updatedVertex;
+  }
+  
+  private static OrientEdge createNewEdgeVersion(OrientVertex fromVertex, OrientVertex toVertex, OrientEdge oldEdge, OrientGraph g) {
+    String newEdgeId = CreatorUtils.newEdgeUUID(g);
+      OrientEdge newEdge = (OrientEdge) fromVertex.addEdge(oldEdge.getLabel(), toVertex);
+      newEdge.setProperties(oldEdge.getProperties());
+      oldEdge.setProperty(DataModel.Properties.nextVersionId, newEdgeId);
+      // However the new edge must have a different id. Creation date is technically the same as the old one
+      newEdge.setProperty(DataModel.Properties.id, newEdgeId);
+      
+      return newEdge;
+  }
+  
+  
   public static OrientEdge addCreator(OrientVertex item, OrientVertex creator, OrientGraph graph) {
     OrientEdge edge = graph.addEdge("class:" + DataModel.Links.createdBy, item, creator, DataModel.Links.createdBy);
     edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
@@ -19,17 +67,13 @@ public class UpdateUtils {
     return edge;
   }
 
-//  public static void linkParentToChild(OrientVertex parent, OrientVertex child, OrientGraph g) {
-//    throw new NotImplementedException("Operation not implemented yet.");
-//  }
-
-  public static OrientEdge addItemToWorkbench(OrientVertex item, String workbench, OrientVertex user, OrientGraph g) {
-    OrientVertex vWb = (OrientVertex) AccessUtils.getWorkbench(workbench, g);
-    return UpdateUtils.addItemToWorkbench(item, vWb, user, g);
+  public static OrientEdge addItemToSet(OrientVertex item, String setId, OrientVertex user, OrientGraph g) {
+    OrientVertex vSet = AccessUtils.getSet(setId, g);
+    return UpdateUtils.addItemToSet(item, vSet, user, g);
   }
 
-  public static OrientEdge addItemToWorkbench(OrientVertex item, OrientVertex workbench, OrientVertex user, OrientGraph g) {
-    OrientEdge hasChild = g.addEdge("class:" + DataModel.Links.hasChild, workbench, item, DataModel.Links.hasChild);
+  public static OrientEdge addItemToSet(OrientVertex item, OrientVertex set, OrientVertex user, OrientGraph g) {
+    OrientEdge hasChild = (OrientEdge) set.addEdge(DataModel.Links.hasChild, item);
     hasChild.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(g));
     hasChild.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     hasChild.setProperty(DataModel.Properties.creator, user.getProperty(DataModel.Properties.id));
@@ -43,8 +87,8 @@ public class UpdateUtils {
     return hasChild;
   }
 
-  public static OrientEdge addWorkbenchToWorkbench(OrientVertex parent, OrientVertex child, OrientVertex user, OrientGraph g) {
-    OrientEdge e = g.addEdge("class:" + DataModel.Links.hasChild, parent, child, DataModel.Links.hasChild);
+  public static OrientEdge addSubsetToSet(OrientVertex set, OrientVertex subSet, OrientVertex user, OrientGraph g) {
+    OrientEdge e = (OrientEdge) set.addEdge(DataModel.Links.hasChild, subSet);
     e.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(g));
     e.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     e.setProperty(DataModel.Properties.creator, user.getProperty(DataModel.Properties.id));
@@ -52,9 +96,22 @@ public class UpdateUtils {
     return e;
   }
 
-  public static OrientEdge addWorkbenchToWorkbench(String parent, OrientVertex child, OrientVertex user, OrientGraph g) {
-    OrientVertex vParent = (OrientVertex) AccessUtils.getWorkbench(parent, g);
-    return UpdateUtils.addWorkbenchToWorkbench(vParent, child, user, g);
+  public static OrientEdge addSubsetToSet(String setId, OrientVertex subSet, OrientVertex user, OrientGraph g) {
+    OrientVertex vParent = (OrientVertex) AccessUtils.getSet(setId, g);
+    return UpdateUtils.addSubsetToSet(vParent, subSet, user, g);
+  }
+  
+  public static OrientEdge link(OrientVertex source, OrientVertex destination, String label, String creatorId, OrientGraph g) {
+    if(source == null || destination == null) {
+      return null;
+    }
+    OrientEdge link = (OrientEdge) source.addEdge(label, destination);
+    
+    link.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(g));
+    link.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    link.setProperty(DataModel.Properties.creator, creatorId);
+    
+    return link;
   }
 
   public static OrientEdge linkRegionOfInterestToEntity(String entity, OrientVertex regionOfInterest, OrientGraph g) {
@@ -97,11 +154,11 @@ public class UpdateUtils {
     return link;
   }
 
-  public static OrientEdge addRegionOfInterestToWorkbench(String roiId, String workbenchId, OrientVertex user, OrientGraph g) {
-    OrientVertex vRoi = (OrientVertex) AccessUtils.getNodeById(roiId, g);
-    OrientVertex vWb = (OrientVertex) AccessUtils.getWorkbench(workbenchId, g);
+  public static OrientEdge addRegionOfInterestToSet(String roiId, String setId, OrientVertex user, OrientGraph g) {
+    OrientVertex vRoi = AccessUtils.getNodeById(roiId, g);
+    OrientVertex vSet = AccessUtils.getSet(setId, g);
 
-    OrientEdge link = UpdateUtils.addItemToWorkbench(vRoi, vWb, user, g);
+    OrientEdge link = UpdateUtils.addItemToSet(vRoi, vSet, user, g);
     link.setProperty(DataModel.Properties.opacity, 1.0);
     return link;
   }

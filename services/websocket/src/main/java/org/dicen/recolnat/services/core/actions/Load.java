@@ -10,8 +10,8 @@ import org.codehaus.jettison.json.JSONObject;
  * Loads a workbench. On first connection only.
  */
 public class Load extends WorkbenchAction{
-  public Load(String workbench) {
-    this.workbench = workbench;
+  public Load(String set) {
+    this.setId = set;
   }
 
   @Override

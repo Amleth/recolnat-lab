@@ -65,41 +65,41 @@ public class Action implements Comparable<Action> {
         this.date = e.getProperty(DataModel.Properties.creationDate);
         // Sort action by type, find target if necessary
         switch((String) linkedVertex.getProperty("@class")) {
-          case DataModel.Classes.LeafTypes.comment:
+          case DataModel.Classes.comment:
             this.action = "Comment";
             break;
-            case DataModel.Classes.LeafTypes.coordinates:
+            case DataModel.Classes.coordinates:
               this.action = "Coordinates";
             break;
-            case DataModel.Classes.LeafTypes.determination:
+            case DataModel.Classes.determination:
               this.action = "Determination";
             break;
-            case DataModel.Classes.LeafTypes.measureReference:
+            case DataModel.Classes.measureReference:
               this.action = "ScaleData";
               this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.hasScalingData).iterator().next().getProperty(DataModel.Properties.id);
             break;
-            case DataModel.Classes.LeafTypes.measurement:
+            case DataModel.Classes.measurement:
               this.action = "Measurement";
             break;
-            case DataModel.Classes.LeafTypes.message:
+            case DataModel.Classes.message:
               this.action = "Message";
             break;
-            case DataModel.Classes.LeafTypes.path:
+            case DataModel.Classes.trailOfInterest:
               this.action = "Path";
               this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.path).iterator().next().getProperty(DataModel.Properties.id);
             break;
-            case DataModel.Classes.LeafTypes.pointOfInterest:
+            case DataModel.Classes.pointOfInterest:
               this.action = "Point";
               this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.poi).iterator().next().getProperty(DataModel.Properties.id);
             break;
-            case DataModel.Classes.LeafTypes.regionOfInterest:
+            case DataModel.Classes.regionOfInterest:
               this.action = "Region";
               this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.roi).iterator().next().getProperty(DataModel.Properties.id);
             break;
-            case DataModel.Classes.LeafTypes.transcription:
+            case DataModel.Classes.transcription:
               this.action = "Transcription";
             break;
-            case DataModel.Classes.LeafTypes.vernacularName:
+            case DataModel.Classes.vernacularName:
               this.action = "VernacularName";
             break;
         }
@@ -143,17 +143,17 @@ public class Action implements Comparable<Action> {
         this.data = linkedVertex.getProperty(DataModel.Properties.id);
         this.date = e.getProperty(DataModel.Properties.creationDate);
         break;
-      case DataModel.Links.importedAs:
-        // Not an action
-        break;
-      case DataModel.Links.isLinkedTo:
-        // v has been linked to linkedVertex
-        this.actor = e.getProperty(DataModel.Properties.creator);
-        this.action = "Link";
-        this.target = v.getProperty(DataModel.Properties.id);
-        this.data = linkedVertex.getProperty(DataModel.Properties.id);
-        this.date = e.getProperty(DataModel.Properties.creationDate);
-        break;
+//      case DataModel.Links.importedAs:
+//        // Not an action
+//        break;
+//      case DataModel.Links.isLinkedTo:
+//        // v has been linked to linkedVertex
+//        this.actor = e.getProperty(DataModel.Properties.creator);
+//        this.action = "Link";
+//        this.target = v.getProperty(DataModel.Properties.id);
+//        this.data = linkedVertex.getProperty(DataModel.Properties.id);
+//        this.date = e.getProperty(DataModel.Properties.creationDate);
+//        break;
       case DataModel.Links.isMemberOfGroup:
         // v (user) has been made a member of linkedVertex (group)
         this.actor = v.getProperty(DataModel.Properties.id);
@@ -162,7 +162,7 @@ public class Action implements Comparable<Action> {
         this.date = e.getProperty(DataModel.Properties.creationDate);
         break;
       case DataModel.Links.path:
-        // v (image) has been given a new path linkedVertex
+        // v (image) has been given a new trailOfInterest linkedVertex
         this.actor = AccessUtils.getCreatorId(linkedVertex, g);
         this.action = "Path";
         this.target = v.getProperty(DataModel.Properties.id);

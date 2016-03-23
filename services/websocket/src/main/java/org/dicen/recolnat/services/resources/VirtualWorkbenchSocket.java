@@ -55,6 +55,10 @@ public class VirtualWorkbenchSocket {
   @OnMessage
   public void onMessage(String message, Session session) throws NotFoundException, IllegalAccessException {
     System.out.println("Message: " + message);
+    if(message.equals("PING")) {
+      return;
+    }
+    
     JSONObject jsonIn = null;
     try {
       jsonIn = new JSONObject(message);

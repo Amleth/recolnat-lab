@@ -117,16 +117,15 @@ public class ImageEditorRESTResource {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        Vertex vEntity = AccessUtils.getNodeById(parent, g);
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(parent, g);
         // Check write rights
-        if(AccessRights.getAccessRights(vUser, vEntity, g) != DataModel.Enums.AccessRights.WRITE) {
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
           throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
         }
         
         // Create region of interest
-        OrientVertex vROI = CreatorUtils.createRegionOfInterest(polygon, g);
-        vROI.setProperty(DataModel.Properties.name, name);
+        OrientVertex vROI = CreatorUtils.createRegionOfInterest(name, polygon, g);
         roiId = vROI.getProperty(DataModel.Properties.id);
         
         // Link region to creator
@@ -205,9 +204,9 @@ public class ImageEditorRESTResource {
     JSONObject message = params.getJSONObject("payload");
     Integer x = message.getInt("x");
     Integer y = message.getInt("y");
-    String letters = message.getString("letters");
-    String color = message.getString("color");
-    String text = message.getString("text");
+    String name = message.getString("name");
+//    String color = message.getString("color");
+//    String text = message.getString("text");
     boolean retry;
 
     retry = true;
@@ -215,14 +214,14 @@ public class ImageEditorRESTResource {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        Vertex vEntity = AccessUtils.getNodeById(parent, g);
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(parent, g);
         // Check write rights
-        if(AccessRights.getAccessRights(vUser, vEntity, g) != DataModel.Enums.AccessRights.WRITE) {
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
           throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
         }
         // Create point of interest
-        OrientVertex vPoI = CreatorUtils.createPointOfInterest(x, y, text, color, letters, g);
+        OrientVertex vPoI = CreatorUtils.createPointOfInterest(x, y, name, g);
         
         UpdateUtils.addCreator(vPoI, vUser, g);
         UpdateUtils.linkPointOfInterestToEntity(parent, vPoI, g);
@@ -262,11 +261,11 @@ public class ImageEditorRESTResource {
     // Convert data exchange model annotation type to database model type
     if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.transcription))
     {
-      annotationType = DataModel.Classes.LeafTypes.transcription;
+      annotationType = DataModel.Classes.transcription;
     }
     else if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.note))
     {
-      annotationType = DataModel.Classes.LeafTypes.comment;
+      annotationType = DataModel.Classes.comment;
     }
     else {
       log.error("Unrecognized annotation type " + annotationType);
@@ -278,10 +277,10 @@ public class ImageEditorRESTResource {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        Vertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
         // Check write rights
-        if(AccessRights.getAccessRights(vUser, vEntity, g) != DataModel.Enums.AccessRights.WRITE) {
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
           throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Status.FORBIDDEN);
         }
         // Create annotation of the right type
@@ -338,12 +337,12 @@ public class ImageEditorRESTResource {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         // Create annotation of the right type
-        OrientVertex vMeasureRef = CreatorUtils.createMeasureReference(value, unit, name, g);
+        OrientVertex vMeasureRef = CreatorUtils.createMeasureStandard(value, unit, name, g);
         // Link annotation to creator user
         UpdateUtils.addCreator(vMeasureRef, vUser, g);
-        // Link annotation to path
+        // Link annotation to trailOfInterest
         UpdateUtils.linkAnnotationToEntity(pathId, vMeasureRef, g);
         // Link annotation to sheet
         UpdateUtils.linkScalingData(sheetId, vMeasureRef, g);
@@ -386,47 +385,47 @@ public class ImageEditorRESTResource {
     JSONObject message = params.getJSONObject("payload");
     String name = message.getString("name");
     Double length = message.getDouble("length");
-    List<List<Integer>> path = new ArrayList<List<Integer>>();
+    List<List<Integer>> path = new ArrayList<>();
     JSONArray pathVertices = message.getJSONArray("path");
     for(int i = 0; i < pathVertices.length(); ++i) {
       JSONArray pathVertex = pathVertices.getJSONArray(i);
-      List<Integer> coords = new ArrayList<Integer>();
+      List<Integer> coords = new ArrayList<>();
       coords.add(pathVertex.getInt(0));
       coords.add(pathVertex.getInt(1));
       path.add(coords);
     }
     boolean retry;
 
-    // Store path
+    // Store trailOfInterest
     retry = true;
     while(retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        OrientVertex vParent = (OrientVertex) AccessUtils.getNodeById(parent, g);
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vParent = AccessUtils.getNodeById(parent, g);
         // Check write rights on image
-        if(AccessRights.getAccessRights(vUser, vParent, g).value() < DataModel.Enums.AccessRights.WRITE.value()) {
+        if(!AccessRights.canWrite(vUser, vParent, g)) {
           throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
         }
         
-        // Create path
+        // Create trailOfInterest
         OrientVertex vPath = CreatorUtils.createPath(path, name, g);
         
         // Create measure
         OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
         
-        // Link user to path as creator
+        // Link user to trailOfInterest as creator
         UpdateUtils.addCreator(vPath, vUser, g);
         
-        // Link measure to path
+        // Link measure to trailOfInterest
         UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
         
-        // Link path to parent entity
+        // Link trailOfInterest to parent entity
         UpdateUtils.linkPathToEntity(parent, vPath, g);
         
-        // Grant creator rights on path
+        // Grant creator rights on trailOfInterest
         AccessRights.grantAccessRights(vUser, vPath, DataModel.Enums.AccessRights.WRITE, g);
         
         // Grant creator rights on measure

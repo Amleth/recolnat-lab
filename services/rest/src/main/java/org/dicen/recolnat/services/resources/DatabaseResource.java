@@ -76,7 +76,7 @@ public class DatabaseResource {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex v = (OrientVertex) AccessUtils.getNodeById(id, g);
       if (v != null) {
-        if (AccessRights.getAccessRights(vUser, v, g).value() == DataModel.Enums.AccessRights.NONE.value()) {
+        if (!AccessRights.canRead(vUser, v, g)) {
           throw new WebApplicationException("User not authorized to access data", Response.Status.UNAUTHORIZED);
         }
 
@@ -138,16 +138,11 @@ public class DatabaseResource {
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        OrientVertex vObject = (OrientVertex) AccessUtils.getNodeById(idOfElementToDelete, g);
-        if (vObject == null) {
-          log.error("Attempt to delete null vertex. Could it be an edge? Id=" + idOfElementToDelete);
-          throw new WebApplicationException("No object in database corresponding to provided id.", Response.Status.INTERNAL_SERVER_ERROR);
-        }
 
         // Checking deletability is relegated to the method
-        String reason = DeleteUtils.deleteVertex(vObject, vUser, g);
-        if (reason != null) {
-          throw new WebApplicationException("User " + user + " is not allowed to delete object " + idOfElementToDelete + ". Reason: " + reason);
+        boolean isDeleted = DeleteUtils.delete(idOfElementToDelete, vUser, g);
+        if (!isDeleted) {
+          throw new WebApplicationException("User " + user + " is not allowed to delete object " + idOfElementToDelete, Response.Status.FORBIDDEN);
         }
         g.commit();
       } catch (OConcurrentModificationException e) {
@@ -229,10 +224,10 @@ public class DatabaseResource {
   private AbstractObjectMetadata getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException {
     String cl = v.getProperty("@class");
     switch (cl) {
-      case DataModel.Classes.CompositeTypes.workbench:
+      case DataModel.Classes.set:
         return new WorkbenchMetadata(v, vUser, g);
-      case DataModel.Classes.CompositeTypes.herbariumSheet:
-        return new SheetMetadata(v, vUser, g);
+//      case DataModel.Classes.herbariumSheet:
+//        return new SheetMetadata(v, vUser, g);
       default:
         log.warn("No specific handler for extracting metadata from vertex class " + cl);
         return new AbstractObjectMetadata(v, vUser, g);
@@ -247,20 +242,4 @@ public class DatabaseResource {
         return new AbstractObjectMetadata(e, vUser, g);
     }
   }
-
-//  @POST
-//  @Path("/create-test-data")
-//  @Timed
-//  public String createTest(final String input) throws JSONException {
-//    OrientGraph g = DatabaseAccess.getTransactionalGraph();
-//    try {
-//      DatabaseTester.createTestWorkbench(g);
-//      g.commit();
-//    }
-//    finally {
-//      g.rollback();
-//      g.shutdown();
-//    }
-//    return Globals.OK;
-//  }
 }

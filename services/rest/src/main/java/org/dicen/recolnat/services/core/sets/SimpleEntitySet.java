@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.workbench;
+package org.dicen.recolnat.services.core.sets;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -11,14 +11,15 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 /**
- * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/09/15.
+ * Simple representation of a Set using only its id, name, and if the user is able to delete it.
+ * @creator Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/09/15.
  */
-public class Workbench implements Comparable<Workbench> {
+public class SimpleEntitySet implements Comparable<SimpleEntitySet> {
   private String id = null;
   private String name = null;
   private boolean userCanDelete = false;
 
-  public Workbench(OrientVertex vWb, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public SimpleEntitySet(OrientVertex vWb, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     if (AccessRights.getAccessRights(vUser, vWb, g) == DataModel.Enums.AccessRights.NONE) {
       throw new AccessDeniedException((String) vWb.getProperty(DataModel.Properties.id));
     }
@@ -39,7 +40,7 @@ public class Workbench implements Comparable<Workbench> {
   }
 
   @Override
-  public int compareTo(Workbench o) {
+  public int compareTo(SimpleEntitySet o) {
     return this.id.compareTo(o.id);
   }
 }

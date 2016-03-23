@@ -7,7 +7,7 @@ import org.codehaus.jettison.json.JSONObject;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  *
- * User adds an item to the currently displayed workbench
+ * User adds an item to the currently displayed set
  */
 public class Add extends WorkbenchAction {
   private  TargetType targetType;
@@ -18,12 +18,12 @@ public class Add extends WorkbenchAction {
   /**
    * Add an item to workbench.
    * @param object
-   * @param workbench
+   * @param set
    */
-  public Add(String object, String workbench) {
+  public Add(String object, String set) {
     this.targetId = object;
     this.targetType = TargetType.NODE;
-    this.workbench = workbench;
+    this.setId = set;
 
     this.parentId = null;
   }
@@ -31,13 +31,13 @@ public class Add extends WorkbenchAction {
   /**
    * Add a link to workbench between two items.
    * @param object
-   * @param workbench
+   * @param set
    * @param parent
    */
-  public Add(String object, String workbench, String parent) {
+  public Add(String object, String set, String parent) {
     this.targetId = object;
     this.targetType = TargetType.LINK;
-    this.workbench = workbench;
+    this.setId = set;
     this.parentId = parent;
   }
 

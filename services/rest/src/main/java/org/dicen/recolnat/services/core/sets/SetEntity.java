@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.workbench;
+package org.dicen.recolnat.services.core.sets;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -19,9 +19,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/04/15.
+ * A leaf entity (not a Set) contained in a Set.
+ * @creator Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/04/15.
  */
-public class WorkbenchGraphLeafNode {
+public class SetEntity {
 
   private String name;
   private String url;
@@ -33,10 +34,10 @@ public class WorkbenchGraphLeafNode {
   private boolean userCanDelete = false;
   private Set<String> parents = new HashSet<String>();
 
-  private WorkbenchGraphLeafNode() {
+  private SetEntity() {
   }
 
-  public WorkbenchGraphLeafNode(OrientVertex node, OrientEdge edge, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public SetEntity(OrientVertex node, OrientEdge edge, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     if (AccessRights.getAccessRights(vUser, node, g) == DataModel.Enums.AccessRights.NONE) {
       throw new AccessDeniedException((String) node.getProperty(DataModel.Properties.id));
     }
@@ -54,7 +55,7 @@ public class WorkbenchGraphLeafNode {
 
     Iterator<Vertex> itParents = node.getVertices(Direction.IN, DataModel.Links.hasChild).iterator();
     while (itParents.hasNext()) {
-      Vertex vParent = itParents.next();
+      OrientVertex vParent = (OrientVertex) itParents.next();
       if (AccessRights.getAccessRights(vUser, vParent, g) == DataModel.Enums.AccessRights.NONE) {
         // Do not add
       } else {

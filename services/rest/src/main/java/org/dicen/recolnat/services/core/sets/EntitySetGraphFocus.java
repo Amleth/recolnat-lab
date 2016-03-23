@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.workbench;
+package org.dicen.recolnat.services.core.sets;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -24,21 +24,22 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/04/15.
  */
-public class WorkbenchGraphFocus {
+@Deprecated
+public class EntitySetGraphFocus {
 
-  private static final Logger log = LoggerFactory.getLogger(WorkbenchGraphFocus.class);
-  private Set<WorkbenchGraphGroupNode> parents = new HashSet<WorkbenchGraphGroupNode>();
-  private Set<WorkbenchGraphGroupNode> childBags = new HashSet<WorkbenchGraphGroupNode>();
-  private Set<WorkbenchGraphLeafNode> childLeaves = new HashSet<WorkbenchGraphLeafNode>();
+  private static final Logger log = LoggerFactory.getLogger(EntitySetGraphFocus.class);
+  private Set<EntitySet> parents = new HashSet<EntitySet>();
+  private Set<EntitySet> childBags = new HashSet<EntitySet>();
+  private Set<SetEntity> childLeaves = new HashSet<SetEntity>();
   private Object focusData;
 
-  public WorkbenchGraphFocus(@NotNull String workbench, @NotNull OrientVertex user, @NotNull OrientGraph graph) throws AccessDeniedException {
+  public EntitySetGraphFocus(@NotNull String workbench, @NotNull OrientVertex user, @NotNull OrientGraph graph) throws AccessDeniedException {
     // Retrieve workbench with input id or root workbench if root
     OrientVertex vWorkbench = null;
     if (workbench.equals("root")) {
-      vWorkbench = (OrientVertex) AccessUtils.getRootWorkbench(user, graph);
+      vWorkbench = AccessUtils.getRootSet(user, graph);
     } else {
-      vWorkbench = (OrientVertex) AccessUtils.getWorkbench(workbench, graph);
+      vWorkbench = AccessUtils.getSet(workbench, graph);
     }
 
     if (AccessRights.getAccessRights(user, vWorkbench, graph) == DataModel.Enums.AccessRights.NONE) {
@@ -52,13 +53,13 @@ public class WorkbenchGraphFocus {
     // In the next three cases we checked user rights before. So we can safely ignore access denied exceptions.
     if (role == null) {
       // This is a leaf, not a workbench. 
-      this.focusData = new WorkbenchGraphLeafNode(vWorkbench, null, user, graph);
-    } else if ("workbench".equals(role)) {
+      this.focusData = new SetEntity(vWorkbench, null, user, graph);
+    } else if (DataModel.Globals.SET_ROLE.equals(role)) {
       // This is a bag
-      this.focusData = new WorkbenchGraphGroupNode(vWorkbench, null, user, graph);
-    } else if ("workbench-root".equals(role)) {
+      this.focusData = new EntitySet(vWorkbench, user, graph);
+    } else if (DataModel.Globals.ROOT_SET_ROLE.equals(role)) {
       // This is a bag too!
-      this.focusData = new WorkbenchGraphGroupNode(vWorkbench, null, user, graph);
+      this.focusData = new EntitySet(vWorkbench, user, graph);
     } else {
       // We don't know what it is, therefore it is something completely new or unrelated. Could be an error though. But for now we issue a simple warning.
       log.warn("Unknown node role " + role + " for node " + vWorkbench.getProperty(DataModel.Properties.id));
@@ -71,7 +72,7 @@ public class WorkbenchGraphFocus {
         OrientEdge linkEdge = (OrientEdge) itEdges.next();
         OrientVertex parent = linkEdge.getVertex(Direction.OUT);
         try {
-          this.parents.add(new WorkbenchGraphGroupNode(parent, linkEdge, user, graph));
+          this.parents.add(new EntitySet(parent, user, graph));
         } catch (AccessDeniedException e) {
           // Do nothing
         }
@@ -84,15 +85,15 @@ public class WorkbenchGraphFocus {
       OrientEdge linkEdge = (OrientEdge) itEdges.next();
       OrientVertex child = linkEdge.getVertex(Direction.IN);
       String childRole = child.getProperty(DataModel.Properties.role);
-      if ("workbench".equals(childRole)) {
+      if (DataModel.Globals.SET_ROLE.equals(childRole)) {
         try {
-          this.childBags.add(new WorkbenchGraphGroupNode(child, linkEdge, user, graph));
+          this.childBags.add(new EntitySet(child, user, graph));
         } catch (AccessDeniedException e) {
           // Do nothing
         }
       } else if (childRole == null) {
         try {
-          this.childLeaves.add(new WorkbenchGraphLeafNode(child, linkEdge, user, graph));
+          this.childLeaves.add(new SetEntity(child, linkEdge, user, graph));
         } catch (AccessDeniedException e) {
           // Do nothing
         }
@@ -106,13 +107,13 @@ public class WorkbenchGraphFocus {
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = new JSONObject();
     JSONArray parents = new JSONArray();
-    Iterator<WorkbenchGraphGroupNode> itBags = this.parents.iterator();
+    Iterator<EntitySet> itBags = this.parents.iterator();
     while (itBags.hasNext()) {
       parents.put(itBags.next().toJSON());
     }
 
     JSONArray children = new JSONArray();
-    Iterator<WorkbenchGraphLeafNode> itLeaves = this.childLeaves.iterator();
+    Iterator<SetEntity> itLeaves = this.childLeaves.iterator();
     while (itLeaves.hasNext()) {
       children.put(itLeaves.next().toJSON());
     }
@@ -121,10 +122,10 @@ public class WorkbenchGraphFocus {
       children.put(itBags.next().toJSON());
     }
 
-    if (this.focusData.getClass().equals(WorkbenchGraphGroupNode.class)) {
-      ret.put("current", ((WorkbenchGraphGroupNode) this.focusData).toJSON());
-    } else if (this.focusData.getClass().equals(WorkbenchGraphLeafNode.class)) {
-      ret.put("current", ((WorkbenchGraphLeafNode) this.focusData).toJSON());
+    if (this.focusData.getClass().equals(EntitySet.class)) {
+      ret.put("current", ((EntitySet) this.focusData).toJSON());
+    } else if (this.focusData.getClass().equals(SetEntity.class)) {
+      ret.put("current", ((SetEntity) this.focusData).toJSON());
     }
     ret.put("parents", parents);
     ret.put("children", children);

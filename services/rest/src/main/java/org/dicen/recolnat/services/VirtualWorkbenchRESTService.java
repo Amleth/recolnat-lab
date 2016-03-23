@@ -7,12 +7,13 @@ import org.dicen.recolnat.services.core.DatabaseAccess;
 import org.dicen.recolnat.services.resources.AuthenticationResource;
 import org.dicen.recolnat.services.resources.DatabaseResource;
 import org.dicen.recolnat.services.resources.ImageEditorRESTResource;
-import org.dicen.recolnat.services.resources.VirtualWorkbenchRESTResource;
+import org.dicen.recolnat.services.resources.StudyResource;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.util.EnumSet;
+import org.dicen.recolnat.services.resources.SetResource;
 import org.dicen.recolnat.services.resources.UserProfileResource;
 
 /**
@@ -39,15 +40,17 @@ public class VirtualWorkbenchRESTService extends Application<VirtualWorkbenchRES
   public void run(VirtualWorkbenchRESTServiceConfiguration configuration, Environment environment) throws Exception {
     DatabaseAccess.configure(configuration.getDbConf());
     DatabaseAccess.configure(configuration.getTest());
-    final VirtualWorkbenchRESTResource vWorkbench = new VirtualWorkbenchRESTResource();
+    final StudyResource rStudy = new StudyResource();
     final ImageEditorRESTResource editor = new ImageEditorRESTResource();
     final AuthenticationResource test = new AuthenticationResource();
     final DatabaseResource db = new DatabaseResource();
     final UserProfileResource profile = new UserProfileResource();
+    final SetResource rSet = new SetResource();
 
     configureCors(environment);
 
-    environment.jersey().register(vWorkbench);
+    environment.jersey().register(rSet);
+    environment.jersey().register(rStudy);
     environment.jersey().register(editor);
     environment.jersey().register(test);
     environment.jersey().register(db);

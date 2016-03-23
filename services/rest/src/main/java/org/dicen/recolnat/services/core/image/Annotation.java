@@ -46,7 +46,7 @@ public class Annotation {
     }
     this.type = v.getProperty("@class");
 
-    if(this.type.equals(DataModel.Classes.LeafTypes.measurement)) {
+    if(this.type.equals(DataModel.Classes.measurement)) {
       DataModel.Enums.Measurement mType = null;
       Integer typeInt = (Integer) v.getProperty(DataModel.Properties.type);
       for(DataModel.Enums.Measurement m : DataModel.Enums.Measurement.values()) {
@@ -61,7 +61,7 @@ public class Annotation {
       }
       this.textContent = v.getProperty(DataModel.Properties.pxValue) + unit;
     }
-    else if (this.type.equals(DataModel.Classes.LeafTypes.measureReference)) {
+    else if (this.type.equals(DataModel.Classes.measureReference)) {
       this.textContent = v.getProperty(DataModel.Properties.length) + "mm";
     }
     else {
@@ -77,13 +77,13 @@ public class Annotation {
     ret.put(Globals.ExchangeModel.ObjectProperties.text, textContent);
     ret.put(Globals.ExchangeModel.ObjectProperties.creator, this.author);
     ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
-    if(this.type.equals(DataModel.Classes.LeafTypes.comment)) {
+    if(this.type.equals(DataModel.Classes.comment)) {
       ret.put(Globals.ExchangeModel.ObjectProperties.type, Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.note);
     }
-    else if(this.type.equals(DataModel.Classes.LeafTypes.transcription)) {
+    else if(this.type.equals(DataModel.Classes.transcription)) {
       ret.put(Globals.ExchangeModel.ObjectProperties.type, Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.transcription);
     }
-    else if(this.type.equals(DataModel.Classes.LeafTypes.measurement)) {
+    else if(this.type.equals(DataModel.Classes.measurement)) {
       ret.put(Globals.ExchangeModel.ObjectProperties.type, Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.measurement);
     }
     else {

@@ -9,7 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  */
 public abstract class WorkbenchAction {
-  String workbench;
+  String setId;
 
   public static class ActionType {
     public static final int CONNECT = 0;
@@ -29,8 +29,8 @@ public abstract class WorkbenchAction {
 
   public abstract TargetType getTargetType();
 
-  public String getWorkbenchId() {
-    return workbench;
+  public String getSetId() {
+    return this.setId;
   };
 
   public abstract WorkbenchAction runActionOverDatabase(OrientGraph graph) throws NotFoundException;

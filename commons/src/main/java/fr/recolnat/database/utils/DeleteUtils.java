@@ -8,6 +8,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
+import java.util.Date;
 
 import java.util.Iterator;
 import javax.ws.rs.WebApplicationException;
@@ -23,319 +24,242 @@ public class DeleteUtils {
 
   private static final Logger log = LoggerFactory.getLogger(DeleteUtils.class);
 
-  public static String removeParentChildLink(String linkId, String childId, String parentId, OrientGraph graph) {
-    Vertex vParent = AccessUtils.getWorkbench(parentId, graph);
-    Vertex vChild = AccessUtils.getNodeById(childId, graph);
-    Edge eLink = graph.getEdges(DataModel.Properties.id, linkId).iterator().next();
-    String childRole = vChild.getProperty(DataModel.Properties.role);
-
-    if ("workbench-root".equals(childRole)) {
-      return "Operation not allowed: deleting root workbench";
+  /**
+   * Removes the link between a set and one of its items. Internally this
+   * creates updated versions of impacted vertices and edges where the link no
+   * longer exists. If the children are sets and are orphaned, they are unlinked
+   * as well, recursively.
+   *
+   * @param linkId
+   * @param itemOrSetId
+   * @param parentSetId
+   * @param vUser
+   * @param graph
+   * @return
+   */
+  public static boolean unlinkItemFromSet(String linkId, String itemOrSetId, String parentSetId, OrientVertex vUser, OrientGraph graph) {
+    OrientVertex vParentSet = AccessUtils.getSet(parentSetId, graph);
+    OrientVertex vChildItemOrSet = AccessUtils.getNodeById(itemOrSetId, graph);
+    OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
+    if (eLink == null) {
+      // Link already removed, nothing to do
+      return true;
     }
 
-    DeleteUtils.removeParentChildLink(eLink, vChild, vParent, graph);
+    if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph)) {
+      return false;
+    }
+    // Create new version of the parent
+    OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vParentSet, (String) vUser.getProperty(DataModel.Properties.id), graph);
 
-    return null;
+    // Get the updated version of the link from parent using nextVerionId and remove it
+    OrientEdge eNewLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), graph);
+
+    return DeleteUtils.unlinkItemFromSet(eNewLink, vChildItemOrSet, vNewParent, vUser, graph);
   }
 
-  public static String delete(String id, OrientVertex user, OrientGraph g) {
+  /**
+   * Recursive.
+   *
+   * @param eLink
+   * @param vChildItemOrSet Something that can be contained in a Set (i.e.
+   * anything)
+   * @param g
+   */
+  private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientGraph g) {
+    eLink.remove();
+
+    // Now process parent views
+    // Get views of parent set and update them with the change
+    Iterator<Vertex> itViews = vParentSet.getVertices(Direction.OUT, DataModel.Links.hasView).iterator();
+    while (itViews.hasNext()) {
+      OrientVertex view = (OrientVertex) itViews.next();
+      if (view.countEdges(Direction.OUT, DataModel.Links.hasNewerVersion) == 0) {
+        // This is the most up to date version of a view, ergo one of those that must be modified, BUT it might be a view that was already deleted...
+        // BUT the view might already been deleted, therefore check
+        OrientVertex updatedView = UpdateUtils.createNewVertexVersion(view, (String) vUser.getProperty(DataModel.Properties.id), g);
+        // Now we need to also remove it from the view if it exists (note, a view may have multiple displays of an item)
+        Iterator<Edge> itViewToItemLinks = updatedView.getEdges(vChildItemOrSet, Direction.OUT, DataModel.Links.displays).iterator();
+        while (itViewToItemLinks.hasNext()) {
+          OrientEdge viewToItemLink = (OrientEdge) itViewToItemLinks.next();
+          if (viewToItemLink.getProperty(DataModel.Properties.nextVersionId) == null) {
+            itViewToItemLinks.remove();
+          }
+        }
+      }
+    }
+
+    Iterator<Edge> itParents = vChildItemOrSet.getEdges(Direction.IN, DataModel.Links.hasChild).iterator();
+    if (itParents.hasNext()) {
+      if (itParents.next().getProperty(DataModel.Properties.nextVersionId) == null) {
+        // The new version without the original link still has parents and does not need to be deleted. Operation finished.
+        return true;
+      }
+    }
+
+    // Child must be deleted as well, therefore process all of its children in turn
+    if (!DeleteUtils.canUserDeleteVertex(vChildItemOrSet, vUser, g)) {
+      // Either user cannot delete child, or child is of a non-deletable type.
+      // Removal has deleted everything that could be deleted, therefore success.
+      return true;
+    }
+
+    OrientVertex vNewChildItemOrSet = UpdateUtils.createNewVertexVersion(vChildItemOrSet, (String) vUser.getProperty(DataModel.Properties.id), g);
+
+    Iterator<Edge> itChildEdge = vNewChildItemOrSet.getEdges(Direction.OUT, DataModel.Links.hasChild).iterator();
+    while (itChildEdge.hasNext()) {
+      OrientEdge childEdge = (OrientEdge) itChildEdge.next();
+      // If the edge is no longer relevant (not the most up to date version), ignore it
+      if (childEdge.getProperty(DataModel.Properties.nextVersionId) == null) {
+        OrientVertex childChildVertex = childEdge.getVertex(Direction.IN);
+        DeleteUtils.unlinkItemFromSet(childEdge, childChildVertex, vNewChildItemOrSet, vUser, g);
+      }
+    }
+    // The new version without the original link has no parents, therefore it must be deleted along with its orphaned children.
+    // However due to our model, the vertex does not need to be deleted to become invisible, only its links must be
+    // Recursively remove child's children
+    return true;
+  }
+
+  /**
+   * Deletes the element denoted by the provided ID. Deletion only removes the
+   * link between the new version of a node and its linked nodes, rendering it
+   * inaccessible. However it still remains in the database for integrity
+   * requirements and could theoretically be found by an administrator.
+   *
+   * @param id
+   * @param user
+   * @param g
+   * @return
+   */
+  public static boolean delete(String id, OrientVertex user, OrientGraph g) {
     OrientElement elt = g.getElement(id);
     if (elt.getElementType().equals("Vertex")) {
-      return DeleteUtils.deleteVertex((OrientVertex) elt, user, g);
+      if (DeleteUtils.canUserDeleteSubGraph((OrientVertex) elt, user, g)) {
+        // Simply creates a new version of this Vertex which is not linked to anything, therefore inaccessible without rollbacks.
+        DeleteUtils.deleteVertex((OrientVertex) elt, user, g);
+        return true;
+      } else {
+        return false;
+      }
     } else if (elt.getElementType().equals("Edge")) {
-      return DeleteUtils.deleteEdge((OrientEdge) elt, user, g);
+
+      // Check if user can delete this edge
+      if (DeleteUtils.canUserDeleteEdge((OrientEdge) elt, user, g)) {
+        // Clone both ends of the edge and remove the edge.
+        DeleteUtils.deleteEdge((OrientEdge) elt, user, g);
+        return true;
+      } else {
+        return false;
+      }
     } else {
       log.error("Unknown element type " + elt.getElementType() + " for id " + id);
-      return null;
-    }
-  }
-
-  public static String deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientGraph g) {
-
-    // Check rights : user must be able to WRITE; vertex must not be shared with anyone; children (annotations, measures) must not be shared and will be deleted
-    // Filter by type for the last criterion
-    String type = vertexToDelete.getProperty("@class");
-    String id = vertexToDelete.getProperty(DataModel.Properties.id);
-    Iterator itLinks = null;
-    switch (type) {
-      case DataModel.Classes.BaseTypes.abstractEntity:
-        // Too abstract, we're not touching this
-        log.warn("Attempt to delete AbstractEntity denied " + id);
-        return "Not implemented";
-      case DataModel.Classes.BaseTypes.externBaseEntity:
-        // Never delete external stuff, nobody has right to anyway
-        log.warn("Attempt to delete ExternalEntity denied " + id);
-        return "Not implemented";
-      case DataModel.Classes.CompositeTypes.collection:
-        // Only collection administrators can delete collections (and even then they might not be able to)
-        log.warn("Attempt to delete Collection denied " + id);
-        return "Not implemented";
-      case DataModel.Classes.CompositeTypes.curator:
-        // These people are a permanent fixture of the landscape.
-        log.warn("Attempt to delete Curator denied " + id);
-        return "Not implemented";
-      case DataModel.Classes.CompositeTypes.discussion:
-        // A discussion can be deleted if it contains messages only by the current user (unless it is open to the public)
-        if (DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          // Delete all messages
-          itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.hasMessage).iterator();
-          while (itLinks.hasNext()) {
-            OrientVertex vMessage = (OrientVertex) itLinks.next();
-            String status = DeleteUtils.deleteVertex(vMessage, user, g);
-            if (status != null) {
-              log.error("Deletion of message " + vMessage.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-              throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-            }
-          }
-          // Delete tag associations
-          itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.isTagged).iterator();
-          while (itLinks.hasNext()) {
-            OrientVertex vTagging = (OrientVertex) itLinks.next();
-            String status = DeleteUtils.deleteVertex(vTagging, user, g);
-            if (status != null) {
-              log.error("Deletion of tagging " + vTagging.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-              throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-            }
-          }
-          // Delete self
-          g.removeVertex(vertexToDelete);
-          return null;
-        }
-        return "At least one message in Discussion cannot be deleted.";
-      case DataModel.Classes.CompositeTypes.harvest:
-        // Not deletable
-        return "Harvests are permanent";
-      case DataModel.Classes.CompositeTypes.harvester:
-        // TODO find out if this can be deleted
-        return "Harvesters are permanent";
-      case DataModel.Classes.CompositeTypes.herbarium:
-        // How does one actually delete an entire herbarium ?
-        return "Herbariums are permanent";
-      case DataModel.Classes.CompositeTypes.herbariumSheet:
-        // This cannot be deleted, however it CAN be removed from a workbench
-        // Unless it is a personal image upload ?
-        return "HerbariumSheet cannot be deleted.";
-      case DataModel.Classes.CompositeTypes.mission:
-        // Not deletable
-        return "Missions cannot be deleted";
-      case DataModel.Classes.CompositeTypes.organisation:
-        // Not deletable unless an organisation and all of its work can cease to exist.
-        // But it could be renamed, which might lead to it being linked to its renamed version
-        return "Organisations cannot be deleted";
-      case DataModel.Classes.CompositeTypes.sheetPart:
-        // Can a part be deleted without deleting the sheet it is part of?
-        return "Parts of herbarium sheets cannot be deleted";
-      case DataModel.Classes.CompositeTypes.specimen:
-        // Not deletable, but the link between an entity and a specimen is deletable
-        // Unless someone identified a new specimen
-        return "Specimens cannot be deleted";
-      case DataModel.Classes.CompositeTypes.user:
-        // Not deletable
-        return "Users cannot be deleted";
-      case DataModel.Classes.CompositeTypes.virtualTour:
-        // TODO not defined yet
-        return "Not implemented";
-      case DataModel.Classes.CompositeTypes.workbench:
-        // Deletable only if not shared and user has write access
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        // At this stage we do not know from which parent it needs to be removed, therefore we will assume it needs to be deleted in general (i.e. from all parents). This is done automatically by OrientDB when deleting a vertex.
-        // Do not touch children as they could be shared
-        g.removeVertex(vertexToDelete);
-        // Check if anyone can still access children, if not then delete
-        return null;
-      case DataModel.Classes.LeafTypes.comment:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-      case DataModel.Classes.LeafTypes.coordinates:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-      case DataModel.Classes.LeafTypes.determination:
-        // Not deletable
-        return "Determination cannot be deleted";
-      case DataModel.Classes.LeafTypes.measureReference:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-      case DataModel.Classes.LeafTypes.measurement:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-      case DataModel.Classes.LeafTypes.message:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-      case DataModel.Classes.LeafTypes.path:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-
-        // Annotation, Measurement, Comment
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vAnnotation = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vAnnotation, user, g);
-          if (status != null) {
-            log.error("Deletion of annotation " + vAnnotation.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Discussion
-        itLinks = vertexToDelete.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vDiscussion = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vDiscussion, user, g);
-          if (status != null) {
-            log.error("Deletion of discussion " + vDiscussion.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Tag
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.isTagged).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vTagging = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vTagging, user, g);
-          if (status != null) {
-            log.error("Deletion of tagging " + vTagging.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-
-      case DataModel.Classes.LeafTypes.pointOfInterest:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-
-        // Annotation, Comment
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vAnnotation = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vAnnotation, user, g);
-          if (status != null) {
-            log.error("Deletion of annotation " + vAnnotation.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Discussion
-        itLinks = vertexToDelete.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vDiscussion = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vDiscussion, user, g);
-          if (status != null) {
-            log.error("Deletion of discussion " + vDiscussion.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Tag
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.isTagged).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vTagging = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vTagging, user, g);
-          if (status != null) {
-            log.error("Deletion of tagging " + vTagging.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-
-      case DataModel.Classes.LeafTypes.regionOfInterest:
-        if (!DeleteUtils.canUserDeleteSubGraph(vertexToDelete, user, g)) {
-          return "User not allowed to delete one of the items linked with " + vertexToDelete.toString();
-        }
-
-        // Annotation, Comment, Measurement
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vAnnotation = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vAnnotation, user, g);
-          if (status != null) {
-            log.error("Deletion of annotation " + vAnnotation.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Discussion
-        itLinks = vertexToDelete.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vDiscussion = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vDiscussion, user, g);
-          if (status != null) {
-            log.error("Deletion of discussion " + vDiscussion.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        // Tag
-        itLinks = vertexToDelete.getVertices(Direction.OUT, DataModel.Links.isTagged).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vTagging = (OrientVertex) itLinks.next();
-          String status = DeleteUtils.deleteVertex(vTagging, user, g);
-          if (status != null) {
-            log.error("Deletion of tagging " + vTagging.toString() + " was authorized but failed for some reason. Operation will be rollbacked to avoid inconsistent db state");
-            throw new IllegalStateException("Removal of " + vertexToDelete.toString() + " canceled.");
-          }
-        }
-        g.removeVertex(vertexToDelete);
-        return null;
-
-      case DataModel.Classes.LeafTypes.transcription:
-        // Deletable with WRITE unless shared
-        return "Not implemented";
-      case DataModel.Classes.LeafTypes.vernacularName:
-        // Deletable with WRITE unless shared
-        return "Not implemented";
-      case DataModel.Classes.LevelOneHeirTypes.compositeEntity:
-        // Too abstract, cannot delete
-        return "Elements of type CompositeEntity cannot be deleted.";
-      case DataModel.Classes.LevelOneHeirTypes.leafEntity:
-        // Too abstract, cannot delete
-        return "Elements of type LeafEntity cannot be deleted.";
-      case DataModel.Classes.LevelOneHeirTypes.opinion:
-        // Open for debate, any opinion can ideally be modified by its creator and an opinion is always shared
-        return "Not implemented";
-      case DataModel.Classes.LevelOneHeirTypes.relationship:
-        // Too abstract, cannot be deleted
-        return "Elements of type Relationship cannot be deleted.";
-      case DataModel.Classes.LevelOneHeirTypes.socialEntity:
-        // Too abstract, cannot be deleted
-        return "Elements of type SocialEntity cannot be deleted.";
-      case DataModel.Classes.RelationshipTypes.tag:
-        // Deletable with WRITE unless shared
-        return "Not implemented";
-      case DataModel.Classes.RelationshipTypes.tagging:
-        return "Not implemented";
-      default:
-        log.error("Unknown vertex type " + type);
-        throw new NotImplementedException();
+      return false;
     }
   }
 
   /**
-   * Not implemented. Too many unanswered questions.
+   * Creates a new version of the current vertex with no links to anything,
+   * effectively removing it.
+   *
+   * @param vertexToDelete
+   * @param user
+   * @param g
+   * @pre User must be allowed to delete this vertex (canUserDeleteSubGraph
+   * static method).
+   * @return
+   */
+  private static void deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientGraph g) {
+    // Clone node representing new version
+    OrientVertex deletedVertex = (OrientVertex) g.addVertex("class:" + vertexToDelete.getProperty("@class"));
+    deletedVertex.setProperties(DataModel.Properties.id, vertexToDelete.getProperty(DataModel.Properties.id));
+
+    // Link new version to old version
+    OrientEdge eVersionLink = (OrientEdge) vertexToDelete.addEdge(DataModel.Links.hasNewerVersion, deletedVertex);
+    eVersionLink.setProperties(new String[]{DataModel.Properties.id,
+      DataModel.Properties.creationDate}, new Object[]{CreatorUtils.newEdgeUUID(g), new Date()});
+  }
+
+  /**
+   * Deletes an edge. Internally creates new versions of one of the vertices at
+   * the right end (depending on edge type) and removes the new edge version.
+   *
    * @param edgeToDelete
    * @param user
    * @param g
-   * @return 
+   * @pre User has the rights to delete this edge (call canUserDeleteEdge to
+   * make sure beforehand).
+   * @return
    */
-  public static String deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientGraph g) {
-    // What should we do here ? How to know if an edge is deletable ?
-    // User must have WRITE access to both ends? Does not work if a sheet is at one end
-    // Best course of action would be to process according to edge type
-    throw new NotImplementedException();
+  private static boolean deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientGraph g) {
+    String userId = user.getProperty(DataModel.Properties.id);
+    OrientVertex itemToVersion = null;
+    switch (edgeToDelete.getLabel()) {
+      case DataModel.Links.createdBy:
+        // The item at the beginning of the edge gets a new version
+        itemToVersion = edgeToDelete.getVertex(Direction.OUT);
+        break;
+      case DataModel.Links.displays:
+        // View at the beginning of edge is versioned
+        itemToVersion = edgeToDelete.getVertex(Direction.OUT);
+        break;
+      case DataModel.Links.hasAccessRights:
+        // Not versionable, user AccessRights methods to modify
+        log.warn("Attempt to change rights through deleteEdge, use AccessRights methods instead");
+        return false;
+      case DataModel.Links.hasAnnotation:
+        // New version for the annotation at the end of edge
+        itemToVersion = edgeToDelete.getVertex(Direction.IN);
+        break;
+      case DataModel.Links.hasChild:
+        log.warn("Attempt to change set content through deleteEdge, use unlinkItemFromSet instead");
+        return false;
+      case DataModel.Links.hasDefinition:
+        log.error("Cannot delete link between tag definition and tagging, delete the tagging instead");
+        return false;
+      case DataModel.Links.hasDiscussion:
+        log.error("Cannot delete link between entity and discussion, delete discussion instead");
+        return false;
+      case DataModel.Links.hasMessage:
+        log.error("Cannot delete link between discussion and message, delete message instead");
+        return false;
+      case DataModel.Links.hasNewerVersion:
+        log.error("Cannot delete link to new version");
+        return false;
+      case DataModel.Links.hasOriginalSource:
+        log.error("Cannot delete link between entity and its original source, update the original source instead");
+        return false;
+      case DataModel.Links.hasScalingData:
+        log.error("Cannot delete link between entity and scaling data, delete the scaling data instead");
+        return false;
+      case DataModel.Links.hasView:
+        log.error("Cannot delete link between set and view, delete the set instead");
+        return false;
+      case DataModel.Links.isMemberOfGroup:
+        // User and Group are graph invariants, no versioning needed
+        edgeToDelete.remove();
+        return true;
+      case DataModel.Links.isTagged:
+        log.error("Cannot delete link between entity and tagging, delete the tagging instead");
+        return false;
+      case DataModel.Links.path:
+        log.error("Cannot delete link between entity and path, delete the path instead");
+        return false;
+      case DataModel.Links.poi:
+        log.error("Cannot delete link between entity and PoI, delete the PoI instead");
+        return false;
+      case DataModel.Links.roi:
+        log.error("Cannot delete link between entity and RoI, delete the RoI instead");
+        return false;
+      default:
+        log.error("Label not implemented for delete edge operation " + edgeToDelete.getLabel());
+        return false;
+    }
+
+    UpdateUtils.createNewVertexVersion(itemToVersion, userId, g);
+    OrientEdge updatedEdge = AccessUtils.findLatestVersion(edgeToDelete, g);
+    updatedEdge.remove();
+    return true;
   }
 
   public static boolean canUserDeleteSubGraph(OrientVertex vObject, OrientVertex vUser, OrientGraph g) {
@@ -348,19 +272,19 @@ public class DeleteUtils {
     String id = vObject.getProperty(DataModel.Properties.id);
     Iterator itLinks = null;
     switch (type) {
-      case DataModel.Classes.BaseTypes.abstractEntity:
+      case DataModel.Classes.abstractEntity:
         // Too abstract, we're not touching this
         return false;
-      case DataModel.Classes.BaseTypes.externBaseEntity:
+      case DataModel.Classes.externBaseEntity:
         // Never delete external stuff, nobody has right to anyway
         return false;
-      case DataModel.Classes.CompositeTypes.collection:
+      case DataModel.Classes.collection:
         // Only collection administrators (curators) can delete collections (and even then they might not be able to)
         return false;
-      case DataModel.Classes.CompositeTypes.curator:
+      case DataModel.Classes.curator:
         // These people are a permanent fixture of the landscape.
         return false;
-      case DataModel.Classes.CompositeTypes.discussion:
+      case DataModel.Classes.discussion:
         // A discussion can be deleted if it contains messages only by the current user (unless it is open to the public)
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasMessage).iterator();
         while (itLinks.hasNext()) {
@@ -370,61 +294,61 @@ public class DeleteUtils {
           }
         }
         return true;
-      case DataModel.Classes.CompositeTypes.harvest:
+      case DataModel.Classes.harvest:
         // Not deletable
         return false;
-      case DataModel.Classes.CompositeTypes.harvester:
+      case DataModel.Classes.harvester:
         // TODO find out if this can be deleted
         return false;
-      case DataModel.Classes.CompositeTypes.herbarium:
+      case DataModel.Classes.herbarium:
         // How does one actually delete an entire herbarium ?
         return false;
-      case DataModel.Classes.CompositeTypes.herbariumSheet:
+//      case DataModel.Classes.CompositeTypes.herbariumSheet:
         // This cannot be deleted
         // Unless it is a personal image upload ?
-        return false;
-      case DataModel.Classes.CompositeTypes.mission:
+//        return false;
+      case DataModel.Classes.mission:
         // Not deletable
         return false;
-      case DataModel.Classes.CompositeTypes.organisation:
+      case DataModel.Classes.organisation:
         // Not deletable unless an organisation and all of its work can cease to exist.
         // But it could be renamed, which might lead to it being linked to its renamed version
         return false;
-      case DataModel.Classes.CompositeTypes.sheetPart:
+//      case DataModel.Classes.CompositeTypes.sheetPart:
         // Can a part be deleted without deleting the sheet it is part of?
-        return false;
-      case DataModel.Classes.CompositeTypes.specimen:
+//        return false;
+      case DataModel.Classes.specimen:
         // Not deletable, but the link between an entity and a specimen is deletable
         // Unless someone identified a new specimen
         return false;
-      case DataModel.Classes.CompositeTypes.user:
+      case DataModel.Classes.user:
         // Not deletable
         return false;
-      case DataModel.Classes.CompositeTypes.virtualTour:
+      case DataModel.Classes.virtualTour:
         // TODO not defined yet
         throw new NotImplementedException();
-      case DataModel.Classes.CompositeTypes.workbench:
+      case DataModel.Classes.set:
         // role:root-workbench is not deletable
-        if("workbench-root".equals(vObject.getProperty(DataModel.Properties.role))) {
+        if (DataModel.Globals.ROOT_SET_ROLE.equals(vObject.getProperty(DataModel.Properties.role))) {
           return false;
         }
         // Deletable only if not shared and user has write access
         // Sharing already checked
         return true;
-      case DataModel.Classes.LeafTypes.comment:
+      case DataModel.Classes.comment:
         return true;
-      case DataModel.Classes.LeafTypes.coordinates:
+      case DataModel.Classes.coordinates:
         return true;
-      case DataModel.Classes.LeafTypes.determination:
+      case DataModel.Classes.determination:
         // Not deletable
         return false;
-      case DataModel.Classes.LeafTypes.measureReference:
+      case DataModel.Classes.measureReference:
         return true;
-      case DataModel.Classes.LeafTypes.measurement:
+      case DataModel.Classes.measurement:
         return true;
-      case DataModel.Classes.LeafTypes.message:
+      case DataModel.Classes.message:
         return true;
-      case DataModel.Classes.LeafTypes.path:
+      case DataModel.Classes.trailOfInterest:
         // Annotation, Measurement, Comment
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
         while (itLinks.hasNext()) {
@@ -434,7 +358,7 @@ public class DeleteUtils {
           }
         }
         // Discussion
-        itLinks = vObject.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
+        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasDiscussion).iterator();
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
@@ -443,7 +367,7 @@ public class DeleteUtils {
         }
         // TagAssociation... do not care, just delete
         return true;
-      case DataModel.Classes.LeafTypes.pointOfInterest:
+      case DataModel.Classes.pointOfInterest:
         // Annotation, Comment
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
         while (itLinks.hasNext()) {
@@ -453,7 +377,7 @@ public class DeleteUtils {
           }
         }
         // Discussion
-        itLinks = vObject.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
+        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasDiscussion).iterator();
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
@@ -461,7 +385,7 @@ public class DeleteUtils {
           }
         }
         return true;
-      case DataModel.Classes.LeafTypes.regionOfInterest:
+      case DataModel.Classes.regionOfInterest:
         // Annotation, Comment
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
         while (itLinks.hasNext()) {
@@ -471,7 +395,7 @@ public class DeleteUtils {
           }
         }
         // Discussion
-        itLinks = vObject.getVertices(Direction.IN, DataModel.Links.isLinkedTo).iterator();
+        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasDiscussion).iterator();
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
@@ -479,29 +403,29 @@ public class DeleteUtils {
           }
         }
         return true;
-      case DataModel.Classes.LeafTypes.transcription:
+      case DataModel.Classes.transcription:
         return true;
-      case DataModel.Classes.LeafTypes.vernacularName:
+      case DataModel.Classes.vernacularName:
         return true;
-      case DataModel.Classes.LevelOneHeirTypes.compositeEntity:
+      case DataModel.Classes.compositeEntity:
         // Too abstract, cannot delete
         return false;
-      case DataModel.Classes.LevelOneHeirTypes.leafEntity:
+      case DataModel.Classes.leafEntity:
         // Too abstract, cannot delete
         return false;
-      case DataModel.Classes.LevelOneHeirTypes.opinion:
+      case DataModel.Classes.opinion:
         // Open for debate, any opinion (+1 / 0 / -1) can ideally be modified by its creator and an opinion is always shared
         // Howver there is no real point in deleting it
         return false;
-      case DataModel.Classes.LevelOneHeirTypes.relationship:
+      case DataModel.Classes.relationship:
         // Too abstract, cannot be deleted
         return false;
-      case DataModel.Classes.LevelOneHeirTypes.socialEntity:
+      case DataModel.Classes.socialEntity:
         // Too abstract, cannot be deleted
         return false;
-      case DataModel.Classes.RelationshipTypes.tag:
+      case DataModel.Classes.tag:
         return true;
-      case DataModel.Classes.RelationshipTypes.tagging:
+      case DataModel.Classes.tagging:
         return true;
       default:
         log.error("Unknown vertex type " + type);
@@ -509,12 +433,17 @@ public class DeleteUtils {
     }
   }
 
-  public static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientGraph g) {
+  private static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientGraph g) {
+    // If a vertex has a newer version, it cannot be deleted (no forks in graph)
+    
+    // Check user's access rights
     String id = vObject.getProperty(DataModel.Properties.id);
-    if (AccessRights.getAccessRights(vUser, vObject, g).value() < DataModel.Enums.AccessRights.WRITE.value()) {
+    if (AccessRights.canWrite(vUser, vObject, g)) {
       // User requires WRITE permission to delete
       return false;
     }
+    
+    // Does the public or anyone else have access to the vertex?
     Iterator<Vertex> itAccessors = vObject.getVertices(Direction.IN, DataModel.Links.hasAccessRights).iterator();
     while (itAccessors.hasNext()) {
       OrientVertex vAccessor = (OrientVertex) itAccessors.next();
@@ -522,12 +451,12 @@ public class DeleteUtils {
         continue;
       }
       if (AccessRights.getAccessRights(vAccessor, vObject, g).value() > DataModel.Enums.AccessRights.NONE.value()) {
-        if (vAccessor.getProperty(DataModel.Properties.id).equals(DataModel.Globals.PUBLIC_USER_ID)) {
+        if (vAccessor.getProperty(DataModel.Properties.id).equals(DataModel.Globals.PUBLIC_GROUP_ID)) {
           // Object shared with general public
           return false;
         }
 
-        if (!DataModel.Classes.CompositeTypes.user.equals(vAccessor.getProperty("@class"))) {
+        if (!DataModel.Classes.user.equals(vAccessor.getProperty("@class"))) {
           // Object is shared with a group
           return false;
         }
@@ -536,33 +465,58 @@ public class DeleteUtils {
     return true;
   }
 
-  private static void removeParentChildLink(Edge link, Vertex child, Vertex parent, OrientGraph graph) {
-    String childRole = child.getProperty(DataModel.Properties.role);
-    if ("workbench-root".equals(childRole)) {
-      return;
+  public static boolean canUserDeleteEdge(OrientEdge edge, OrientVertex user, OrientGraph g) {
+    // The answer depends on user rights on one side of the edge, or both.
+    switch (edge.getLabel()) {
+      case DataModel.Links.createdBy:
+        return false;
+      case DataModel.Links.hasAccessRights:
+        return false;
+      case DataModel.Links.hasAnnotation:
+        // Same as deleting the annotation (must have access rights to annotation and annotation must not be shared)
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.hasChild:
+        // Same as deleting sets, must have rights on parent
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.OUT), user, g);
+      case DataModel.Links.hasDefinition:
+        // Definition of tagging cannot be changed. However the tagging itself can be deleted.
+        return false;
+      case DataModel.Links.hasMessage:
+        // Similar to deleting the message from the thread.
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.hasNewerVersion:
+        // Rollback only permitted to admin anyway
+        return false;
+      case DataModel.Links.hasOriginalSource:
+        return false;
+      case DataModel.Links.hasScalingData:
+        // Similar to deleting the scaling data itself
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.isMemberOfGroup:
+        // Group administrator (any user with WRITE on target) may remove link
+        if (DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g)) {
+          return true;
+        }
+        // User may remove link for himself (user has WRITE on source=self)
+        if (edge.getVertex(Direction.OUT).equals(user)) {
+          return true;
+        }
+        return false;
+      case DataModel.Links.isTagged:
+        // Must have rights on the tag (edge target)
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.path:
+        // Must have rights on the trailOfInterest
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.poi:
+        // Must have rights on the point
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+      case DataModel.Links.roi:
+        // Must have rights on the region
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+      default:
+        log.error("Unknown edge label " + edge.getLabel() + " for edge " + edge.toString());
+        return false;
     }
-
-    graph.removeEdge(link);
-
-    if (childRole == null) {
-      // Not a workbench, do not delete. Operation finished
-      return;
-    }
-    Iterator<Edge> itParents = child.getEdges(Direction.IN, DataModel.Links.hasChild).iterator();
-    if (itParents.hasNext()) {
-      // Element still has parents and does not need to be deleted. Operation finished
-      return;
-    }
-
-    // Recursively remove child's children
-    Iterator<Edge> itChildEdge = child.getEdges(Direction.OUT, DataModel.Links.hasChild).iterator();
-    while (itChildEdge.hasNext()) {
-      Edge childEdge = itChildEdge.next();
-      DeleteUtils.removeParentChildLink(childEdge, childEdge.getVertex(Direction.IN), child, graph);
-    }
-
-    // Finally remove the child itself. Previous checks must have ensured it is an orphan.
-    graph.removeVertex(child);
-    return;
   }
 }

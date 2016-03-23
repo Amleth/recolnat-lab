@@ -21,7 +21,7 @@ class ContextMenu extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {itemsAtCursor: [], active: false};
+    //this.state = {itemsAtCursor: [], active: false};
 
     this.menuStyle = {
       //zIndex: 99999
@@ -48,7 +48,7 @@ class ContextMenu extends React.Component {
   setActiveTool(tool) {
     ToolActions.setTool(tool.id);
     ToolActions.updateTooltipData(tool.tooltip);
-    this.setState({active: false});
+    //this.setState({active: false});
   }
 
   //buildContextMenuItem(item) {
@@ -98,16 +98,16 @@ class ContextMenu extends React.Component {
   //  }
   //}
 
-  closeMenu(delay) {
-    this.closeDelay = window.setTimeout(this.setState.bind(this, {active: false}), delay);
-  }
-
-  cancelCloseMenu() {
-    if(this.closeDelay) {
-      window.clearTimeout(this.closeDelay);
-      this.closeDelay = null;
-    }
-  }
+  //closeMenu(delay) {
+  //  this.closeDelay = window.setTimeout(this.setState.bind(this, {active: false}), delay);
+  //}
+  //
+  //cancelCloseMenu() {
+  //  if(this.closeDelay) {
+  //    window.clearTimeout(this.closeDelay);
+  //    this.closeDelay = null;
+  //  }
+  //}
 
   fitViewToImage() {
     var image = this.props.ministore.getImage();
@@ -149,28 +149,28 @@ class ContextMenu extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.active) {
-      var x = this.props.menustore.getClickLocation().x;
-      var y = this.props.menustore.getClickLocation().y;
-      var vHeight = window.innerHeight;
-      var vWidth = window.innerWidth;
-      if(y < vHeight / 2) {
-        this.menuStyle.top = y-10;
-        this.menuStyle.bottom = 'auto';
-      }
-      else {
-        this.menuStyle.bottom = vHeight-y-10;
-        this.menuStyle.top = 'auto';
-      }
-      if(x < vWidth / 2) {
-        this.menuStyle.left = x-10;
-        this.menuStyle.right = 'auto';
-      }
-      else {
-        this.menuStyle.right = vWidth-x-10;
-        this.menuStyle.left = 'auto';
-      }
-    }
+    //if(nextState.active) {
+    //  var x = this.props.menustore.getClickLocation().x;
+    //  var y = this.props.menustore.getClickLocation().y;
+    //  var vHeight = window.innerHeight;
+    //  var vWidth = window.innerWidth;
+    //  if(y < vHeight / 2) {
+    //    this.menuStyle.top = y-10;
+    //    this.menuStyle.bottom = 'auto';
+    //  }
+    //  else {
+    //    this.menuStyle.bottom = vHeight-y-10;
+    //    this.menuStyle.top = 'auto';
+    //  }
+    //  if(x < vWidth / 2) {
+    //    this.menuStyle.left = x-10;
+    //    this.menuStyle.right = 'auto';
+    //  }
+    //  else {
+    //    this.menuStyle.right = vWidth-x-10;
+    //    this.menuStyle.left = 'auto';
+    //  }
+    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -185,15 +185,12 @@ class ContextMenu extends React.Component {
 
   render() {
     var self = this;
-    if(this.state.active) {
+    //if(this.state.active) {
       // Add some stuff like "New" menu
       return(
         <div className='ui vertical inverted menu fixed'
              ref='self'
-             style={this.menuStyle}
-             onMouseEnter={this.cancelCloseMenu.bind(this)}
-             onMouseLeave={this.closeMenu.bind(this, 500)}
-             onClick={this.closeMenu.bind(this, 1)}>
+             style={this.menuStyle}>
           <div className='vertically fitted item'>
             <div className='menu'>
               <ContextMenuTool toolstore={this.props.toolstore}
@@ -237,10 +234,10 @@ class ContextMenu extends React.Component {
           </div>
         </div>
       );
-    }
-    else {
-      return null;
-    }
+    //}
+    //else {
+    //  return null;
+    //}
   }
 }
 

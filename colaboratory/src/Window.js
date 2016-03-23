@@ -9,6 +9,7 @@ import RightPane from './components/RightPane';
 import PopupToolContainer from './components/PopupToolComponent';
 import Tooltip from './components/ActiveToolTooltip';
 import TopPane from './components/TopPane';
+import MainMenu from './components/MainMenu';
 
 import EntityStore from './stores/EntitiesStore';
 import MinimapStore from './stores/MinimapStore';
@@ -41,6 +42,8 @@ class Window extends React.Component {
 
     this.menuHeight = 35;
     this.closeTopPaneButtonHeight = 30;
+    this.leftPaneWidth = 200;
+    this.rightPaneWidth = 300;
 
     this.containerStyle = {
       position: 'relative',
@@ -67,7 +70,7 @@ class Window extends React.Component {
       top: this.menuHeight + 'px',
       left: '0',
       zIndex: '500',
-      width: '200px',
+      width: this.leftPaneWidth + 'px',
       height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'left 1s',
@@ -83,7 +86,7 @@ class Window extends React.Component {
       right: '0px',
       top: this.menuHeight + 'px',
       zIndex: '500',
-      width: '300px',
+      width: this.rightPaneWidth + 'px',
       height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'right 1s',
@@ -96,7 +99,7 @@ class Window extends React.Component {
 
     this.columnMiddleStyle = {
       position: 'fixed',
-      left: '200px',
+      left: this.leftPaneWidth + 'px',
       top: this.menuHeight + 'px',
       width: (window.innerWidth - 500) + 'px',
       height: (window.innerHeight - this.menuHeight) + 'px',
@@ -106,7 +109,7 @@ class Window extends React.Component {
 
     this.leftButtonStyle = {
       position: 'fixed',
-      left: '200px',
+      left: this.leftPaneWidth + 'px',
       top: '50vh',
       zIndex: '499',
       height: '20px',
@@ -130,7 +133,7 @@ class Window extends React.Component {
 
     this.rightButtonStyle = {
       position: 'absolute',
-      right: '300px',
+      right: this.rightPaneWidth + 'px',
       top: '50vh',
       zIndex: '499',
       height: '20px',
@@ -147,15 +150,19 @@ class Window extends React.Component {
       zIndex: '9000'
     };
 
-    this.collabTitleStyle = {
-      width: '97%',
-      cursor: 'default',
-      color: '#0C0400',
-      fontVariant: 'small-caps',
-      fontSize: '16pt',
-      margin: '3px 3px 3px 3px',
-      padding: '5px 5px 5px 5px'
-    };
+    //this.collabTitleStyle = {
+    //  position: 'fixed',
+    //  zIndex: '99999',
+    //  left: 0,
+    //  top: this.menuHeight + 'px',
+    //  width: this.leftPaneWidth + 'px',
+    //  cursor: 'default',
+    //  color: '#0C0400',
+    //  fontVariant: 'small-caps',
+    //  fontSize: '16pt',
+    //  margin: '3px 3px 3px 3px',
+    //  padding: '5px 5px 5px 5px'
+    //};
 
     this.loginModalStyle = {
       zIndex: 99999
@@ -291,8 +298,8 @@ class Window extends React.Component {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
     managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
-    viewstore.setViewportData(null, null, window.innerWidth-500, window.innerHeight -this.menuHeight, null);
-    viewstore.setViewportLocationInWindow(this.menuHeight, 200);
+    viewstore.setViewportData(null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null);
+    viewstore.setViewportLocationInWindow(this.menuHeight, this.leftPaneWidth);
     entitystore.addChangeWorkbenchListener(this._onWorkbenchChange);
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
@@ -309,23 +316,23 @@ class Window extends React.Component {
     var left = 0;
     //console.log('window width ' + width);
     if(nextState.leftSidebar) {
-      width = width - 200;
-      left = 200;
+      width = width - this.leftPaneWidth;
+      left = this.leftPaneWidth;
       this.columnLeftSideStyle.left = '0px';
-      this.leftButtonStyle.left = '200px';
+      this.leftButtonStyle.left = this.leftPaneWidth + 'px';
     }
     else {
-      this.columnLeftSideStyle.left = '-200px';
+      this.columnLeftSideStyle.left = -this.leftPaneWidth + 'px';
       this.leftButtonStyle.left = '0px';
     }
 
     if(nextState.rightSidebar) {
       this.columnRightSideStyle.right = '0px';
-      this.rightButtonStyle.right = '300px';
-      width = width -300;
+      this.rightButtonStyle.right = this.rightPaneWidth + 'px';
+      width = width -this.rightPaneWidth;
     }
     else {
-      this.columnRightSideStyle.right = '-300px';
+      this.columnRightSideStyle.right = -this.rightPaneWidth + 'px';
       this.rightButtonStyle.right = '0px';
     }
 
@@ -398,7 +405,15 @@ class Window extends React.Component {
                   onLoad={this.signalIframeReady.bind(this)}
                   src='https://www.recolnat.org/menu'></iframe>
         </div>
-
+        <MainMenu top={this.menuHeight}
+                  width={this.leftPaneWidth}
+                  userstore={userstore}
+                  viewstore={viewstore}
+                  entitystore={entitystore}
+                  toolstore={toolstore}
+                  menustore={menustore}
+                  ministore={ministore}
+                  managerstore={managerstore} />
         <div style={this.topSliderStyle}>
           <TopPane userstore={userstore}
                    viewstore={viewstore}
@@ -416,7 +431,6 @@ class Window extends React.Component {
                style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.workbench}</div>
         <div>
           <div style={this.columnLeftSideStyle}>
-            <div style={this.collabTitleStyle}>Le Collaboratoire</div>
             <PaletteAccordion ministore={ministore} viewstore={viewstore} entitystore={entitystore} toolstore={toolstore} userstore={userstore}/>
           </div>
           <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>

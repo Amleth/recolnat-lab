@@ -43,6 +43,12 @@ class LineMeasurePopup extends React.Component {
           if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
             mmPerPixel = 25.4/dotsPerUnit;
           }
+            else if(unit.toUpperCase() == "CM") {
+            mmPerPixel = 10/dotsPerUnit;
+          }
+          else if(unit.toUpperCase() == "MM") {
+            mmPerPixel = 1/dotsPerUnit;
+          }
           else {
             console.error("Unprocessed unit " + unit);
           }

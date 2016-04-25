@@ -11,6 +11,17 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.StructureBuilder;
+import fr.recolnat.database.model.impl.AbstractObject;
+import fr.recolnat.database.model.impl.MeasureStandard;
+import fr.recolnat.database.model.impl.OriginalSource;
+import fr.recolnat.database.model.impl.PointOfInterest;
+import fr.recolnat.database.model.impl.RecolnatImage;
+import fr.recolnat.database.model.impl.RegionOfInterest;
+import fr.recolnat.database.model.impl.SetView;
+import fr.recolnat.database.model.impl.Specimen;
+import fr.recolnat.database.model.impl.Study;
+import fr.recolnat.database.model.impl.StudySet;
+import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DatabaseTester;
@@ -30,9 +41,6 @@ import javax.ws.rs.core.Response;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.SessionManager;
 import org.dicen.recolnat.services.core.logbook.Log;
-import org.dicen.recolnat.services.core.metadata.AbstractObjectMetadata;
-import org.dicen.recolnat.services.core.metadata.SheetMetadata;
-import org.dicen.recolnat.services.core.metadata.WorkbenchMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +102,8 @@ public class DatabaseResource {
     } catch (JSONException ex) {
       log.error("Unable to put element in JSON");
       throw new WebApplicationException("Server error while writing response", Response.Status.INTERNAL_SERVER_ERROR);
+    } catch (AccessDeniedException ex) {
+      throw new WebApplicationException(Response.Status.FORBIDDEN);
     } finally {
       g.rollback();
       g.shutdown();
@@ -221,25 +231,41 @@ public class DatabaseResource {
     }
   }
 
-  private AbstractObjectMetadata getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException {
+  private AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException, AccessDeniedException {
     String cl = v.getProperty("@class");
     switch (cl) {
       case DataModel.Classes.set:
-        return new WorkbenchMetadata(v, vUser, g);
-//      case DataModel.Classes.herbariumSheet:
-//        return new SheetMetadata(v, vUser, g);
+        return new StudySet(v, vUser, g);
+      case DataModel.Classes.originalSource:
+        return new OriginalSource(v, vUser, g);
+      case DataModel.Classes.pointOfInterest:
+        return new PointOfInterest(v, vUser, g);
+      case DataModel.Classes.regionOfInterest:
+        return new RegionOfInterest(v, vUser, g);
+      case DataModel.Classes.trailOfInterest:
+        return new TrailOfInterest(v, vUser, g);
+      case DataModel.Classes.image:
+        return new RecolnatImage(v, vUser, g);
+      case DataModel.Classes.measureStandard:
+        return new MeasureStandard(v, vUser, g);
+      case DataModel.Classes.study:
+        return new Study(v, vUser, g);
+      case DataModel.Classes.specimen:
+        return new Specimen(v, vUser, g);
+      case DataModel.Classes.setView:
+        return new SetView(v, vUser, g);
       default:
         log.warn("No specific handler for extracting metadata from vertex class " + cl);
-        return new AbstractObjectMetadata(v, vUser, g);
+        return new AbstractObject(v, vUser, g);
     }
   }
 
-  private AbstractObjectMetadata getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientGraph g) {
+  private AbstractObject getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientGraph g) {
     String cl = e.getProperty("@class");
     switch (cl) {
       default:
         log.warn("No specific handler for extracting metadata from edge class " + cl);
-        return new AbstractObjectMetadata(e, vUser, g);
+        return new AbstractObject(e, vUser, g);
     }
   }
 }

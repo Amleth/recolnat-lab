@@ -68,15 +68,15 @@ public class Action implements Comparable<Action> {
           case DataModel.Classes.comment:
             this.action = "Comment";
             break;
-            case DataModel.Classes.coordinates:
-              this.action = "Coordinates";
-            break;
-            case DataModel.Classes.determination:
-              this.action = "Determination";
-            break;
-            case DataModel.Classes.measureReference:
-              this.action = "ScaleData";
-              this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.hasScalingData).iterator().next().getProperty(DataModel.Properties.id);
+//            case DataModel.Classes.coordinates:
+//              this.action = "Coordinates";
+//            break;
+//            case DataModel.Classes.determination:
+//              this.action = "Determination";
+//            break;
+            case DataModel.Classes.measureStandard:
+              this.action = "MeasureStandard";
+              this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.definedAsMeasureStandard).iterator().next().getProperty(DataModel.Properties.id);
             break;
             case DataModel.Classes.measurement:
               this.action = "Measurement";
@@ -86,7 +86,7 @@ public class Action implements Comparable<Action> {
             break;
             case DataModel.Classes.trailOfInterest:
               this.action = "Path";
-              this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.path).iterator().next().getProperty(DataModel.Properties.id);
+              this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.toi).iterator().next().getProperty(DataModel.Properties.id);
             break;
             case DataModel.Classes.pointOfInterest:
               this.action = "Point";
@@ -96,12 +96,12 @@ public class Action implements Comparable<Action> {
               this.action = "Region";
               this.target = linkedVertex.getVertices(Direction.IN, DataModel.Links.roi).iterator().next().getProperty(DataModel.Properties.id);
             break;
-            case DataModel.Classes.transcription:
-              this.action = "Transcription";
-            break;
-            case DataModel.Classes.vernacularName:
-              this.action = "VernacularName";
-            break;
+//            case DataModel.Classes.transcription:
+//              this.action = "Transcription";
+//            break;
+//            case DataModel.Classes.vernacularName:
+//              this.action = "VernacularName";
+//            break;
         }
         break;
       case DataModel.Links.hasAccessRights:
@@ -119,14 +119,14 @@ public class Action implements Comparable<Action> {
         this.data = linkedVertex.getProperty(DataModel.Properties.id);
         this.date = e.getProperty(DataModel.Properties.creationDate);
         break;
-      case DataModel.Links.hasChild:
-        // linkedvertex (target=collection) has received a v (data=child), user is given by edge
-        this.actor = e.getProperty(DataModel.Properties.creator);
-        this.action = "Child";
-        this.target = linkedVertex.getProperty(DataModel.Properties.id);
-        this.data = v.getProperty(DataModel.Properties.id);
-        this.date = e.getProperty(DataModel.Properties.creationDate);
-        break;
+//      case DataModel.Links.hasChild:
+//        // linkedvertex (target=collection) has received a v (data=child), user is given by edge
+//        this.actor = e.getProperty(DataModel.Properties.creator);
+//        this.action = "Child";
+//        this.target = linkedVertex.getProperty(DataModel.Properties.id);
+//        this.data = v.getProperty(DataModel.Properties.id);
+//        this.date = e.getProperty(DataModel.Properties.creationDate);
+//        break;
       case DataModel.Links.hasOriginalSource:
         // v has been marked as coming from external resource linkedVertex
         this.actor = e.getProperty(DataModel.Properties.creator);
@@ -135,10 +135,10 @@ public class Action implements Comparable<Action> {
         this.data = linkedVertex.getProperty(DataModel.Properties.id);
         this.date = e.getProperty(DataModel.Properties.creationDate);
         break;
-      case DataModel.Links.hasScalingData:
+      case DataModel.Links.definedAsMeasureStandard:
         // v has been given a new scale linkedVertex by creator of linkedVertex
         this.actor = linkedVertex.getVertices(Direction.IN, DataModel.Links.createdBy).iterator().next().getProperty(DataModel.Properties.id);
-        this.action = "ScaleData";
+        this.action = "MeasureStandard";
         this.target = v.getProperty(DataModel.Properties.id);
         this.data = linkedVertex.getProperty(DataModel.Properties.id);
         this.date = e.getProperty(DataModel.Properties.creationDate);
@@ -161,7 +161,7 @@ public class Action implements Comparable<Action> {
         this.target = linkedVertex.getProperty(DataModel.Properties.id);
         this.date = e.getProperty(DataModel.Properties.creationDate);
         break;
-      case DataModel.Links.path:
+      case DataModel.Links.toi:
         // v (image) has been given a new trailOfInterest linkedVertex
         this.actor = AccessUtils.getCreatorId(linkedVertex, g);
         this.action = "Path";

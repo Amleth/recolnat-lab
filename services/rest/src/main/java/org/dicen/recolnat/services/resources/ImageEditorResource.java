@@ -1,12 +1,12 @@
 package org.dicen.recolnat.services.resources;
 
-import org.dicen.recolnat.services.core.image.RecolnatImage;
 import com.codahale.metrics.annotation.Timed;
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.model.impl.RecolnatImage;
+import fr.recolnat.database.model.impl.Specimen;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -35,21 +34,22 @@ import javax.ws.rs.core.Response.Status;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 21/05/15.
  */
-@Path("/image-editor")
+@Path("/image")
 @Produces(MediaType.APPLICATION_JSON)
-public class ImageEditorRESTResource {
-  private final static Logger log = LoggerFactory.getLogger(ImageEditorRESTResource.class);
+public class ImageEditorResource {
+
+  private final static Logger log = LoggerFactory.getLogger(ImageEditorResource.class);
   private static final Map<String, String> userToActiveData = new ConcurrentHashMap<String, String>();
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Path("/get-image")
   @Timed
-  public String getEntity(final String input, @Context HttpServletRequest request) throws JSONException {
+  public Response getImage(final String input, @Context HttpServletRequest request) throws JSONException {
     if (log.isTraceEnabled()) {
       log.trace("Requesting new image");
     }
-    
+
     String session = SessionManager.getSessionId(request, true);
     JSONObject params = new JSONObject(input);
     String id = params.getString("id");
@@ -59,90 +59,134 @@ public class ImageEditorRESTResource {
     RecolnatImage img = null;
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-      img = new RecolnatImage(id, vUser, g);
-    }
-    catch (AccessDeniedException e) {
+      OrientVertex vImage = (OrientVertex) AccessUtils.getNodeById(id, g);
+      img = new RecolnatImage(vImage, vUser, g);
+      
+      return Response.ok(img.toJSON().toString(), MediaType.APPLICATION_JSON_TYPE).build();
+      
+    } catch (AccessDeniedException e) {
       throw new WebApplicationException("Access to image " + id + " not authorized for current user", Status.FORBIDDEN);
-    }
-    finally {
-      if(!g.isClosed()) {
+    } catch (JSONException e) {
+      log.error("Unable to convert object to JSON for id " + id);
+      throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+    } finally {
+      if (!g.isClosed()) {
         g.rollback();
         g.shutdown();
       }
     }
+  }
+  
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/get-specimen")
+  @Timed
+  public Response getSpecimen(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Requesting new image");
+    }
+
+    String session = SessionManager.getSessionId(request, true);
+    JSONObject params = new JSONObject(input);
+    String id = params.getString("id");
+    String user = SessionManager.getUserLogin(session);
+
+    OrientGraph g = DatabaseAccess.getTransactionalGraph();
     try {
-      return img.toJSON().toString();
+      OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
+      OrientVertex vSpecimen = (OrientVertex) AccessUtils.getNodeById(id, g);
+      Specimen spec = new Specimen(vSpecimen, vUser, g);
+      
+      return Response.ok(spec.toJSON().toString(), MediaType.APPLICATION_JSON_TYPE).build();
+      
+    } catch (AccessDeniedException e) {
+      throw new WebApplicationException("Access to specimen " + id + " not authorized for current user", Status.FORBIDDEN);
     } catch (JSONException e) {
       log.error("Unable to convert object to JSON for id " + id);
       throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+    } finally {
+      if (!g.isClosed()) {
+        g.rollback();
+        g.shutdown();
+      }
     }
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/create-polygon")
+  @Path("/create-roi")
   @Timed
-  public String createPolygon(final String input, @Context HttpServletRequest request) throws JSONException {
-    if(log.isTraceEnabled()) {
-      log.trace("Entering /create-polygon");
+  public String createRegionOfInterest(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("createRegionOfInterest()");
     }
 
-    if(log.isDebugEnabled()) {
-      log.debug("Input received " + input);
-    }
     // Retrieve params
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    String parent = params.getString("parent");
+    String imageId = params.getString("image");
     JSONObject message = params.getJSONObject("payload");
-    String name = message.getString("name");
     Double area = message.getDouble("area");
     Double perimeter = message.getDouble("perimeter");
     List<List<Integer>> polygon = new ArrayList<List<Integer>>();
     JSONArray polygonVertices = message.getJSONArray("polygon");
-    for(int i = 0; i < polygonVertices.length(); ++i) {
+    for (int i = 0; i < polygonVertices.length(); ++i) {
       JSONArray polygonVertex = polygonVertices.getJSONArray(i);
       List<Integer> coords = new ArrayList<Integer>();
       coords.add(polygonVertex.getInt(0));
       coords.add(polygonVertex.getInt(1));
       polygon.add(coords);
     }
-    boolean retry;
-
+    String name = null;
+    try {
+    name = message.getString("name");
+    }
+    catch(JSONException e) {
+      name = CreatorUtils.generateName("Zone ");
+    }
+    
     // Store ROI
-    String roiId = null;
-    retry = true;
-    while(retry) {
+//    String roiId = null;
+//    String userId = null;
+    boolean retry = true;
+    while (retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vEntity = AccessUtils.getNodeById(parent, g);
+        String userId = vUser.getProperty(DataModel.Properties.id);
+        OrientVertex vImage = AccessUtils.getNodeById(imageId, g);
         // Check write rights
-        if(!AccessRights.canWrite(vUser, vEntity, g)) {
-          throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
+        if (!AccessRights.canWrite(vUser, vImage, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + imageId, Status.FORBIDDEN);
         }
-        
+
         // Create region of interest
         OrientVertex vROI = CreatorUtils.createRegionOfInterest(name, polygon, g);
-        roiId = vROI.getProperty(DataModel.Properties.id);
-        
-        // Link region to creator
         UpdateUtils.addCreator(vROI, vUser, g);
-        
-        // Link region to parent
-        UpdateUtils.linkRegionOfInterestToEntity(parent, vROI, g);
-        
-        // Grant creator access rights
         AccessRights.grantAccessRights(vUser, vROI, DataModel.Enums.AccessRights.WRITE, g);
+
+        // Link region to parent
+        UpdateUtils.linkRegionOfInterestToImage(vImage, vROI, userId, g);
+        
+        // Create measurements
+        OrientVertex vArea = CreatorUtils.createMeasurement(area, DataModel.Enums.Measurement.AREA, g);
+        OrientVertex vPerim = CreatorUtils.createMeasurement(perimeter, DataModel.Enums.Measurement.PERIMETER, g);
+        UpdateUtils.addCreator(vArea, vUser, g);
+        UpdateUtils.addCreator(vPerim, vUser, g);
+        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, g);
+        
+        // Link measurements to polygon
+        UpdateUtils.link(vROI, vArea, DataModel.Links.hasMeasurement, userId, g);
+        UpdateUtils.link(vROI, vPerim, DataModel.Links.hasMeasurement, userId, g);
+        
         g.commit();
-      }
-      catch(OConcurrentModificationException e) {
+      } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
-      }
-      finally {
+      } finally {
         if (!g.isClosed()) {
           g.rollback();
           g.shutdown();
@@ -151,38 +195,36 @@ public class ImageEditorRESTResource {
     }
 
     // Store ROI annotation
-    retry = true;
-    while(retry) {
-      retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-      try {
-        // No need to check rights, it is freshly created.
-        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-        // Create annotation of the right type
-        OrientVertex vArea = CreatorUtils.createMeasurement(area, DataModel.Enums.Measurement.AREA, g);
-        OrientVertex vPerim = CreatorUtils.createMeasurement(perimeter, DataModel.Enums.Measurement.PERIMETER, g);
-        // Link annotation to polygon
-        UpdateUtils.linkAnnotationToEntity(roiId, vArea, g);
-        UpdateUtils.linkAnnotationToEntity(roiId, vPerim, g);
-        // Link annotation to creator user
-        UpdateUtils.addCreator(vArea, vUser, g);
-        UpdateUtils.addCreator(vPerim, vUser, g);
-        // Grant access rights to creator
-        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, g);
-        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, g);
-        g.commit();
-      }
-      catch(OConcurrentModificationException e) {
-        log.warn("Database busy, retrying operation");
-        retry = true;
-      }
-      finally {
-        if (!g.isClosed()) {
-          g.rollback();
-          g.shutdown();
-        }
-      }
-    }
+//    retry = true;
+//    while (retry) {
+//      retry = false;
+//      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+//      try {
+//        // No need to check rights, it is freshly created.
+//        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
+//        // Create annotation of the right type
+//        OrientVertex vArea = CreatorUtils.createMeasurement(area, DataModel.Enums.Measurement.AREA, g);
+//        OrientVertex vPerim = CreatorUtils.createMeasurement(perimeter, DataModel.Enums.Measurement.PERIMETER, g);
+//        // Link annotation to polygon
+//        UpdateUtils.linkAnnotationToEntity(roiId, vArea, g);
+//        UpdateUtils.linkAnnotationToEntity(roiId, vPerim, g);
+//        // Link annotation to creator user
+//        UpdateUtils.addCreator(vArea, vUser, g);
+//        UpdateUtils.addCreator(vPerim, vUser, g);
+//        // Grant access rights to creator
+//        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, g);
+//        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, g);
+//        g.commit();
+//      } catch (OConcurrentModificationException e) {
+//        log.warn("Database busy, retrying operation");
+//        retry = true;
+//      } finally {
+//        if (!g.isClosed()) {
+//          g.rollback();
+//          g.shutdown();
+//        }
+//      }
+//    }
 
     // Return OK
     return Globals.OK;
@@ -190,49 +232,52 @@ public class ImageEditorRESTResource {
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/create-vertex")
+  @Path("/create-poi")
   @Timed
-  public String createVertex(final String input, @Context HttpServletRequest request) throws JSONException {
-    if(log.isDebugEnabled()) {
+  public String createPointOfInterest(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isDebugEnabled()) {
       log.debug("Input received " + input);
     }
 
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    String parent = params.getString("parent");
+    String imageId = params.getString("parent");
     JSONObject message = params.getJSONObject("payload");
     Integer x = message.getInt("x");
     Integer y = message.getInt("y");
-    String name = message.getString("name");
-//    String color = message.getString("color");
-//    String text = message.getString("text");
+    String name = null;
+    try {
+      name = message.getString("name");
+    } catch (JSONException e) {
+      name = CreatorUtils.generateName("PoI ");
+    }
     boolean retry;
 
     retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vEntity = AccessUtils.getNodeById(parent, g);
+        OrientVertex vImage = AccessUtils.getNodeById(imageId, g);
         // Check write rights
-        if(!AccessRights.canWrite(vUser, vEntity, g)) {
-          throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
+        if (!AccessRights.canWrite(vUser, vImage, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + imageId, Status.FORBIDDEN);
         }
         // Create point of interest
         OrientVertex vPoI = CreatorUtils.createPointOfInterest(x, y, name, g);
-        
         UpdateUtils.addCreator(vPoI, vUser, g);
-        UpdateUtils.linkPointOfInterestToEntity(parent, vPoI, g);
         AccessRights.grantAccessRights(vUser, vPoI, DataModel.Enums.AccessRights.WRITE, g);
+        
+        // Link point of interest to image
+        UpdateUtils.linkPointOfInterestToImage(vImage, vPoI, (String) vUser.getProperty(DataModel.Properties.id), g);
+        
         g.commit();
-      }
-      catch(OConcurrentModificationException e) {
+      } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
-      }
-      finally {
+      } finally {
         if (!g.isClosed()) {
           g.rollback();
           g.shutdown();
@@ -242,119 +287,121 @@ public class ImageEditorRESTResource {
     return Globals.OK;
   }
 
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/add-annotation")
-  @Timed
-  public String addAnnotation(final String input, @Context HttpServletRequest request) throws JSONException {
-    if (log.isTraceEnabled()) {
-      log.trace("Entering /add-annotation");
-    }
-    JSONObject params = new JSONObject(input);
-    String session = SessionManager.getSessionId(request, true);
-    String user = SessionManager.getUserLogin(session);
-    String parentObjectId = params.getString("parent");
-    String annotationType = params.getString("type");
-    String annotationText = params.getString("content");
-    boolean retry;
-
-    // Convert data exchange model annotation type to database model type
-    if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.transcription))
-    {
-      annotationType = DataModel.Classes.transcription;
-    }
-    else if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.note))
-    {
-      annotationType = DataModel.Classes.comment;
-    }
-    else {
-      log.error("Unrecognized annotation type " + annotationType);
-      throw new WebApplicationException("Unrecognized annotation type " + annotationType);
-    }
-
-    retry = true;
-    while(retry) {
-      retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-      try {
-        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
-        // Check write rights
-        if(!AccessRights.canWrite(vUser, vEntity, g)) {
-          throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Status.FORBIDDEN);
-        }
-        // Create annotation of the right type
-        OrientVertex vAnnotation = CreatorUtils.createTextAnnotation(annotationType, annotationText, g);
-        // Link annotation to polygon
-        UpdateUtils.linkAnnotationToEntity(parentObjectId, vAnnotation, g);
-        // Link annotation to creator user
-        UpdateUtils.addCreator(vAnnotation, vUser , g);
-        // Grant creator rights
-        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
-        g.commit();
-      }
-      catch(OConcurrentModificationException e) {
-        log.warn("Database busy, retrying operation");
-        retry = true;
-      }
-      finally {
-        if (!g.isClosed()) {
-          g.rollback();
-          g.shutdown();
-        }
-      }
-    }
-
-    return Globals.OK;
-  }
-
+//  @POST
+//  @Consumes(MediaType.APPLICATION_JSON)
+//  @Path("/add-annotation")
+//  @Timed
+//  public String addAnnotation(final String input, @Context HttpServletRequest request) throws JSONException {
+//    if (log.isTraceEnabled()) {
+//      log.trace("Entering /add-annotation");
+//    }
+//    JSONObject params = new JSONObject(input);
+//    String session = SessionManager.getSessionId(request, true);
+//    String user = SessionManager.getUserLogin(session);
+//    String parentObjectId = params.getString("parent");
+//    String annotationType = params.getString("type");
+//    String annotationText = params.getString("content");
+//    boolean retry;
+//
+//    // Convert data exchange model annotation type to database model type
+//    if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.transcription))
+//    {
+//      annotationType = DataModel.Classes.transcription;
+//    }
+//    else if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.note))
+//    {
+//      annotationType = DataModel.Classes.comment;
+//    }
+//    else {
+//      log.error("Unrecognized annotation type " + annotationType);
+//      throw new WebApplicationException("Unrecognized annotation type " + annotationType);
+//    }
+//
+//    retry = true;
+//    while(retry) {
+//      retry = false;
+//      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+//      try {
+//        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+//        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
+//        // Check write rights
+//        if(!AccessRights.canWrite(vUser, vEntity, g)) {
+//          throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Status.FORBIDDEN);
+//        }
+//        // Create annotation of the right type
+//        OrientVertex vAnnotation = CreatorUtils.createTextAnnotation(annotationType, annotationText, g);
+//        // Link annotation to polygon
+//        UpdateUtils.linkAnnotationToEntity(parentObjectId, vAnnotation, g);
+//        // Link annotation to creator user
+//        UpdateUtils.addCreator(vAnnotation, vUser , g);
+//        // Grant creator rights
+//        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
+//        g.commit();
+//      }
+//      catch(OConcurrentModificationException e) {
+//        log.warn("Database busy, retrying operation");
+//        retry = true;
+//      }
+//      finally {
+//        if (!g.isClosed()) {
+//          g.rollback();
+//          g.shutdown();
+//        }
+//      }
+//    }
+//
+//    return Globals.OK;
+//  }
   /**
    * Unit must be mm, cm, m, in
+   *
    * @param input
    * @return
    * @throws JSONException
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/add-scaling-data")
+  @Path("/add-measure-standard")
   @Timed
-  public String addMeasureReference(final String input, @Context HttpServletRequest request) throws JSONException {
+  public String addMeasureStandard(final String input, @Context HttpServletRequest request) throws JSONException {
     if (log.isTraceEnabled()) {
-      log.trace("Entering /add-scaling-data");
+      log.trace("Entering /add-measure-standard");
     }
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     String pathId = params.getString("pathId");
-    String sheetId = params.getString("sheetId");
     Double value = params.getDouble("value");
     String unit = params.getString("unit");
     String name = params.getString("name");
     boolean retry;
 
     retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vMeasurement = AccessUtils.getNodeById(pathId, g);
+        // User must have write rights on image
+        if (!AccessRights.canWrite(vUser, vMeasurement, g)) {
+          throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
+
         // Create annotation of the right type
-        OrientVertex vMeasureRef = CreatorUtils.createMeasureStandard(value, unit, name, g);
-        // Link annotation to creator user
-        UpdateUtils.addCreator(vMeasureRef, vUser, g);
-        // Link annotation to trailOfInterest
-        UpdateUtils.linkAnnotationToEntity(pathId, vMeasureRef, g);
-        // Link annotation to sheet
-        UpdateUtils.linkScalingData(sheetId, vMeasureRef, g);
+        OrientVertex vStandard = CreatorUtils.createMeasureStandard(value, unit, name, g);
+
+        // Link standard to creator user
+        UpdateUtils.addCreator(vStandard, vUser, g);
+        // Link standard to trail and image
+        UpdateUtils.linkMeasureStandard(vStandard, vMeasurement, vUser, g);
         // Grant creator rights
-        AccessRights.grantAccessRights(vUser, vMeasureRef, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, g);
         g.commit();
-      }
-      catch(OConcurrentModificationException e) {
+      } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
-      }
-      finally {
+      } finally {
         if (!g.isClosed()) {
           g.rollback();
           g.shutdown();
@@ -367,14 +414,14 @@ public class ImageEditorRESTResource {
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/create-path")
+  @Path("/create-toi")
   @Timed
-  public String createPath(final String input, @Context HttpServletRequest request) throws JSONException {
-    if(log.isTraceEnabled()) {
-      log.trace("Entering /create-path");
+  public String createTrailOfInterest(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Entering /create-toi");
     }
 
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("Input received " + input);
     }
     // Retrieve params
@@ -387,7 +434,7 @@ public class ImageEditorRESTResource {
     Double length = message.getDouble("length");
     List<List<Integer>> path = new ArrayList<>();
     JSONArray pathVertices = message.getJSONArray("path");
-    for(int i = 0; i < pathVertices.length(); ++i) {
+    for (int i = 0; i < pathVertices.length(); ++i) {
       JSONArray pathVertex = pathVertices.getJSONArray(i);
       List<Integer> coords = new ArrayList<>();
       coords.add(pathVertex.getInt(0));
@@ -398,46 +445,47 @@ public class ImageEditorRESTResource {
 
     // Store trailOfInterest
     retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
-        
+
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vParent = AccessUtils.getNodeById(parent, g);
+        OrientVertex vImage = AccessUtils.getNodeById(parent, g);
         // Check write rights on image
-        if(!AccessRights.canWrite(vUser, vParent, g)) {
+        if (!AccessRights.canWrite(vUser, vImage, g)) {
           throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
         }
-        
+
+        String userId = vUser.getProperty(DataModel.Properties.id);
+
         // Create trailOfInterest
-        OrientVertex vPath = CreatorUtils.createPath(path, name, g);
-        
+        OrientVertex vPath = CreatorUtils.createTrailOfInterest(path, name, g);
+
         // Create measure
         OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
-        
+
         // Link user to trailOfInterest as creator
         UpdateUtils.addCreator(vPath, vUser, g);
-        
+
         // Link measure to trailOfInterest
-        UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
-        
+        UpdateUtils.link(vImage, vPath, DataModel.Links.hasMeasurement, userId, g);
+//        UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
+
         // Link trailOfInterest to parent entity
-        UpdateUtils.linkPathToEntity(parent, vPath, g);
-        
+        UpdateUtils.linkTrailOfInterestToImage(vImage, vPath, userId, g);
+
         // Grant creator rights on trailOfInterest
         AccessRights.grantAccessRights(vUser, vPath, DataModel.Enums.AccessRights.WRITE, g);
-        
+
         // Grant creator rights on measure
         AccessRights.grantAccessRights(vUser, mRefPx, DataModel.Enums.AccessRights.WRITE, g);
-        
+
         g.commit();
-      }
-      catch(OConcurrentModificationException e) {
+      } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
-      }
-      finally {
+      } finally {
         if (!g.isClosed()) {
           g.rollback();
           g.shutdown();

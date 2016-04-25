@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.model.impl.Study;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
@@ -19,29 +20,16 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.DatabaseAccess;
-import org.dicen.recolnat.services.core.Globals;
-import org.dicen.recolnat.services.core.sets.EntitySetGraphFocus;
-import org.dicen.recolnat.services.core.sets.SimpleUserSetListing;
-import org.glassfish.jersey.client.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.dicen.recolnat.services.core.SessionManager;
-import org.dicen.recolnat.services.core.metadata.Study;
-import org.dicen.recolnat.services.core.sets.EntitySet;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/04/15.
@@ -73,11 +61,11 @@ public class StudyResource {
       Iterator<Vertex> itStudies = vUser.getVertices(Direction.OUT, DataModel.Links.studies).iterator();
       while(itStudies.hasNext()) {
         OrientVertex vStudy = (OrientVertex) itStudies.next();
-        if(AccessUtils.isLatestVersion(vStudy)) {
-          JSONObject jStudy = new JSONObject();
-          jStudy.put("name", (String) vStudy.getProperty(DataModel.Properties.name));
-          jStudy.put("id", (String) vStudy.getProperty(DataModel.Properties.id));
-          listOfStudies.put(jStudy);
+        try {
+        Study study = new Study(vStudy, vUser, g);
+        listOfStudies.put(study.toJSON());
+        } catch (AccessDeniedException ex) {
+          // Do nothing, move on to next study
         }
       }
     }
@@ -86,10 +74,11 @@ public class StudyResource {
       g.shutdown();
     }
     
-    return Response.ok(listOfStudies, MediaType.APPLICATION_JSON_TYPE).build();
+    return Response.ok(listOfStudies.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
   
   @GET
+  @Path("/get-study")
   @Timed
   public Response getStudy(@QueryParam("id") Optional<String> id, @Context HttpServletRequest request) throws JSONException {
     String session = SessionManager.getSessionId(request, true);
@@ -122,7 +111,50 @@ public class StudyResource {
     if(study == null) {
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
-    return Response.ok(study.toJSON(), MediaType.APPLICATION_JSON_TYPE).build();
+    return Response.ok(study.toJSON().toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
   
+  @POST
+  @Path("/create-study")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
+  public Response createStudy(final String input, @Context HttpServletRequest request) throws JSONException {
+    JSONObject params = new JSONObject(input);
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String name = (String) params.get("name");
+    JSONObject ret = new JSONObject();
+   
+    boolean retry = true;
+    while(retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        String userId = (String) vUser.getProperty(DataModel.Properties.id);
+        OrientVertex vStudy = CreatorUtils.createStudy(name, vUser, g);
+        OrientVertex vCoreSet = CreatorUtils.createSet(name, DataModel.Globals.SET_ROLE, g);
+        
+        UpdateUtils.link(vStudy, vCoreSet, DataModel.Links.hasCoreSet, userId, g);
+        UpdateUtils.addCreator(vCoreSet, vUser, g);
+        AccessRights.grantAccessRights(vUser, vCoreSet, DataModel.Enums.AccessRights.WRITE, g);
+        
+        ret.put("study", (String) vStudy.getProperty(DataModel.Properties.id));
+        ret.put("coreSet", (String) vCoreSet.getProperty(DataModel.Properties.id));
+        g.commit();
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } catch (JSONException ex) {
+        log.error("Could not serialize response", ex);
+        throw new WebApplicationException("Could not send response", ex);
+      } finally {
+        g.rollback();
+        g.shutdown();
+      }
+      
+    }
+    
+    return Response.ok(ret.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+  }
 }

@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 24/04/15.
  */
-public class VirtualWorkbenchRESTServiceConfiguration extends Configuration {
+public class ColaboratoryRESTServiceConfiguration extends Configuration {
   @NotNull
   private DatabaseConfiguration dbConf;
 

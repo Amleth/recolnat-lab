@@ -5,7 +5,8 @@ package fr.recolnat.database.model;
  */
 public class DataModel {
   public static class Classes {
-    public static final String externBaseEntity = "ExternalEntity";
+    // Links to stuff that was imported from the outside world (i.e. ReColNat)
+    public static final String originalSource = "OriginalSource";
 //      public static final String abstractEntity = "Entity";
       
 //      public static final String leafEntity = "LeafEntity";
@@ -87,10 +88,15 @@ public class DataModel {
 //    public static final String importedAs = "importedAs";
     public static final String roi = "hasRegionOfInterest";
     public static final String poi = "hasPointOfInterest";
-    public static final String path = "hasTrailOfInterest";
+    public static final String toi = "hasTrailOfInterest";
     public static final String hasAnnotation = "hasAnnotation";
     public static final String hasMeasurement = "hasMeasurement";
-    public static final String hasScalingData = "hasScalingData";
+    // measurement -> definedAsMeasureStandard -> measure standard
+    public static final String definedAsMeasureStandard = "definedAsMeasureStandard";
+    // image -> hasMeasureStandard -> measure standard
+//    public static final String hasMeasureStandard = "hasMeasureStandard";
+    // measure standard -> definedFrom -> measurement
+//    public static final String definedFrom = "definedFrom";
     public static final String hasAccessRights = "hasAccessRights";
     public static final String isMemberOfGroup = "isMemberOfGroup";
     // Tags
@@ -105,21 +111,39 @@ public class DataModel {
 
   // Property 'id' is reserved by OrientDB. Use something else.
   public static class Properties {
-    public static final String origin = "origin";
-    public static final String type = "type";
+    // Global (used everywhere)
     public static final String id = "uid";
-    public static final String login = "login";
-    public static final String content = "content";
     public static final String creationDate = "creationDate";
-    public static final String createdInModule = "createdInModule";
+    public static final String branch = "branch";
+    
+    // Shared (used in more than one class)
     public static final String name = "name";
+    public static final String type = "type";
     public static final String coordX = "x";
     public static final String coordY = "y";
     public static final String coordZ = "z";
+    
+    // OriginalSource
+    public static final String origin = "origin";
+    public static final String idInOriginSource = "idInOriginSource";
+    
+    // User
+    public static final String login = "login";
+    
+    // Set
     public static final String role = "role";
+    
+    // Image
     public static final String imageUrl = "url";
     public static final String thumbUrl = "thumbnail";
-    public static final String recolnatId = "reColNatId";
+    
+    // Image & displays
+    public static final String width = "width";
+    public static final String height = "height";
+    
+    // Unsorted
+    public static final String content = "content";
+    public static final String createdInModule = "createdInModule";
     public static final String mnhnCatalogNumber = "catalogNum";
     public static final String vertices = "polygonVertices";
     public static final String text = "text";
@@ -130,7 +154,11 @@ public class DataModel {
     public static final String pxValue = "valueInPx";
     public static final String opacity = "opacity";
     public static final String letters = "letters";
+    
+    // Edge-only property, level of access
     public static final String accessRights = "accessRights";
+    
+    // Edge-only property, id of edge creator (when useful)
     public static final String creator = "creator";
     // Edge-only property which gives the id of an updated version (if it exists)
     public static final String nextVersionId = "nextVersionId";
@@ -141,10 +169,21 @@ public class DataModel {
     public static final String ROOT_SET_ROLE = "SET_ROOT";
     public static final String SET_ROLE = "SET";
     public static final String DEFAULT_VIEW = "DEFAULT_VIEW";
+    public static final String BRANCH_MAIN = "MAIN_BRANCH";
+    public static final String BRANCH_SIDE = "SIDE_BRANCH";
     /**
      * @deprecated 
      */
     public static final String PUBLIC_USER_ID = "PUBLIC";
+    
+    // Known (and trusted) original sources
+    public static class Sources {
+      public static final String RECOLNAT = "RECOLNAT";
+    }
+    
+    public static class SourceDataTypes {
+      public static final String SPECIMEN = "SPECIMEN";
+    }
   }
 
   public static class Enums {

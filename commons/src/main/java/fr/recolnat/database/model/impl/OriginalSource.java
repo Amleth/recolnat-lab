@@ -3,11 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.core.metadata;
+package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import fr.recolnat.database.model.DataModel;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -15,9 +14,9 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * @author dmitri
  */
-public class OriginalSourceMetadata extends AbstractObjectMetadata {
+public class OriginalSource extends AbstractObject {
   
-  public OriginalSourceMetadata(OrientVertex vOriginalSource, OrientVertex vUser, OrientGraph g) {
+  public OriginalSource(OrientVertex vOriginalSource, OrientVertex vUser, OrientGraph g) {
     super(vOriginalSource, vUser, g);
   }
   

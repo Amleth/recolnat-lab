@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.core.metadata;
+package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -26,31 +26,27 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * @author dmitri
  */
-public class StudySet {
+public class StudySet extends AbstractObject {
 
-  private Set<String> parentIds = new HashSet<String>();
-  private Set<String> subSetIds = new HashSet<String>();
-  private Set<String> itemIds = new HashSet<String>();
+  private final Set<String> parentIds = new HashSet<String>();
+  private final Set<String> subSetIds = new HashSet<String>();
+  private final Set<String> itemIds = new HashSet<String>();
   private String viewId = null;
 
-  private String id;
+//  private String id;
 //  private String linkId = null;
-  private String type;
-  private String name;
-  private boolean userCanDelete = false;
-
-  private StudySet() {
-  }
+//  private final String type = "bag";
+//  private String name;
 
   public StudySet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
-    if (AccessRights.getAccessRights(vUser, vSet, g) == DataModel.Enums.AccessRights.NONE) {
+    super(vSet, vUser, g);
+    if (!AccessRights.canRead(vUser, vSet, g)) {
       throw new AccessDeniedException((String) vSet.getProperty(DataModel.Properties.id));
     }
 
-    this.type = "bag";
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vSet, vUser, g);
-    this.name = (String) vSet.getProperty(DataModel.Properties.name);
-    this.id = (String) vSet.getProperty(DataModel.Properties.id);
+//    this.name = (String) vSet.getProperty(DataModel.Properties.name);
+//    this.id = (String) vSet.getProperty(DataModel.Properties.id);
 
     // Process parent sets
     Iterator<Vertex> itParents = vSet.getVertices(Direction.IN, DataModel.Links.containsSubSet).iterator();
@@ -95,11 +91,10 @@ public class StudySet {
     }
   }
 
+  @Override
   public JSONObject toJSON() throws JSONException {
-    JSONObject ret = new JSONObject();
-    ret.put("id", this.id);
-    ret.put("name", this.name);
-    ret.put("type", this.type);
+    JSONObject ret = super.toJSON();
+//    ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
 
     JSONArray aParents = new JSONArray();

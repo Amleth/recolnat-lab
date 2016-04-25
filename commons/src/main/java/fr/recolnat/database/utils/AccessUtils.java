@@ -58,10 +58,25 @@ public class AccessUtils {
     return true;
   }
   
+  public static boolean isLatestVersion(OrientEdge e) {
+    if(e.getProperty(DataModel.Properties.nextVersionId) != null) {
+      return false;
+    }
+    return true;
+  }
+  
   public static OrientVertex getSet(String workbenchId, OrientGraph graph) {
     Iterator<Vertex> itWb = graph.getVertices(DataModel.Classes.set, new String[]{DataModel.Properties.id}, new Object[]{workbenchId}).iterator();
     
     return AccessUtils.findLatestVersion(itWb, graph);
+  }
+  
+  public static OrientVertex getOriginalSource(String recolnatUUID, OrientGraph g) {
+    OrientVertex vSource = AccessUtils.findLatestVersion(g.getVertices(DataModel.Classes.originalSource, 
+        new String[] {DataModel.Properties.idInOriginSource, DataModel.Properties.branch}, 
+        new Object[] {recolnatUUID, DataModel.Globals.BRANCH_MAIN}).iterator(), g);
+        
+    return vSource;
   }
   
   public static OrientVertex getPublic(OrientGraph g) {
@@ -103,6 +118,11 @@ public class AccessUtils {
     throw new NotFoundException("No root set for user " + user.getProperty(DataModel.Properties.id));
 //    return null;
   }
+  
+  public static OrientVertex getView(String id, OrientGraph g) {
+    Iterator<Vertex> itViews = g.getVertices(DataModel.Classes.setView, new String[] {DataModel.Properties.id}, new Object[]{id}).iterator();
+    return AccessUtils.findLatestVersion(itViews, g);
+  }
 
   public static OrientVertex getUserByUUID(String user, OrientGraph graph) {
     Iterator<Vertex> itUs = graph.getVertices(DataModel.Classes.user, new String [] {DataModel.Properties.id}, new Object[] {user}).iterator();
@@ -126,9 +146,9 @@ public class AccessUtils {
   }
   
   public static OrientEdge getEdgeById(String id, OrientGraph graph) {
-    Iterator<Edge> itWb = graph.getEdges(DataModel.Properties.id, id).iterator();
-    if(itWb.hasNext()) {
-      return (OrientEdge) itWb.next();
+    Iterator<Edge> itEdges = graph.getEdges(DataModel.Properties.id, id).iterator();
+    if(itEdges.hasNext()) {
+      return AccessUtils.findLatestVersion((OrientEdge) itEdges.next(), graph);
     }
     return null;
   }
@@ -161,6 +181,21 @@ public class AccessUtils {
     return AccessUtils.getCreator(vertex, g).getProperty(DataModel.Properties.id);
   }
   
+  public static OrientVertex getSpecimenFromOriginalSource(OrientVertex vOriginalSource, OrientGraph g) {
+    Iterator<Vertex> itSourcedEntities = vOriginalSource.getVertices(Direction.IN, DataModel.Links.hasOriginalSource).iterator();
+    while (itSourcedEntities.hasNext()) {
+      OrientVertex sourcedEntity = (OrientVertex) itSourcedEntities.next();
+      if (BranchUtils.isMainBranch(sourcedEntity, g)) {
+        if (AccessUtils.isLatestVersion(sourcedEntity)) {
+          if (sourcedEntity.getProperty("@class").equals(DataModel.Classes.specimen)) {
+            return sourcedEntity;
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   public static List<OrientVertex> getSpecimenImages(OrientVertex vSpecimen, OrientGraph g) {
     List<OrientVertex> retImages = new ArrayList<>();
     Iterator<Vertex> itImages = vSpecimen.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
@@ -180,4 +215,12 @@ public class AccessUtils {
 //        .iterator();
 //    return AccessUtils.findLatestVersion(itSheets, g);
 //  }
+
+  public static OrientVertex getImageMainBranch(String imageUrl, OrientGraph g) {
+    String[] fields = new String[] {DataModel.Properties.imageUrl, DataModel.Properties.branch};
+    Object[] fieldValues = new Object[] {imageUrl, DataModel.Globals.BRANCH_MAIN};
+    
+    Iterator<Vertex> itImages = g.getVertices(DataModel.Classes.image, fields, fieldValues).iterator();
+    return AccessUtils.findLatestVersion(itImages, g);
+  }
 }

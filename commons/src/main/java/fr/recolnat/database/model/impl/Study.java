@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.core.metadata;
+package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -20,36 +20,26 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * @author dmitri
  */
-public class Study {
-  private String id;
-  private String name;
-  private boolean userCanDelete = false;
+public class Study extends AbstractObject {
   private StudySet coreSet;
   
-  private Study() {
-    
-  }
-  
   public Study(OrientVertex vStudy, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+    super(vStudy, vUser, g);
     if(!AccessRights.canRead(vUser, vStudy, g)) {
       throw new AccessDeniedException((String) vStudy.getProperty(DataModel.Properties.id));
     }
     
-    this.id = vStudy.getProperty(DataModel.Properties.id);
-    this.name = vStudy.getProperty(DataModel.Properties.name);
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vStudy, vUser, g);
     
     OrientVertex vCoreSet = AccessUtils.findLatestVersion(vStudy.getVertices(Direction.OUT, DataModel.Links.hasCoreSet).iterator(), g);
     this.coreSet = new StudySet(vCoreSet, vUser, g);
   }
   
+  @Override
   public JSONObject toJSON() throws JSONException {
-    JSONObject ret = new JSONObject();
+    JSONObject ret = super.toJSON();
     
-    ret.put("id", this.id);
-    ret.put("name", this.name);
     ret.put("deletable", this.userCanDelete);
-    
     ret.put("core", this.coreSet.toJSON());
     
     return ret;

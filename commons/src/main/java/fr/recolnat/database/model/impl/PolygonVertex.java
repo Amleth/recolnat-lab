@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.image;
+package fr.recolnat.database.model.impl;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 09/06/15.

@@ -87,22 +87,22 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-  public static OrientVertex createAbstractScientificEntity(String type, String id, OrientGraph graph) throws AlreadyExistsException {
-    if(type == null || id == null) {
-      throw new NullArgumentException("Input argument 'type' or 'id' is null. This is not allowed.");
-    }
-
-    Iterator<Vertex> itExistingEntities = graph.getVertices(DataModel.Classes.externBaseEntity,
-        new String[]{DataModel.Properties.id, DataModel.Properties.type},
-        new Object[]{id, type}).iterator();
-    if(itExistingEntities.hasNext()) {
-      throw new AlreadyExistsException(new String[] {DataModel.Properties.id, DataModel.Properties.type});
-    }
-    OrientVertex ret = graph.addVertex("class:" + DataModel.Classes.externBaseEntity);
-    ret.setProperties(DataModel.Properties.type, type,
-        DataModel.Properties.id, id, DataModel.Properties.creationDate, (new Date()).getTime());
-    return ret;
-  }
+//  public static OrientVertex createAbstractScientificEntity(String type, String id, OrientGraph graph) throws AlreadyExistsException {
+//    if(type == null || id == null) {
+//      throw new NullArgumentException("Input argument 'type' or 'id' is null. This is not allowed.");
+//    }
+//
+//    Iterator<Vertex> itExistingEntities = graph.getVertices(DataModel.Classes.externBaseEntity,
+//        new String[]{DataModel.Properties.id, DataModel.Properties.type},
+//        new Object[]{id, type}).iterator();
+//    if(itExistingEntities.hasNext()) {
+//      throw new AlreadyExistsException(new String[] {DataModel.Properties.id, DataModel.Properties.type});
+//    }
+//    OrientVertex ret = graph.addVertex("class:" + DataModel.Classes.externBaseEntity);
+//    ret.setProperties(DataModel.Properties.type, type,
+//        DataModel.Properties.id, id, DataModel.Properties.creationDate, (new Date()).getTime());
+//    return ret;
+//  }
 
   /**
    * Creates the abstract ReColNat entity with the given id and properties if no element of the class with the given id exists. Otherwise throws an exception.
@@ -113,24 +113,24 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-  public static OrientVertex createRecolnatAbstractEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
-    if(id == null) {
-      throw new NullArgumentException("Input argument 'id' is null. This is not allowed.");
-    }
-
-    Iterator<Vertex> itExistingEntities = graph.getVertices(DataModel.Classes.abstractEntity,
-        new String[] {DataModel.Properties.id},
-        new Object[] {id} ).iterator();
-    if(itExistingEntities.hasNext()) {
-      throw new AlreadyExistsException(new String[] {DataModel.Properties.id});
-    }
-
-    OrientVertex ret = graph.addVertex("class:" + DataModel.Classes.abstractEntity);
-    ret.setProperties(DataModel.Properties.id, id,
-        DataModel.Properties.createdInModule, createdInModule,
-        DataModel.Properties.creationDate, createdAt);
-    return ret;
-  }
+//  public static OrientVertex createRecolnatAbstractEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//    if(id == null) {
+//      throw new NullArgumentException("Input argument 'id' is null. This is not allowed.");
+//    }
+//
+//    Iterator<Vertex> itExistingEntities = graph.getVertices(DataModel.Classes.abstractEntity,
+//        new String[] {DataModel.Properties.id},
+//        new Object[] {id} ).iterator();
+//    if(itExistingEntities.hasNext()) {
+//      throw new AlreadyExistsException(new String[] {DataModel.Properties.id});
+//    }
+//
+//    OrientVertex ret = graph.addVertex("class:" + DataModel.Classes.abstractEntity);
+//    ret.setProperties(DataModel.Properties.id, id,
+//        DataModel.Properties.createdInModule, createdInModule,
+//        DataModel.Properties.creationDate, createdAt);
+//    return ret;
+//  }
 
   /**
    * Creates the abstract leaf entity denoted by its id and parameters. If an entity with given id already exists, throws an exception.
@@ -141,11 +141,11 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-  public static OrientVertex createAbstractLeafEntity (String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
-    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
-    ret.moveToClass(DataModel.Classes.leafEntity);
-    return ret;
-  }
+//  public static OrientVertex createAbstractLeafEntity (String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
+//    ret.moveToClass(DataModel.Classes.leafEntity);
+//    return ret;
+//  }
 
   /**
    * Creates a Relationship between the given source and target while linking it with its creator. The resulting Relationship is a vertex with two incoming edges (from creator and subject) and one outgoing edge (to object). Throws an exception if a Relationship with the given id already exists.
@@ -193,11 +193,11 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-  public static OrientVertex createAbstractCompositeEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
-    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
-    ret.moveToClass(DataModel.Classes.compositeEntity);
-    return ret;
-  }
+//  public static OrientVertex createAbstractCompositeEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
+//    ret.moveToClass(DataModel.Classes.compositeEntity);
+//    return ret;
+//  }
 
   /**
    *
@@ -239,6 +239,7 @@ public class CreatorUtils {
     user.setProperty(DataModel.Properties.name, name);
     user.setProperty(DataModel.Properties.login, name);
     user.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    user.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return user;
   }
@@ -265,13 +266,14 @@ public class CreatorUtils {
   }
 
   public static OrientVertex createSet(String name, String role, OrientGraph g) {
-    OrientVertex rootWb = g.addVertex("class:" + DataModel.Classes.set);
-    rootWb.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
-    rootWb.setProperty(DataModel.Properties.name, name);
-    rootWb.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
-    rootWb.setProperty(DataModel.Properties.role, role);
+    OrientVertex vSet = g.addVertex("class:" + DataModel.Classes.set);
+    vSet.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
+    vSet.setProperty(DataModel.Properties.name, name);
+    vSet.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    vSet.setProperty(DataModel.Properties.role, role);
+    vSet.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
-    return rootWb;
+    return vSet;
   }
   
   public static OrientVertex createView(String name, String role, OrientGraph g) {
@@ -280,15 +282,24 @@ public class CreatorUtils {
     vView.setProperty(DataModel.Properties.name, name);
     vView.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     vView.setProperty(DataModel.Properties.role, role);
+    vView.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     return vView;
   }
   
-  public static OrientVertex createImage(String name, String imageUrl, String thumbUrl, OrientGraph g) {
+  public static OrientVertex createImage(String name, String imageUrl, int width, int height, String thumbUrl, OrientGraph g) {
     OrientVertex image = g.addVertex("class:" + DataModel.Classes.image);
     
-    image.setProperties(new String[] {DataModel.Properties.id, DataModel.Properties.creationDate, DataModel.Properties.imageUrl, DataModel.Properties.thumbUrl, DataModel.Properties.name},
-        new Object[] {CreatorUtils.newVertexUUID(g), (new Date()).getTime(), imageUrl, thumbUrl, name});
+    image.setProperties(
+      DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
+      DataModel.Properties.creationDate, (new Date()).getTime(), 
+      DataModel.Properties.imageUrl, imageUrl, 
+      DataModel.Properties.thumbUrl, thumbUrl, 
+      DataModel.Properties.name, name,
+      DataModel.Properties.width, width,
+      DataModel.Properties.height, height,
+      DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN
+    );
     
     return image;
   }
@@ -296,8 +307,11 @@ public class CreatorUtils {
   public static OrientVertex createSpecimen(String name, OrientGraph g) {
     OrientVertex specimen = g.addVertex("class:" + DataModel.Classes.specimen);
     
-    specimen.setProperties(new String[] {DataModel.Properties.id, DataModel.Properties.creationDate, DataModel.Properties.name},
-        new Object[] {CreatorUtils.newVertexUUID(g), (new Date()).getTime(), name});
+    specimen.setProperties(
+          DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
+          DataModel.Properties.creationDate, (new Date()).getTime(), 
+          DataModel.Properties.name, name,
+          DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     return specimen;
   }
@@ -305,11 +319,15 @@ public class CreatorUtils {
   public static OrientVertex createStudy(String name, OrientVertex creator, OrientGraph g) {
     OrientVertex study = g.addVertex("class:" + DataModel.Classes.study);
     
-    study.setProperties(new String[] {DataModel.Properties.id, DataModel.Properties.creationDate, DataModel.Properties.name},
-        new Object[] {CreatorUtils.newVertexUUID(g), (new Date()).getTime(), name});
+    study.setProperties(DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
+          DataModel.Properties.creationDate, (new Date()).getTime(), 
+          DataModel.Properties.name, name,
+          DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     UpdateUtils.addCreator(study, creator, g);
     AccessRights.grantAccessRights(creator, study, DataModel.Enums.AccessRights.WRITE, g);
+    
+    UpdateUtils.link(creator, study, DataModel.Links.studies, (String) creator.getProperty(DataModel.Properties.id), g);
     
     return study;
   }
@@ -321,35 +339,49 @@ public class CreatorUtils {
     polygon.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     polygon.setProperty(DataModel.Properties.name, name);
     polygon.setProperty(DataModel.Properties.vertices, coords);
+    polygon.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return polygon;
   }
   
   public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientGraph g) {
-    Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.externBaseEntity, 
-        new String[] {DataModel.Properties.id, DataModel.Properties.origin, DataModel.Properties.type}, 
-        new Object[] {id, source, type})
+    Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.originalSource, 
+        new String[] {
+          DataModel.Properties.id, 
+          DataModel.Properties.origin, 
+          DataModel.Properties.type,
+          DataModel.Properties.branch
+        }, 
+        new Object[] {
+          id, 
+          source, 
+          type,
+          DataModel.Globals.BRANCH_MAIN
+        })
         .iterator();
     if(itWb.hasNext()) {
       return (OrientVertex) itWb.next();
     }
     
-    OrientVertex entity = g.addVertex("class:" + DataModel.Classes.externBaseEntity);
+    OrientVertex entity = g.addVertex("class:" + DataModel.Classes.originalSource);
     
-    entity.setProperty(DataModel.Properties.id, id);
+    entity.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
+    entity.setProperty(DataModel.Properties.idInOriginSource, id);
     entity.setProperty(DataModel.Properties.origin, source);
     entity.setProperty(DataModel.Properties.type, type);
+    entity.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     return entity;
   }
 
-  public static OrientVertex createPath(List<List<Integer>> coords, String name, OrientGraph g) {
+  public static OrientVertex createTrailOfInterest(List<List<Integer>> coords, String name, OrientGraph g) {
     OrientVertex path = g.addVertex("class:" + DataModel.Classes.trailOfInterest);
 
     path.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     path.setProperty(DataModel.Properties.name, name);
     path.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     path.setProperty(DataModel.Properties.vertices, coords);
+    path.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return path;
   }
@@ -362,6 +394,7 @@ public class CreatorUtils {
     pointOfInterest.setProperty(DataModel.Properties.name, name);
     pointOfInterest.setProperty(DataModel.Properties.coordX, x);
     pointOfInterest.setProperty(DataModel.Properties.coordY, y);
+    pointOfInterest.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return pointOfInterest;
   }
@@ -371,6 +404,7 @@ public class CreatorUtils {
 
     annotation.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     annotation.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return annotation;
   }
@@ -379,6 +413,7 @@ public class CreatorUtils {
     OrientVertex annotation = CreatorUtils.createAnnotation(type, g);
 
     annotation.setProperty(DataModel.Properties.content, textContent);
+    annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return annotation;
   }
@@ -406,6 +441,7 @@ public class CreatorUtils {
     annotation.setProperty(DataModel.Properties.unit, "mm");
     annotation.setProperty(DataModel.Properties.length, value);
     annotation.setProperty(DataModel.Properties.name, name);
+    annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return annotation;
   }
@@ -422,6 +458,7 @@ public class CreatorUtils {
 
     annotation.setProperty(DataModel.Properties.pxValue, value);
     annotation.setProperty(DataModel.Properties.type, type.value());
+    annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return annotation;
   }

@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.image;
+package fr.recolnat.database.model.impl;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.model.DataModel.Enums;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import org.apache.commons.io.FileUtils;
@@ -19,156 +20,137 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import org.dicen.recolnat.services.core.Globals;
+import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
  */
-public class RecolnatImage {
+public class RecolnatImage extends AbstractObject {
 
-  private String url = null;
-  private String thumburl = null;
-  private String id = null;
-  private String name = null;
-  private List<RegionOfInterest> regionsOfInterest = new ArrayList<RegionOfInterest>();
-  private List<PointOfInterest> pointsOfInterest = new ArrayList<PointOfInterest>();
-  private List<Path> paths = new ArrayList<Path>();
-  private List<ScalingData> scalingDataRefs = new ArrayList<ScalingData>();
+  private Set<String> regionsOfInterest = new HashSet<>();
+  private Set<String> pointsOfInterest = new HashSet<>();
+  private Set<String> trailsOfInterest = new HashSet<>();
+  private Set<String> measureStandards = new HashSet<>();
   private Metadata rawImageMetadata = null;
-  private OriginalSourceItem source = null;
-  private boolean userCanDelete = false;
+  private String source = null;
 
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
 
-  public RecolnatImage(String id, OrientVertex user, OrientGraph g) throws AccessDeniedException {
-    this.id = id;
-    OrientVertex vImage = (OrientVertex) AccessUtils.getNodeById(id, g);
-    if (vImage == null) {
-      log.warn("Client requested image that does not exist " + id);
-      return;
-    }
-    this.url = (String) vImage.getProperty(DataModel.Properties.imageUrl);
-    this.thumburl = (String) vImage.getProperty(DataModel.Properties.thumbUrl);
-    this.name = (String) vImage.getProperty(DataModel.Properties.name);
+  public RecolnatImage(OrientVertex image, OrientVertex user, OrientGraph g) throws AccessDeniedException {
+    super(image, user, g);
 
-    if (AccessRights.getAccessRights(user, vImage, g) == DataModel.Enums.AccessRights.NONE) {
-      throw new AccessDeniedException(id);
-    }
-    
-    Iterator<Vertex> itOriginalSource = vImage.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
-    if(itOriginalSource.hasNext()) {
-      OrientVertex vOriginalSource = (OrientVertex) itOriginalSource.next();
-      source = new OriginalSourceItem(vOriginalSource, g);
+    if (!AccessRights.canRead(user, image, g)) {
+      throw new AccessDeniedException("Access denied " + image.toString());
     }
 
-    Iterator<Vertex> itRois = vImage.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
+    Iterator<Vertex> itOriginalSource = image.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
+    OrientVertex vOriginalSource = AccessUtils.findLatestVersion(itOriginalSource, g);
+    if (vOriginalSource != null) {
+      this.source = vOriginalSource.getProperty(DataModel.Properties.id);
+    }
+
+    Iterator<Vertex> itRois = image.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
     while (itRois.hasNext()) {
       OrientVertex vRoi = (OrientVertex) itRois.next();
-      try {
-        RegionOfInterest roi = new RegionOfInterest(vRoi, user, g);
-        this.regionsOfInterest.add(roi);
-      } catch (AccessDeniedException e) {
-        // Do nothing
+      if (AccessUtils.isLatestVersion(vRoi)) {
+        if (AccessRights.canRead(user, vRoi, g)) {
+          this.regionsOfInterest.add((String) vRoi.getProperty(DataModel.Properties.id));
+        }
       }
     }
 
-    Iterator<Vertex> itPois = vImage.getVertices(Direction.OUT, DataModel.Links.poi).iterator();
+    Iterator<Vertex> itPois = image.getVertices(Direction.OUT, DataModel.Links.poi).iterator();
     while (itPois.hasNext()) {
       OrientVertex vPoi = (OrientVertex) itPois.next();
-      try {
-        PointOfInterest poi = new PointOfInterest(vPoi, user, g);
-        this.pointsOfInterest.add(poi);
-      } catch (AccessDeniedException e) {
-        // Do nothing
+      if (AccessUtils.isLatestVersion(vPoi)) {
+        if (AccessRights.canRead(user, vPoi, g)) {
+          this.pointsOfInterest.add((String) vPoi.getProperty(DataModel.Properties.id));
+        }
       }
     }
 
-    Iterator<Vertex> itPaths = vImage.getVertices(Direction.OUT, DataModel.Links.path).iterator();
-    while (itPaths.hasNext()) {
-      OrientVertex vPath = (OrientVertex) itPaths.next();
-      try {
-        Path path = new Path(vPath, user, g);
-        this.paths.add(path);
-      } catch (AccessDeniedException e) {
-        // Do nothing
+    // Manage trails and associated measure standards, which are technically image-wide properties
+    Iterator<Vertex> itTois = image.getVertices(Direction.OUT, DataModel.Links.toi).iterator();
+    while (itTois.hasNext()) {
+      OrientVertex vTrail = (OrientVertex) itTois.next();
+      if (AccessRights.isLatestVersionAndHasRights(user, vTrail, Enums.AccessRights.READ, g)) {
+        this.trailsOfInterest.add((String) vTrail.getProperty(DataModel.Properties.id));
+        Iterator<Vertex> itTrailMeasurements = vTrail.getVertices(Direction.OUT, DataModel.Links.hasMeasurement).iterator();
+        while (itTrailMeasurements.hasNext()) {
+          OrientVertex trailMeasurement = (OrientVertex) itTrailMeasurements.next();
+          if (AccessRights.isLatestVersionAndHasRights(user, trailMeasurement, Enums.AccessRights.READ, g)) {
+            Iterator<Vertex> itStandards = trailMeasurement.getVertices(Direction.OUT, DataModel.Links.definedAsMeasureStandard).iterator();
+            while (itStandards.hasNext()) {
+              OrientVertex vStandard = (OrientVertex) itStandards.next();
+              if (AccessRights.isLatestVersionAndHasRights(user, trailMeasurement, Enums.AccessRights.READ, g)) {
+                this.measureStandards.add((String) vStandard.getProperty(DataModel.Properties.id));
+              }
+            }
+          }
+        }
       }
     }
 
-    Iterator<Vertex> itScales = vImage.getVertices(Direction.OUT, DataModel.Links.hasScalingData).iterator();
-    while (itScales.hasNext()) {
-      OrientVertex vScale = (OrientVertex) itScales.next();
+    String url = (String) this.properties.get(DataModel.Properties.imageUrl);
+    if (url != null) {
       try {
-        ScalingData scale = new ScalingData(vScale, user, g);
-        this.scalingDataRefs.add(scale);
-      } catch (AccessDeniedException e) {
-        // Do nothing
-      }
-    }
-
-    if (this.url != null) {
-      try {
-        URL imageUrl = new URL(this.url);
+        URL imageUrl = new URL(url);
         File imageFile = File.createTempFile("image", ".tmp");
         FileUtils.copyURLToFile(imageUrl, imageFile);
         Metadata imageMetadata = ImageMetadataReader.readMetadata(imageFile);
         this.rawImageMetadata = imageMetadata;
         imageFile.delete();
       } catch (MalformedURLException e) {
-        log.warn("EXIF failed, URL malformed " + this.url, e);
+        log.warn("EXIF failed, URL malformed " + url, e);
       } catch (IOException e) {
         log.error("EXIF failed, could not create/delete temporary file", e);
-      } catch (ImageProcessingException e) {
-        log.warn("EXIF failed, could not read metadata " + this.url, e);
+      } catch (ImageProcessingException ex) {
+        log.warn("Unable to read image metadata from " + url, ex);
       }
     }
   }
 
+  @Override
   public JSONObject toJSON() throws JSONException {
-    JSONObject ret = new JSONObject();
-    ret.put("name", this.name);
-    ret.put("id", this.id);
-    ret.put("url", this.url);
-    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
-    
-    if(this.source != null) {
-      ret.put("linkToSource", this.source.toJSON());
+    JSONObject ret = super.toJSON();
+
+    if (this.source != null) {
+      ret.put("originalSource", this.source);
     }
 
     JSONArray jRois = new JSONArray();
-    Iterator<RegionOfInterest> itRois = this.regionsOfInterest.iterator();
+    Iterator<String> itRois = this.regionsOfInterest.iterator();
     while (itRois.hasNext()) {
-      jRois.put(itRois.next().toJSON());
+      jRois.put(itRois.next());
     }
     ret.put("rois", jRois);
 
     JSONArray jPois = new JSONArray();
-    Iterator<PointOfInterest> itPois = this.pointsOfInterest.iterator();
+    Iterator<String> itPois = this.pointsOfInterest.iterator();
     while (itPois.hasNext()) {
-      jPois.put(itPois.next().toJSON());
+      jPois.put(itPois.next());
     }
     ret.put("pois", jPois);
 
     JSONArray jPaths = new JSONArray();
-    Iterator<Path> itPaths = this.paths.iterator();
+    Iterator<String> itPaths = this.trailsOfInterest.iterator();
     while (itPaths.hasNext()) {
-      jPaths.put(itPaths.next().toJSON());
+      jPaths.put(itPaths.next());
     }
-    ret.put("paths", jPaths);
+    ret.put("tois", jPaths);
 
     JSONArray jScales = new JSONArray();
-    Iterator<ScalingData> itScales = this.scalingDataRefs.iterator();
+    Iterator<String> itScales = this.measureStandards.iterator();
     while (itScales.hasNext()) {
-      jScales.put(itScales.next().toJSON());
+      jScales.put(itScales.next());
     }
     ret.put("scales", jScales);
 
@@ -181,13 +163,9 @@ public class RecolnatImage {
           jMetadata.put(tag.getTagName(), tag.getDescription());
         }
       }
-      ret.put("metadata", jMetadata);
+      ret.put("exif", jMetadata);
     }
-    
-    if(this.thumburl != null) {
-      ret.put("thumburl", this.thumburl);
-    }
-    
+
     if (log.isTraceEnabled()) {
       log.trace(ret.toString());
     }

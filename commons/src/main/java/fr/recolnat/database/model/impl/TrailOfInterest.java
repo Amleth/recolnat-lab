@@ -1,4 +1,4 @@
-package org.dicen.recolnat.services.core.image;
+package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -6,72 +6,54 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import org.dicen.recolnat.services.core.Globals;
 
 /**
  * Created by dmitri on 10/08/15.
  */
-public class Path {
-  private String id;
-  private Long date;
-  private String name = null;
-  private boolean userCanDelete = false;
-//  private Integer length;
-  private List<List<Integer>> vertices = new ArrayList<List<Integer>>();
-  private List<Annotation> linkedAnnotations = new ArrayList<Annotation>();
+public class TrailOfInterest extends AbstractObject {
+  private final List<String> measurements = new ArrayList<>();
 
-  public Path(OrientVertex vPath, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
-    if(AccessRights.getAccessRights(vUser, vPath, g) == DataModel.Enums.AccessRights.NONE) {
+  public TrailOfInterest(OrientVertex vPath, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+    super(vPath, vUser, g);
+    
+    if(!AccessRights.canRead(vUser, vPath, g)) {
       throw new AccessDeniedException((String) vPath.getProperty(DataModel.Properties.id));
     }
-
-    this.vertices = vPath.getProperty(DataModel.Properties.vertices);
-    this.id = vPath.getProperty(DataModel.Properties.id);
-    this.date = vPath.getProperty(DataModel.Properties.creationDate);
-    this.name = vPath.getProperty(DataModel.Properties.name);
+    
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vPath, vUser, g);
-//    this.length = vPath.getProperty(DataModel.Properties.length);
-
-    Iterator<Vertex> itAnnot = vPath.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
-    while(itAnnot.hasNext()) {
-      try {
-        linkedAnnotations.add(new Annotation((OrientVertex) itAnnot.next(), vUser, g));
-      }
-      catch(AccessDeniedException e) {
-        // Access denied, move to next path
+    
+    Iterator<Vertex> itMeasurements = vPath.getVertices(Direction.OUT, DataModel.Links.hasMeasurement).iterator();
+    while(itMeasurements.hasNext()) {
+      OrientVertex vMeasurement = (OrientVertex) itMeasurements.next();
+      if(AccessUtils.isLatestVersion(vMeasurement)) {
+        if(AccessRights.canRead(vUser, vMeasurement, g)) {
+          measurements.add((String) vMeasurement.getProperty(DataModel.Properties.id));
+        }
       }
     }
   }
 
+  @Override
   public JSONObject toJSON() throws JSONException {
-    JSONObject ret = new JSONObject();
-    ret.put(Globals.ExchangeModel.ObjectProperties.id, this.id);
-    ret.put(Globals.ExchangeModel.ObjectProperties.creationDate, this.date);
-//    ret.put(Globals.ExchangeModel.ObjectProperties.length, this.length);
-    ret.put(Globals.ExchangeModel.ObjectProperties.vertices, this.vertices);
-    ret.put(Globals.ExchangeModel.ObjectProperties.userCanDelete, this.userCanDelete);
-    if(this.name != null) {
-      ret.put(Globals.ExchangeModel.ObjectProperties.name, this.name);
-    }
+    JSONObject ret = super.toJSON();
+    
 
-    JSONArray jAnnot = new JSONArray();
-    Iterator<Annotation> itAnnot = linkedAnnotations.iterator();
+    JSONArray jMeasurements = new JSONArray();
+    Iterator<String> itAnnot = measurements.iterator();
     while(itAnnot.hasNext()) {
-      jAnnot.put(itAnnot.next().toJSON());
+      jMeasurements.put(itAnnot.next());
     }
-    ret.put("annotations", jAnnot);
+    ret.put("measurements", jMeasurements);
 
     return ret;
   }

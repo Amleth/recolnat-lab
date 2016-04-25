@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.core.metadata;
+package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -20,17 +20,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author dmitri
  */
-public class AbstractObjectMetadata {
-  private final Map<String, Object> properties = new HashMap<String, Object>();
+public class AbstractObject {
+  protected final Map<String, Object> properties = new HashMap<>();
   protected boolean userCanDelete = false;
+  private String type = null;
   
-  private final Logger log = LoggerFactory.getLogger(AbstractObjectMetadata.class);
+  private final Logger log = LoggerFactory.getLogger(AbstractObject.class);
   
-  private AbstractObjectMetadata() {
+  private AbstractObject() {
     
   }
   
-  public AbstractObjectMetadata(OrientElement e, OrientVertex vUser, OrientGraph g) {
+  public AbstractObject(OrientElement e, OrientVertex vUser, OrientGraph g) {
     if (log.isTraceEnabled()) {
       log.trace("----- BEGIN OBJECT PROPERTIES -----");
     }
@@ -46,7 +47,9 @@ public class AbstractObjectMetadata {
     if (log.isTraceEnabled()) {
       log.trace("----- END OBJECT PROPERTIES -----");
     }
+    this.type = e.getProperty("@class");
   }
+  
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = new JSONObject();
     Iterator<String> itProps = properties.keySet().iterator();
@@ -55,6 +58,7 @@ public class AbstractObjectMetadata {
       Object value = properties.get(key);
       ret.put(key, value);
     }
+    ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
     
     return ret;

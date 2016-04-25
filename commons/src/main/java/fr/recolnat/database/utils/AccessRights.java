@@ -125,4 +125,13 @@ public class AccessRights {
       edge.remove();
     }
   }
+  
+  public static boolean isLatestVersionAndHasRights(OrientVertex user, OrientVertex node, DataModel.Enums.AccessRights level, OrientGraph g) {
+    if(AccessUtils.isLatestVersion(node)) {
+      if(AccessRights.getAccessRights(user, node, g).value() >= level.value()) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

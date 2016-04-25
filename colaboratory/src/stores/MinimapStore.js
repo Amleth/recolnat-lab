@@ -31,6 +31,7 @@ class MinimapStore extends EventEmitter {
         case MinimapConstants.ActionTypes.UNSET_MINIMAP:
           this.initializeMinimap(null, null, null, 0, 0);
           this.emit(MinimapEvents.INIT_MINIMAP);
+          break;
         default:
           break;
       }

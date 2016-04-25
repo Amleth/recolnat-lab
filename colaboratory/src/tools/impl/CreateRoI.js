@@ -67,7 +67,9 @@ class CreateRoI extends AbstractTool {
   }
 
   dataToSVG() {
-    var imageId = this.props.entitystore.getSelectedEntity().id;
+    console.error('not implemented');
+    return;
+    var imageId = this.props.getSelectedEntity().uid;
 
     var overImageGroup = d3.select('#OVER-' + imageId);
     var toolDisplayGroup = overImageGroup.append('g')
@@ -238,7 +240,9 @@ class CreateRoI extends AbstractTool {
 
 
   click(self, clickX, clickY, data) {
-    if(!this.props.entitystore.getSelectedImage()) {
+    console.error('not implemented');
+    return;
+    if(!this.props.getSelectedImage()) {
       window.setTimeout(function() {
           ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de chemins.");},
         50);
@@ -247,8 +251,8 @@ class CreateRoI extends AbstractTool {
 
     //console.log("create roi received click with button=" + data.button);
 
-    var deltaX = this.props.entitystore.getSelectedImage().x;
-    var deltaY = this.props.entitystore.getSelectedImage().y;
+    var deltaX = this.props.getSelectedImage().x;
+    var deltaY = this.props.getSelectedImage().y;
     var view = this.props.viewstore.getView();
     var displayX = (clickX-view.left)/view.scale;
     var displayY = (clickY-view.top)/view.scale;
@@ -476,7 +480,7 @@ class CreateRoI extends AbstractTool {
 
   componentDidMount() {
     $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
+    ToolActions.registerTool(ToolConf.newRegionOfInterest.uid, this.click, this);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -528,7 +532,7 @@ class CreateRoI extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.newRegionOfInterest.id);
+    ToolActions.setTool(ToolConf.newRegionOfInterest.uid);
   }
 
 

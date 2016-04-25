@@ -6,11 +6,9 @@ import request from 'superagent';
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
 import ToolConstants from "../constants/ToolConstants";
-import EditorConstants from "../constants/EditorConstants";
 import ViewConstants from '../constants/ViewConstants';
 
 import ToolEvents from "./events/ToolEvents";
-import EntitiesEvents from './events/EntitiesEvents';
 
 import ViewActions from "../actions/ViewActions";
 
@@ -21,21 +19,17 @@ class EditorStore extends EventEmitter {
     this.tools = {};
     this.activeTool = null;
     this.activeToolPopup = null;
-    this.editorReady = false;
     this.imageId = null;
 
     AppDispatcher.register((action) => {
       switch (action.actionType) {
         case ToolConstants.ActionTypes.TOOL_SET_ACTIVE_TOOL:
-          //console.log("TS received action: set active tool " + action.tool);
           this.setActiveTool(action.tool);
           this.emit(ToolEvents.CHANGE_TOOL_EVENT);
           break;
         case ToolConstants.ActionTypes.TOOL_CLEAR:
-          //console.log("TS received action: clear tool");
           this.finishActiveTool();
           this.setActiveTool('null');
-          //this.setOnClickAction(function(){return false;});
           this.emit(ToolEvents.CHANGE_TOOL_EVENT);
           break;
         case ToolConstants.ActionTypes.TOOL_REGISTER:
@@ -43,18 +37,12 @@ class EditorStore extends EventEmitter {
           this.register(action.name, action.onClickCallback, action.component);
           break;
         case ToolConstants.ActionTypes.TOOL_RUN:
-          //console.log("TS running active tool");
           this.runTool(action.x, action.y, action.misc);
           break;
-        case EditorConstants.ActionTypes.EDITOR_READY:
-          //console.log("TS editor readiness state change ");
-          this.editorReady = action.ready;
-          break;
         case ViewConstants.ActionTypes.Local.VIEW_SET_SELECTION:
-          if(this.imageId != action.selection.id) {
-            //console.log('new sel=' + action.selection.id);
+          if(this.imageId != action.selection.uid) {
             this.resetActiveTool();
-            this.imageId = action.selection.id;
+            this.imageId = action.selection.uid;
           }
           //console.log('post sel=' + this.imageId);
           break;
@@ -71,7 +59,11 @@ class EditorStore extends EventEmitter {
       }
     });
 
-    this.register("null", function() {return;}, null);
+    this.register("null", function() {}, null);
+  }
+
+  getSelectedImageId() {
+    return this.imageId;
   }
 
   resetActiveTool() {
@@ -213,10 +205,6 @@ class EditorStore extends EventEmitter {
 
   removeImageReloadListener(callback) {
     this.removeListener(ToolEvents.RELOAD_IMAGE_EVENT, callback);
-  }
-
-  isEditorReady() {
-    return this.editorReady;
   }
 }
 

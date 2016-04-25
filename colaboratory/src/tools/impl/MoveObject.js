@@ -86,14 +86,14 @@ class MoveObject extends AbstractTool {
     //      return function() {
     //        ViewActions.changeSelection(id, null);
     //      }
-    //    })(data.objects[i].id), 100);
+    //    })(data.objects[i].uid), 100);
     //    return;
     //  }
     //}
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.moveObject.id);
+    ToolActions.setTool(ToolConf.moveObject.uid);
   }
 
   select(d, i) {
@@ -101,7 +101,7 @@ class MoveObject extends AbstractTool {
       return function() {
         ViewActions.changeSelection(id, null);
       }
-    })(d.id), 100);
+    })(d.uid), 100);
   }
 
   dragstarted(d) {
@@ -134,7 +134,7 @@ class MoveObject extends AbstractTool {
 
   dragended(d) {
     if(d3.event.sourceEvent.which == 1 && d3.select(this).classed('dragging')) {
-      ViewActions.moveEntity(d.workbench, d.id, d.x, d.y);
+      ViewActions.moveEntity(d.workbench, d.uid, d.x, d.y);
       d3.select(this)
         .classed('dragging', false)
         .style('cursor', null);
@@ -145,7 +145,7 @@ class MoveObject extends AbstractTool {
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.moveObject.id, this.click, this);
+    ToolActions.registerTool(ToolConf.moveObject.uid, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

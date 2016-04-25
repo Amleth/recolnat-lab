@@ -10,6 +10,10 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 
 import UserEvents from './events/UserEvents';
 
+import ModalActions from '../actions/ModalActions';
+
+import ModalConstants from '../constants/ModalConstants';
+
 import conf from '../conf/ApplicationConfiguration';
 
 class UserStore extends EventEmitter {
@@ -20,17 +24,10 @@ class UserStore extends EventEmitter {
     this.userRplusId = null;
     this.userLogin = null;
 
-    //request.get(conf.actions.authenticationServiceActions.setTestCookie)
-    //  .withCredentials()
-    //  .end((err, res) => {
-         //Check if user is logged in
-        //this.checkAuthStatus();
-      //});
-
     // Perform initial check
     this.checkAuthStatus();
     // Check if user is still logged in every minute
-    this.loginCheck = window.setInterval(this.checkAuthStatus.bind(this),
+    this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this),
       60000*10
     );
   }
@@ -40,10 +37,11 @@ class UserStore extends EventEmitter {
       .withCredentials()
       .end((err, res) => {
         if(err) {
-            this.userAuthorized = false;
-            this.userRplusId = null;
-            this.userLogin = null;
-            this.emit(UserEvents.USER_LOG_OUT);
+          this.userAuthorized = false;
+          this.userRplusId = null;
+          this.userLogin = null;
+          this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 5000);
+          this.emit(UserEvents.USER_LOG_OUT);
         }
         else {
           if(!this.userAuthorized) {
@@ -51,6 +49,7 @@ class UserStore extends EventEmitter {
             this.userAuthorized = true;
             this.userRplusId = response.userId;
             this.userLogin = response.userLogin;
+            this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 60000*10);
             this.emit(UserEvents.USER_LOG_IN);
           }
         }

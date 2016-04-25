@@ -31,7 +31,9 @@ class Minimap extends React.Component {
     };
 
     this.imageStyle = {
-      width: '185px'
+      minWidth: '185px',
+      width: '185px',
+      maxWidth: '185px'
     };
 
     this.boundingBoxStyle = {
@@ -40,17 +42,6 @@ class Minimap extends React.Component {
       borderStyle: "solid",
       borderWidth: "1px",
       borderColor: "red"
-    };
-
-    this.buttonColumnStyle = {
-      display: "flex",
-      flexDirection: "row",
-      flexWrap: 'wrap'
-    };
-
-    this.buttonStyle = {
-      fontFamily: 'Roboto Condensed',
-      fontWeight: '300'
     };
 
     this._onImageInit = () => {
@@ -64,13 +55,7 @@ class Minimap extends React.Component {
     };
 
     this.state = {
-      init: {
-        xZero: 0,
-        yZero: 0,
-        imgUrl: null,
-        imgHeight: null,
-        imgWidth: null
-      },
+      imgUrl: null,
       view: {
         top: 0,
         left: 0,
@@ -82,7 +67,7 @@ class Minimap extends React.Component {
       dragging: false
     };
 
-    this.timeout = null;
+
   }
 
   componentDidMount() {
@@ -104,15 +89,6 @@ class Minimap extends React.Component {
     if(nextState.view.height != null) {
       this.boundingBoxStyle.height = nextState.view.height + "px";
     }
-
-    //if(nextState.init.imgUrl) {
-    //  this.componentStyle.display = "flex";
-    //  this.buttonColumnStyle.display = 'flex';
-    //}
-    //else {
-    //  this.componentStyle.display = "none";
-    //  this.buttonColumnStyle.display = 'none';
-    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -123,24 +99,19 @@ class Minimap extends React.Component {
 
   initMinimap(image, view) {
     this.setState({
-      init: {
-        imgUrl: image.url,
-        xZero: image.xZero,
-        yZero: image.yZero,
-        imgHeight: image.height,
-        imgWidth: image.width
-      },
+      imgUrl: image.url,
       ratio: null
     });
   }
 
   updateViewportLocation(view) {
     var node = this.refs.image.getDOMNode().getBoundingClientRect();
-    var ratio = this.state.init.imgHeight/node.height;
+    var image = this.props.ministore.getImage();
+    var ratio = image.height/node.height;
     this.setState({
       view: {
-        top: -(view.top/view.scale + this.state.init.yZero)/(ratio),
-        left: -(view.left/view.scale + this.state.init.xZero)/(ratio),
+        top: -(view.top/view.scale + image.yZero)/(ratio),
+        left: -(view.left/view.scale + image.xZero)/(ratio),
         height: view.height/(ratio*view.scale),
         width: view.width/(ratio*view.scale),
         zoom: view.scale
@@ -150,36 +121,19 @@ class Minimap extends React.Component {
   }
 
   moveViewToClickLocation(event) {
+    var image = this.props.ministore.getImage();
     var node = this.refs.image.getDOMNode().getBoundingClientRect();
 
     ViewActions.updateViewport(
-      -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + this.state.init.xZero)*this.state.view.zoom,
-      -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + this.state.init.yZero)*this.state.view.zoom,
+      -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + image.xZero)*this.state.view.zoom,
+      -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom,
       this.state.view.width*this.state.ratio*this.state.view.zoom,
       this.state.view.height*this.state.ratio*this.state.view.zoom,
       this.state.view.zoom
     );
   }
 
-  fitViewToImage() {
-    var node = this.refs.image.getDOMNode().getBoundingClientRect();
-    var scale = 1.0;
 
-    if(node.height > node.width) {
-      scale = (this.props.viewstore.getView().height) / this.state.init.imgHeight;
-    }
-    else {
-      scale = (this.props.viewstore.getView().width) / this.state.init.imgWidth;
-    }
-
-    ViewActions.updateViewport(
-      -((this.state.init.xZero)*scale),
-      -((this.state.init.yZero)*scale),
-      null,
-      null,
-      scale
-    );
-  }
 
   beginDragViewport(event) {
     if(event.button == 0) {
@@ -209,11 +163,12 @@ class Minimap extends React.Component {
     event.preventDefault();
     // Needed to get offset from page to image
     var node = this.refs.image.getDOMNode().getBoundingClientRect();
+    var image = this.props.ministore.getImage();
     if(event.deltaY < 0) {
       // Zoom out
       ViewActions.updateViewport(
-        -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + this.state.init.xZero)*this.state.view.zoom*1.05,
-        -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + this.state.init.yZero)*this.state.view.zoom*1.05,
+        -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + image.xZero)*this.state.view.zoom*1.05,
+        -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom*1.05,
         null,
         null,
         this.state.view.zoom*1.05
@@ -222,8 +177,8 @@ class Minimap extends React.Component {
     if(event.deltaY > 0) {
       // Zoom in
       ViewActions.updateViewport(
-        -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + this.state.init.xZero)*this.state.view.zoom*0.95,
-        -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + this.state.init.yZero)*this.state.view.zoom*0.95,
+        -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + image.xZero)*this.state.view.zoom*0.95,
+        -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom*0.95,
         null,
         null,
         this.state.view.zoom*0.95
@@ -231,62 +186,11 @@ class Minimap extends React.Component {
     }
   }
 
-  zoomIn() {
-    this.endZoom();
-    var view = this.props.viewstore.getView();
-    var self = this;
-    this.timeout = window.setInterval(function() {
-      ViewActions.updateViewport(
-        (view.left-view.width*2.5/100)*1.05,
-        (view.top-view.height*2.5/100)*1.05,
-        null,
-        null,
-        self.state.view.zoom*1.05
-      );
-    }, 50);
-  }
-
-  zoomOut() {
-    this.endZoom();
-    var view = this.props.viewstore.getView();
-    var self = this;
-    this.timeout = window.setInterval(function() {
-      ViewActions.updateViewport(
-        (view.left+view.width*2.5/100)*0.95,
-        (view.top+view.height*2.5/100)*0.95,
-        null,
-        null,
-        self.state.view.zoom*0.95
-      );
-    }, 50);
-  }
-
-  endZoom() {
-    window.clearInterval(this.timeout);
-  }
-
-  resetZoom() {
-    var view = this.props.viewstore.getView();
-    if(view.scale == 1.0) {
-      return;
-    }
-    //console.log(JSON.stringify(view));
-    ViewActions.updateViewport(
-      (view.left-view.width/2)/view.scale,
-      (view.top-view.height/2)/view.scale,
-      null,
-      null,
-      1.0
-    );
-  }
-
-  displayAllElementsInView() {
-    ViewActions.fitView();
-  }
-
   render() {
     return(
-      <div style={this.componentStyle} ref='component'>
+      <div style={this.componentStyle}
+           className='ui container'
+           ref='component'>
         <div style={this.imageContainerStyle}
              onClick={this.moveViewToClickLocation.bind(this)}
              onMouseDown={this.beginDragViewport.bind(this)}
@@ -296,50 +200,11 @@ class Minimap extends React.Component {
           <img
             className='ui fluid image'
             style={this.imageStyle}
-            src={this.state.init.imgUrl}
+            src={this.state.imgUrl}
             alt="Pas d'image active"
             onDragStart={this.suppress.bind(this)}
             ref="image"/>
           <div style={this.boundingBoxStyle} />
-        </div>
-
-        <div className='ui three fluid buttons'>
-          <button className='ui button small compact'
-                  onMouseDown={this.zoomOut.bind(this)}
-                  onMouseUp={this.endZoom.bind(this)}
-                  onMouseOut={this.endZoom.bind(this)}>
-            <i className='ui large zoom out icon' />
-          </button>
-          <button style={this.buttonStyle}
-                  className='ui button small compact'
-                  disabled='disabled'>{(this.state.view.zoom*100).toFixed(0)}%
-          </button>
-          <button className='ui button small compact'
-                  onMouseDown={this.zoomIn.bind(this)}
-                  onMouseUp={this.endZoom.bind(this)}
-                  onMouseOut={this.endZoom.bind(this)}>
-            <i className='ui large zoom icon' />
-          </button>
-        </div>
-
-        <div className='ui three fluid buttons'>
-          <MoveView />
-          <MoveObject />
-          <SelectObject />
-        </div>
-
-        <div className='ui three fluid buttons'>
-          <button style={this.buttonStyle}
-                  className='ui button small compact'
-                  onClick={this.displayAllElementsInView.bind(this)}
-                  data-content='Afficher toutes les images'>Tout</button>
-          <button className='ui button small compact' data-content="Voir l'image à l'échelle 1:1"
-                  style={this.buttonStyle}
-                  onClick={this.resetZoom.bind(this)}>1:1</button>
-          <button style={this.buttonStyle}
-                  className='ui button small compact'
-                  data-content="Afficher l'image active en entier"
-                  onClick={this.fitViewToImage.bind(this)}>Planche</button>
         </div>
       </div>
     );

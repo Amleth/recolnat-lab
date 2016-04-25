@@ -8,7 +8,7 @@ import request from 'superagent';
 
 import AbstractMetadataDisplay from './AbstractManagerMetadataDisplay';
 
-class WorkbenchMetadataDisplay extends AbstractMetadataDisplay {
+class StudyMetadataDisplay extends AbstractMetadataDisplay {
   constructor(props) {
     super(props);
   }
@@ -21,6 +21,7 @@ class WorkbenchMetadataDisplay extends AbstractMetadataDisplay {
   }
 
   processCoLabMetadata(metadata) {
+    //console.log(JSON.stringify(metadata));
     if(metadata.type != 'Workbench') {
       return;
     }
@@ -53,4 +54,4 @@ class WorkbenchMetadataDisplay extends AbstractMetadataDisplay {
   }
 }
 
-export default WorkbenchMetadataDisplay;
+export default StudyMetadataDisplay;

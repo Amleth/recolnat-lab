@@ -47,16 +47,16 @@ class SelectObject extends AbstractTool {
       return function() {
         ViewActions.changeSelection(id, d);
       }
-    })(d.id), 100);
+    })(d.uid), 100);
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.selectObject.id);
+    ToolActions.setTool(ToolConf.selectObject.uid);
   }
 
   componentDidMount() {
     $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.selectObject.id, this.click, this);
+    ToolActions.registerTool(ToolConf.selectObject.uid, this.click, this);
   }
 
   componentWillUpdate(nextProps, nextState) {

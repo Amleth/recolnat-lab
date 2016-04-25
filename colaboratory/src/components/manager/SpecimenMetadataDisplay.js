@@ -29,17 +29,16 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
   }
 
   processCoLabMetadata(metadata) {
-    if(metadata.type != 'Sheet') {
-      return;
+    if(metadata.type == 'Specimen') {
+      this.setState(this.initialState());
+      //console.log(JSON.stringify(metadata));
+
+      if(metadata.originalSource) {
+        this.getMetadataFromSource(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
+      }
+
+      this.setState({name: metadata.name});
     }
-
-    this.setState(this.initialState());
-
-    if(metadata.originalSource) {
-      this.getMetadataFromSource(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
-    }
-
-    this.setState({name: metadata.name});
   }
 
   getMetadataFromSource(id, type, source) {

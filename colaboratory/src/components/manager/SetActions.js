@@ -13,7 +13,7 @@ import ViewActions from '../../actions/ViewActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
-class WorkbenchActions extends React.Component {
+class SetActions extends React.Component {
   constructor(props) {
     super(props);
 
@@ -40,41 +40,41 @@ class WorkbenchActions extends React.Component {
 
   showOptions(modalReference) {
     switch(modalReference) {
-      case 'createNewWorkbenchModal':
+      case 'createNewSetModal':
         if(this.props.managerstore.getSelected().type != 'bag') {
-          alert('Une étude ne peut être créée que dans une autre étude.');
+          alert('Un set ne peut être créée que dans un set ou une étude.');
           return;
         }
         this.setState({optionsModal: modalReference});
         break;
-      case 'basketSelectionToWorkbenchModal':
+      case 'basketSelectionToSetModal':
         if(this.props.managerstore.getSelected().type != 'bag') {
-          alert('Vous devez sélectionner une étude.');
+          alert('Vous devez sélectionner un set.');
           return;
         }
         this.setState({optionsModal: modalReference});
         break;
       case 'importCSVModal':
         if(this.props.managerstore.getSelected().type != 'bag') {
-          alert('Vous devez sélectionner une étude.');
+          alert('Vous devez sélectionner un set.');
           return;
         }
         this.setState({optionsModal: modalReference});
         break;
       case 'pasteModal':
         if(this.props.managerstore.getSelected().type != 'bag') {
-          alert('Vous devez sélectionner une étude.');
+          alert('Vous devez sélectionner un set.');
           return;
         }
         this.setState({optionsModal: modalReference});
         break;
       case 'deleteModal':
-        if(this.props.managerstore.getSelected().id == null) {
+        if(this.props.managerstore.getSelected().uid == null) {
           alert('Vous devez sélectionner un élement à supprimer');
           return;
         }
         if(this.props.managerstore.getSelected().parent == 'zero') {
-          alert('Vous ne pouvez pas supprimer les collections à la racine');
+          alert('Vous ne pouvez pas supprimer les sets à la racine');
           return;
         }
         this.setState({optionsModal: modalReference});
@@ -93,48 +93,48 @@ class WorkbenchActions extends React.Component {
     this.setState({nameInputText: event.target.value});
   }
 
-  loadWorkbenchInView() {
-    window.setTimeout(ViewActions.setActiveWorkbench.bind(null, this.props.managerstore.getSelected().id), 1);
-    window.setTimeout(ManagerActions.toggleWorkbenchManagerVisibility.bind(null,false),1);
+  loadSetInView() {
+    window.setTimeout(ViewActions.setActiveSet.bind(null, this.props.managerstore.getSelected().uid), 1);
+    window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),1);
   }
 
-  createNewWorkbench() {
+  createNewSet() {
     var self = this;
     var name = this.state.nameInputText;
-    var parentWorkbenchId = this.props.managerstore.getSelected().id;
+    var parentSetId = this.props.managerstore.getSelected().uid;
     if(name.length < 1) {
       alert("Un nom est obligatoire");
     }
 
-    request.post(conf.actions.virtualWorkbenchServiceActions.createNewWorkbench)
+    request.post(conf.actions.setServiceActions.createSet)
       .set('Content-Type', 'application/json')
-      .send({parent: parentWorkbenchId})
+      .send({parent: parentSetId})
       .send({name: name})
       .withCredentials()
       .end((err, res)=> {
         if(err) {
-          console.error("Error occurred when creating new workbench. Server returned: " + err);
+          console.error("Error occurred when creating new Set. Server returned: " + err);
           alert('La création a échoué. Veuillez recommencer');
         }
         else {
           //console.log("Received response " + res.text);
           var response = JSON.parse(res.text);
-          ManagerActions.setSelectedWorkbenchGraphNode(response.workbench, 'bag', name, parentWorkbenchId,  response.link);
-          ManagerActions.setActiveIdInWorkbench(parentWorkbenchId, response.workbench);
-          self.props.managerstore.requestGraphAround(response.workbench, 'bag', undefined);
-          ManagerActions.reloadDisplayedWorkbenches();
+          ManagerActions.select(response.subSet, 'bag', name, parentSetId,  response.link);
+          ManagerActions.selectEntityInSetById(parentSetId, response.subSet);
+          self.props.managerstore.requestGraphAround(response.subSet, 'bag', undefined);
+          ManagerActions.reloadDisplayedSets();
         }
       });
 
     this.hideOptions();
   }
 
-  addBasketSelectionToWorkbench(keepSelectionInBasket) {
+  addBasketSelectionToSet(keepSelectionInBasket) {
     var basketSelection = this.props.managerstore.getBasketSelection();
-    var selectedWorkbench = this.props.managerstore.getSelected().id;
-    //console.log('parent= ' + selectedWorkbench);
+    var selectedSet = this.props.managerstore.getSelected().uid;
+    //console.log('parent= ' + selectedSet);
 
-    ManagerActions.addBasketItemsToWorkbench(basketSelection, selectedWorkbench, keepSelectionInBasket);
+    ManagerActions.addBasketItemsToSet(basketSelection, selectedSet, keepSelectionInBasket);
 
     this.hideOptions();
   }
@@ -148,15 +148,15 @@ class WorkbenchActions extends React.Component {
     }
 
     var file = selectedFiles[0];
-    var workbench = this.props.managerstore.getSelected().id;
+    var parentSet = this.props.managerstore.getSelected().uid;
     var stream = fs(file);
     var parser = fastcsv({objectMode: true, headers: true, ignoreEmpty: true, discardUnmappedColumns: true, trim: true})
       .on("data", function(data) {
         if(data.url && data.name) {
           //console.log("data=" + JSON.stringify(data));
-          request.post(conf.actions.virtualWorkbenchServiceActions.importSheet)
+          request.post(conf.actions.setServiceActions.importExternalImage)
             .set('Content-Type', "application/json")
-            .send({workbench: workbench})
+            .send({set: parentSet})
             .send({url: data.url})
             .send({name: data.name})
             .withCredentials()
@@ -165,7 +165,7 @@ class WorkbenchActions extends React.Component {
                 console.error(err);
               }
               else {
-                ManagerActions.reloadDisplayedWorkbenches();
+                ManagerActions.reloadDisplayedSets();
               }
             });
         }
@@ -175,7 +175,7 @@ class WorkbenchActions extends React.Component {
         }
       })
       .on("end", function() {
-        ManagerActions.reloadDisplayedWorkbenches();
+        ManagerActions.reloadDisplayedSets();
       });
     stream.pipe(parser);
     this.hideOptions();
@@ -194,7 +194,7 @@ class WorkbenchActions extends React.Component {
       return this.state.copy.name + ' sera ajouté à ' + this.props.managerstore.getSelected().name;
     }
     else if(this.state.cut) {
-      return this.state.cut.name + ' sera ajouté à ' + this.props.managerstore.getSelected().name + ' et sera enlevé de ' + this.props.managerstore.getWorkbench(this.state.cut.parent).name;
+      return this.state.cut.name + ' sera ajouté à ' + this.props.managerstore.getSelected().name + ' et sera enlevé de ' + this.props.managerstore.getSet(this.state.cut.parent).name;
     }
   }
 
@@ -202,18 +202,18 @@ class WorkbenchActions extends React.Component {
     if(this.props.managerstore.getSelected().parent == 'zero') {
       return "Vous ne pouvez pas supprimer cette étude";
     }
-    if(this.props.managerstore.getSelected().id) {
-      return this.props.managerstore.getSelected().name + ' de ' + this.props.managerstore.getWorkbench(this.props.managerstore.getSelected().parent).name;
+    if(this.props.managerstore.getSelected().uid) {
+      return this.props.managerstore.getSelected().name + ' de ' + this.props.managerstore.getSet(this.props.managerstore.getSelected().parent).name;
     }
     return null;
   }
 
   paste() {
     if(this.state.copy) {
-      request.post(conf.actions.virtualWorkbenchServiceActions.copypaste)
+      request.post(conf.actions.setServiceActions.copy)
         .set('Content-Type', 'application/json')
-        .send({target: this.state.copy.id})
-        .send({destination: this.props.managerstore.getSelected().id})
+        .send({target: this.state.copy.uid})
+        .send({destination: this.props.managerstore.getSelected().uid})
         .withCredentials()
         .end((err, res) => {
           if(err) {
@@ -224,16 +224,16 @@ class WorkbenchActions extends React.Component {
             console.log("Copy/paste successful");
           }
           this.setState({copy: null, cut: null});
-          ManagerActions.reloadDisplayedWorkbenches();
+          ManagerActions.reloadDisplayedSets();
         });
     }
     else if(this.state.cut) {
-      request.post(conf.actions.virtualWorkbenchServiceActions.cutpaste)
+      request.post(conf.actions.setServiceActions.cutpaste)
         .set('Content-Type', 'application/json')
-        .send({target: this.state.cut.id})
+        .send({target: this.state.cut.uid})
         .send({source: this.state.cut.parent})
         .send({linkId: this.state.cut.linkToParent})
-        .send({destination: this.props.managerstore.getSelected().id})
+        .send({destination: this.props.managerstore.getSelected().uid})
         .withCredentials()
         .end((err, res)=> {
           if(err) {
@@ -244,7 +244,7 @@ class WorkbenchActions extends React.Component {
             console.log("Cut/paste successful");
           }
           this.setState({copy: null, cut: null});
-          ManagerActions.reloadDisplayedWorkbenches();
+          ManagerActions.reloadDisplayedSets();
         })
     }
     else {
@@ -254,14 +254,14 @@ class WorkbenchActions extends React.Component {
   }
 
   /**
-   * Removes parenthood link between state.current and state.selected. If state.selected is left without parents, it will be deleted and its content unlinked, and recursively until no orphaned workbenches are left (all of this is done server-side, not client-side).
+   * Removes parenthood link between state.current and state.selected. If state.selected is left without parents, it will be deleted and its content unlinked, and recursively until no orphaned Sets are left (all of this is done server-side, not client-side).
    */
   runDelete() {
-    var elementToRemove = this.props.managerstore.getSelected().id;
+    var elementToRemove = this.props.managerstore.getSelected().uid;
     var removeFrom = this.props.managerstore.getSelected().parent;
     var parentChildLink = this.props.managerstore.getSelected().linkToParent;
 
-    request.post(conf.actions.virtualWorkbenchServiceActions.deleteWorkbench)
+    request.post(conf.actions.setServiceActions.deleteFromSet)
       .set('Content-Type', 'application/json')
       .send({container: removeFrom})
       .send({target: elementToRemove})
@@ -275,8 +275,8 @@ class WorkbenchActions extends React.Component {
         else {
           //console.log("Delete received response " + res.text);
         }
-        ManagerActions.setSelectedWorkbenchGraphNode(null, null, null, null, null);
-        ManagerActions.reloadDisplayedWorkbenches();
+        ManagerActions.select(null, null, null, null, null);
+        ManagerActions.reloadDisplayedSets();
       });
 
     this.hideOptions();
@@ -313,7 +313,7 @@ class WorkbenchActions extends React.Component {
   render() {
     return <div style={this.containerStyle}>
 
-      <div className='ui small modal' ref='createNewWorkbenchModal'>
+      <div className='ui small modal' ref='createNewSetModal'>
         <div className='header'>Nouvelle Etude</div>
         <div className='content'>
           <div className='description'>
@@ -334,7 +334,7 @@ class WorkbenchActions extends React.Component {
               Annuler
             </div>
             <div className="ui green button"
-                 onClick={this.createNewWorkbench.bind(this)}>
+                 onClick={this.createNewSet.bind(this)}>
               <i className="checkmark icon" />
               Créer
             </div>
@@ -342,7 +342,7 @@ class WorkbenchActions extends React.Component {
         </div>
       </div>
 
-      <div className='ui small modal' ref='basketSelectionToWorkbenchModal'>
+      <div className='ui small modal' ref='basketSelectionToSetModal'>
         <div className='header'>Panier vers étude</div>
         <div className='content'>
           <div className='description'>
@@ -355,12 +355,12 @@ class WorkbenchActions extends React.Component {
               <i className="remove icon" />
               Annuler l'ajout
             </div>
-            <div className="ui tiny button" onClick={this.addBasketSelectionToWorkbench.bind(this, false)}>
+            <div className="ui tiny button" onClick={this.addBasketSelectionToSet.bind(this, false)}>
               <i className="trash icon" />
               Ajouter les objets à l'étude et les retirer du panier.
             </div>
             <div className="ui medium button"
-                 onClick={this.addBasketSelectionToWorkbench.bind(this, true)}>
+                 onClick={this.addBasketSelectionToSet.bind(this, true)}>
               <i className="checkmark icon" />
               Ajouter les objets à l'étude et les conserver dans le panier
             </div>
@@ -444,7 +444,7 @@ class WorkbenchActions extends React.Component {
 
       <div className='ui selection list' ref='options'>
         <a className='item'
-           onClick={this.loadWorkbenchInView.bind(this)}
+           onClick={this.loadSetInView.bind(this)}
            data-content="Ouvre l'étude sélectionnée dans l'espace de travail.">
           <div>
             <i className='folder open icon' />
@@ -452,7 +452,7 @@ class WorkbenchActions extends React.Component {
           </div>
         </a>
         <a className='item'
-           onClick={this.showOptions.bind(this, 'createNewWorkbenchModal')}
+           onClick={this.showOptions.bind(this, 'createNewSetModal')}
         data-content="Crée une nouvelle étude dans l'étude sélectionnée">
           <div>
             <i className='icons'>
@@ -463,7 +463,7 @@ class WorkbenchActions extends React.Component {
           </div>
         </a>
         <a className='item'
-           onClick={this.showOptions.bind(this, 'basketSelectionToWorkbenchModal')}
+           onClick={this.showOptions.bind(this, 'basketSelectionToSetModal')}
         data-content="Ajoute les éléments choisis dans le panier (en bas) à l'étude sélectionnée">
           <div>
             <i className='linkify icon' />
@@ -514,4 +514,4 @@ class WorkbenchActions extends React.Component {
   }
 }
 
-export default WorkbenchActions;
+export default SetActions;

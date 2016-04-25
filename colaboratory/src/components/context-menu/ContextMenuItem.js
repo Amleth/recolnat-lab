@@ -44,7 +44,8 @@ class ContextMenuItem extends React.Component {
   }
 
   reloadMetadata(res) {
-    ViewActions.updateMetadata(this.props.entitystore.getSelectedImageId());
+    console.error('not implemented');
+    //ViewActions.updateMetadata(this.props..getSelectedImageId());
   }
 
   componentDidMount() {

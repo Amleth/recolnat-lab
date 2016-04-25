@@ -18,7 +18,8 @@ class SheetLabBook extends LabBook {
     this.title = "Cahier de laboratoire de la planche active";
 
     this._onSelectEntity = () => {
-      const getLog = () => this.setState({selectedId: this.props.entitystore.getSelectedImageId()});
+      const getLog = () => console.error('not implemented');
+      //this.setState({selectedId: this.props..getSelectedImageId()});
       return getLog.apply(this);
     };
 
@@ -50,7 +51,7 @@ class SheetLabBook extends LabBook {
 
   componentDidMount() {
     super.componentDidMount();
-    this.props.entitystore.addChangeSelectionListener(this._onSelectEntity);
+    //this.props..addChangeSelectionListener(this._onSelectEntity);
     this._onSelectEntity();
   }
 
@@ -65,7 +66,7 @@ class SheetLabBook extends LabBook {
 
   componentWillUnmount() {
     super.componentWillUnmount();
-    this.props.entitystore.removeChangeSelectionListener(this._onSelectEntity);
+    //this.props..removeChangeSelectionListener(this._onSelectEntity);
   }
 }
 

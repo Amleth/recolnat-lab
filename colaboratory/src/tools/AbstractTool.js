@@ -86,7 +86,7 @@ class AbstractTool extends React.Component {
    * It is strongly suggested for tools to also send tooltip data up the processing chain in this function.
    */
   setMode(){
-    ToolActions.setTool(ToolConf.nothing.id);
+    ToolActions.setTool(ToolConf.nothing.uid);
     ToolActions.updateTooltipData(ToolConf.nothing.tooltip);
   }
 

@@ -44,14 +44,6 @@ class RightPane extends React.Component {
     $('.menu .worktab', $(this.refs.tabs.getDOMNode())).tab();
   }
 
-  componentWillUnmount() {
-
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-
-  }
-
   render() {
     var self = this;
     return(
@@ -75,7 +67,9 @@ class RightPane extends React.Component {
         <div className="ui bottom attached active tab segment"
              data-tab="metadata"
              style={this.tabContentStyle}>
-          <MetadataViewer viewstore={this.props.viewstore} entitystore={this.props.entitystore}/>
+          <MetadataViewer
+            viewstore={this.props.viewstore}
+            />
         </div>
         <div className="ui bottom attached tab segment"
              data-tab="journal"
@@ -92,17 +86,14 @@ class RightPane extends React.Component {
           <div className='ui bottom attached active tab segment'
                data-tab='journal-user'
                style={this.tabContentStyle}>
-            <UserLabBook userstore={this.props.userstore}/>
           </div>
           <div className='ui bottom attached tab segment'
                data-tab='journal-sheet'
                style={this.tabContentStyle}>
-            <SheetLabBook userstore={this.props.userstore} entitystore={this.props.entitystore}/>
           </div>
           <div className='ui bottom attached tab segment'
                data-tab='journal-group'
                style={this.tabContentStyle}>
-            <GroupLabBook userstore={this.props.userstore}/>
           </div>
 
         </div>

@@ -55,14 +55,11 @@ class CreatePath extends AbstractTool {
    * INHERITED API
    */
   click(self, x, y, data) {
-    if(!this.props.entitystore.getSelectedImage()) {
-      window.setTimeout(function() {
-          ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de chemins.");},
-        50);
-      return;
-    }
-    var deltaX = this.props.entitystore.getSelectedImage().x;
-    var deltaY = this.props.entitystore.getSelectedImage().y;
+    console.error('not implemented');
+    return;
+
+    var deltaX = this.props.getSelectedImage().x;
+    var deltaY = this.props.getSelectedImage().y;
     var view = this.props.viewstore.getView();
     var displayX = (x-view.left)/view.scale;
     var displayY = (y-view.top)/view.scale;
@@ -225,7 +222,7 @@ class CreatePath extends AbstractTool {
   }
 
   setMode(){
-    ToolActions.setTool(ToolConf.newPath.id);
+    ToolActions.setTool(ToolConf.newPath.uid);
   }
 
   /**
@@ -254,8 +251,9 @@ class CreatePath extends AbstractTool {
   }
 
   dataToSVG() {
-    var selectedSheet = this.props.entitystore.getSelectedEntity();
-    var overSheetGroup = d3.select('#OVER-' + selectedSheet.id);
+    console.error('not implemented');
+    //var selectedSheet = this.props..getSelectedEntity();
+    var overSheetGroup = d3.select('#OVER-' + selectedSheet.uid);
     var toolDisplayGroup = overSheetGroup
       .append('g')
       .attr('class', this.toolContainerSVGClass);
@@ -323,7 +321,7 @@ class CreatePath extends AbstractTool {
         .attr('stroke', 'black');
 
       //console.log("mounting mouse move listener");
-      d3.select('#GROUP-' + selectedSheet.id)
+      d3.select('#GROUP-' + selectedSheet.uid)
         .on('mousemove', function(d, i) {
           self.setLineEndPosition.call(this, self)});
 
@@ -336,9 +334,11 @@ class CreatePath extends AbstractTool {
   }
 
   clearSVG() {
-    var selectedSheet = this.props.entitystore.getSelectedEntity();
+    console.error('not implemented');
+    return;
+    var selectedSheet = this.props.getSelectedEntity();
     d3.select('.' + this.toolContainerSVGClass).remove();
-    d3.select('#GROUP-' + selectedSheet.id).on('mousemove', null);
+    d3.select('#GROUP-' + selectedSheet.uid).on('mousemove', null);
   }
 
   splitEdge(i, self) {
@@ -431,7 +431,7 @@ class CreatePath extends AbstractTool {
    * REACT API
    */
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
+    ToolActions.registerTool(ToolConf.newPath.uid, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

@@ -5,6 +5,8 @@
 
 import React from 'react';
 
+import MetadataActions from '../actions/MetadataActions';
+
 class Inbox extends React.Component {
   constructor(props) {
     super(props);
@@ -17,21 +19,68 @@ class Inbox extends React.Component {
       maxWidth: '160px'
     };
 
-    var content = [];
-    if(this.props.content) {
-      for (var i = 0; i < this.props.content.length; ++i) {
-        if (!this.props.content[i].x) {
-          content.push(this.props.content[i]);
-        }
-      }
-    }
+    this._onLabBenchLoaded = () => {
+      const downloadMetadata = () => this.listenForContentChange(this.props.benchstore.getActiveViewId());
+      return downloadMetadata.apply(this);
+    };
+
+    this._onViewMetadataReceived = () => {
+      const calculateUnplacedEntities = () => this.calculateUnplacedEntities();
+      return calculateUnplacedEntities.apply(this);
+    };
+
+    this._onUnplacedEntityMetadataUpdate = (id) => {
+      const addEntityMetadata = (id) => this.addEntityMetadata(id);
+      return addEntityMetadata.apply(this, [id]);
+    };
 
     this.state = {
+      viewId: null,
       open: false,
-      active: content.length > 0,
+      active: false,
       selected: 0,
-      content: content
+      content: []
     };
+  }
+
+  listenForContentChange(viewId) {
+    //console.log('listenForContentChange()');
+    if(this.state.viewId) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewMetadataReceived);
+    }
+    if(viewId) {
+      this.props.metastore.addMetadataUpdateListener(viewId, this._onViewMetadataReceived);
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, viewId), 10);
+    }
+    this.setState({viewId: viewId, active: false, open: false, content: []});
+  }
+
+  calculateUnplacedEntities() {
+    //console.log('calculateUnplacedEntities()');
+    var labBench = this.props.benchstore.getLabBench();
+    var viewId = this.props.benchstore.getActiveViewId();
+    var imageIds = Object.keys(labBench.images);
+    var viewData = this.props.metastore.getMetadataAbout(viewId);
+    var displayedImageIds = viewData.displays.map(function(display) {
+      return display.entity;
+    }) ;
+
+    var undisplayedImageIds = _.difference(imageIds, displayedImageIds);
+
+    // Download metadata for unplaced entities
+    for(var i = 0; i < undisplayedImageIds.length; ++i) {
+      this.props.metastore.addMetadataUpdateListener(undisplayedImageIds[i], this._onUnplacedEntityMetadataUpdate);
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, undisplayedImageIds[i]), 10);
+    }
+  }
+
+  addEntityMetadata(id) {
+    //console.log('addEntityMetadata');
+    this.props.metastore.removeMetadataUpdateListener(id, this._onUnplacedEntityMetadataUpdate);
+    var metadata = this.props.metastore.getMetadataAbout(id);
+    var content = this.state.content;
+    content.push(metadata);
+    this.setState({content: content});
   }
 
   open() {
@@ -58,25 +107,10 @@ class Inbox extends React.Component {
 
   startDragImage(event) {
     this.props.drag.setAction('inboxMove', this.state.content[this.state.selected]);
-
-    //event.dataTransfer.setData('inboxMove', data);
-
-    //data = event.dataTransfer.getData('inboxMove');
-
-    //console.log("transferring check " + data);
-    //event.dataTransfer.effectAllowed = 'move';
   }
 
-  componentWillReceiveProps(props) {
-    var content = [];
-    if(this.props.content) {
-      for (var i = 0; i < this.props.content.length; ++i) {
-        if (!this.props.content[i].x) {
-          content.push(this.props.content[i]);
-        }
-      }
-    }
-    this.setState({active: content.length > 0, content: content});
+  componentDidMount() {
+    this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -84,11 +118,21 @@ class Inbox extends React.Component {
       nextState.active = false;
       nextState.open = false;
     }
+    if(nextState.content.length > 0) {
+      nextState.active = true;
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.active && this.state.open) {
       $(this.refs.image.getDOMNode()).popup();
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
+    if(this.state.viewId) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewMetadataReceived);
     }
   }
 
@@ -105,7 +149,7 @@ class Inbox extends React.Component {
       <img className='ui image'
            ref='image'
            data-content="Faites glisser l'image vers le bureau pour la placer"
-           src={this.state.content[this.state.selected].url}
+           src={this.state.content[this.state.selected].thumbnail}
            alt='Chargement en cours'
            draggable='true'
           onDragStart={this.startDragImage.bind(this)}/>

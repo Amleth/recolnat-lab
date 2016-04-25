@@ -1,7 +1,13 @@
 /**
  * Created by dmitri on 18/12/15.
  */
-'use strict'
+'use strict';
+
+import request from 'superagent';
+
+import ModeActions from '../actions/ModeActions';
+
+import conf from '../conf/ApplicationConfiguration';
 
 class GlobalFunctions {
 
@@ -129,6 +135,30 @@ class GlobalFunctions {
       }
     }
     return null;
+  }
+
+  static getName(entity) {
+    return entity.name;
+  }
+
+  static createStudy(name, callback = undefined) {
+    request.post(conf.actions.studyServiceActions.createStudy)
+      .send({name: name})
+      .withCredentials()
+      .end((err, res) => {
+        if(err) {
+          console.error(err);
+          alert('La création a échoué : ' + err);
+        }
+        else {
+          // Reload studies
+          callback();
+        }
+      });
+  }
+
+  static setMode(mode) {
+    ModeActions.changeMode(mode);
   }
 }
 

@@ -228,7 +228,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   setContextMenuData(elements) {
-    //elements.unshift({type: 'workbench', id: this.props.entitystore.getWorkbenchId()});
+    //elements.unshift({type: 'workbench', id: this.props.entitystore.getSetId()});
     if(elements.length > 0) {
       this.setState({itemsAtCursor: elements, active: true, activeItemIndex: elements.length - 1});
     }
@@ -330,7 +330,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   setMenuDataByContext(item) {
-    var metadata = this.props.entitystore.getMetadataAbout(item.id);
+    var metadata = this.props.metastore.getMetadataAbout(item.uid);
     this.displayText = metadata.name;
     if(!this.displayText) {
       this.displayText = "Objet sans nom";
@@ -340,7 +340,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.point:
         this.displayText = '(Point) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + item.id, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + item.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);;
         this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
@@ -373,7 +373,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.path:
         this.displayText = '(Chemin) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#PATH-' + item.id, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#PATH-' + item.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
@@ -404,7 +404,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.region:
         this.displayText = '(Zone) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#ROI-' + item.id, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#ROI-' + item.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.showMetdata.bind(null, item);
         if(metadata.deletable) {
@@ -436,7 +436,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.sheet:
         this.displayText = '(Planche) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#GROUP-' + item.id, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#GROUP-' + item.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.notAvailable.bind(null);;
         if(metadata.deletable) {

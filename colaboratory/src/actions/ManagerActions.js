@@ -4,45 +4,49 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 import ManagerConstants from '../constants/ManagerConstants';
 
 export default {
-  toggleWorkbenchManagerVisibility: (visible) => {
+  toggleSetManagerVisibility: (visible) => {
     AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.TOGGLE_WORKBENCH_MANAGER_VISIBILITY,
+      actionType: ManagerConstants.ActionTypes.TOGGLE_SET_MANAGER_VISIBILITY,
       visible: visible
     });
   },
 
-  setSelectedWorkbenchGraphNode: (id, type, name, parentId, linkToParentId) => {
+  loadStudiesAndSets: () => {
+    AppDispatcher.dispatch({
+      actionType: ManagerConstants.ActionTypes.RELOAD
+    });
+  },
+
+  select: (id, type = null, name = null, parentId = null, linkToParentId = null) => {
     AppDispatcher.dispatch({
       actionType: ManagerConstants.ActionTypes.SET_SELECTED_NODE,
-      selection: {
         id: id,
         type: type,
         name: name,
         linkToParent: linkToParentId,
         parent: parentId
-      }
     });
   },
 
-  setActiveItemInWorkbench: (wbIdx, itemIdx) => {
+  selectEntityInSet: (setIdx, entityIdx) => {
     AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.SET_ACTIVE_IN_WORKBENCH,
-      workbenchIndex: wbIdx,
-      itemIndex: itemIdx
+      actionType: ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET,
+      setIndex: setIdx,
+      entityIndex: entityIdx
     });
   },
 
-  setActiveIdInWorkbench: (wbId, itemId) => {
+  selectEntityInSetById: (parentSetId, entityId) => {
     AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.SET_ACTIVE_IN_WORKBENCH,
-      workbenchId: wbId,
-      itemId: itemId
-    });
+      actionType: ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET,
+      parentSetId: parentSetId,
+      entityId: entityId
+    })
   },
 
-  reloadDisplayedWorkbenches: () => {
+  reloadDisplayedSets: () => {
     AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_WORKBENCHES
+      actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS
     });
   },
 
@@ -68,9 +72,9 @@ export default {
     });
   },
 
-  addBasketItemsToWorkbench: (items, id, keep) => {
+  addBasketItemsToSet: (items, id, keep) => {
     AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_WORKBENCH,
+      actionType: ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_SET,
       items: items,
       workbench: id,
       keepInBasket: keep

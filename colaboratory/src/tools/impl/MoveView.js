@@ -22,7 +22,7 @@ class MoveView extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.moveView.id);
+    ToolActions.setTool(ToolConf.moveView.uid);
   }
 
   begin() {
@@ -51,7 +51,7 @@ class MoveView extends AbstractTool {
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.moveView.id, this.click, this);
+    ToolActions.registerTool(ToolConf.moveView.uid, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

@@ -6,14 +6,14 @@
 import React from 'react';
 import request from 'superagent';
 
-import WorkbenchNodeDisplay from './WorkbenchNodeDisplay';
-import WorkbenchBase from './WorkbenchBase';
+import SetDisplay from './SetDisplay';
+import StudyDisplay from './StudyDisplay';
 
 import ManagerActions from '../../actions/ManagerActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
-class WorkbenchManager extends React.Component {
+class StudyManager extends React.Component {
   constructor(props) {
     super(props);
 
@@ -50,35 +50,32 @@ class WorkbenchManager extends React.Component {
       return userLogOut.apply(this);
     };
 
-    this._onWorkbenchUpdate = () => {
-      const updateDisplay = () => this.setState({workbenches: JSON.parse(JSON.stringify(this.props.managerstore.getWorkbenches())), base: this.props.managerstore.getBaseData()});
+    this._onSetUpdate = () => {
+      const updateDisplay = () => this.setState({
+        displayedSets: this.props.managerstore.getSets(),
+        studyContainer: this.props.managerstore.getStudies()});
       return updateDisplay.apply(this);
     };
 
     this.state = {
       userLoggedIn: false,
-      base: {children: []},
-      workbenches: []
+      studyContainer: null,
+      displayedSets: []
     };
-  }
-
-  componentWillMount() {
-    this.props.managerstore.loadRootWorkbench();
   }
 
   componentDidMount() {
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
-    this.props.managerstore.addManagerUpdateListener(this._onWorkbenchUpdate);
+    this.props.managerstore.addManagerUpdateListener(this._onSetUpdate);
   }
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.userLoggedIn && !prevState.userLoggedIn) {
-      this.props.managerstore.loadRootWorkbench();
+      ManagerActions.loadStudiesAndSets();
     }
-    //console.log(this.state.workbenches.length + ' ' + prevState.workbenches.length);
-    if(this.state.workbenches.length != prevState.workbenches.length) {
-      var node = this.refs.workbenches.getDOMNode();
+    if(this.state.displayedSets.length != prevState.displayedSets.length) {
+      var node = this.refs.displayedSets.getDOMNode();
       var scrollAnimate = window.setInterval(function () {
         //console.log('left=' + node.scrollLeft + ' scollwidth=' + node.scrollWidth + ' clientwidth=' + node.clientWidth);
         if (node.scrollLeft < node.scrollWidth - node.clientWidth - 2) {
@@ -94,37 +91,26 @@ class WorkbenchManager extends React.Component {
   componentWillUnmount() {
     this.props.userstore.removeUserLogInListener(this._onUserLogIn);
     this.props.userstore.removeUserLogOutListener(this._onUserLogOut);
-    this.props.managerstore.removeManagerUpdateListener(this._onWorkbenchUpdate);
+    this.props.managerstore.removeManagerUpdateListener(this._onSetUpdate);
   }
 
   render() {
     var self = this;
     return <div style={this.containerStyle} >
       <div style={this.optionBarStyle}></div>
-      <div style={this.workbenchExplorerStyle} ref='workbenches'>
-        <WorkbenchNodeDisplay workbench={this.state.base}
-                              index={-1}
-                              managerstore={this.props.managerstore}
-        />
-        {this.state.workbenches.map(function(wb, idx) {
-          if(wb) {
-            return <WorkbenchNodeDisplay key={'WB-NODE-' + wb.id + '-' + idx}
-                                         workbench={wb}
-                                         index={idx}
-                                         managerstore={self.props.managerstore}
+      <div style={this.workbenchExplorerStyle} ref='sets'>
+        <StudyDisplay managerstore={this.props.managerstore} />
+        {this.state.displayedSets.map(function(s, idx) {
+            return <SetDisplay key={'SET-NODE-' + s.uid + '-' + idx}
+                               set={s}
+                               index={idx}
+                               managerstore={self.props.managerstore}
+                               metastore={self.props.metastore}
             />;
-          }
-          else {
-            return <WorkbenchNodeDisplay key={'WB-NODE-loading-' + idx}
-                                         workbench={wb}
-                                         index={idx}
-                                         managerstore={self.props.managerstore}
-            />;
-          }
         })}
       </div>
     </div>
   }
 }
 
-export default WorkbenchManager;
+export default StudyManager;

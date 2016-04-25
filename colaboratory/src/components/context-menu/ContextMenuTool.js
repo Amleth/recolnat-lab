@@ -17,13 +17,13 @@ class ContextMenuTool extends React.Component {
   }
 
   componentWillMount() {
-    if(this.props.toolstore.getToolName() == this.props.tool.id) {
+    if(this.props.toolstore.getToolName() == this.props.tool.uid) {
       this.setState({active: <i className="checkmark icon"></i>});
     }
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(this.props.toolstore.getToolName() == this.props.tool.id) {
+    if(this.props.toolstore.getToolName() == this.props.tool.uid) {
       nextState.active = <i className="checkmark icon"></i>;
     }
     else {
@@ -32,7 +32,7 @@ class ContextMenuTool extends React.Component {
   }
 
   setActiveTool() {
-    ToolActions.setTool(this.props.tool.id);
+    ToolActions.setTool(this.props.tool.uid);
     ToolActions.updateTooltipData(this.props.tool.tooltip);
     this.setState({active: <i className="checkmark icon"></i>});
   }

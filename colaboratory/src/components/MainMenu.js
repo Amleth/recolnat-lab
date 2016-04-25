@@ -19,12 +19,17 @@ class MainMenu extends React.Component {
       width: this.props.width + 'px',
       minWidth: this.props.width + 'px',
       maxWidth: this.props.width + 'px',
-      cursor: 'default'
+      cursor: 'default',
+      pointerEvents: 'none'
 
       //margin: '3px 3px 3px 3px',
       //padding: '5px 5px 5px 5px'
       //margin: 0,
       //padding: 0
+    };
+
+    this.enableEventsStyle = {
+      pointerEvents: 'auto'
     };
 
     this.optionStyle = {
@@ -47,9 +52,10 @@ class MainMenu extends React.Component {
 
   render() {
     return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
-      <i className='sidebar icon' />
-      <span style={this.textStyle} className='text'>Le Collaboratoire</span>
-      <div className='menu'>
+      <i className='circular inverted blue sidebar icon' style={this.enableEventsStyle}/>
+
+      <div className='menu'  style={this.enableEventsStyle}>
+        <div className='header'>Le Collaboratoire</div>
         <div className='item' style={this.optionStyle}>
           <span className='text'>Vue</span>
           <div className='right menu'>

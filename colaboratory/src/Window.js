@@ -3,15 +3,15 @@
 import React from 'react';
 import request from 'superagent';
 
-import VirtualWorkbench from './components/VirtualWorkbench';
-import PaletteAccordion from './components/PaletteAccordion';
+import VirtualBenchLab from './components/VirtualBenchLab';
+import LeftPane from './components/LeftPane';
 import RightPane from './components/RightPane';
 import PopupToolContainer from './components/PopupToolComponent';
 import Tooltip from './components/ActiveToolTooltip';
 import TopPane from './components/TopPane';
 import MainMenu from './components/MainMenu';
+import Modals from './components/Modals';
 
-import EntityStore from './stores/EntitiesStore';
 import MinimapStore from './stores/MinimapStore';
 import ViewStore from './stores/ViewStore';
 import ToolStore from './stores/ToolStore';
@@ -19,22 +19,43 @@ import UserStore from './stores/UserStore';
 import MenuStore from './stores/MenuStore';
 import ManagerStore from './stores/ManagerStore';
 import ImageStore from './stores/ImageStore';
+import MetadataStore from './stores/MetadataStore';
+import ModalStore from './stores/ModalStore';
+import LabBenchStore from './stores/LabBenchStore';
+import ModeStore from './stores/ModeStore';
 
 import ViewActions from './actions/ViewActions';
+import MetadataActions from './actions/MetadataActions';
 
-import API from './utils/API.js';
+import ViewConstants from './constants/ViewConstants';
+
+import InterStoreCommunicationsController from './utils/InterStoreCommunicationsController';
 
 import conf from './conf/ApplicationConfiguration';
 
 const ministore = new MinimapStore();
 const viewstore = new ViewStore();
-const entitystore = new EntityStore();
 const toolstore = new ToolStore();
 const userstore = new UserStore();
 const menustore = new MenuStore();
 const managerstore = new ManagerStore();
 const imagestore = new ImageStore();
-const api = new API();
+const metastore = new MetadataStore();
+const modalstore = new ModalStore();
+const benchstore = new LabBenchStore();
+const modestore = new ModeStore();
+const controller = new InterStoreCommunicationsController({
+  ministore: ministore,
+  viewstore: viewstore,
+  toolstore: toolstore,
+  userstore: userstore,
+  menustore: menustore,
+  managerstore: managerstore,
+  metastore: metastore,
+  modalstore: modalstore,
+  benchstore: benchstore,
+  modestore: modestore
+});
 
 class Window extends React.Component {
   constructor(props) {
@@ -58,7 +79,7 @@ class Window extends React.Component {
       left: '0',
       height: (window.innerHeight) + 'px',
       width: '100%',
-      zIndex: '502',
+      zIndex: ViewConstants.zIndices.topPane,
       paddingTop: this.menuHeight + 'px',
       backgroundColor: 'rgba(0,0,0,0.0)',
       WebkitTransition: 'top 1s, width 1s',
@@ -69,13 +90,14 @@ class Window extends React.Component {
       position: 'fixed',
       top: this.menuHeight + 'px',
       left: '0',
-      zIndex: '500',
+      zIndex: ViewConstants.zIndices.leftPane,
       width: this.leftPaneWidth + 'px',
       height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'left 1s',
       transition: 'left 1s',
-      overflow: 'auto',
+      overflowX: 'hidden',
+      overflowY: 'auto',
       WebkitBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       MozBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       boxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)'
@@ -85,7 +107,7 @@ class Window extends React.Component {
       position: 'fixed',
       right: '0px',
       top: this.menuHeight + 'px',
-      zIndex: '500',
+      zIndex: ViewConstants.zIndices.rightPane,
       width: this.rightPaneWidth + 'px',
       height: (window.innerHeight - this.menuHeight) + 'px',
       backgroundColor: '#F2F2F2',
@@ -111,7 +133,7 @@ class Window extends React.Component {
       position: 'fixed',
       left: this.leftPaneWidth + 'px',
       top: '50vh',
-      zIndex: '499',
+      zIndex: ViewConstants.zIndices.leftPaneCloseButton,
       height: '20px',
       WebkitTransition: 'left 1s',
       transition: 'left 1s'
@@ -121,7 +143,7 @@ class Window extends React.Component {
       position: 'fixed',
       left: '35vw',
       top: (window.innerHeight -this.closeTopPaneButtonHeight) + 'px',
-      zIndex: '502',
+      zIndex: ViewConstants.zIndices.topPaneCloseButton,
       height: this.closeTopPaneButtonHeight + 'px',
       maxHeight: this.closeTopPaneButtonHeight + 'px',
       width: '200px',
@@ -135,7 +157,7 @@ class Window extends React.Component {
       position: 'absolute',
       right: this.rightPaneWidth + 'px',
       top: '50vh',
-      zIndex: '499',
+      zIndex: ViewConstants.zIndices.rightPaneCloseButton,
       height: '20px',
       WebkitTransition: 'right 1s',
       transition: 'right 1s'
@@ -147,7 +169,7 @@ class Window extends React.Component {
       overflow: 'hidden',
       position: 'fixed',
       width: '100%',
-      zIndex: '9000'
+      zIndex: ViewConstants.zIndices.mainMenu
     };
 
     //this.collabTitleStyle = {
@@ -164,10 +186,6 @@ class Window extends React.Component {
     //  padding: '5px 5px 5px 5px'
     //};
 
-    this.loginModalStyle = {
-      zIndex: 99999
-    };
-
     this.state = {
       userLoggedIn: false,
       leftSidebar: true,
@@ -175,7 +193,7 @@ class Window extends React.Component {
       topSidebar: true,
       leftSidebarIcon: 'left',
       rightSidebarIcon: 'right',
-      workbench: "Pas d'étude chargée"
+      activeSetName: "Pas d'étude chargée"
     };
 
     this._onUserLogIn = () => {
@@ -193,8 +211,8 @@ class Window extends React.Component {
       return toggle.apply(this);
     };
 
-    this._onWorkbenchChange = () => {
-      const changeDisplayedName = () => this.setWorkbenchName();
+    this._onSetIdChange = () => {
+      const changeDisplayedName = () => this.setActiveSetName();
       return changeDisplayedName.apply(this);
     }
   }
@@ -202,12 +220,12 @@ class Window extends React.Component {
   login() {
     //console.log('calling login in window');
     // Open connection to websocket
-    api.openWebsocket();
+    //api.openWebsocket();
     this.setState({userLoggedIn: true});
   }
 
   logout() {
-    api.closeWebsocket();
+    //api.closeWebsocket();
     this.setState({userLoggedIn: false});
   }
 
@@ -240,23 +258,17 @@ class Window extends React.Component {
     window.location.href = 'https://cas.recolnat.org/logout';
   }
 
-  setWorkbenchName() {
-    if(entitystore.getWorkbenchId()) {
-      var id = entitystore.getWorkbenchId();
-      var workbench = managerstore.getWorkbench(id);
-      if(workbench) {
-        this.setState({workbench: workbench.name});
-      }
-      else {
-        window.setTimeout(this.setWorkbenchName.bind(this), 500);
-      }
+  setActiveSetName() {
+    console.log(JSON.stringify(managerstore.getSelected()));
+    if(managerstore.getSelected().name) {
+      this.setState({activeSetName: managerstore.getSelected().name});
     }
   }
 
   toggleTopMenu(visible = undefined) {
     if(visible === undefined) {
-      if(entitystore.getWorkbenchId()) {
-        ViewActions.setActiveWorkbench(entitystore.getWorkbenchId());
+      if(managerstore.getSelected().id) {
+        ViewActions.setActiveSet(managerstore.getSelected().id);
       }
       this.setState({topSidebar: !this.state.topSidebar});
     }
@@ -300,7 +312,7 @@ class Window extends React.Component {
     managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
     viewstore.setViewportData(null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null);
     viewstore.setViewportLocationInWindow(this.menuHeight, this.leftPaneWidth);
-    entitystore.addChangeWorkbenchListener(this._onWorkbenchChange);
+    managerstore.addSelectionChangeListener(this._onSetIdChange);
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
     window.addEventListener("message", this.receiveMessage.bind(this));
@@ -337,6 +349,11 @@ class Window extends React.Component {
     }
 
     if(nextState.topSidebar) {
+      if(!this.state.topSidebar) {
+        window.setTimeout(
+        MetadataActions.loadLabBench.bind(null, managerstore.getSelected().id), 10
+        );
+      }
       this.topSliderStyle.top = '0px';
       this.topSliderStyle.height = height + 'px';
       this.topButtonStyle.top = (height -this.closeTopPaneButtonHeight) + 'px';
@@ -358,16 +375,7 @@ class Window extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(!this.state.userLoggedIn) {
-      $(this.refs.loginPromptModal.getDOMNode())
-        .modal('setting', 'closable', false)
-        .modal('show');
-    }
-    else {
-      $(this.refs.loginPromptModal.getDOMNode())
-        .modal('setting', 'closable', false)
-        .modal('hide');
-
+    if(this.state.userLoggedIn) {
       var frame = this.refs.recolnatMenu.getDOMNode().contentWindow;
       frame.postMessage({type: "user", username: userstore.getUser().login, userProfile: ''}, 'https://www.recolnat.org/menu');
     }
@@ -377,25 +385,13 @@ class Window extends React.Component {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
     managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
-    entitystore.removeChangeWorkbenchListener(this._onWorkbenchChange);
+    managerstore.addSelectionChangeListener(this._onSetIdChange);
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
   render() {
     return(
       <div style={this.containerStyle}>
-
-        <div ref='loginPromptModal' className='ui modal' style={this.loginModalStyle}>
-          <div className='ui header'>Connexion nécessaire</div>
-          <div className='ui content'>
-            <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
-            <a className='ui button'
-               href={'https://cas.recolnat.org/login?service=' + window.location.protocol  + '//' + window.location.hostname + '/' + window.location.pathname}>Me Connecter</a>
-            <a className='ui button'
-               href='http://signup.recolnat.org/#/register'>Créer compte</a>
-          </div>
-        </div>
-
         <div>
           <iframe id="recolnatMenu"
                   ref='recolnatMenu'
@@ -405,50 +401,74 @@ class Window extends React.Component {
                   onLoad={this.signalIframeReady.bind(this)}
                   src='https://www.recolnat.org/menu'></iframe>
         </div>
+        <Modals userstore={userstore}
+                viewstore={viewstore}
+                toolstore={toolstore}
+                menustore={menustore}
+                metastore={metastore}
+                modalstore={modalstore}
+                ministore={ministore}
+                benchstore={benchstore}
+                modestore={modestore}
+                managerstore={managerstore} />
         <MainMenu top={this.menuHeight}
                   width={this.leftPaneWidth}
                   userstore={userstore}
                   viewstore={viewstore}
-                  entitystore={entitystore}
                   toolstore={toolstore}
                   menustore={menustore}
                   ministore={ministore}
+                  metastore={metastore}
+                  modestore={modestore}
                   managerstore={managerstore} />
         <div style={this.topSliderStyle}>
           <TopPane userstore={userstore}
                    viewstore={viewstore}
-                   entitystore={entitystore}
                    toolstore={toolstore}
                    menustore={menustore}
                    ministore={ministore}
+                   metastore={metastore}
+                   modestore={modestore}
+                   modalstore={modalstore}
                    managerstore={managerstore}
                    menuHeight={this.menuHeight}
                    windowHeight={window.innerHeight}
                    closeButtonHeight={this.closeTopPaneButtonHeight}
           />
-          </div>
-          <div className="ui bottom attached button mini compact"
-               style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.workbench}</div>
+        </div>
+        <div className="ui bottom attached button mini compact"
+             style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.workbench}</div>
         <div>
           <div style={this.columnLeftSideStyle}>
-            <PaletteAccordion ministore={ministore} viewstore={viewstore} entitystore={entitystore} toolstore={toolstore} userstore={userstore}/>
+            <LeftPane
+              ministore={ministore}
+              benchstore={benchstore}
+              viewstore={viewstore}
+              metastore={metastore}
+              toolstore={toolstore}
+              modestore={modestore}
+              userstore={userstore}/>
           </div>
           <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
           <div style={this.columnMiddleStyle}>
-            <VirtualWorkbench
+            <VirtualBenchLab
               userstore={userstore}
               viewstore={viewstore}
-              entitystore={entitystore}
               toolstore={toolstore}
               menustore={menustore}
+              metastore={metastore}
+              modalstore={modalstore}
+              modestore={modestore}
               ministore={ministore}
-              wsconnector={api} />
+              benchstore={benchstore}
+              managerstore={managerstore}/>
           </div>
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>
             <RightPane
               viewstore={viewstore}
-              entitystore={entitystore}
+              metastore={metastore}
+              modestore={modestore}
               userstore={userstore}/>
           </div>
         </div>

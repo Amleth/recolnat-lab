@@ -43,7 +43,7 @@ class MetadataViewer extends React.Component {
     };
 
     this._onChangeSelection = () => {
-      const displayMetadata = () => this.setState({entity: this.props.entitystore.getSelectedImageId()});
+      const displayMetadata = () => console.warn('not implemented');
 
       return displayMetadata.apply(this);
     };
@@ -74,7 +74,7 @@ class MetadataViewer extends React.Component {
       return;
     }
 
-    var metadata = this.props.entitystore.getSelectedMetadata();
+    var metadata = this.props.metastore.getMetadataAbout(id);
     if(!metadata) {
       window.setTimeout(this.displayMetadata.bind(this), 2000);
       return;
@@ -187,13 +187,13 @@ class MetadataViewer extends React.Component {
   }
 
   displaySelectedName() {
-    if(this.state.entity) {
-      if(this.props.entitystore.getSelectedMetadata()) {
-        return this.props.entitystore.getSelectedMetadata().name;
-      }
-    }
+    console.warn('not implemented');
+    //if(this.state.entity) {
+    //  if(this.props..getSelectedMetadata()) {
+    //    return this.props..getSelectedMetadata().name;
+    //  }
+    //}
       return 'Pas de planche sélectionnée';
-
   }
 
   componentDidMount() {
@@ -202,7 +202,7 @@ class MetadataViewer extends React.Component {
         exclusive: false
       });
     }
-    this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
+    //this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -256,7 +256,7 @@ class MetadataViewer extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
+    //this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
   }
 
   render() {

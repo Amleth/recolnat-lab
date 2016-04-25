@@ -9,7 +9,7 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 
 import MenuConstants from '../constants/MenuConstants';
 
-import EntitiesEvents from './events/EntitiesEvents';
+//import EntitiesEvents from './events/EntitiesEvents';
 import MenuEvents from './events/MenuEvents';
 
 import MenuActions from '../actions/MenuActions';
@@ -27,7 +27,6 @@ class MenuStore extends EventEmitter {
 
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
-      //console.log('EntitiesStore received ACTION', action.actionType);
       switch (action.actionType) {
         case MenuConstants.ActionTypes.EDITOR_CONTEXT_MENU:
           this.itemsAtCursorRightClick = action.items;

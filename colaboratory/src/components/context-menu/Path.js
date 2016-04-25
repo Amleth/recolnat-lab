@@ -21,7 +21,7 @@ class Path extends ContextMenuItem {
   }
 
   beginHilight() {
-    var comp = d3.select('#PATH-' + this.props.item.id);
+    var comp = d3.select('#PATH-' + this.props.item.uid);
     var color = comp.attr('stroke');
     var newColor = 'blue';
     if(color == 'blue') {
@@ -54,7 +54,7 @@ class Path extends ContextMenuItem {
         <a className='vertically fitted item'>Chemin vers polygone</a>
         <a className='vertically fitted item'>Modifier</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} metadata={this.props.metadata}/>
+        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.uid} metadata={this.props.metadata}/>
       </div>
     </div>;
   }

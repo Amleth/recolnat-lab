@@ -7,7 +7,7 @@ import React from 'react';
 
 import ManagerActions from '../../actions/ManagerActions';
 
-import WorkbenchNodeDisplay from './WorkbenchNodeDisplay';
+import WorkbenchNodeDisplay from './SetDisplay';
 
 class WorkbenchBase extends WorkbenchNodeDisplay {
   constructor(props) {
@@ -16,7 +16,7 @@ class WorkbenchBase extends WorkbenchNodeDisplay {
 
   //setActive(idx, node) {
   //  window.setTimeout(ManagerActions.setSelectedWorkbenchGraphNode.bind(null,node),1);
-  //  window.setTimeout(this.props.managerstore.requestGraphAround(node.id, node.type, 0, undefined, undefined, true), 1);
+  //  window.setTimeout(this.props.managerstore.requestGraphAround(node.uid, node.type, 0, undefined, undefined, true), 1);
   //  ManagerActions.setActiveItemInWorkbench(this.props.index, idx);
   //}
 }

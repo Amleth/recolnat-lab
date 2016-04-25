@@ -35,7 +35,7 @@ class Remove extends React.Component {
     var self = this;
     request.post(conf.actions.databaseActions.remove)
       .set('Content-Type', "application/json")
-      .send({id: this.props.id})
+      .send({id: this.props.uid})
       .withCredentials()
       .end((err, res) => {
         if(err) {

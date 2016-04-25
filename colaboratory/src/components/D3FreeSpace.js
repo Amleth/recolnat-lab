@@ -36,15 +36,20 @@ class D3FreeSpace {
     this.view.x = 0;
     this.view.y = 0;
     this.view.scale = 1.0;
-    this.store = null;
+    this.metadatastore = null;
+    this.benchstore = null;
     this.imageSourceLevel = 0;
+    this.loadData = {
+      imagesToLoad: 0,
+      imagesLoaded: 0
+    };
 
     this._onEndDragFromInbox = () => {
       const addFromInbox = () => this.fixShadow();
       return addFromInbox.apply(this);
     };
 
-    this.workbench = null;
+    //this.setView = null;
     this.displayData = {
       xMin: Number.POSITIVE_INFINITY,
       xMax: Number.NEGATIVE_INFINITY,
@@ -85,43 +90,46 @@ class D3FreeSpace {
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
   }
 
-  setDataStore(store) {
-    this.store = store;
+  setMetadataStore(store) {
+    this.metadatastore = store;
   }
 
-  newWorkbench(childEntities, workbench) {
-    this.workbench = workbench;
+  setLabBenchStore(store) {
+    this.benchstore = store;
+  }
+
+  newLabBench() {
     this.displayData.xMin = Number.POSITIVE_INFINITY;
     this.displayData.xMax = Number.NEGATIVE_INFINITY;
     this.displayData.yMin = Number.POSITIVE_INFINITY;
     this.displayData.yMax = Number.NEGATIVE_INFINITY;
-
-    this.drawChildEntities(childEntities, workbench);
   }
 
-  updateChildEntities(childEntities) {
-    // Position, transparency
-    var children = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(childEntities, function(d) {return d.id});
-    for(var i = 0; i < childEntities.length; ++i) {
-      var entity = childEntities[i];
+  loadView(viewId) {
+    //this.setView = viewId;
+    this.drawChildEntities();
+  }
 
-      var group = d3.select("#GROUP-" + entity.id);
-      var image = d3.select("#NODE-" + entity.id);
+  updateChildEntities() {
+    var viewData = this.buildDisplayDataElement();
+    if(!viewData) {
+      return;
+    }
+    // Position, transparency
+    var children = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(viewData.displays, function(d) {return d.link});
+
+    for(var i = 0; i < viewData.displays.length; ++i) {
+      var entity = viewData.displays[i];
+
+      var group = d3.select("#GROUP-" + entity.link);
+      var image = d3.select("#NODE-" + entity.link);
 
       if(group.empty() || image.empty()) {
         continue;
       }
 
       // Update position
-      this.updateAllAttributes(entity.id);
-
-      if(entity.x) {
-        this.displayData.xMin = Math.min(this.displayData.xMin, entity.x - 20);
-        this.displayData.yMin = Math.min(this.displayData.yMin, entity.y - 20);
-
-        this.displayData.xMax = Math.max(parseInt(image.attr("width")) + entity.x + 20, this.displayData.xMax);
-        this.displayData.yMax = Math.max(parseInt(image.attr("height")) + entity.y + 20, this.displayData.yMax);
-      }
+      this.updateAllAttributes(entity.link);
 
       // TODO Update transparency
     }
@@ -130,47 +138,76 @@ class D3FreeSpace {
       ViewActions.changeLoaderState(null)},100);
   }
 
-  updateWorkbenchMetadata(metadata){
-    // Remove borders around selections
-    d3.selectAll('.' + Classes.BORDER_CLASS)
-      .style('fill', '#AAAAAA');
-    //console.log('updateWbMeta=' + JSON.stringify(metadata));
+  //updateWorkbenchMetadata(metadata){
+  //  // Remove borders around selections
+  //  d3.selectAll('.' + Classes.BORDER_CLASS)
+  //    .style('fill', '#AAAAAA');
+  //  //console.log('updateWbMeta=' + JSON.stringify(metadata));
+  //
+  //  if(metadata.selected) {
+  //    d3.select('#BORDER-' + metadata.selected.uid)
+  //      .style('stroke', '#708D23')
+  //      .style('fill', '#708D23');
+  //
+  //    window.setTimeout((function(id) {
+  //      return function() {
+  //        D3FreeSpace.sendToMinimap(id);
+  //      }
+  //    })(metadata.selected.uid), 100);
+  //  }
+  //  else {
+  //    window.setTimeout(function() {
+  //      MinimapActions.unsetMinimap();
+  //    }, 10);
+  //  }
+  //}
 
-    if(metadata.selected) {
-      d3.select('#BORDER-' + metadata.selected.id)
-        .style('stroke', '#708D23')
-        .style('fill', '#708D23');
+  updateEntitiesMetadata() {
+    console.log('updateEntitiesMetadata');
+    var bench = this.benchstore.getLabBench();
+    if(!bench) {
+      return;
+    }
+    var view = this.metadatastore.getMetadataAbout(this.benchstore.getActiveViewId());
+    if(!view) {
+      return;
+    }
 
-      window.setTimeout((function(id) {
-        return function() {
-          D3FreeSpace.sendToMinimap(id);
+    var pois = [];
+    var tois = [];
+    var rois = [];
+    for(var i = 0 ; i < view.displays; ++i) {
+      var entity = view.displays[i];
+      var entityId = entity.entity;
+      // For each entity get trails, points, regions
+      if(bench.images[entityId]) {
+        var poiIds = bench.images[entityId].pois;
+        var toiIds = bench.images[entityId].tois;
+        var roiIds = bench.images[entityId].rois;
+
+        for(var j = 0; j < poiIds.length; ++j) {
+          var metadata = JSON.parse(JSON.stringify(this.metadatastore.getMetadataAbout(pois[j])));
+          pois.push(metadata);
         }
-      })(metadata.selected.id), 100);
-    }
-    else {
-      window.setTimeout(function() {
-        MinimapActions.unsetMinimap();
-      }, 10);
-    }
-  }
+        this.displayPointsOfInterest(entity.link, pois);
 
-  updateEntitiesMetadata(metadata) {
-    for(var i = 0; i < metadata.length; ++i) {
-      var metadataAboutId = metadata[i];
-      var id = metadataAboutId.id;
-      if(metadataAboutId.pois) {
-        this.displayPointsOfInterest(id, metadataAboutId.pois);
-      }
-      if(metadataAboutId.rois) {
-        this.displayRegionsOfInterest(id, metadataAboutId.rois);
-      }
-      if(metadataAboutId.paths) {
-        this.displayPaths(id, metadataAboutId.paths);
+        for(j = 0; j < roiIds.length; ++j) {
+          var metadata = JSON.parse(JSON.stringify(this.metadatastore.getMetadataAbout(rois[j])));
+          rois.push(metadata);
+        }
+        this.displayRegionsOfInterest(entity.link, rois);
+
+        for(j = 0; j < toiIds.length; ++j) {
+          var metadata = JSON.parse(JSON.stringify(this.metadatastore.getMetadataAbout(tois[j])));
+          tois.push(metadata);
+        }
+        this.displayTrailsOfInterest(entity.link, tois);
       }
     }
   }
 
   updateViewWithProperties(properties) {
+    console.log('updateView');
     d3.selectAll('.' + Classes.POI_CLASS)
       .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')scale(' + properties.sizeOfTextAndObjects + ')');
 
@@ -233,9 +270,9 @@ class D3FreeSpace {
   }
 
   displayShadow(data) {
-    var self = this;
+    console.log('displayShadow');
+    //console.log(JSON.stringify(data));
     if(d3.select('#SHADOW').empty()) {
-
       d3.select('svg')
         .attr('pointer-events', 'all')
         .on('dragover', function(){D3FreeSpace.updateShadowPosition()});
@@ -249,9 +286,9 @@ class D3FreeSpace {
         .append('svg:image')
         .attr("x", 0)
         .attr("y", 0)
-        .attr("height", 200)
-        .attr("width", 100)
-        //.attr("xlink:href", data.url)
+        .attr("height", d => d.height)
+        .attr("width", d => d.width)
+        //.attr("xlink:href", d => d.thumbnail)
         .style('opacity', 0.3);
 
       //var img = new Image();
@@ -264,13 +301,11 @@ class D3FreeSpace {
 
       var appendShadowCallback = function (image) {
         d3.select('#SHADOW').select('image')
-          .attr("height", image.height)
-          .attr("width", image.width)
           .attr("xlink:href", image.src);
       };
 
       window.setTimeout(
-      ViewActions.loadImage(data.url, appendShadowCallback.bind(this)),10);
+      ViewActions.loadImage(data.thumbnail, appendShadowCallback.bind(this)),10);
     }
   }
 
@@ -289,8 +324,8 @@ class D3FreeSpace {
     var x = parseInt(image.attr('x'))+50;
     var y = parseInt(image.attr('y'))+100;
     //console.log('setting shadow to location (' + x + ',' + y + ')');
-    ViewActions.moveEntity(this.workbench,
-      data.id,
+    ViewActions.placeEntity(this.benchstore.getActiveViewId(),
+      data.uid,
       x,
       y
     );
@@ -371,39 +406,35 @@ class D3FreeSpace {
       .attr('xlink:href', d => d[paramName] ? d[paramName] : d.url);
   }
 
-  drawChildEntities(childEntities, workbench) {
+  drawChildEntities() {
+    console.log('drawChildEntities');
+    var self = this;
     let group = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
-    var elements = [];
-    var bags = [];
-    this.loadData = {};
-    this.loadData.contentToLoad = childEntities.length;
-    this.loadData.contentLoaded = 0;
-
-    for (var j = 0; j < childEntities.length; ++j) {
-      var child = childEntities[j];
-      child.workbench = workbench;
-      if(child.x) {
-        this.displayData.xMin = Math.min(this.displayData.xMin, child.x - 60);
-        this.displayData.yMin = Math.min(this.displayData.yMin, child.y - 60);
-      }
-      elements.push(child);
+    var viewData = this.buildDisplayDataElement();
+    if(!viewData) {
+      return;
     }
+    //console.log(JSON.stringify(viewData));
+
+    this.loadData = {};
+    this.loadData.imagesToLoad = viewData.displays.length;
+    this.loadData.imagesLoaded = 0;
 
     // Append new entries
-    var children = group.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(elements);
+    var children = group.selectAll('.' + Classes.CHILD_GROUP_CLASS).data(viewData.displays);
     var childGroupEnter = children.enter().append('g')
       .attr('class', Classes.CHILD_GROUP_CLASS)
-      .attr('id', d => 'GROUP-' + d.id)
+      .attr('id', d => 'GROUP-' + d.link)
       .attr('transform', d => 'translate(1000000,1000000)');
 
     var underChildGroupEnter = childGroupEnter
       .append('g')
       .attr('class', Classes.UNDER_CHILD_CLASS)
-      .attr('id', d => 'UNDER-' + d.id);
+      .attr('id', d => 'UNDER-' + d.link);
 
     underChildGroupEnter.append("rect")
       .attr('class', Classes.BORDER_CLASS)
-      .attr('id', d => 'BORDER-' + d.id)
+      .attr('id', d => 'BORDER-' + d.link)
       .attr('x', -4)
       .attr('y', -104)
       .attr('rx', 15)
@@ -411,7 +442,7 @@ class D3FreeSpace {
       .style('fill', '#AAAAAA');
 
     underChildGroupEnter.append('text')
-      .attr('id', d => 'NAME-' + d.id)
+      .attr('id', d => 'NAME-' + d.link)
       .attr('x', 10)
       .attr('y', -40)
       .attr('dy', '.20em')
@@ -423,28 +454,55 @@ class D3FreeSpace {
     childGroupEnter
       .append('svg:image')
       .attr('class', Classes.IMAGE_CLASS)
-      .attr('id', d => 'NODE-' + d.id)
+      .attr('id', d => 'NODE-' + d.link)
       .attr("x", 0)
       .attr("y", 0);
 
     var overChildClassEnter = childGroupEnter.append('g')
       .attr('class', Classes.OVER_CHILD_CLASS)
-      .attr('id', d=> 'OVER-' + d.id);
+      .attr('id', d=> 'OVER-' + d.link);
 
     overChildClassEnter.append('g')
       .attr('class', Classes.ANNOTATIONS_CONTAINER_CLASS)
-      .attr('id', d=> 'ANNOTATIONS-' + d.id);
+      .attr('id', d=> 'ANNOTATIONS-' + d.link);
 
-    var self = this;
-
-    for(var i = 0; i < elements.length; ++i) {
-      var element = elements[i];
-      window.setTimeout(this.loadImage(element, self), 50);
+    for(var i = 0; i < viewData.displays.length; ++i) {
+      var element = viewData.displays[i];
+      window.setTimeout(this.loadImage.bind(self, element), 10);
     }
 
-    if(this.loadData.contentLoaded >= this.loadData.contentToLoad) {
+    if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
       D3FreeSpace.endLoad();
     }
+  }
+
+  buildDisplayDataElement() {
+    var viewData = JSON.parse(JSON.stringify(this.metadatastore.getMetadataAbout(this.benchstore.getActiveViewId())));
+    //console.log(JSON.stringify(viewData));
+    if(viewData) {
+      for(var j = 0; j < viewData.displays.length; ++j) {
+        var posEntity = viewData.displays[j];
+        var entityMetadata = this.benchstore.getData(posEntity.entity);
+        //var entityMetadata = this.metadatastore.getMetadataAbout(posEntity.entity);
+        if(entityMetadata) {
+          Object.keys(entityMetadata).forEach(function (key) {
+            viewData.displays[j][key] = entityMetadata[key];
+          });
+
+          if (posEntity.x && posEntity.y) {
+            this.displayData.xMin = Math.min(this.displayData.xMin, posEntity.x - 60);
+            this.displayData.yMin = Math.min(this.displayData.yMin, posEntity.y - 60);
+
+            this.displayData.xMax = Math.max(posEntity.width + posEntity.x + 20, this.displayData.xMax);
+            this.displayData.yMax = Math.max(posEntity.height + posEntity.y + 20, this.displayData.yMax);
+          }
+        }
+      }
+      //console.log(JSON.stringify(viewData));
+      return viewData;
+    }
+
+    return null;
   }
 
   static endLoad() {
@@ -455,125 +513,49 @@ class D3FreeSpace {
       ViewActions.changeLoaderState(null)},2000);
   }
 
-  loadImage(elt, self) {
-    //console.log(JSON.stringify(elt));
-    //var img = new Image();
-    //img.onload = function () {
-    //  //console.log('loaded ' + JSON.stringify(elt));
-    //  var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
-    //
-    //  var height = this.height;
-    //  var width = this.width;
-    //  var url = this.src;
-    //
-    //  group.each(function(d, i) {
-    //    if(d.id == elt.id) {
-    //      d.height = height;
-    //      d.width = width;
-    //      //d.url = url;
-    //    }
-    //  });
-    //
-    //  group.select("#NODE-" + elt.id)
-    //    .attr("height", d => d.height)
-    //    .attr("width", d => d.width)
-    //    .attr("xlink:href", d => d.thumburl ? d.thumburl : d.url);
-    //
-    //  group.select("#BORDER-" + elt.id)
-    //    .attr('width', d => d.width + 8)
-    //    .attr('height', d => d.height + 148);
-    //  //.style('stroke-width', '4px');
-    //
-    //  group.select("#NAME-" + elt.id)
-    //    .attr('width', d => d.width + 8)
-    //    .attr('height', d => d.height + 148);
-    //
-    //  self.updateAllAttributes(elt.id);
-    //
-    //  if(elt.x) {
-    //    self.displayData.xMax = Math.max(this.width + elt.x + 60, self.displayData.xMax);
-    //    self.displayData.yMax = Math.max(this.height + elt.y + 60, self.displayData.yMax);
-    //  }
-    //
-    //  self.fitViewportToData();
-    //
-    //  self.loadData.contentLoaded += 1;
-    //  window.setTimeout(function() {
-    //    ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.contentLoaded + '/' + self.loadData.contentToLoad )},10);
-    //
-    //  if(self.loadData.contentLoaded >= self.loadData.contentToLoad) {
-    //    D3FreeSpace.endLoad();
-    //  }
-    //};
-
+  loadImage(elt) {
+    console.log('loadImage');
+    var self = this;
     var displayLoadedImageCallback = function (image) {
       //console.log('loaded ' + JSON.stringify(elt));
       var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
 
-      var height = image.height;
-      var width = image.width;
       var url = image.src;
 
-      group.each(function(d, i) {
-        if(d.id == elt.id) {
-          d.height = height;
-          d.width = width;
-          //d.url = url;
-        }
-      });
-
-      group.select("#NODE-" + elt.id)
+      group.select("#NODE-" + elt.link)
         .attr("height", d => d.height)
         .attr("width", d => d.width)
         .attr("xlink:href", d => d.thumburl ? d.thumburl : d.url);
 
-      group.select("#BORDER-" + elt.id)
-        .attr('width', d => d.width + 8)
-        .attr('height', d => d.height + 148);
-      //.style('stroke-width', '4px');
-
-      group.select("#NAME-" + elt.id)
+      group.select("#BORDER-" + elt.link)
         .attr('width', d => d.width + 8)
         .attr('height', d => d.height + 148);
 
-      this.updateAllAttributes(elt.id);
+      group.select("#NAME-" + elt.link)
+        .attr('width', d => d.width + 8)
+        .attr('height', d => d.height + 148);
 
-      if(elt.x) {
-        this.displayData.xMax = Math.max(image.width + elt.x + 60, this.displayData.xMax);
-        this.displayData.yMax = Math.max(image.height + elt.y + 60, this.displayData.yMax);
-      }
+      this.updateAllAttributes(elt.link);
+
+      //if(elt.x) {
+      //  this.displayData.xMax = Math.max(image.width + elt.x + 60, this.displayData.xMax);
+      //  this.displayData.yMax = Math.max(image.height + elt.y + 60, this.displayData.yMax);
+      //}
 
       this.fitViewportToData();
 
-      this.loadData.contentLoaded += 1;
+      this.loadData.imagesLoaded += 1;
       window.setTimeout(function() {
-        ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.contentLoaded + '/' + self.loadData.contentToLoad )},10);
+        ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.imagesLoaded + '/' + self.loadData.imagesToLoad )},10);
 
-      if(this.loadData.contentLoaded >= this.loadData.contentToLoad) {
+      if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
         D3FreeSpace.endLoad();
       }
     };
 
-    //img.onerror = function() {
-    //  console.error('Failed to load ' + img.src + '. Retrying...');
-    //  self.loadImage(elt, self);
-    //};
-
-    //img.src = elt.url;
-
     window.setTimeout(
-      ViewActions.loadImage.bind(null, elt.url, displayLoadedImageCallback.bind(this)),
+      ViewActions.loadImage.bind(null, elt.thumburl, displayLoadedImageCallback.bind(this)),
     10);
-
-    // If image takes too long to load, reload it
-    //window.setTimeout(function() {
-    //  if(!img.complete) {
-    //    console.log('Image load timeout reached. Attempting to reload');
-    //    img.src = '';
-    //    self.loadImage(elt, self);
-    //  }
-    //}, 10000);
-
   }
 
   updateAllAttributes(id) {
@@ -590,7 +572,7 @@ class D3FreeSpace {
     }, 10);
   }
 
-  displayPaths(id, paths) {
+  displayTrailsOfInterest(id, paths) {
     var annotationContainerGroup = d3.select("#ANNOTATIONS-" + id);
     annotationContainerGroup.selectAll('.' + Classes.PATH_CONTAINER_CLASS).remove();
     if(d3.select('#GROUP-' + id).empty()) {
@@ -608,7 +590,7 @@ class D3FreeSpace {
       .enter()
       .append('polyline')
       .attr('class', Classes.PATH_CLASS)
-      .attr('id', d => 'PATH-' + d.id)
+      .attr('id', d => 'PATH-' + d.uid)
       .attr('fill', 'none')
       .attr('stroke', 'red')
       .attr('points', d => d.vertices)
@@ -632,20 +614,20 @@ class D3FreeSpace {
       .enter()
       .append('g')
       .attr('class', Classes.POI_CLASS)
-      .attr('id', d => 'POI-' + d.id)
+      .attr('id', d => 'POI-' + d.uid)
       .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
 
-    poiGroupEnter.append('svg:title')
-      .text(d => d.text);
+    //poiGroupEnter.append('svg:title')
+    //  .text(d => d.text);
 
-    poiGroupEnter.append('rect')
-      .attr('rx', 5)
-      .attr('ry', 5)
-      .attr('width', 50)
-      .attr('height', 30)
-      .attr("x", -25)
-      .attr("y", -55)
-      .attr('fill', d => "rgb(" + JSON.parse(d.color)[0] + "," + JSON.parse(d.color)[1] + "," + JSON.parse(d.color)[2] + ")");
+    //poiGroupEnter.append('rect')
+    //  .attr('rx', 5)
+    //  .attr('ry', 5)
+    //  .attr('width', 50)
+    //  .attr('height', 30)
+    //  .attr("x", -25)
+    //  .attr("y", -55)
+    //  .attr('fill', d => "rgb(" + JSON.parse(d.color)[0] + "," + JSON.parse(d.color)[1] + "," + JSON.parse(d.color)[2] + ")");
 
     poiGroupEnter.append('svg:image')
       .attr("height", 60)
@@ -655,16 +637,15 @@ class D3FreeSpace {
       .attr("y", -60);
 
 
-    poiGroupEnter.append('text')
-      .text(d => d.letters)
-      .attr('x', 0)
-      .attr('y', -40)
-      .attr('dy', '.35em')
-      .attr('text-anchor', 'middle')
-      .attr('font-size', '20px')
-      .attr('font-family', 'sans-serif')
-      .attr('fill', d => "rgb(" + (255 - JSON.parse(d.color)[0]) + "," + (255 - JSON.parse(d.color)[1]) + "," + (255 - JSON.parse(d.color)[2]) + ")")
-    ;
+    //poiGroupEnter.append('text')
+    //  .text(d => d.letters)
+    //  .attr('x', 0)
+    //  .attr('y', -40)
+    //  .attr('dy', '.35em')
+    //  .attr('text-anchor', 'middle')
+    //  .attr('font-size', '20px')
+    //  .attr('font-family', 'sans-serif')
+    //  .attr('fill', d => "rgb(" + (255 - JSON.parse(d.color)[0]) + "," + (255 - JSON.parse(d.color)[1]) + "," + (255 - JSON.parse(d.color)[2]) + ")");
   }
 
   displayRegionsOfInterest(id, regions) {
@@ -681,7 +662,7 @@ class D3FreeSpace {
       .enter()
       .append('polygon')
       .attr('class', Classes.ROI_CLASS)
-      .attr('id', d => 'ROI-' + d.id)
+      .attr('id', d => 'ROI-' + d.uid)
       .attr('points', d => d.vertices)
       .attr('fill', 'blue')
       .attr('fill-opacity', 0.3);
@@ -689,45 +670,45 @@ class D3FreeSpace {
 
   findObjectsAtCoords(coordinates) {
     var objects = [];
-    if(!this.store) {
+    if(!this.metadatastore) {
       // Component not even mounted yet
       console.error("Visualisation component not mounted");
       return objects;
     }
-    var store = this.store;
+    var metastore = this.metadatastore;
 
     // Find images, use images to narrow search
     var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
     groups.each(
       function(d, i) {
-        var box = d3.select('#GROUP-' + d.id).node().getBoundingClientRect();
+        var box = d3.select('#GROUP-' + d.link).node().getBoundingClientRect();
 
         if(D3FreeSpace.coordsInBoundingBox(coordinates, box)) {
-          objects.push({id: d.id, type: TypeConstants.sheet});
+          objects.push({id: d.link, type: TypeConstants.sheet});
           // Process objects in sheet
-          var metadata = store.getEntityMetadata(d.id);
+          var metadata = metastore.getMetadataAbout(d.uid);
           if(metadata) {
             // Find polygons
             if (metadata.rois) {
               for (var m = 0; m < metadata.rois.length; ++m) {
-                var polygon = metadata.rois[m];
-                var polygonBox = d3.select('#ROI-' + polygon.id).node().getBoundingClientRect();
+                var polygonId = metadata.rois[m];
+                var polygonBox = d3.select('#ROI-' + polygonId).node().getBoundingClientRect();
                 if (D3FreeSpace.coordsInBoundingBox(coordinates, polygonBox)) {
-                  if (objects.indexOf({id: polygon.id, type: TypeConstants.region}) < 0) {
-                    objects.push({id: polygon.id, type: TypeConstants.region});
+                  if (objects.indexOf({id: polygonId, type: TypeConstants.region}) < 0) {
+                    objects.push({id: polygonId, type: TypeConstants.region});
                   }
                 }
               }
             }
 
             // Find paths
-            if (metadata.paths) {
-              for (var j = 0; j < metadata.paths.length; ++j) {
-                var path = metadata.paths[j];
-                var pathBox = d3.select('#PATH-' + path.id).node().getBoundingClientRect();
+            if (metadata.tois) {
+              for (var j = 0; j < metadata.tois.length; ++j) {
+                var pathId = metadata.tois[j];
+                var pathBox = d3.select('#PATH-' + pathId).node().getBoundingClientRect();
                 if (D3FreeSpace.coordsInBoundingBox(coordinates, pathBox)) {
-                  if (objects.indexOf({id: path.id, type: TypeConstants.path}) < 0) {
-                    objects.push({id: path.id, type: TypeConstants.path});
+                  if (objects.indexOf({id: pathId, type: TypeConstants.path}) < 0) {
+                    objects.push({id: pathId, type: TypeConstants.path});
                   }
                 }
               }
@@ -736,11 +717,11 @@ class D3FreeSpace {
             // Find points
             if (metadata.pois) {
               for (var n = 0; n < metadata.pois.length; ++n) {
-                var poi = metadata.pois[n];
-                var poiBox = d3.select('#POI-' + poi.id).node().getBoundingClientRect();
+                var poiId = metadata.pois[n];
+                var poiBox = d3.select('#POI-' + poiId).node().getBoundingClientRect();
                 if (D3FreeSpace.coordsInBoundingBox(coordinates, poiBox)) {
-                  if (objects.indexOf({id: poi.id, type: TypeConstants.point}) < 0) {
-                    objects.push({id: poi.id, type: TypeConstants.point});
+                  if (objects.indexOf({id: poiId, type: TypeConstants.point}) < 0) {
+                    objects.push({id: poiId, type: TypeConstants.point});
                   }
                 }
               }

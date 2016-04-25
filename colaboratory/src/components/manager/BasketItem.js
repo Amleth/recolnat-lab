@@ -92,7 +92,7 @@ class BasketItem extends React.Component {
   }
 
   addSelfToSelectedWorkbench() {
-    ManagerActions.addBasketItemsToWorkbench([this.props.content.id], this.props.managerstore.getSelected().id, true);
+    ManagerActions.addBasketItemsToSet([this.props.content.id], this.props.managerstore.getSelected().id, true);
   }
 
   componentWillUpdate(nextProps, nextState) {

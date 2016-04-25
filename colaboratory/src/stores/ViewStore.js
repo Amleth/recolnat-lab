@@ -4,13 +4,17 @@
 "use strict";
 
 import {EventEmitter} from 'events';
+import request from 'superagent';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
-import EditorConstants from "../constants/EditorConstants";
 import ViewConstants from '../constants/ViewConstants';
 
 import ViewEvents from './events/ViewEvents';
+
+import MetadataActions from '../actions/MetadataActions';
+
+import conf from '../conf/ApplicationConfiguration';
 
 class ViewStore extends EventEmitter {
   constructor() {
@@ -31,8 +35,6 @@ class ViewStore extends EventEmitter {
     this.loader = {};
     this.loader.text = null;
 
-    this.metadataModalAbout = null;
-
     AppDispatcher.register((action) => {
       //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
@@ -41,7 +43,7 @@ class ViewStore extends EventEmitter {
           this.emit(ViewEvents.UPDATE_VIEWPORT);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_FIT_ALL:
-          this.emit(ViewEvents.FIT_WORKBENCH_IN_VIEW);
+          this.emit(ViewEvents.FIT_SET_IN_VIEW);
           break;
         case ViewConstants.ActionTypes.Local.UPDATE_VIEW_PROPERTIES:
           this.setViewProperties(action.properties);
@@ -51,9 +53,11 @@ class ViewStore extends EventEmitter {
           this.setLoaderText(action.text);
           this.emit(ViewEvents.UPDATE_LOADER);
           break;
-        case ViewConstants.ActionTypes.Local.METADATA_ABOUT_ENTITY_REQUESTED:
-          this.metadataModalAbout = action.entityId;
-          this.emit(ViewEvents.SHOW_ENTITY_METADATA_MODAL);
+        case ViewConstants.ActionTypes.Server.VIEW_PLACE_ENTITY:
+          this.sendPlaceRequest(action.viewId, action.entityId, action.x, action.y);
+          break;
+        case ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY:
+          this.sendMoveRequest(action.viewId, action.entityId, action.linkId, action.x, action.y);
           break;
         default:
           break;
@@ -122,6 +126,44 @@ class ViewStore extends EventEmitter {
     return this.viewport;
   }
 
+  sendPlaceRequest(viewId, entityId, x, y) {
+    request.post(conf.actions.viewServiceActions.place)
+      .send({view: viewId})
+      .send({entity: entityId})
+      .send({x: x})
+      .send({y: y})
+      .withCredentials()
+      .end((err, res) => {
+        if(err) {
+          console.error(err);
+          alert('Erreur pendant le placement: ' + err);
+        }
+        else {
+          MetadataActions.updateLabBenchFrom(viewId);
+
+        }
+      });
+  }
+
+  sendMoveRequest(viewId, entityId, linkId, x, y) {
+    request.post(conf.actions.viewServiceActions.move)
+      .send({view: viewId})
+      .send({entity: entityId})
+      .send({link: linkId})
+      .send({x: x})
+      .send({y: y})
+      .withCredentials()
+      .end((err, res) => {
+        if(err) {
+          console.error(err);
+          alert('Erreur pendant le placement: ' + err);
+        }
+        else {
+          MetadataActions.updateLabBenchFrom(viewId);
+        }
+      });
+  }
+
   addViewportListener(callback) {
     this.on(ViewEvents.UPDATE_VIEWPORT, callback);
   }
@@ -131,11 +173,11 @@ class ViewStore extends EventEmitter {
   }
 
   addFitViewListener(callback) {
-    this.on(ViewEvents.FIT_WORKBENCH_IN_VIEW, callback);
+    this.on(ViewEvents.FIT_SET_IN_VIEW, callback);
   }
 
   removeFitViewListener(callback) {
-    this.removeListener(ViewEvents.FIT_WORKBENCH_IN_VIEW, callback);
+    this.removeListener(ViewEvents.FIT_SET_IN_VIEW, callback);
   }
 
   addViewPropertiesUpdateListener(callback) {

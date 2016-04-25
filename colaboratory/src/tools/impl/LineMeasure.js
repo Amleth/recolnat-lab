@@ -85,7 +85,7 @@ class LineMeasure extends AbstractTool {
 
     var newMeasure = activeToolGroup.append('g')
       .datum(lineData)
-      .attr('id', d => 'MEASURE-' + d.id)
+      .attr('id', d => 'MEASURE-' + d.uid)
       .attr('class', LineMeasure.classes().selfGroupSvgClass);
 
     newMeasure
@@ -126,7 +126,7 @@ class LineMeasure extends AbstractTool {
       .attr('font-size', '14px')
       .attr('fill', '#FFFFFF');
 
-    LineMeasure.updateLineDisplay(lineData.id);
+    LineMeasure.updateLineDisplay(lineData.uid);
 
     var self = this;
     d3.select('.' + Classes.ROOT_CLASS)
@@ -186,7 +186,9 @@ class LineMeasure extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup toolstore={this.props.toolstore} entitystore={this.props.entitystore} setScaleCallback={this.setScale.bind(this)}/>;
+    var popup = <Popup
+      toolstore={this.props.toolstore}
+      setScaleCallback={this.setScale.bind(this)}/>;
     window.setTimeout(function() {
       ToolActions.activeToolPopupUpdate(popup);
       ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
@@ -248,7 +250,7 @@ class LineMeasure extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.lineMeasure.id);
+    ToolActions.setTool(ToolConf.lineMeasure.uid);
   }
 
   save(d) {
@@ -258,11 +260,13 @@ class LineMeasure extends AbstractTool {
       return;
     }
 
-    var imageId = this.props.entitystore.getSelectedImageId();
-    var x1 = d.x1- this.props.entitystore.getSelectedImage().x;
-    var y1 = d.y1 - this.props.entitystore.getSelectedImage().y;
-    var x2 = d.x2 - this.props.entitystore.getSelectedImage().x;
-    var y2 = d.y2 - this.props.entitystore.getSelectedImage().y;
+    console.error('not implemented');
+    return;
+    var imageId = this.props.getSelectedImageId();
+    var x1 = d.x1- this.props.getSelectedImage().x;
+    var y1 = d.y1 - this.props.getSelectedImage().y;
+    var x2 = d.x2 - this.props.getSelectedImage().x;
+    var y2 = d.y2 - this.props.getSelectedImage().y;
 
     var data = {};
     data.serviceUrl = conf.actions.imageEditorServiceActions.createPath;
@@ -339,8 +343,8 @@ class LineMeasure extends AbstractTool {
     d3.event.sourceEvent.stopPropagation();
     d.x1 = d3.event.dx + d.x1;
     d.y1 = d3.event.dy + d.y1;
-    d3.select('#MEASURE-' + d.id).datum(d).selectAll('*').datum(d);
-    LineMeasure.updateLineDisplay(d.id);
+    d3.select('#MEASURE-' + d.uid).datum(d).selectAll('*').datum(d);
+    LineMeasure.updateLineDisplay(d.uid);
     return false;
   }
 
@@ -349,8 +353,8 @@ class LineMeasure extends AbstractTool {
     d3.event.sourceEvent.stopPropagation();
     d.x2 = d3.event.dx + d.x2;
     d.y2 = d3.event.dy + d.y2;
-    d3.select('#MEASURE-' + d.id).datum(d).selectAll('*').datum(d);
-    LineMeasure.updateLineDisplay(d.id);
+    d3.select('#MEASURE-' + d.uid).datum(d).selectAll('*').datum(d);
+    LineMeasure.updateLineDisplay(d.uid);
     return false;
   }
 
@@ -364,7 +368,7 @@ class LineMeasure extends AbstractTool {
     measure.datum(lineData);
     measure.selectAll('*').datum(lineData);
 
-    LineMeasure.updateLineDisplay(lineData.id);
+    LineMeasure.updateLineDisplay(lineData.uid);
   }
 
   removeMouseMoveListener() {
@@ -390,7 +394,7 @@ class LineMeasure extends AbstractTool {
         //console.log('setting scale for ' + JSON.stringify(d));
         d.mmPerPixel = scale;
         d.unit = 'mm';
-        LineMeasure.updateLineDisplay(d.id);
+        LineMeasure.updateLineDisplay(d.uid);
       });
     }
     else {
@@ -398,14 +402,14 @@ class LineMeasure extends AbstractTool {
         //console.log('setting scale for ' + JSON.stringify(d));
         d.mmPerPixel = null;
         d.unit = 'px';
-        LineMeasure.updateLineDisplay(d.id);
+        LineMeasure.updateLineDisplay(d.uid);
       });
     }
     this.setState({mmPerPixel: scale});
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
+    ToolActions.registerTool(ToolConf.lineMeasure.uid, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

@@ -20,7 +20,7 @@ class OrbOptions {
 
     request.post(conf.actions.databaseActions.remove)
       .set('Content-Type', "application/json")
-      .send({id: data.id})
+      .send({id: data.uid})
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -49,7 +49,7 @@ class OrbOptions {
   }
 
   static showMetdata(data) {
-    ViewActions.displayMetadataAboutEntity(data.id);
+    ViewActions.displayMetadataAboutEntity(data.uid);
   }
 
   static zoomToObject(d3id, view) {
@@ -100,8 +100,8 @@ class OrbOptions {
   static beginAnimation(item) {
     switch(item.type) {
       case TypeConstants.point:
-        var bakRect = d3.select('#POI-' + item.id).select('rect');
-        var text = d3.select('#POI-' + item.id).select('text');
+        var bakRect = d3.select('#POI-' + item.uid).select('rect');
+        var text = d3.select('#POI-' + item.uid).select('text');
 
         window.setTimeout(function() {
           OrbOptions.blink(bakRect, bakRect.attr('fill'), text.attr('fill') , 'fill');
@@ -116,7 +116,7 @@ class OrbOptions {
         };
         break;
       case TypeConstants.path:
-        var comp = d3.select('#PATH-' + item.id);
+        var comp = d3.select('#PATH-' + item.uid);
         var color = comp.attr('stroke');
         var newColor = 'blue';
         if(color == 'blue') {
@@ -132,7 +132,7 @@ class OrbOptions {
         };
         break;
       case TypeConstants.region:
-        var comp = d3.select('#ROI-' + item.id);
+        var comp = d3.select('#ROI-' + item.uid);
         var color = comp.attr('fill');
         var newColor = 'red';
         if(color == 'red') {
@@ -149,7 +149,7 @@ class OrbOptions {
         };
         break;
       case TypeConstants.sheet:
-        var comp = d3.select('#NODE-' + item.id);
+        var comp = d3.select('#NODE-' + item.uid);
 
         window.setTimeout(function() {
           OrbOptions.blink(comp, 1.0, 0.3, 'opacity');

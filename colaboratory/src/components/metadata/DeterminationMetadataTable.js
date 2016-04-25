@@ -21,10 +21,10 @@ class DeterminationMetadataTable extends MetadataTable {
     }
     return <tbody>
     <tr>
-      <td className='ui right aligned' >Identifié par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identifiedby}</td>
+      <td className='ui right aligned' >Identifié par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentifiedby}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >Identification qualifier</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationqualifier}</td>
+      <td className='ui right aligned' >Identification qualifier</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentificationqualifier}</td>
     </tr>
     <tr>
       <td className='ui right aligned' >Date de création</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.created).toLocaleString()}</td>
@@ -33,13 +33,13 @@ class DeterminationMetadataTable extends MetadataTable {
       <td className='ui right aligned' >Type status</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.typestatus}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >Vérification de l'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationverificationStatus}</td>
+      <td className='ui right aligned' >Vérification de l'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentificationverificationStatus}</td>
     </tr>
     <tr>
       <td className='ui right aligned' >Date d'identification</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.dateidentified).toLocaleString()}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' >Remarques d'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationremarks}</td>
+      <td className='ui right aligned' >Remarques d'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentificationremarks}</td>
     </tr>
     <tr>
       <td className='ui right aligned' >Dernière modification</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.modified).toLocaleString()}</td>

@@ -4,20 +4,38 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 import ViewConstants from '../constants/ViewConstants';
 
 export default {
-  moveEntity: (wb, id, x, y) => {
+  placeEntity: (viewId, entityId, x, y) => {
     AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY,
-      workbench: wb,
-      id: id,
+      actionType: ViewConstants.ActionTypes.Server.VIEW_PLACE_ENTITY,
+      viewId: viewId,
+      entityId: entityId,
       x: x,
       y: y
     });
   },
 
-  setActiveWorkbench: (wb) => {
+  moveEntity: (viewId, entityId, linkId, x, y) => {
     AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Server.VIEW_SET_WORKBENCH,
-      workbench: wb
+      actionType: ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY,
+      viewId: viewId,
+      entityId: entityId,
+      linkId: linkId,
+      x: x,
+      y: y
+    });
+  },
+
+  setActiveSet: (setId) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Server.VIEW_SET_DISPLAYED_SET,
+      id: setId
+    });
+  },
+
+  setActiveView: (viewId) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.SET_ACTIVE_VIEW,
+      id: viewId
     });
   },
 
@@ -46,13 +64,6 @@ export default {
     });
   },
 
-  updateMetadata: (id) => {
-    AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Local.RELOAD_METADATA,
-      entityId: id
-    });
-  },
-
   updateViewProperties: (properties) => {
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_PROPERTIES,
@@ -72,13 +83,6 @@ export default {
       actionType: ViewConstants.ActionTypes.Local.SCHEDULE_IMAGE_LOAD,
       source: source,
       callback: onLoadCallback
-    });
-  },
-
-  displayMetadataAboutEntity: (id) => {
-    AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Local.METADATA_ABOUT_ENTITY_REQUESTED,
-      entityId: id
     });
   }
 }

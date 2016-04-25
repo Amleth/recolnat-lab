@@ -18,8 +18,8 @@ class Point extends ContextMenuItem {
   }
 
   beginHilight() {
-    var bakRect = d3.select('#POI-' + this.props.item.id).select('rect');
-    var text = d3.select('#POI-' + this.props.item.id).select('text');
+    var bakRect = d3.select('#POI-' + this.props.item.uid).select('rect');
+    var text = d3.select('#POI-' + this.props.item.uid).select('text');
     this.setState({rect: bakRect,
         text: text,
         rectColor: bakRect.attr('fill'),
@@ -44,7 +44,7 @@ class Point extends ContextMenuItem {
   }
 
   reloadMetadata(res) {
-    ViewActions.updateMetadata(this.props.item.id);
+    ViewActions.updateMetadata(this.props.item.uid);
   }
 
   componentWillUnmount() {
@@ -59,7 +59,7 @@ class Point extends ContextMenuItem {
       <div className='vertical inverted compact menu'>
         <a className='vertically fitted item'>Modifier</a>
         <a className='vertically fitted item'>Ajouter une annotation</a>
-        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.id} metadata={this.props.metadata}/>
+        <Remove errorCallback={this.logError.bind(this)} successCallback={this.reloadMetadata.bind(this)} id={this.props.item.uid} metadata={this.props.metadata}/>
       </div>
     </div>;
   }

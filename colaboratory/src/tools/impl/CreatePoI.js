@@ -64,21 +64,17 @@ class CreatePoI extends AbstractTool {
    */
   click(self, x, y, data) {
     // In state, x and y must reflect the position from the top left of the image, everything else must be calculated.
-    if(!this.props.entitystore.getSelectedImage()) {
-      window.setTimeout(function() {
-          ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de points.");},
-        50);
-      return;
-    }
-    var deltaX = this.props.entitystore.getSelectedImage().x;
-    var deltaY = this.props.entitystore.getSelectedImage().y;
+    console.error('not implemented');
+    return;
+    var deltaX = this.props.getSelectedImage().x;
+    var deltaY = this.props.getSelectedImage().y;
     var view = this.props.viewstore.getView();
     var displayX = (x-view.left)/view.scale;
     var displayY = (y-view.top)/view.scale;
     var imgX = displayX-deltaX;
     var imgY = displayY-deltaY;
 
-    if(imgX >= 0 && imgY >= 0 && imgX <= this.props.entitystore.getSelectedImage().width && imgY <= this.props.entitystore.getSelectedImage().height ) {
+    if(imgX >= 0 && imgY >= 0 && imgX <= this.props.getSelectedImage().width && imgY <= this.props.getSelectedImage().height ) {
       this.setState({x: imgX, y: imgY, displayX: displayX, displayY: displayY});
     }
     else {
@@ -93,7 +89,7 @@ class CreatePoI extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.newPointOfInterest.id);
+    ToolActions.setTool(ToolConf.newPointOfInterest.uid);
   }
 
   save() {
@@ -111,12 +107,14 @@ class CreatePoI extends AbstractTool {
   }
 
   begin() {
+    console.error('not implemented');
+    return;
     window.setTimeout(function() {
         ToolActions.activeToolPopupUpdate(null);
         ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
       50);
     this.userPickShapeAndColor();
-    d3.select('#GROUP-' + this.props.entitystore.getSelectedImage().id).style('cursor', 'crosshair');
+    d3.select('#GROUP-' + this.props.getSelectedImage().uid).style('cursor', 'crosshair');
     //d3.select('svg').style('cursor', 'crosshair');
     this.setState({active: true});
   }
@@ -144,12 +142,14 @@ class CreatePoI extends AbstractTool {
    * INTERNAL METHODS
    */
   addPointToSVG() {
-    var active = this.props.entitystore.getSelectedEntity();
+    console.error('not implemented');
+    return;
+    var active = this.props.getSelectedEntity();
 
     var vertex = d3.select("." + this.vertexClass);
     if(vertex.empty()) {
 
-      var toolDisplayGroup = d3.select('#OVER-' + active.id);
+      var toolDisplayGroup = d3.select('#OVER-' + active.uid);
 
       vertex = toolDisplayGroup
         .append('g')
@@ -252,7 +252,7 @@ class CreatePoI extends AbstractTool {
    */
   componentDidMount() {
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
-    ToolActions.registerTool(ToolConf.newPointOfInterest.id, this.click, this);
+    ToolActions.registerTool(ToolConf.newPointOfInterest.uid, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

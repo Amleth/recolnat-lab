@@ -24,7 +24,7 @@ class ContextMenu extends React.Component {
     this.state = {itemsAtCursor: [], active: false};
 
     this.menuStyle = {
-      zIndex: 9999
+      zIndex: 99999
     };
 
     this.fixedHeightMenuStyle = {
@@ -46,7 +46,7 @@ class ContextMenu extends React.Component {
   }
 
   setActiveTool(tool) {
-    ToolActions.setTool(tool.id);
+    ToolActions.setTool(tool.uid);
     ToolActions.updateTooltipData(tool.tooltip);
     this.setState({active: false});
   }
@@ -54,44 +54,52 @@ class ContextMenu extends React.Component {
   buildContextMenuItem(item) {
     switch(item.type) {
       case TypeConstants.point:
-        var metadata = this.props.entitystore.getMetadataAbout(item.id);
+        var metadata = this.props.metastore.getMetadataAbout(item.uid);
         if(!metadata.name) {
           item.name = "Point sans nom";
         }
         else {
           item.name = metadata.name;
         }
-        return <Point item={item} key={'CTX-POINT-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
+        return <Point item={item} key={'CTX-POINT-' + item.uid} metadata={metadata} metastore={this.props.metastore}/>;
         break;
       case TypeConstants.path:
-        var metadata = this.props.entitystore.getMetadataAbout(item.id);
+        var metadata = this.props.metastore.getMetadataAbout(item.uid);
         if(!metadata.name) {
           item.name = "Chemin sans nom";
         }
         else {
           item.name = metadata.name;
         }
-        return <Path item={item} key={'CTX-PATH-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
+        return <Path
+          item={item}
+          key={'CTX-PATH-' + item.uid}
+          metadata={metadata}
+          metastore={this.props.metastore}/>;
         break;
       case TypeConstants.region:
-        var metadata = this.props.entitystore.getMetadataAbout(item.id);
+        var metadata = this.props.metastore.getMetadataAbout(item.uid);
         if(!metadata.name) {
           item.name = "Zone sans nom";
         }
         else {
           item.name = metadata.name;
         }
-        return <Region item={item} key={'CTX-REGION-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
+        return <Region
+          item={item}
+          key={'CTX-REGION-' + item.uid}
+          metadata={metadata}
+          metastore={this.props.metastore}/>;
         break;
       case TypeConstants.sheet:
-        var metadata = this.props.entitystore.getMetadataAbout(item.id);
+        var metadata = this.props.metastore.getMetadataAbout(item.uid);
         if(!metadata.name) {
           item.name = "Planche sans nom";
         }
         else {
           item.name = metadata.name;
         }
-        return <Sheet item={item} key={'CTX-SHEET-' + item.id} metadata={metadata} entitystore={this.props.entitystore}/>;
+        return <Sheet item={item} key={'CTX-SHEET-' + item.uid} metadata={metadata} metastore={this.props.metastore}/>;
         break;
       default:
         return null;

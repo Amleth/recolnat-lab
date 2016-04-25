@@ -4,8 +4,8 @@
 'use strict';
 
 export default {
-  TOGGLE_WORKBENCH_MANAGER_VISIBILITY: "toggleWorkbenchManagerVisibility",
-  SET_SELECTED_NODE: 'setSelectedNode',
-  UPDATE_MANAGER_DISPLAY: 'updateManagerDisplay',
-  BASKET_UPDATE: 'basketUpdate'
+  TOGGLE_SET_MANAGER_VISIBILITY: "manager_toggleSetManagerVisibility",
+  SET_SELECTED_NODE: 'manager_setSelectedNode',
+  UPDATE_MANAGER_DISPLAY: 'manager_updateManagerDisplay',
+  BASKET_UPDATE: 'manager_basketUpdate'
 };

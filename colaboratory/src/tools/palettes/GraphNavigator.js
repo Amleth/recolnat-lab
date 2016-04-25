@@ -203,7 +203,7 @@ class GraphNavigator extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.userLoggedIn && !prevState.userLoggedIn) {
-      this.getGraphAround({id: this.state.current.id, type: this.state.current.type});
+      this.getGraphAround({id: this.state.current.uid, type: this.state.current.type});
     }
   }
 
@@ -219,7 +219,7 @@ class GraphNavigator extends React.Component {
     }
     request
       .get(conf.urls.virtualWorkbenchService)
-      .query({id: node.id})
+      .query({id: node.uid})
       .set('Accept', 'application/json')
       .withCredentials()
       .end((err, res)=> {
@@ -239,7 +239,7 @@ class GraphNavigator extends React.Component {
     if(name != null) {
       request.post(conf.actions.virtualWorkbenchServiceActions.createNewWorkbench)
         .set('Content-Type', 'application/json')
-        .send({parent: this.state.current.id})
+        .send({parent: this.state.current.uid})
         .send({name: name})
         .withCredentials()
         .end((err, res)=> {
@@ -266,8 +266,8 @@ class GraphNavigator extends React.Component {
       if(process) {
         request.post(conf.actions.virtualWorkbenchServiceActions.deleteWorkbench)
           .set('Content-Type', 'application/json')
-          .send({container: this.state.current.id})
-          .send({target: this.state.selected.id})
+          .send({container: this.state.current.uid})
+          .send({target: this.state.selected.uid})
           .send({linkId: this.state.selected.linkId})
           .withCredentials()
           .end((err, res) => {
@@ -293,15 +293,15 @@ class GraphNavigator extends React.Component {
   }
 
   beginCut() {
-    this.setState({cut: {target: this.state.selected, parent: this.state.current.id}});
+    this.setState({cut: {target: this.state.selected, parent: this.state.current.uid}});
   }
 
   paste() {
     if(this.state.copy) {
       request.post(conf.actions.virtualWorkbenchServiceActions.copypaste)
       .set('Content-Type', 'application/json')
-      .send({target: this.state.copy.id})
-      .send({destination: this.state.current.id})
+      .send({target: this.state.copy.uid})
+      .send({destination: this.state.current.uid})
         .withCredentials()
       .end((err, res) => {
           if(err) {
@@ -318,10 +318,10 @@ class GraphNavigator extends React.Component {
     else if(this.state.cut) {
       request.post(conf.actions.virtualWorkbenchServiceActions.cutpaste)
       .set('Content-Type', 'application/json')
-      .send({target: this.state.cut.target.id})
+      .send({target: this.state.cut.target.uid})
       .send({source: this.state.cut.parent})
         .send({linkId: this.state.cut.target.linkId})
-      .send({destination: this.state.current.id})
+      .send({destination: this.state.current.uid})
         .withCredentials()
       .end((err, res)=> {
           if(err) {
@@ -342,7 +342,7 @@ class GraphNavigator extends React.Component {
 
   sendToView() {
     if(this.state.current) {
-      ViewActions.setActiveWorkbench(this.state.current.id);
+      ViewActions.setActiveWorkbench(this.state.current.uid);
     }
   }
 
@@ -358,7 +358,7 @@ class GraphNavigator extends React.Component {
     request.post(conf.actions.virtualWorkbenchServiceActions.import)
     .set('Content-Type', 'application/json')
     .send({elementToImport: id})
-    .send({parent: this.state.current.id})
+    .send({parent: this.state.current.uid})
       .withCredentials()
     .end((err, res) => {
         if(err) {
@@ -395,7 +395,7 @@ class GraphNavigator extends React.Component {
           console.log("data=" + JSON.stringify(data));
           request.post(conf.actions.virtualWorkbenchServiceActions.importSheet)
             .set('Content-Type', "application/json")
-            .send({workbench: self.state.current.id})
+            .send({workbench: self.state.current.uid})
             .send({url: data.url})
             .send({name: data.name})
             .withCredentials()
@@ -429,7 +429,7 @@ class GraphNavigator extends React.Component {
             var pStyle = this.parentNodeStyle;
             return(
               <div className='ui label'
-                   key={node.id}
+                   key={node.uid}
                    style={pStyle}
                    onDoubleClick={this.getGraphAround.bind(this, node)}>
                 {node.name}

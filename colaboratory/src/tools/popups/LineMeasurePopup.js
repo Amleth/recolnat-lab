@@ -61,21 +61,23 @@ class LineMeasurePopup extends React.Component {
   }
 
   componentDidMount() {
-    if(this.props.entitystore.getSelectedImage()) {
+    if(this.props.getSelectedImage()) {
+      console.error('not implemented');
+      return;
       //console.log(JSON.stringify(this.props.entitystore.getSelectedMetadata()));
-      var scales = this.props.entitystore.getSelectedMetadata().scales;
-      this.addExifScale(scales, this.props.entitystore);
+      var scales = this.props.getSelectedMetadata().scales;
+      //this.addExifScale(scales, this.props);
       this.setState({scales: scales});
     }
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(this.props.entitystore.getSelectedImage() && nextProps.entitystore.getSelectedImage()) {
-    if(nextProps.entitystore.getSelectedImage().id != this.props.entitystore.getSelectedImage().id) {
-      nextState.scales = nextProps.entitystore.getSelectedMetadata().scales;
-      this.addExifScale(nextState.scales, nextProps.entitystore);
-    }
-    }
+    //if(this.props.getSelectedImage() && nextProps.getSelectedImage()) {
+    //if(nextProps.getSelectedImage().uid != this.props.getSelectedImage().uid) {
+    //  nextState.scales = nextProps.getSelectedMetadata().scales;
+    //  this.addExifScale(nextState.scales, nextProps);
+    //}
+    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -85,7 +87,7 @@ class LineMeasurePopup extends React.Component {
       }
       else {
         for(var i = 0; i < this.state.scales.length; ++i) {
-          if(this.state.scales[i].id == this.state.scale)
+          if(this.state.scales[i].uid == this.state.scale)
           {
             this.props.setScaleCallback(this.state.scales[i].mmPerPixel);
             break;
@@ -102,7 +104,7 @@ class LineMeasurePopup extends React.Component {
         <select className='ui compact inline scrolling dropdown' value={this.state.scale} style={this.optionStyle} onChange={this.setScale.bind(this)}>
           <option value="null">Valeur en pixels</option>
           {this.state.scales.map(function(scale) {
-            return <option value={scale.id} key={scale.id}>{scale.name}</option>;
+            return <option value={scale.uid} key={scale.uid}>{scale.name}</option>;
           })}
         </select>
       </div>

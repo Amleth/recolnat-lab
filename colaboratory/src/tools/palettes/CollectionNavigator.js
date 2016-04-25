@@ -87,12 +87,12 @@ class CollectionNavigator extends React.Component {
     };
 
     this._onChangeEntities = () => {
-      const changeItems = () => this.setWorkbenchItems(this.props.entitystore.getItems());
+      const changeItems = () => this.setWorkbenchItems(this.props.getItems());
       return changeItems.apply(this);
     };
 
     this._onChangeSelection = () => {
-      const changeSelection = () => this.setSelectedItem(this.props.entitystore.getSelectedEntity());
+      const changeSelection = () => this.setSelectedItem(this.props.getSelectedEntity());
       return changeSelection.apply(this);
     };
 
@@ -106,13 +106,13 @@ class CollectionNavigator extends React.Component {
 
   componentWillMount() {
     // Add listeners
-    this.props.entitystore.addChangeEntitiesListener(this._onChangeEntities);
-    this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
+    this.props.addChangeEntitiesListener(this._onChangeEntities);
+    this.props.addChangeSelectionListener(this._onChangeSelection);
   }
 
   componentWillUnmount() {
-    this.props.entitystore.removeChangeEntitiesListener(this._onChangeEntities);
-    this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
+    this.props.removeChangeEntitiesListener(this._onChangeEntities);
+    this.props.removeChangeSelectionListener(this._onChangeSelection);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -129,41 +129,45 @@ class CollectionNavigator extends React.Component {
   }
 
   setSelectedItem(selectedItem) {
-    //console.log(JSON.stringify(selectedItem));
-    if(selectedItem) {
-      var workbenchItems = _.sortBy(this.props.entitystore.getItems(), this.state.sortBy);
-      var index = this.getIndexOfItem(selectedItem.id, workbenchItems);
-      //console.log(index);
-      this.setState({activeItemIdx: index, displayedItemIdx: index+1, workbenchItems: workbenchItems});
-    }
-    else {
-      this.setState({activeItemIdx: null, displayedItemIdx: null});
-    }
+    console.error('not implemented');
+    return;
+  //  //console.log(JSON.stringify(selectedItem));
+  //  if(selectedItem) {
+  //    var workbenchItems = _.sortBy(this.props.getItems(), this.state.sortBy);
+  //    var index = this.getIndexOfItem(selectedItem.uid, workbenchItems);
+  //    //console.log(index);
+  //    this.setState({activeItemIdx: index, displayedItemIdx: index+1, workbenchItems: workbenchItems});
+  //  }
+  //  else {
+  //    this.setState({activeItemIdx: null, displayedItemIdx: null});
+  //  }
   }
 
   setActiveItem(index) {
-    if(index < 0 || index >= this.state.workbenchItems.length) {
-      return;
-    }
-    var workbenchItems = _.sortBy(this.props.entitystore.getItems(), this.state.sortBy);
-
-    window.setTimeout((function(id, data) {
-      return function() {
-        ViewActions.changeSelection(id, data);
-      }
-    })(workbenchItems[index].id, workbenchItems[index]), 15);
+    console.error('not implemented');
+    return;
+    //if(index < 0 || index >= this.state.workbenchItems.length) {
+    //  return;
+    //}
+    //var workbenchItems = _.sortBy(this.props.getItems(), this.state.sortBy);
+    //
+    //window.setTimeout((function(id, data) {
+    //  return function() {
+    //    ViewActions.changeSelection(id, data);
+    //  }
+    //})(workbenchItems[index].uid, workbenchItems[index]), 15);
   }
 
   sort(event) {
     // Sort workbenchItems by the right value
-    var selectionId = this.state.workbenchItems[this.state.activeItemIdx].id;
+    var selectionId = this.state.workbenchItems[this.state.activeItemIdx].uid;
     var items = _.sortBy(this.state.workbenchItems, event.target.value);
     this.setState({sortBy: event.target.value, workbenchItems: items, activeItemIdx: this.getIndexOfItem(selectionId, items), displayedItemIdx: this.getIndexOfItem(selectionId, items)+1});
   }
 
   getIndexOfItem(id, items) {
     for(var i = 0; i < items.length; ++i) {
-      if(items[i].id == id) {
+      if(items[i].uid == id) {
         return i;
       }
     }

@@ -17,7 +17,7 @@ class Sheet extends ContextMenuItem {
   }
 
   beginHilight() {
-    var comp = d3.select('#BORDER-' + this.props.item.id);
+    var comp = d3.select('#BORDER-' + this.props.item.uid);
     var color = comp.attr('fill');
     var newColor = 'red';
 

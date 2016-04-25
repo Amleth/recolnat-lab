@@ -41,21 +41,38 @@ class Toolbox extends React.Component {
       maxHeight: '1px',
       overflow: 'hidden'
     };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-25px',
+      left: '-10px'
+    };
   }
 
   render() {
     return (
-      <div style={this.componentStyle} className='ui container'>
+      <div style={this.componentStyle} className='ui container segment'>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          Outils
+        </div>
         <div style={this.hiddenButtons}>
           <MoveView />
           <MoveObject />
           <SelectObject />
         </div>
         <div className='ui four buttons' style={this.buttonRowsStyle}>
-          <LineMeasure entitystore={this.props.entitystore} toolstore={this.props.toolstore} viewstore={this.props.viewstore}/>
-          <CreatePointOfInterest entitystore={this.props.entitystore} viewstore={this.props.viewstore} />
-          <CreatePath entitystore={this.props.entitystore} viewstore={this.props.viewstore} toolstore={this.props.toolstore} />
-          <CreateRoI entitystore={this.props.entitystore} viewstore={this.props.viewstore} toolstore={this.props.toolstore} />
+          <LineMeasure
+            toolstore={this.props.toolstore}
+            viewstore={this.props.viewstore} />
+          <CreatePointOfInterest
+            viewstore={this.props.viewstore} />
+          <CreatePath
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore} />
+          <CreateRoI
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore} />
         </div>
         <div>
           <Popup toolstore={this.props.toolstore}/>

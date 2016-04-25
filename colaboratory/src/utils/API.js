@@ -34,8 +34,8 @@ class API {
       //console.log('API received view ACTION', action.actionType);
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY:
-          //console.log("Demande de déplacement de l'entité", action.id, "à la position", action.x, action.y, "transmise au serveur.");
-          var actionJSON = {workbench: action.workbench, object: action.id, action: ServerConstants.ActionTypes.SERVER_CHILD_ENTITY_MOVED, x: action.x, y: action.y};
+          //console.log("Demande de déplacement de l'entité", action.uid, "à la position", action.x, action.y, "transmise au serveur.");
+          var actionJSON = {workbench: action.workbench, object: action.uid, action: ServerConstants.ActionTypes.SERVER_CHILD_ENTITY_MOVED, x: action.x, y: action.y};
           //console.log("Sending to server " + JSON.stringify(actionJSON));
           that.sendPayloadWhenReady(that, actionJSON);
           break;

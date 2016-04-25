@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.dicen.recolnat.services</groupId>
-  <artifactId>virtual-workbench-rest-service</artifactId>
+  <artifactId>colaboratory-rest-service</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <properties>
@@ -88,7 +88,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.dicen.recolnat.services.VirtualWorkbenchRESTService</mainClass>
+                  <mainClass>org.dicen.recolnat.services.ColaboratoryRESTService</mainClass>
                 </transformer>
               </transformers>
             </configuration>

@@ -131,4 +131,48 @@ public class ViewResource {
 
     return Response.ok(ret.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
+
+  @POST
+  @Path("/resize")
+  @Timed
+  public Response resizeEntityInView(final String input, @Context HttpServletRequest request) throws JSONException {
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+
+    JSONObject message = new JSONObject(input);
+    String viewId = message.getString("view");
+    String linkId = message.getString("link");
+    String entityId = message.getString("entity");
+    Integer width = message.getInt("width");
+    Integer height = message.getInt("height");
+
+    boolean retry = true;
+    while (retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vView = AccessUtils.getView(viewId, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
+        OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
+
+        if (!AccessRights.canWrite(vUser, vView, g)) {
+          throw new WebApplicationException(Status.FORBIDDEN);
+        }
+        if (!AccessRights.canRead(vUser, vEntity, g)) {
+          throw new WebApplicationException(Status.FORBIDDEN);
+        }
+
+        eLink.setProperties(DataModel.Properties.width, width, DataModel.Properties.height, height);
+        g.commit();
+      } catch (OConcurrentModificationException e) {
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown();
+      }
+    }
+
+    return Response.ok().build();
+  }
 }

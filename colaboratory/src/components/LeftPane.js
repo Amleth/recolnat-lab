@@ -38,15 +38,19 @@ class LeftPane extends React.Component {
         <ModeSwitcher modestore={this.props.modestore} />
         <GroupSelector
           modestore={this.props.modestore}
+          toolstore={this.props.toolstore}
           benchstore={this.props.benchstore} />
         <Minimap ministore={this.props.ministore}
-                 viewstore={this.props.viewstore} />
+                 viewstore={this.props.viewstore}
+                 toolstore={this.props.toolstore}
+                 benchstore={this.props.benchstore}/>
         <ViewController
           ministore={this.props.ministore}
           viewstore={this.props.viewstore} />
         <Toolbox ministore={this.props.ministore}
                  viewstore={this.props.viewstore}
-                 toolstore={this.props.toolstore} />
+                 toolstore={this.props.toolstore}
+                 benchstore={this.props.benchstore}/>
       </div>
     );
   }

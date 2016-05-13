@@ -75,12 +75,12 @@ class ManagerStore extends EventEmitter {
           this.reloadWorkbenches();
           break;
         case ManagerConstants.ActionTypes.BASKET_CHANGE_SELECTION:
-          if(action.uid) {
-            this.updateBasketSelection(action.uid, action.selected);
+          if(action.id) {
+            this.updateBasketSelection(action.id, action.selected);
           }
           else {
             for(var i = 0; i < this.basket.length; ++i) {
-              this.updateBasketSelection(this.basket[i].uid, action.selected);
+              this.updateBasketSelection(this.basket[i].id, action.selected);
             }
           }
           this.emit(ManagerEvents.BASKET_UPDATE);

@@ -22,8 +22,9 @@ class Toolbox extends React.Component {
     super(props);
 
     this.componentStyle = {
-      display: "flex",
-      flexDirection: 'column'
+      //display: "flex",
+      //flexDirection: 'column',
+      padding: '5px 5px 5px 5px'
     };
 
     this.buttonRowsStyle = {
@@ -44,8 +45,8 @@ class Toolbox extends React.Component {
 
     this.labelStyle = {
       position: 'relative',
-      top: '-25px',
-      left: '-10px'
+      top: '-15px',
+      left: '10px'
     };
   }
 
@@ -64,11 +65,13 @@ class Toolbox extends React.Component {
         <div className='ui four buttons' style={this.buttonRowsStyle}>
           <LineMeasure
             toolstore={this.props.toolstore}
+            benchstore={this.props.benchstore}
             viewstore={this.props.viewstore} />
           <CreatePointOfInterest
             viewstore={this.props.viewstore} />
           <CreatePath
             viewstore={this.props.viewstore}
+            benchstore={this.props.benchstore}
             toolstore={this.props.toolstore} />
           <CreateRoI
             viewstore={this.props.viewstore}

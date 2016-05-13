@@ -1,8 +1,8 @@
 'use strict';
 
 export default {
-  point: 'pointOfInterest',
-  path: 'path',
-  region: 'regionOfInterest',
-  sheet: 'sheet'
+  point: 'PointOfInterest',
+  trail: 'TrailOfInterest',
+  region: 'RegionOfInterest',
+  image: 'Image'
 };

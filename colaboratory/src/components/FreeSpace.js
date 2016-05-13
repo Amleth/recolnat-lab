@@ -67,14 +67,14 @@ class FreeSpace extends React.Component {
   displayLabBench() {
     if(this.props.benchstore.getActiveViewId()) {
       d3Component.loadView(this.props.benchstore.getActiveViewId());
-      d3Component.updateChildEntities();
+      //d3Component.updateChildEntities();
       d3Component.updateEntitiesMetadata();
     }
   }
 
   updateDisplay() {
     //d3Component.updateWorkbenchMetadata();
-    d3Component.updateChildEntities();
+    //d3Component.updateChildEntities();
     d3Component.updateEntitiesMetadata();
   }
 
@@ -90,7 +90,7 @@ class FreeSpace extends React.Component {
   }
 
   viewportUpdate(view) {
-    d3Component.updateViewport(view.left, view.top, view.width, view.height, view.scale);
+    d3Component.updateViewport(view.left, view.top, view.scale, view.animate);
   }
 
   viewPropertiesUpdate(viewProps) {
@@ -108,6 +108,7 @@ class FreeSpace extends React.Component {
     );
     d3Component.setMetadataStore(this.props.metastore);
     d3Component.setLabBenchStore(this.props.benchstore);
+    d3Component.setViewStore(this.props.viewstore);
     this.props.viewstore.addFitViewListener(this._onFitView);
     this.props.viewstore.addViewportListener(this._onViewportUpdate);
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);

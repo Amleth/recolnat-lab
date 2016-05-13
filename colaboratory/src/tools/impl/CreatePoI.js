@@ -27,95 +27,89 @@ class CreatePoI extends AbstractTool {
     this.base64Images = {};
     this.base64Images.flag = require("../../images/flag.png");
 
-    this.drag = d3.behavior.drag()
-      .origin(d => d)
-      .on('dragstart', this.dragstarted)
-      .on('drag', this.dragged)
-      .on('dragend', this.dragended);
-
     this.state = this.initialState();
 
     this._onViewPropertiesUpdate = () => {
       const viewPropsUpdate = () => d3.select('.' + this.vertexClass).attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + this.props.viewstore.getViewProperties().sizeOfTextAndObjects + ')');
       return viewPropsUpdate.apply(this);
+    };
+
+    this._onViewChange = () => {
+      const adaptPoIScale = () => this.drawPointInSVG();
+      return adaptPoIScale.apply(this);
     }
   }
 
   initialState() {
     return {
+      imageUri: null,
+      imageLinkUri: null,
       active: false,
       x: null,
       y: null,
       displayX: null,
       displayY: null,
-      color: {color: {
-        red: 0,
-        green: 0,
-        blue: 0
-      },
-        key: '0'},
-      text: "",
-      letters: ""
+      name: ''
     };
   }
 
   /**
    * INHERITED API
    */
-  click(self, x, y, data) {
-    // In state, x and y must reflect the position from the top left of the image, everything else must be calculated.
-    console.error('not implemented');
-    return;
-    var deltaX = this.props.getSelectedImage().x;
-    var deltaY = this.props.getSelectedImage().y;
-    var view = this.props.viewstore.getView();
-    var displayX = (x-view.left)/view.scale;
-    var displayY = (y-view.top)/view.scale;
-    var imgX = displayX-deltaX;
-    var imgY = displayY-deltaY;
-
-    if(imgX >= 0 && imgY >= 0 && imgX <= this.props.getSelectedImage().width && imgY <= this.props.getSelectedImage().height ) {
-      this.setState({x: imgX, y: imgY, displayX: displayX, displayY: displayY});
-    }
-    else {
-      window.setTimeout(function() {
-          ToolActions.updateTooltipData("Le point doit se situer à l'intérieur de l'image active");},
-        50);
-    }
-  }
-
   canSave() {
     return true;
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.newPointOfInterest.uid);
+    ToolActions.setTool(ToolConf.newPointOfInterest.id);
   }
 
   save() {
     var data = {};
-    data.serviceUrl = conf.actions.imageEditorServiceActions.createPointOfInterest;
+    data.serviceUrl = conf.actions.imageServiceActions.createPointOfInterest;
+    data.parent = this.state.imageUri;
     data.payload = {};
     data.payload.x = this.state.x;
     data.payload.y = this.state.y;
-    data.payload.color = d3.select("." + this.vertexClass).attr("color");
-    data.payload.text = this.state.text;
-    data.payload.letters = this.state.letters;
+    data.payload.name = this.state.text;
 
-    //console.log(JSON.stringify(data));
     return data;
   }
 
   begin() {
-    console.error('not implemented');
-    return;
     window.setTimeout(function() {
         ToolActions.activeToolPopupUpdate(null);
         ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
       50);
-    this.userPickShapeAndColor();
-    d3.select('#GROUP-' + this.props.getSelectedImage().uid).style('cursor', 'crosshair');
-    //d3.select('svg').style('cursor', 'crosshair');
+
+    var popup = <Popup vertexClass={this.vertexClass}
+                       setNameCallback={this.setName.bind(this)}
+    />;
+
+    window.setTimeout(function() {
+        ToolActions.activeToolPopupUpdate(popup);},
+      100);
+
+    var self = this;
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        if(d3.event.button == 0) {
+          d3.event.preventDefault();
+          d3.event.stopPropagation();
+          self.leftClick.call(this, self, d);
+        }
+      })
+      .on('contextmenu', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+        self.rightClick.call(this, self, d);
+      })
+      .style('cursor', 'crosshair');
+
+    this.props.viewstore.addViewportListener(this._onViewChange);
+
     this.setState({active: true});
   }
 
@@ -125,7 +119,7 @@ class CreatePoI extends AbstractTool {
         ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
       10);
     this.clearSVG();
-    this.setState({x: null, y: null, displayX: null, displayY: null});
+    this.setState({x: null, y: null, displayX: null, displayY: null, imageUri: null, imageLinkUri: null, name: ''});
   }
 
   finish() {
@@ -134,22 +128,44 @@ class CreatePoI extends AbstractTool {
         ToolActions.updateTooltipData("");},
       10);
     this.clearSVG();
-    d3.select('svg').style('cursor', 'default');
+
+    this.props.viewstore.removeViewportListener(this._onViewChange);
+
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', null);
+
     this.setState(this.initialState());
   }
 
   /**
    * INTERNAL METHODS
    */
-  addPointToSVG() {
-    console.error('not implemented');
-    return;
-    var active = this.props.getSelectedEntity();
+  leftClick(self, d) {
+    var coords = d3.mouse(this);
+    self.setState({imageUri: d.entity, imageLinkUri: d.link});
+    self.setPointCoordinates.call(self, coords[0], coords[1], d);
+  }
 
+  rightClick(self, d) {
+
+  }
+
+  setPointCoordinates(x, y, data) {
+    if(x >= 0 && y >= 0 && x <= data.width && y <= data.height ) {
+      this.setState({x: x, y: y});
+    }
+    else {
+      window.setTimeout(function() {
+          ToolActions.updateTooltipData("Le point doit se situer à l'intérieur de l'image active");},
+        50);
+    }
+  }
+
+  drawPointInSVG() {
     var vertex = d3.select("." + this.vertexClass);
     if(vertex.empty()) {
 
-      var toolDisplayGroup = d3.select('#OVER-' + active.uid);
+      var toolDisplayGroup = d3.select('#OVER-' + this.state.imageLinkUri);
 
       vertex = toolDisplayGroup
         .append('g')
@@ -167,84 +183,33 @@ class CreatePoI extends AbstractTool {
         .attr("height", 60)
         .attr("width", 60)
         .attr('xlink:href', require('../../images/marker.svg'));
-
-      vertex.append('text');
     }
 
-    vertex.
-      attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + this.props.viewstore.getViewProperties().sizeOfTextAndObjects + ')');
+    var view = this.props.viewstore.getView();
+    var viewProps = this.props.viewstore.getViewProperties();
+
+    vertex
+      .attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + viewProps.sizeOfTextAndObjects/view.scale + ')');
 
     vertex
       .select('rect')
       .attr("x", -25)
-      .attr("y", -55)
-      .attr('fill', "rgb(" + this.state.color.color.red + "," + this.state.color.color.green + "," + this.state.color.color.blue + ")");
+      .attr("y", -55);
 
     vertex.select('image')
       .attr("x", -30)
       .attr("y", -60);
 
-    vertex.select('text')
-      .attr('x', -20)
-      .attr('y', -30)
-      .attr('font-size', '20px')
-      .attr('font-family', 'sans-serif')
-      .attr('fill', "rgb(" + (255-this.state.color.color.red) + "," + (255-this.state.color.color.green) + "," + (255-this.state.color.color.blue) + ")")
-      .text(this.state.letters);
-      
-      vertex.select('title').text(this.state.text);
-
-    vertex
-      .attr("color", "[" + this.state.color.color.red + "," + this.state.color.color.green + "," + this.state.color.color.blue + "]");
+    vertex.select('title').text(this.state.name);
   }
 
-  setData(text, letters) {
+  setName(name) {
     //console.log("set data " + text + " " + letters);
-    this.setState({letters: letters, text: text});
-  }
-
-  setColor(color) {
-    //console.log("set color " + JSON.stringify(color));
-    this.setState({color: color});
-  }
-
-  userPickShapeAndColor() {
-    // List of shapes and colors in a popup box
-    // Create new box
-    var popup = <Popup vertexClass={this.vertexClass}
-                       setColorCallback={this.setColor.bind(this)}
-                       setDataCallback={this.setData.bind(this)}
-      />;
-
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(popup);},
-      100);
+    this.setState({name: name});
   }
 
   clearSVG() {
     d3.select("." + this.vertexClass).remove();
-  }
-
-  dragstarted() {
-    d3.event.sourceEvent.stopPropagation();
-    if(d3.event.sourceEvent.which == 3) {
-      d3.select(this.parentNode)
-        .classed('dragging', true);
-    }
-  }
-
-  dragged(d) {
-    if(d3.select(this.parentNode).classed('dragging') == true) {
-      var group = d3.select(this.parentNode);
-      group.attr('x', d.x = d3.event.x)
-        .attr('y', d.y = d3.event.y);
-    }
-  }
-
-  dragended(d) {
-    if(d3.event.sourceEvent.which == 3) {
-      d3.select(this.parentNode).classed('dragging', false);
-    }
   }
 
   /**
@@ -252,26 +217,23 @@ class CreatePoI extends AbstractTool {
    */
   componentDidMount() {
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
-    ToolActions.registerTool(ToolConf.newPointOfInterest.uid, this.click, this);
+    ToolActions.registerTool(ToolConf.newPointOfInterest.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 
   componentDidUpdate() {
     if(this.state.x) {
-      this.addPointToSVG();
-      if(this.state.text)
+      this.drawPointInSVG();
+      if(this.state.name)
       {
-      d3.select('.' + this.props.vertexClass).select('title').text(this.state.text);
-      }
-      if(this.state.letters) {
-      d3.select('.' + this.props.vertexClass).select('text').text(this.state.letters);
+        d3.select('.' + this.props.vertexClass).select('title').text(this.state.name);
       }
     }
     else {
       this.clearSVG();
     }
   }
-  
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.active) {
       this.buttonStyle.backgroundColor = 'rgba(200,200,200,1.0)';

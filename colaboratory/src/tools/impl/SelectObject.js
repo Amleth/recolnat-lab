@@ -51,12 +51,12 @@ class SelectObject extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.selectObject.uid);
+    ToolActions.setTool(ToolConf.selectObject.id);
   }
 
   componentDidMount() {
     $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.selectObject.uid, this.click, this);
+    ToolActions.registerTool(ToolConf.selectObject.id, this.click, this);
   }
 
   componentWillUpdate(nextProps, nextState) {

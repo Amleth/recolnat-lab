@@ -134,7 +134,8 @@ class ContextMenu extends React.Component {
       -((image.yZero)*scale),
       null,
       null,
-      scale
+      scale,
+      true
     );
   }
 
@@ -148,7 +149,8 @@ class ContextMenu extends React.Component {
       (view.top-view.height/2)/view.scale,
       null,
       null,
-      1.0
+      1.0,
+      true
     );
   }
 

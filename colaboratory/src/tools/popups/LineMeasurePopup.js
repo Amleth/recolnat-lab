@@ -3,6 +3,9 @@
  */
 "use strict";
 import React from "react";
+import d3 from 'd3';
+
+import LineMeasure from '../impl/LineMeasure';
 
 class LineMeasurePopup extends React.Component {
   constructor(props) {
@@ -31,53 +34,58 @@ class LineMeasurePopup extends React.Component {
     this.setState({scale: event.target.value});
   }
 
-  addExifScale(scales, store) {
-    //console.log(JSON.stringify(store.getSelectedImage()));
-    if(store.getSelectedMetadata()) {
-      if(store.getSelectedMetadata().metadata) {
-        if (store.getSelectedMetadata().metadata["X Resolution"]) {
-          var xResolution = store.getSelectedMetadata().metadata["X Resolution"].split(" ");
-          var dotsPerUnit = _.parseInt(xResolution[0]);
-          var mmPerPixel = null;
-          var unit = store.getSelectedMetadata().metadata["Resolution Units"];
-          if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
-            mmPerPixel = 25.4/dotsPerUnit;
-          }
-            else if(unit.toUpperCase() == "CM") {
-            mmPerPixel = 10/dotsPerUnit;
-          }
-          else if(unit.toUpperCase() == "MM") {
-            mmPerPixel = 1/dotsPerUnit;
-          }
-          else {
-            console.error("Unprocessed unit " + unit);
-          }
-          if(mmPerPixel) {
-            scales.push({id: 'exif', name: 'Données EXIF', mmPerPixel: mmPerPixel});
-          }
-        }
+  //addExifScale(scales, store) {
+  //  //console.log(JSON.stringify(store.getSelectedImage()));
+  //  if(store.getSelectedMetadata()) {
+  //    if(store.getSelectedMetadata().metadata) {
+  //      if (store.getSelectedMetadata().metadata["X Resolution"]) {
+  //        var xResolution = store.getSelectedMetadata().metadata["X Resolution"].split(" ");
+  //        var dotsPerUnit = _.parseInt(xResolution[0]);
+  //        var mmPerPixel = null;
+  //        var unit = store.getSelectedMetadata().metadata["Resolution Units"];
+  //        if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
+  //          mmPerPixel = 25.4/dotsPerUnit;
+  //        }
+  //          else if(unit.toUpperCase() == "CM") {
+  //          mmPerPixel = 10/dotsPerUnit;
+  //        }
+  //        else if(unit.toUpperCase() == "MM") {
+  //          mmPerPixel = 1/dotsPerUnit;
+  //        }
+  //        else {
+  //          console.error("Unprocessed unit " + unit);
+  //        }
+  //        if(mmPerPixel) {
+  //          scales.push({id: 'exif', name: 'Données EXIF', mmPerPixel: mmPerPixel});
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
+  getScales() {
+    var scales = {};
+    d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).each(function(d) {
+      //console.log('item ' + JSON.stringify(d));
+      var scaleIds = Object.keys(d.scales);
+      //console.log(JSON.stringify(scaleIds));
+      for(var i = 0; i < scaleIds.length; ++i) {
+        scales[scaleIds[i]] = (d.scales[scaleIds[i]]);
       }
-    }
+    });
+    //console.log(JSON.stringify(scales));
+    return _.values(scales);
+  }
+
+  updateScales() {
+    this.setState({scales: this.getScales()});
   }
 
   componentDidMount() {
-    if(this.props.getSelectedImage()) {
-      console.error('not implemented');
-      return;
-      //console.log(JSON.stringify(this.props.entitystore.getSelectedMetadata()));
-      var scales = this.props.getSelectedMetadata().scales;
-      //this.addExifScale(scales, this.props);
-      this.setState({scales: scales});
-    }
+    this.setState({scales: this.getScales()});
   }
 
   componentWillUpdate(nextProps, nextState) {
-    //if(this.props.getSelectedImage() && nextProps.getSelectedImage()) {
-    //if(nextProps.getSelectedImage().uid != this.props.getSelectedImage().uid) {
-    //  nextState.scales = nextProps.getSelectedMetadata().scales;
-    //  this.addExifScale(nextState.scales, nextProps);
-    //}
-    //}
+    nextState.scales = this.getScales();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -86,13 +94,13 @@ class LineMeasurePopup extends React.Component {
         this.props.setScaleCallback(null);
       }
       else {
-        for(var i = 0; i < this.state.scales.length; ++i) {
-          if(this.state.scales[i].uid == this.state.scale)
-          {
-            this.props.setScaleCallback(this.state.scales[i].mmPerPixel);
-            break;
-          }
-        }
+        //for(var i = 0; i < this.state.scales.length; ++i) {
+        //  if(this.state.scales[i].uid == this.state.scale)
+        //  {
+            this.props.setScaleCallback(this.state.scale);
+            //break;
+          //}
+        //}
       }
     }
   }

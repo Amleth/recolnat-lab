@@ -33,7 +33,9 @@ class AbstractModal extends React.Component {
   }
 
   cancel() {
-    ModalActions.showModal(null);
+    window.setTimeout(
+    ModalActions.showModal.bind(null, null),
+      10);
   }
 
   clearState(state) {
@@ -47,16 +49,15 @@ class AbstractModal extends React.Component {
   componentWillUpdate(nextProps, nextState) {
     if(!nextState.active && this.state.active) {
       this.clearState(nextState);
-    }
-
-    if(nextState.active && !this.state.active) {
       $(this.refs.modal.getDOMNode()).modal('hide');
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.active && !prevState.active) {
-      $(this.refs.modal.getDOMNode()).modal('show');
+      $(this.refs.modal.getDOMNode()).modal({
+        onHide: this.cancel
+      }).modal('show');
     }
   }
 

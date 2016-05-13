@@ -70,44 +70,55 @@ class LabBenchStore extends EventEmitter {
 
   getData(id) {
     if(this.labBench.id == id) {
-      return this.labBench.metadata;
+      return JSON.parse(JSON.stringify(this.labBench.metadata));
     }
     if(this.labBench.subSets[id]) {
-      return this.labBench.subSets[id];
+      return JSON.parse(JSON.stringify(this.labBench.subSets[id]));
     }
     if(this.labBench.images[id]) {
-      return this.labBench.images[id];
+      return JSON.parse(JSON.stringify(this.labBench.images[id]));
     }
     if(this.labBench.specimens[id]) {
-      return this.labBench.specimens[id];
+      return JSON.parse(JSON.stringify(this.labBench.specimens[id]));
     }
     if(this.labBench.views[id]) {
-      return this.labBench.views[id];
+      return JSON.parse(JSON.stringify(this.labBench.views[id]));
     }
     if(this.labBench.rois[id]) {
-      return this.labBench.rois[id];
+      return JSON.parse(JSON.stringify(this.labBench.rois[id]));
     }
     if(this.labBench.pois[id]) {
-      return this.labBench.pois[id];
+      return JSON.parse(JSON.stringify(this.labBench.pois[id]));
     }
     if(this.labBench.tois[id]) {
-      return this.labBench.tois[id];
+      return JSON.parse(JSON.stringify(this.labBench.tois[id]));
     }
     if(this.labBench.measureStandards[id]) {
-      return this.labBench.measureStandards[id];
+      return JSON.parse(JSON.stringify(this.labBench.measureStandards[id]));
     }
     if(this.labBench.measurements[id]) {
-      return this.labBench.measurements[id];
+      return JSON.parse(JSON.stringify(this.labBench.measurements[id]));
     }
     return null;
   }
 
+  getDisplayData(id) {
+    var displayedStuff = this.labBench.views[this.activeView].displays;
+    for(var i = 0; i < displayedStuff.length; ++i) {
+      if(displayedStuff[i].link == id || displayedStuff[i].entity == id) {
+        return JSON.parse(JSON.stringify(displayedStuff[i]));
+      }
+    }
+
+    return null;
+  }
+
   getLabBench() {
-    return this.labBench;
+    return JSON.parse(JSON.stringify(this.labBench));
   }
 
   getViews() {
-    return this.labBench.views;
+    return JSON.parse(JSON.stringify(this.labBench.views));
   }
 
   getActiveViewId() {
@@ -116,7 +127,7 @@ class LabBenchStore extends EventEmitter {
 
   getActiveViewData() {
     if(this.activeView) {
-      return this.labBench.views[this.activeView];
+      return JSON.parse(JSON.stringify(this.labBench.views[this.activeView]));
     }
     return null;
   }
@@ -175,6 +186,11 @@ class LabBenchStore extends EventEmitter {
       this.toLoad = 1;
       this.loaded = 0;
       this.loadMeasurement(id);
+    }
+    else {
+      this.toLoad = 1;
+      this.loaded = 0;
+      this.loadBench(this.labBench.id);
     }
   }
 
@@ -248,6 +264,7 @@ class LabBenchStore extends EventEmitter {
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
+          console.log(res.text);
           this.labBench.views[id] = JSON.parse(res.text);
           this.activeView = id;
           this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
@@ -278,7 +295,7 @@ class LabBenchStore extends EventEmitter {
               this.toLoad += item.rois.length + item.pois.length + item.tois.length + item.scales.length;
 
               item.rois.forEach(function(roiId) {
-                self.loadRoI(id);
+                self.loadRoI(roiId);
               });
               item.pois.forEach(function(poiId) {
                 self.loadPoI(poiId);
@@ -319,6 +336,7 @@ class LabBenchStore extends EventEmitter {
         }
         else {
           var roi = JSON.parse(res.text);
+          console.log(res.text);
           this.toLoad += roi.measurements.length;
           this.labBench.rois[id] = roi;
           roi.measurements.forEach(function(measureId) {

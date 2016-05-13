@@ -221,7 +221,8 @@ class CollectionNavigator extends React.Component {
       -(image.yZero*scale),
       null,
       null,
-      scale
+      scale,
+      true
     );
   }
 

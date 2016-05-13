@@ -64,7 +64,7 @@ class Window extends React.Component {
     this.menuHeight = 35;
     this.closeTopPaneButtonHeight = 30;
     this.leftPaneWidth = 200;
-    this.rightPaneWidth = 300;
+    this.rightPaneWidth = 350;
 
     this.containerStyle = {
       position: 'relative',
@@ -97,7 +97,7 @@ class Window extends React.Component {
       WebkitTransition: 'left 1s',
       transition: 'left 1s',
       overflowX: 'hidden',
-      overflowY: 'auto',
+      overflowY: 'scroll',
       WebkitBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       MozBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       boxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)'
@@ -132,7 +132,7 @@ class Window extends React.Component {
     this.leftButtonStyle = {
       position: 'fixed',
       left: this.leftPaneWidth + 'px',
-      top: '50vh',
+      top: '35vh',
       zIndex: ViewConstants.zIndices.leftPaneCloseButton,
       height: '20px',
       WebkitTransition: 'left 1s',
@@ -141,7 +141,7 @@ class Window extends React.Component {
 
     this.topButtonStyle = {
       position: 'fixed',
-      left: '35vw',
+      left: '20vw',
       top: (window.innerHeight -this.closeTopPaneButtonHeight) + 'px',
       zIndex: ViewConstants.zIndices.topPaneCloseButton,
       height: this.closeTopPaneButtonHeight + 'px',
@@ -156,7 +156,7 @@ class Window extends React.Component {
     this.rightButtonStyle = {
       position: 'absolute',
       right: this.rightPaneWidth + 'px',
-      top: '50vh',
+      top: '35vh',
       zIndex: ViewConstants.zIndices.rightPaneCloseButton,
       height: '20px',
       WebkitTransition: 'right 1s',
@@ -437,17 +437,19 @@ class Window extends React.Component {
           />
         </div>
         <div className="ui bottom attached button mini compact"
-             style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.workbench}</div>
+             style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.activeSetName}</div>
         <div>
           <div style={this.columnLeftSideStyle}>
             <LeftPane
+              userstore={userstore}
+              viewstore={viewstore}
+              toolstore={toolstore}
+              metastore={metastore}
+              modalstore={modalstore}
+              modestore={modestore}
               ministore={ministore}
               benchstore={benchstore}
-              viewstore={viewstore}
-              metastore={metastore}
-              toolstore={toolstore}
-              modestore={modestore}
-              userstore={userstore}/>
+              />
           </div>
           <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
           <div style={this.columnMiddleStyle}>
@@ -466,10 +468,14 @@ class Window extends React.Component {
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>
             <RightPane
+              userstore={userstore}
               viewstore={viewstore}
+              toolstore={toolstore}
               metastore={metastore}
+              modalstore={modalstore}
               modestore={modestore}
-              userstore={userstore}/>
+              benchstore={benchstore}
+              />
           </div>
         </div>
       </div>

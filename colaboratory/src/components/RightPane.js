@@ -9,6 +9,8 @@ import MetadataViewer from './MetadataViewer';
 import UserLabBook from './lab-book/UserLabBook';
 import SheetLabBook from './lab-book/SheetLabBook';
 import GroupLabBook from './lab-book/GroupLabBook';
+import ElementInspector from './../tools/palettes/ElementInspector';
+import TagCloud from './../tools/palettes/TagCloud';
 
 class RightPane extends React.Component {
 
@@ -17,7 +19,7 @@ class RightPane extends React.Component {
 
     this.containerStyle = {
       backgroundColor: '#F2F2F2',
-      height: '95%',
+      height: '100%',
       width: '100%'
       //overflow: 'auto'
     };
@@ -41,68 +43,24 @@ class RightPane extends React.Component {
   }
 
   componentDidMount() {
-    $('.menu .worktab', $(this.refs.tabs.getDOMNode())).tab();
   }
 
   render() {
     var self = this;
     return(
       <div style={this.containerStyle}>
-        <div className='ui top attached tabular menu'
-             ref='tabs'
-             style={this.tabTitleStyle}>
-          <a className={"ui active item worktab"}
-             data-tab="metadata">
-            <i className="ui find icon"></i>
-          </a>
-          <a className={"ui item"}
-             data-tab="journal">
-            <i className="ui book icon"></i>
-          </a>
-          <a className={"ui item"}
-             data-tab="comments">
-            <i className="ui comments icon"></i>
-          </a>
-        </div>
-        <div className="ui bottom attached active tab segment"
-             data-tab="metadata"
-             style={this.tabContentStyle}>
           <MetadataViewer
+            height='32%'
+            toolstore={this.props.toolstore}
+            metastore={this.props.metastore}
             viewstore={this.props.viewstore}
+            benchstore={this.props.benchstore}
             />
+        <TagCloud height='32%' />
+        <ElementInspector
+          height='32%'
+        />
         </div>
-        <div className="ui bottom attached tab segment"
-             data-tab="journal"
-             style={this.tabContentStyle}>
-          <div className='ui top attached tabular menu'
-               style={this.tabTitleStyle}>
-            <a className={"ui active item"}
-               data-tab="journal-user"><i className="ui user icon"></i></a>
-            <a className={"ui item"}
-               data-tab="journal-group"><i className="ui users icon"></i></a>
-            <a className={"ui item"}
-               data-tab="journal-sheet"><i className="ui newspaper icon"></i></a>
-          </div>
-          <div className='ui bottom attached active tab segment'
-               data-tab='journal-user'
-               style={this.tabContentStyle}>
-          </div>
-          <div className='ui bottom attached tab segment'
-               data-tab='journal-sheet'
-               style={this.tabContentStyle}>
-          </div>
-          <div className='ui bottom attached tab segment'
-               data-tab='journal-group'
-               style={this.tabContentStyle}>
-          </div>
-
-        </div>
-        <div className="ui bottom attached tab segment"
-             data-tab="comments"
-             style={this.tabContentStyle}>
-          <p>Discussions et commentaires</p>
-        </div>
-      </div>
     );
   }
 }

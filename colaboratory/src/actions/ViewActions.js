@@ -52,7 +52,7 @@ export default {
     });
   },
 
-  updateViewport: (x, y, width, height, scale) => {
+  updateViewport: (x, y, width, height, scale, animate = false) => {
     //console.log('updateViewport(' + x + ',' + y + ',' + width + ',' + height + ',' + scale + ')');
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT,
@@ -60,7 +60,8 @@ export default {
       y: y,
       height: height,
       width: width,
-      scale: scale
+      scale: scale,
+      animate: animate
     });
   },
 

@@ -11,6 +11,8 @@ import HarvestMetadataTable from './metadata/HarvestMetadataTable';
 import DeterminationMetadataTable from './metadata/DeterminationMetadataTable';
 import LocationMetadataTable from './metadata/LocationMetadataTable';
 
+import MetadataActions from '../actions/MetadataActions';
+
 import conf from '../conf/ApplicationConfiguration';
 
 class MetadataViewer extends React.Component {
@@ -20,7 +22,10 @@ class MetadataViewer extends React.Component {
 
     this.placeholderStyle = {
       backgroundColor: '#F2F2F2',
-      height: '100%',
+      height: this.props.height,
+      margin: '1%',
+      padding: '5px 5px 5px 5px',
+      overflowY: 'auto',
       width: '100%'
     };
 
@@ -43,8 +48,12 @@ class MetadataViewer extends React.Component {
     };
 
     this._onChangeSelection = () => {
-      const displayMetadata = () => console.warn('not implemented');
+      const loadMetadata = () => this.loadMetadata();
+      return loadMetadata.apply(this);
+    };
 
+    this._onMetadataUpdated = () => {
+      const displayMetadata = () => this.displayMetadata();
       return displayMetadata.apply(this);
     };
 
@@ -66,36 +75,79 @@ class MetadataViewer extends React.Component {
     };
   }
 
+  loadMetadata() {
+    var imageLinkId = this.props.toolstore.getSelectedImageId();
+    var view = this.props.benchstore.getActiveViewData();
+    var imageId = null;
+
+    //console.log(imageLinkId);
+
+    for(var i = 0; i < view.displays.length; ++i) {
+      var dEntity = view.displays[i];
+      //console.log(JSON.stringify(dEntity));
+      if(dEntity.link == imageLinkId) {
+        imageId = dEntity.entity;
+        break;
+      }
+    }
+
+    if(imageId != this.state.entity) {
+      if(this.state.entity) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.entity, this._onMetadataUpdated);
+      }
+      if(imageId) {
+        this.props.metastore.addMetadataUpdateListener(imageId, this._onMetadataUpdated);
+      }
+      this.setState({
+        entity: imageId,
+        loading: imageId != null,
+        noContent: imageId == null,
+        coLabMetadata: null,
+        specimen: null,
+        determinations: [],
+        harvest: null,
+        location: null,
+        loadingSpecimen: true,
+        loadingDeterminations: true,
+        loadingHarvest: true,
+        loadingLocation: true});
+    }
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, imageId), 100);
+  }
+
   displayMetadata() {
-    //console.log(id);
     var id = this.state.entity;
+    //console.log(id);
     if(!id) {
       this.setState({loading: false, noContent: true});
       return;
     }
 
     var metadata = this.props.metastore.getMetadataAbout(id);
-    if(!metadata) {
-      window.setTimeout(this.displayMetadata.bind(this), 2000);
-      return;
+    //console.log(JSON.stringify(metadata));
+
+    if(metadata.originalSource) {
+      this.loadOriginalSourceMetadata(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
     }
+    this.setState({loading: false, coLabMetadata: metadata});
+
     // Get CoLab metadata about this entity
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Error connecting to CoLab database service ' + err);
-          this.setState({loading: false, noContent: true});
-        }
-        else {
-          var metadata = JSON.parse(res.text);
-          if(metadata.originalSource) {
-            this.loadOriginalSourceMetadata(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
-          }
-          this.setState({loading: false, coLabMetadata: metadata});
-        }
-      });
+    //request.get(conf.actions.databaseActions.getData)
+    //  .query({id: id})
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Error connecting to CoLab database service ' + err);
+    //      this.setState({loading: false, noContent: true});
+    //    }
+    //    else {
+    //      var metadata = JSON.parse(res.text);
+    //      if(metadata.originalSource) {
+    //        this.loadOriginalSourceMetadata(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
+    //      }
+    //      this.setState({loading: false, coLabMetadata: metadata});
+    //    }
+    //  });
   }
 
   loadOriginalSourceMetadata(id, type, origin) {
@@ -187,13 +239,13 @@ class MetadataViewer extends React.Component {
   }
 
   displaySelectedName() {
-    console.warn('not implemented');
-    //if(this.state.entity) {
-    //  if(this.props..getSelectedMetadata()) {
-    //    return this.props..getSelectedMetadata().name;
-    //  }
-    //}
-      return 'Pas de planche sélectionnée';
+    if(this.state.coLabMetadata) {
+      if(this.state.coLabMetadata.name) {
+        return this.state.coLabMetadata.name;
+      }
+      return 'Nom manquant';
+    }
+    return 'Pas de planche sélectionnée';
   }
 
   componentDidMount() {
@@ -202,7 +254,7 @@ class MetadataViewer extends React.Component {
         exclusive: false
       });
     }
-    //this.props.entitystore.addChangeSelectionListener(this._onChangeSelection);
+    this.props.toolstore.addSelectionChangeListener(this._onChangeSelection);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -256,13 +308,16 @@ class MetadataViewer extends React.Component {
   }
 
   componentWillUnmount() {
-    //this.props.entitystore.removeChangeSelectionListener(this._onChangeSelection);
+    this.props.toolstore.removeSelectionChangeListener(this._onChangeSelection);
+    if(this.state.entity) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.entity, this._onMetadataUpdated);
+    }
   }
 
   render() {
     var self = this;
     return(
-      <div className='ui container' style={this.placeholderStyle}>
+      <div className='ui segment container' style={this.placeholderStyle}>
         <div style={this.loaderStyle} className='ui active loader'></div>
         <div style={this.noDataStyle} className='ui container'>
           <div className='ui centered header segment' style={this.titleStyle}>
@@ -273,10 +328,7 @@ class MetadataViewer extends React.Component {
           </div>
         </div>
 
-        <div ref='accordion' className="ui styled fluid accordion" style={this.tableStyle}>
-          <div className='ui centered header segment' style={this.titleStyle}>
-            {this.displaySelectedName()}
-          </div>
+        <div ref='accordion' className="ui fluid accordion" style={this.tableStyle}>
           <SpecimenMetadataTable loading={this.state.loadingSpecimen}
                                  metadata={this.state.specimen}
                                  title='Spécimen'/>

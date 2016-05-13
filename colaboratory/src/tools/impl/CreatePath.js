@@ -38,11 +38,18 @@ class CreatePath extends AbstractTool {
         self.vertexDragEnded.call(this, d, self);
       });
 
+    this._onViewChange = () => {
+      const adaptDisplayToZoom = () => this.adaptElementSizeToZoom(this.props.viewstore.getView().scale);
+      return adaptDisplayToZoom.apply(this);
+    };
+
     this.state = this.initialState();
   }
 
   initialState() {
     return {
+      imageLinkId: null,
+      imageUri: null,
       edges: [],
       start: null,
       interactionState: 0,
@@ -54,19 +61,7 @@ class CreatePath extends AbstractTool {
   /**
    * INHERITED API
    */
-  click(self, x, y, data) {
-    console.error('not implemented');
-    return;
-
-    var deltaX = this.props.getSelectedImage().x;
-    var deltaY = this.props.getSelectedImage().y;
-    var view = this.props.viewstore.getView();
-    var displayX = (x-view.left)/view.scale;
-    var displayY = (y-view.top)/view.scale;
-    var imgX = displayX-deltaX;
-    var imgY = displayY-deltaY;
-
-    if(data.button == 0) {
+  addVertex(x, y, data) {
       if (this.state.interactionState == 0) {
         // Two possibilities:
         // a) We are not currently in the process of creating a new edge
@@ -79,16 +74,16 @@ class CreatePath extends AbstractTool {
         // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will
         // close the current path. Close shape, end editing.
         // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-        var count = Globals.countEdges(imgX, imgY, this.state.edges, 5);
+        var count = Globals.countEdges(x, y, this.state.edges, 5);
         if (this.state.start == null) {
           // a
           if (count == 0) {
             // aa
-            this.setState({edges: [], start: {x: imgX, y: imgY}});
+            this.setState({edges: [], start: {x: x, y: y}});
           }
           else if (count == 1) {
             // ab
-            var vertex = Globals.matchVertex(imgX, imgY, this.state.edges, 5);
+            var vertex = Globals.matchVertex(x, y, this.state.edges, 5);
             this.setState({start: {x: vertex.x, y: vertex.y}});
           }
           else if (count == 2) {
@@ -113,15 +108,15 @@ class CreatePath extends AbstractTool {
                 y: this.state.start.y
               },
               end: {
-                x: imgX,
-                y: imgY
+                x: x,
+                y: y
               }
             });
-            this.setState({edges: edges, start: {x: imgX, y: imgY}});
+            this.setState({edges: edges, start: {x: x, y: y}});
           }
           else if (count == 1) {
             // bb
-            var vertex = Globals.matchVertex(imgX, imgY, this.state.edges, 5);
+            var vertex = Globals.matchVertex(x, y, this.state.edges, 5);
             var edges = this.state.edges;
             edges.push({
               start: {
@@ -146,7 +141,6 @@ class CreatePath extends AbstractTool {
           }
         }
       }
-    }
   }
 
   canSave() {
@@ -160,7 +154,8 @@ class CreatePath extends AbstractTool {
     }
     // Create polyline representation of this path.
     var data = {};
-    data.serviceUrl = conf.actions.imageEditorServiceActions.createPath;
+    data.serviceUrl = conf.actions.imageServiceActions.createTrailOfInterest;
+    data.parent = this.state.imageUri;
     data.payload = {};
     data.payload.path = [];
     data.payload.length = 0;
@@ -187,6 +182,8 @@ class CreatePath extends AbstractTool {
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);
     var self = this;
+
+    // Mount listener for validation of path
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', this.activateEnter.bind(self))
       .on('mouseleave', this.deactivateEnter);
@@ -197,12 +194,36 @@ class CreatePath extends AbstractTool {
         ToolActions.activeToolPopupUpdate(popup);},
       100);
 
-    this.setState({active: true, name: ''});
+    // Mount listeners on all image groups
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+        if(d3.event.button == 0) {
+          self.leftClick.call(this, self, d);
+        }
+      })
+      .on('contextmenu', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+        self.rightClick.call(this, self, d);
+      });
+
+    this.props.viewstore.addViewportListener(this._onViewChange);
+
+    this.setState({active: true, name: '', imageLinkId: null});
 
   }
 
   reset() {
-    this.setState({edges: [], start: null, interactionState: 0});
+    this.clearSVG();
+    this.setState({
+      edges: [],
+      start: null,
+      imageLinkId: null,
+      interactionState: 0});
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);
@@ -217,17 +238,59 @@ class CreatePath extends AbstractTool {
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', null)
       .on('mouseleave', null);
+
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', null);
+
+    this.props.viewstore.removeViewportListener(this._onViewChange);
+
     this.setState(this.initialState());
 
   }
 
   setMode(){
-    ToolActions.setTool(ToolConf.newPath.uid);
+    ToolActions.setTool(ToolConf.newPath.id);
   }
 
   /**
    * INTERNAL METHODS
    */
+  adaptElementSizeToZoom(scale) {
+    var tool = d3.select('.' + this.toolContainerSVGClass);
+
+    tool.selectAll('.blackLine')
+      .attr('stroke-width', 4/scale);
+    tool.selectAll('.whiteLine')
+      .attr('stroke-width', 1/scale);
+    tool.selectAll('.currentLine')
+      .attr('stroke-width', 2/scale);
+    tool.selectAll('circle')
+      .attr("r", 6/scale);
+  }
+
+  leftClick(self, d) {
+    // If no image set image and add vertex
+    if(!self.state.imageLinkId) {
+      var coords = d3.mouse(this);
+      self.setState({imageLinkId: d.link, imageUri: d.entity});
+      self.addVertex.call(self, coords[0], coords[1], d);
+    }
+    if(self.state.imageLinkId == d.link) {
+      // If same image add vertex
+      var coords = d3.mouse(this);
+      self.addVertex.call(self, coords[0], coords[1], d);
+    }
+    else {
+      // If different image display error and do nothing else
+      console.error('Attempt to apply a single image operation as cross-image');
+    }
+  }
+
+  rightClick(self, d) {
+    // If creation mode, remove last vertex
+    // If confirm mode, confirm and save (if box full)
+  }
+
   activateEnter() {
     var self = this;
     d3.select("body").on('keyup', function(d, i) {self.nextInteractionState.call(this, self)});
@@ -251,9 +314,13 @@ class CreatePath extends AbstractTool {
   }
 
   dataToSVG() {
-    console.error('not implemented');
-    //var selectedSheet = this.props..getSelectedEntity();
-    var overSheetGroup = d3.select('#OVER-' + selectedSheet.uid);
+    if(!this.state.imageLinkId) {
+      return;
+    }
+
+    var view = this.props.viewstore.getView();
+
+    var overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
     var toolDisplayGroup = overSheetGroup
       .append('g')
       .attr('class', this.toolContainerSVGClass);
@@ -263,20 +330,22 @@ class CreatePath extends AbstractTool {
       var edge = this.state.edges[i];
       var bLine = toolDisplayGroup.append('line');
       bLine
+        .attr('class', 'blackLine')
         .attr('x1', edge.start.x)
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 4)
+        .attr('stroke-width', 4/view.scale)
         .attr('stroke', 'black');
 
       var wLine = toolDisplayGroup.append('line');
       wLine
+        .attr('class', 'whiteLine')
         .attr('x1', edge.start.x)
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 1)
+        .attr('stroke-width', 1/view.scale)
         .attr('stroke', 'white');
 
       if(this.state.interactionState == 1) {
@@ -298,7 +367,7 @@ class CreatePath extends AbstractTool {
       circle
         .attr("cx", edge.start.x)
         .attr("cy", edge.start.y)
-        .attr("r", 6)
+        .attr("r", 6/view.scale)
         .style("fill", "black");
       if(this.state.interactionState == 1) {
         circle.datum({x: edge.start.x, y: edge.start.y})
@@ -312,33 +381,33 @@ class CreatePath extends AbstractTool {
 
     if(this.state.start && this.state.interactionState == 0) {
       toolDisplayGroup.append('line')
+        .attr('class', 'currentLine')
         .attr('x1', this.state.start.x)
         .attr('y1', this.state.start.y)
         .attr('x2', this.state.start.x)
         .attr('y2', this.state.start.y)
         .attr('class', this.activeLineClass)
-        .attr('stroke-width', 2)
+        .attr('stroke-width', 2/view.scale)
         .attr('stroke', 'black');
 
       //console.log("mounting mouse move listener");
-      d3.select('#GROUP-' + selectedSheet.uid)
+      d3.select('#GROUP-' + this.state.imageLinkId)
         .on('mousemove', function(d, i) {
           self.setLineEndPosition.call(this, self)});
 
       toolDisplayGroup.append('circle')
         .attr("cx", this.state.start.x)
         .attr("cy", this.state.start.y)
-        .attr("r", 6)
+        .attr("r", 6/view.scale)
         .style("fill", "black");
     }
   }
 
   clearSVG() {
-    console.error('not implemented');
-    return;
-    var selectedSheet = this.props.getSelectedEntity();
     d3.select('.' + this.toolContainerSVGClass).remove();
-    d3.select('#GROUP-' + selectedSheet.uid).on('mousemove', null);
+    if(this.state.imageLinkId) {
+      d3.select('#GROUP-' + this.state.imageLinkId).on('mousemove', null);
+    }
   }
 
   splitEdge(i, self) {
@@ -431,7 +500,7 @@ class CreatePath extends AbstractTool {
    * REACT API
    */
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.newPath.uid, this.click, this);
+    ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 
@@ -445,17 +514,9 @@ class CreatePath extends AbstractTool {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.active) {
+    if(this.state.active && this.state.imageLinkId) {
       this.clearSVG();
       this.dataToSVG();
-    }
-    if(this.state.active && !prevState.active) {
-      //var popup = <Popup setDataCallback={this.setData.bind(this)}
-      ///>;
-      //
-      //window.setTimeout(function() {
-      //    ToolActions.activeToolPopupUpdate(popup);},
-      //  100);
     }
     if(this.state.interactionState == 1 && prevState.interactionState != 1) {
       window.setTimeout(function() {

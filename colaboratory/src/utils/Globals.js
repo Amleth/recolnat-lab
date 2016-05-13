@@ -114,18 +114,22 @@ class GlobalFunctions {
    * @param store
    * @returns {*}
    */
-  static getEXIFScalingData(imageId, store) {
-    var imageMetadata = store.getEntityMetadata(imageId);
-    //console.log(JSON.stringify(imageMetadata));
+  static getEXIFScalingData(imageMetadata) {
     if(imageMetadata) {
-      if(imageMetadata.metadata) {
-        if(imageMetadata.metadata["X Resolution"]) {
-          var xResolution = imageMetadata.metadata["X Resolution"].split(" ");
+      if(imageMetadata.exif) {
+        if(imageMetadata.exif["X Resolution"]) {
+          var xResolution = imageMetadata.exif["X Resolution"].split(" ");
           var dotsPerUnit = _.parseInt(xResolution[0]);
           var mmPerPixel = null;
-          var unit = imageMetadata.metadata["Resolution Units"];
+          var unit = imageMetadata.exif["Resolution Units"];
           if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
             mmPerPixel = 25.4/dotsPerUnit;
+          }
+          else if(unit.toUpperCase() == "CM") {
+            mmPerPixel = 10/dotsPerUnit;
+          }
+          else if(unit.toUpperCase() == "MM") {
+            mmPerPixel = 1/dotsPerUnit;
           }
           else {
             console.error("Unprocessed unit " + unit);
@@ -160,6 +164,14 @@ class GlobalFunctions {
   static setMode(mode) {
     ModeActions.changeMode(mode);
   }
+
+  static isCoordsInBoundingBox(coordinates, box) {
+    return coordinates[0] >= box.left &&
+      coordinates[0] <= box.right &&
+      coordinates[1] >= box.top &&
+      coordinates[1] <= box.bottom;
+  }
+
 }
 
 export default GlobalFunctions;

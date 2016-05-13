@@ -42,6 +42,11 @@ class CreateRoI extends AbstractTool {
       margin: '8px 10px 0px 0px'
     };
 
+    this._onViewChange = () => {
+      const adaptScale = () => this.adaptElementSizetoZoom(this.props.viewstore.getView().scale);
+      return adaptScale.apply(this);
+    };
+
     this.state = this.initialState();
   }
 
@@ -52,6 +57,8 @@ class CreateRoI extends AbstractTool {
    */
   initialState() {
     return {
+      imageUri: null,
+      imageLinkUri: null,
       edges: [],
       start: null,
       interactionState: 0,
@@ -67,11 +74,8 @@ class CreateRoI extends AbstractTool {
   }
 
   dataToSVG() {
-    console.error('not implemented');
-    return;
-    var imageId = this.props.getSelectedEntity().uid;
-
-    var overImageGroup = d3.select('#OVER-' + imageId);
+    var view = this.props.viewstore.getView();
+    var overImageGroup = d3.select('#OVER-' + this.state.imageLinkUri);
     var toolDisplayGroup = overImageGroup.append('g')
       .attr('class', CreateRoI.classes().selfSvgClass);
 
@@ -80,20 +84,22 @@ class CreateRoI extends AbstractTool {
       var edge = this.state.edges[i];
       var bLine = toolDisplayGroup.append('line');
       bLine
+        .attr('class', 'blackLine')
         .attr('x1', edge.start.x)
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 4)
+        .attr('stroke-width', 4/view.scale)
         .attr('stroke', 'black');
 
       var wLine = toolDisplayGroup.append('line');
       wLine
+        .attr('class', 'whiteLine')
         .attr('x1', edge.start.x)
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 1)
+        .attr('stroke-width', 1/view.scale)
         .attr('stroke', 'white');
 
       if(this.state.interactionState == 1) {
@@ -113,10 +119,12 @@ class CreateRoI extends AbstractTool {
       var edge = this.state.edges[i];
       var circle = toolDisplayGroup.append('circle');
       circle
+        .attr('class', 'blackCircle')
         .attr("cx", edge.start.x)
         .attr("cy", edge.start.y)
-        .attr("r", 6)
+        .attr("r", 6/view.scale)
         .style("fill", "black");
+
       if(this.state.interactionState == 1) {
         circle.datum({x: edge.start.x, y: edge.start.y})
           .attr("x", function(d) {return d.x;})
@@ -129,24 +137,39 @@ class CreateRoI extends AbstractTool {
 
     if(this.state.start) {
       toolDisplayGroup.append('line')
+        .attr('class', CreateRoI.classes().activeLineClass)
         .attr('x1', this.state.start.x)
         .attr('y1', this.state.start.y)
         .attr('x2', this.state.start.x)
         .attr('y2', this.state.start.y)
-        .attr('class', CreateRoI.classes().activeLineClass)
-        .attr('stroke-width', 2)
+        .attr('stroke-width', 2/view.scale)
         .attr('stroke', 'black');
 
-      d3.select('#GROUP-' + imageId)
+      d3.select('#GROUP-' + this.state.imageLinkUri)
         .on('mousemove', function(d, i) {
           self.setLineEndPosition.call(this, self)});
 
       toolDisplayGroup.append('circle')
+        .attr('class', 'blackCircle')
         .attr("cx", this.state.start.x)
         .attr("cy", this.state.start.y)
-        .attr("r", 6)
+        .attr("r", 6/view.scale)
         .style("fill", "black");
     }
+  }
+
+  adaptElementSizetoZoom(scale) {
+    console.log('adaptElementSizetoZoom');
+    var tool = d3.select('.' + CreateRoI.classes().selfSvgClass);
+
+    tool.selectAll('.blackLine')
+      .attr('stroke-width', 4/scale);
+    tool.selectAll('.whiteLine')
+      .attr('stroke-width', 1/scale);
+    tool.selectAll('.' + CreateRoI.classes().activeLineClass)
+      .attr('stroke-width', 2/scale);
+    tool.selectAll('circle')
+      .attr("r", 6/scale);
   }
 
   clearSVG() {
@@ -164,14 +187,40 @@ class CreateRoI extends AbstractTool {
         ToolActions.activeToolPopupUpdate(popup);},
       100);
 
-    this.setState({edges: [], start: null, interactionState: 0, active: true, name: ''});
+    var self = this;
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+        if(d3.event.button == 0) {
+          self.leftClick.call(this, self, d);
+        }
+      })
+      .on('contextmenu', function(d, i) {
+        if(d3.event.defaultPrevented) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+          self.rightClick.call(this, self, d);
+      });
+
+    this.props.viewstore.addViewportListener(this._onViewChange);
+
+    this.setState({active: true});
   }
 
   reset() {
+    this.clearSVG();
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
     }, 10);
-    this.setState({edges: [], start: null, interactionState: 0, name: ''});
+    this.setState({
+      imageUri: null,
+      imageLinkUri: null,
+      edges: [],
+      start: null,
+      interactionState: 0,
+      name: ''});
   }
 
   finish() {
@@ -179,6 +228,14 @@ class CreateRoI extends AbstractTool {
       ToolActions.activeToolPopupUpdate(null);
       ToolActions.updateTooltipData("");
     }, 10);
+
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('click', null);
+
+    this.props.viewstore.removeViewportListener(this._onViewChange);
+
+    this.clearSVG();
+
     this.setState(this.initialState());
   }
 
@@ -198,7 +255,9 @@ class CreateRoI extends AbstractTool {
     }
     // Create polygon or polyline representation of this area..
     var data = {};
-    data.serviceUrl = conf.actions.imageEditorServiceActions.createPolygon;
+    data.serviceUrl = conf.actions.imageServiceActions.createRegionOfInterest;
+    data.image = this.state.imageUri;
+    data.parent = this.state.imageUri;
     data.payload = {};
     data.payload.polygon = [];
     data.payload.name = this.state.name;
@@ -216,7 +275,6 @@ class CreateRoI extends AbstractTool {
     }
     data.payload.area = Math.abs(polygonArea(data.payload.polygon));
 
-    //console.log("CreateROI: sending save data " + JSON.stringify(data));
     return data;
   }
 
@@ -236,108 +294,112 @@ class CreateRoI extends AbstractTool {
     }
   }
 
-
-
-
-  click(self, clickX, clickY, data) {
-    console.error('not implemented');
-    return;
-    if(!this.props.getSelectedImage()) {
-      window.setTimeout(function() {
-          ToolActions.updateTooltipData("Veuillez sélectionner une image via l'outil sélection avant d'utiliser l'outil de création de chemins.");},
-        50);
-      return;
-    }
-
-    //console.log("create roi received click with button=" + data.button);
-
-    var deltaX = this.props.getSelectedImage().x;
-    var deltaY = this.props.getSelectedImage().y;
-    var view = this.props.viewstore.getView();
-    var displayX = (clickX-view.left)/view.scale;
-    var displayY = (clickY-view.top)/view.scale;
-    var x = displayX-deltaX;
-    var y = displayY-deltaY;
-
-    if(data.button == 0) {
-      if (this.state.interactionState == 0) {
-        // Two possibilities:
-        // a) We are not currently in the process of creating a new edge
-        // b) We are in the process of creating a new edge
-        // Consequently the following situations have to be taken into account:
-        // aa/ There is no vertex at this location. In this case this is a fully new ROI
-        // ab/ There is a vertex at this location. This vertex is part of only one edge, create a new edge starting there.
-        // ac/ There is a vertex at this location. The vertex is already part of two edges, no new line can be added. A vertex can only be in up to two edges.
-        // ba/ The target is not a vertex. Create a new vertex here and a new edge linking start to end. Continue with a new edge starting at this location.
-        // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will close the current ROI. Close shape, end editing.
-        // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-        var count = this.countEdges(x, y);
-        if (this.state.start == null) {
-          // a
-          if (count == 0) {
-            // aa
-            this.setState({edges: [], start: {x: x, y: y}});
-          }
-          else if (count == 1) {
-            // ab
-            var vertex = this.matchVertex(x, y);
-            this.setState({start: {x: vertex.x, y: vertex.y}});
-          }
-          else if (count == 2) {
-            // ac
-            window.setTimeout(function () {
-              ToolActions.updateTooltipData("Impossible de commencer une ligne ici. Veuillez cliquer sur un point au début ou à la fin de la zone.");
-            }, 100);
-          }
-          else {
-            console.error("Whoops. This vertex is in too many edges. How unexpected.");
-          }
+  addVertex(x, y, data) {
+    if (this.state.interactionState == 0) {
+      // Two possibilities:
+      // a) We are not currently in the process of creating a new edge
+      // b) We are in the process of creating a new edge
+      // Consequently the following situations have to be taken into account:
+      // aa/ There is no vertex at this location. In this case this is a fully new ROI
+      // ab/ There is a vertex at this location. This vertex is part of only one edge, create a new edge starting there.
+      // ac/ There is a vertex at this location. The vertex is already part of two edges, no new line can be added. A vertex can only be in up to two edges.
+      // ba/ The target is not a vertex. Create a new vertex here and a new edge linking start to end. Continue with a new edge starting at this location.
+      // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will close the current ROI. Close shape, end editing.
+      // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
+      var count = this.countEdges(x, y);
+      if (this.state.start == null) {
+        // a
+        if (count == 0) {
+          // aa
+          this.setState({edges: [], start: {x: x, y: y}});
+        }
+        else if (count == 1) {
+          // ab
+          var vertex = this.matchVertex(x, y);
+          this.setState({start: {x: vertex.x, y: vertex.y}});
+        }
+        else if (count == 2) {
+          // ac
+          window.setTimeout(function () {
+            ToolActions.updateTooltipData("Impossible de commencer une ligne ici. Veuillez cliquer sur un point au début ou à la fin de la zone.");
+          }, 100);
         }
         else {
-          // b
-          if (count == 0) {
-            // ba
-            var edges = this.state.edges;
-            edges.push({
-              start: {
-                x: this.state.start.x,
-                y: this.state.start.y
-              },
-              end: {
-                x: x,
-                y: y
-              }
-            });
-            this.setState({edges: edges, start: {x: x, y: y}});
+          console.error("Whoops. This vertex is in too many edges. How unexpected.");
+        }
+      }
+      else {
+        // b
+        if (count == 0) {
+          // ba
+          var edges = this.state.edges;
+          edges.push({
+            start: {
+              x: this.state.start.x,
+              y: this.state.start.y
+            },
+            end: {
+              x: x,
+              y: y
+            }
+          });
+          this.setState({edges: edges, start: {x: x, y: y}});
+        }
+        else if (count == 1) {
+          // bb
+          if(this.state.edges.length < 2) {
+            window.setTimeout(ToolActions.updateTooltipData.bind(null, "Il faut au moins 2 côtés pour fermer un polygone.")
+            , 100);
+            return;
           }
-          else if (count == 1) {
-            // bb
-            var vertex = this.matchVertex(x, y);
-            var edges = this.state.edges;
-            edges.push({
-              start: {
-                x: this.state.start.x,
-                y: this.state.start.y
-              },
-              end: {
-                x: vertex.x,
-                y: vertex.y
-              }
-            });
-            this.setState({edges: edges, start: null, interactionState: 1});
-          }
-          else if (count == 2) {
-            // bc
-            window.setTimeout(function () {
-              ToolActions.updateTooltipData("Impossible de créer la ligne ici. Si vous souhaitez fermer le polygone, cliquez sur son premier point.");
-            }, 100);
-          }
-          else {
-            console.error("Whoops. This vertex is in too many edges. How unexpected.");
-          }
+          var vertex = this.matchVertex(x, y);
+          var edges = this.state.edges;
+          edges.push({
+            start: {
+              x: this.state.start.x,
+              y: this.state.start.y
+            },
+            end: {
+              x: vertex.x,
+              y: vertex.y
+            }
+          });
+          this.setState({edges: edges, start: null, interactionState: 1});
+        }
+        else if (count == 2) {
+          // bc
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, "Impossible de créer la ligne ici. Si vous souhaitez fermer le polygone, cliquez sur le bouton droit de la souris.")
+          , 100);
+        }
+        else {
+          console.error("Whoops. This vertex is in too many edges. How unexpected.");
         }
       }
     }
+  }
+
+  closePolygon() {
+    if(this.state.interactionState == 0) {
+      if(this.state.edges.length > 1) {
+        var edges = this.state.edges;
+        edges.push(
+          {
+            start: {x: this.state.start.x, y: this.state.start.y},
+            end: {x: edges[0].start.x, y: edges[0].start.y}
+          });
+        this.setState({
+          edges: edges,
+          start: null,
+          interactionState: 1
+        });
+      }
+      else {
+        window.setTimeout(
+          ToolActions.updateTooltipData.bind(null, "Il faut au moins 2 segments pour fermer le polygone.")
+        , 100);
+      }
+    }
+
   }
 
   /**
@@ -437,7 +499,7 @@ class CreateRoI extends AbstractTool {
     this.setState({name: name});
   }
 
-  setLineEndPosition(self) {
+  setLineEndPosition() {
     var coords = d3.mouse(this);
     d3.select('.' + CreateRoI.classes().activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
   }
@@ -478,9 +540,34 @@ class CreateRoI extends AbstractTool {
     }
   }
 
+  leftClick(self, d) {
+    // If no image set image and add vertex
+    if(!self.state.imageLinkUri) {
+      var coords = d3.mouse(this);
+      self.setState({imageLinkUri: d.link, imageUri: d.entity});
+      self.addVertex.call(self, coords[0], coords[1], d);
+    }
+    if(self.state.imageLinkUri == d.link) {
+      // If same image add vertex
+      var coords = d3.mouse(this);
+      self.addVertex.call(self, coords[0], coords[1], d);
+    }
+    else {
+      // If different image display error and do nothing else
+      console.error('Attempt to apply a single image operation as cross-image');
+    }
+  }
+
+  rightClick(self, d) {
+    console.log('right click');
+    d3.event.stopPropagation();
+    d3.event.preventDefault();
+    self.closePolygon.call(self);
+  }
+
   componentDidMount() {
     $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.newRegionOfInterest.uid, this.click, this);
+    ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -498,13 +585,8 @@ class CreateRoI extends AbstractTool {
       this.dataToSVG();
     }
 
-    if(this.state.active && !prevState.active) {
-      //var popup = <Popup setDataCallback={this.setData.bind(this)}
-      ///>;
-      //
-      //window.setTimeout(function() {
-      //    ToolActions.activeToolPopupUpdate(popup);},
-      //  100);
+    if(!this.state.active && prevState.active) {
+      this.clearSVG();
     }
 
     if(this.state.interactionState == 1) {
@@ -532,10 +614,8 @@ class CreateRoI extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.newRegionOfInterest.uid);
+    ToolActions.setTool(ToolConf.newRegionOfInterest.id);
   }
-
-
 
   render() {
     return (

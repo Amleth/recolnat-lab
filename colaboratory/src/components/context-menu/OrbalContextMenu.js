@@ -8,6 +8,7 @@ import React from 'react';
 import OrbOptions from './options/OrbOptions';
 
 import ViewActions from '../../actions/ViewActions';
+import MetadataActions from '../../actions/MetadataActions';
 
 import TypeConstants from '../../constants/TypeConstants';
 
@@ -38,18 +39,29 @@ class OrbalContextMenu extends React.Component {
 
     this.displayText = null;
 
-    this.state = {
-      itemsAtCursor: [],
-      activeItemIndex: -1,
-      active: false
-    };
+    this.state = OrbalContextMenu.getInitialState();
 
     this._onContextMenuChange = () => {
       const fetchData = () => this.setContextMenuData(this.props.menustore.getElements());
       return fetchData.apply(this);
     };
 
+    this._onActiveItemMetadataUpdated = () => {
+      const activateMenu = () => this.setState({active: true});
+      return activateMenu.apply(this);
+    };
+
     this.closeDelay = null;
+  }
+
+  static getInitialState() {
+    return {
+      itemsAtCursor: [],
+      activeItemIndex: -1,
+      activeItemId: null,
+      activeItemLinkId: null,
+      active: false
+    };
   }
 
   resetOrbs() {
@@ -228,17 +240,43 @@ class OrbalContextMenu extends React.Component {
   }
 
   setContextMenuData(elements) {
+    //console.log(JSON.stringify(elements));
     //elements.unshift({type: 'workbench', id: this.props.entitystore.getSetId()});
-    if(elements.length > 0) {
-      this.setState({itemsAtCursor: elements, active: true, activeItemIndex: elements.length - 1});
+    var arrElements = [];
+    for(var i = 0; i < elements.images.length; ++i) {
+      arrElements.push(elements.images[i]);
+    }
+    //arrElements.push(elements.images);
+    for(i = 0; i < elements.pois.length; ++i) {
+      arrElements.push(elements.pois[i]);
+    }
+    for(i = 0; i < elements.tois.length; ++i) {
+      arrElements.push(elements.tois[i]);
+    }
+    for(i = 0; i < elements.rois.length; ++i) {
+      arrElements.push(elements.rois[i]);
+    }
+    //console.log(JSON.stringify(arrElements));
+    if(arrElements.length > 0) {
+      this.setState({itemsAtCursor: arrElements});
+      this.setActiveItem(arrElements.length-1, arrElements, false);
+    }
+    else {
+      this.setState(OrbalContextMenu.getInitialState());
     }
   }
 
-  closeMenu(event) {
-    if(event.isPropagationStopped) {
+  closeMenu(delay, event) {
+    //console.log('closeMenu(' + event + ','  + delay + ')');
+    if(event.isPropagationStopped()) {
       return;
     }
-    this.closeDelay = window.setTimeout(this.setState.bind(this, {active: false}), 10);
+    if(delay) {
+      this.closeDelay = window.setTimeout(this.setState.bind(this, OrbalContextMenu.getInitialState()), delay);
+    }
+    else {
+      this.setState(OrbalContextMenu.getInitialState());
+    }
   }
 
   cancelCloseMenu() {
@@ -248,23 +286,36 @@ class OrbalContextMenu extends React.Component {
     }
   }
 
+  setActiveItem(index, itemIds, keepActive=true) {
+    var id = itemIds[index];
+    var link = null;
+    if(this.props.benchstore.getDisplayData(id)) {
+      link = itemIds[index];
+      id = this.props.benchstore.getDisplayData(id).entity;
+    }
+    this.props.metastore.addMetadataUpdateListener(id, this._onActiveItemMetadataUpdated);
+
+    this.setState({active: this.state.active && keepActive, activeItemId: id, activeItemLinkId: link, activeItemIndex: index});
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+  }
+
   previousItem(event) {
     event.stopPropagation();
     if(this.state.activeItemIndex == 0) {
-      this.setState({activeItemIndex: this.state.itemsAtCursor.length-1});
+      this.setActiveItem(this.state.itemsAtCursor.length-1, this.state.itemsAtCursor);
     }
     else {
-      this.setState({activeItemIndex: this.state.activeItemIndex-1});
+      this.setActiveItem(this.state.activeItemIndex-1, this.state.itemsAtCursor);
     }
   }
 
   nextItem(event) {
     event.stopPropagation();
     if(this.state.activeItemIndex == this.state.itemsAtCursor.length-1) {
-      this.setState({activeItemIndex: 0});
+      this.setActiveItem(0, this.state.itemsAtCursor);
     }
     else {
-      this.setState({activeItemIndex: this.state.activeItemIndex+1});
+      this.setActiveItem(this.state.activeItemIndex+1, this.state.itemsAtCursor);
     }
   }
 
@@ -303,53 +354,32 @@ class OrbalContextMenu extends React.Component {
   menuIsDeactivated() {
     this.menuContainerStyle.visibility = 'hidden';
     this.resetOrbs();
-
-    //this.orbNWStyle.top = this.long;
-    //this.orbNWStyle.left = this.long;
-    //
-    //this.orbNStyle.top = this.long;
-    //this.orbNStyle.left = this.long;
-    //
-    //this.orbNEStyle.top = this.long;
-    //this.orbNEStyle.right = this.long;
-    //
-    //this.orbWStyle.top = this.long;
-    //this.orbWStyle.left = this.long;
-    //
-    //this.orbEStyle.top = this.long;
-    //this.orbEStyle.right = this.long;
-    //
-    //this.orbSWStyle.bottom = this.long;
-    //this.orbSWStyle.left = this.long;
-    //
-    //this.orbSStyle.bottom = this.long;
-    //this.orbSStyle.left = this.long;
-    //
-    //this.orbSEStyle.bottom = this.long;
-    //this.orbSEStyle.right = this.long;
   }
 
-  setMenuDataByContext(item) {
-    var metadata = this.props.metastore.getMetadataAbout(item.uid);
+  setMenuDataByContext() {
+    if(!this.state.activeItemId) {
+      console.error('No active item in menu');
+      return;
+    }
+    var metadata = this.props.metastore.getMetadataAbout(this.state.activeItemId);
     this.displayText = metadata.name;
     if(!this.displayText) {
       this.displayText = "Objet sans nom";
     }
-    //console.log('Setting name to ' + this.displayText);
-    switch(item.type) {
+    switch(metadata.type) {
       case TypeConstants.point:
         this.displayText = '(Point) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + item.uid, this.props.viewstore.getView());
-        this.northEastAction = OrbOptions.notAvailable.bind(null);;
-        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + metadata.uid, this.props.viewstore.getView());
+        this.northEastAction = OrbOptions.notAvailable.bind(null);
+        this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, metadata,
             function (err) {
               console.error(err);
             },
             function (res) {
-              ViewActions.updateMetadata(null);
+              MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -370,19 +400,19 @@ class OrbalContextMenu extends React.Component {
         }
 
         break;
-      case TypeConstants.path:
+      case TypeConstants.trail:
         this.displayText = '(Chemin) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#PATH-' + item.uid, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#PATH-' + metadata.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
-        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
+        this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, metadata,
             function (err) {
               console.error(err);
             },
             function (res) {
-              ViewActions.updateMetadata(null);
+              MetadataActions.updateLabBenchFrom();
             }
           );
           this.southEastAction = OrbOptions.notAvailable.bind(null);
@@ -404,16 +434,16 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.region:
         this.displayText = '(Zone) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#ROI-' + item.uid, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#ROI-' + metadata.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
-        this.southWestAction = OrbOptions.showMetdata.bind(null, item);
+        this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, metadata,
             function (err) {
               console.error(err);
             },
             function (res) {
-              ViewActions.updateMetadata(null);
+              MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -433,19 +463,19 @@ class OrbalContextMenu extends React.Component {
           this.orbSEStyle.visibility = 'hidden';
         }
         break;
-      case TypeConstants.sheet:
-        this.displayText = '(Planche) ' + this.displayText;
+      case TypeConstants.image:
+        this.displayText = '(Image) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null);
-        this.northAction = OrbOptions.zoomToObject.bind(null, '#GROUP-' + item.uid, this.props.viewstore.getView());
+        this.northAction = OrbOptions.zoomToObject.bind(null, '#GROUP-' + this.state.activeItemLinkId, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
-        this.southWestAction = OrbOptions.notAvailable.bind(null);;
+        this.southWestAction = OrbOptions.notAvailable.bind(null);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.remove.bind(null, item,
+          this.southAction = OrbOptions.remove.bind(null, metadata,
             function (err) {
               console.error(err);
             },
             function (res) {
-              ViewActions.updateMetadata(null);
+              MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -476,11 +506,11 @@ class OrbalContextMenu extends React.Component {
       //
       //  this.northIcon = 'eye';
       //
-      //  this.northAction = ViewActions.fitView.bind(null);
+      //  this.northAction = ViewActions.fitView.bind(null);"
       //
       //  break;
       default:
-        log.warning('No specific orbal context menu for type ' + item.type);
+        console.warn('No specific orbal context menu for type ' + metadata.type);
         break;
     }
 
@@ -510,7 +540,7 @@ class OrbalContextMenu extends React.Component {
     }
 
     if(this.state.animationData) {
-      OrbOptions.stopAnimation(this.state.itemsAtCursor[this.state.activeItemIndex], this.state.animationData);
+      OrbOptions.stopAnimation(this.state.animationData);
       nextState.animationData = null;
     }
 
@@ -522,9 +552,14 @@ class OrbalContextMenu extends React.Component {
 
       if(nextState.itemsAtCursor.length > 0) {
         // Set actions according to object type
-        var item = nextState.itemsAtCursor[nextState.activeItemIndex];
-        this.setMenuDataByContext(item);
-        nextState.animationData = OrbOptions.beginAnimation(item);
+        //var item = nextState.itemsAtCursor[nextState.activeItemIndex];
+        this.setMenuDataByContext();
+        if(nextState.activeItemLinkId) {
+          nextState.animationData = OrbOptions.beginAnimation(this.state.activeItemLinkId);
+        }
+        else {
+          nextState.animationData = OrbOptions.beginAnimation(this.state.activeItemId);
+        }
         //console.log(JSON.stringify(item));
         //this.displayText = item.name;
       }
@@ -533,6 +568,12 @@ class OrbalContextMenu extends React.Component {
         this.orbEStyle.visibility = 'hidden';
         this.orbWStyle.visibility = 'hidden';
       }
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(prevState.activeItemId != this.state.activeItemId && prevState.activeItemId) {
+      this.props.metastore.removeMetadataUpdateListener(prevState.activeItemId, this._onActiveItemMetadataUpdated);
     }
   }
 
@@ -545,7 +586,7 @@ class OrbalContextMenu extends React.Component {
       <div style={this.menuContainerStyle}
            onMouseEnter={this.cancelCloseMenu.bind(this)}
            onMouseLeave={this.closeMenu.bind(this, 500)}
-           onClick={this.closeMenu.bind(this)}>
+           onClick={this.closeMenu.bind(this, 0)}>
 
         <div style={this.orbCStyle} className='ui segment'>
           {this.displayText}

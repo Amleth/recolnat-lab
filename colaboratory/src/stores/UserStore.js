@@ -40,7 +40,7 @@ class UserStore extends EventEmitter {
           this.userAuthorized = false;
           this.userRplusId = null;
           this.userLogin = null;
-          this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 5000);
+          this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 2000);
           this.emit(UserEvents.USER_LOG_OUT);
         }
         else {

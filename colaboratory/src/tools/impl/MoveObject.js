@@ -93,7 +93,7 @@ class MoveObject extends AbstractTool {
   }
 
   setMode() {
-    ToolActions.setTool(ToolConf.moveObject.uid);
+    ToolActions.setTool(ToolConf.moveObject.id);
   }
 
   select(d, i) {
@@ -145,7 +145,7 @@ class MoveObject extends AbstractTool {
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.moveObject.uid, this.click, this);
+    ToolActions.registerTool(ToolConf.moveObject.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
 

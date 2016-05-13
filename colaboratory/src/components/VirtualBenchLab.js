@@ -77,6 +77,8 @@ class VirtualBenchLab extends React.Component {
         <OrbalContextMenu
           menustore={this.props.menustore}
           ministore={this.props.ministore}
+          metastore={this.props.metastore}
+          benchstore={this.props.benchstore}
           viewstore={this.props.viewstore}
           toolstore={this.props.toolstore}
         />

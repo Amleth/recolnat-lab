@@ -11,6 +11,10 @@ class ViewController extends React.Component {
   constructor(props) {
     super(props);
 
+    this.compactSegmentStyle = {
+      padding: '5px 5px 5px 5px'
+    };
+
     this.buttonStyle = {
       fontFamily: 'Roboto Condensed',
       fontWeight: '300'
@@ -18,8 +22,8 @@ class ViewController extends React.Component {
 
     this.labelStyle = {
       position: 'relative',
-      top: '-25px',
-      left: '-10px'
+      top: '-15px',
+      left: '10px'
     };
 
     this.state = {
@@ -48,7 +52,8 @@ class ViewController extends React.Component {
         (view.top-view.height*2.5/100)*1.05,
         null,
         null,
-        self.state.zoom*1.05
+        self.state.zoom*1.05,
+        true
       );
     }, 50);
   }
@@ -63,7 +68,8 @@ class ViewController extends React.Component {
         (view.top+view.height*2.5/100)*0.95,
         null,
         null,
-        self.state.zoom*0.95
+        self.state.zoom*0.95,
+        true
       );
     }, 50);
   }
@@ -83,7 +89,8 @@ class ViewController extends React.Component {
       (view.top-view.height/2)/view.scale,
       null,
       null,
-      1.0
+      1.0,
+      true
     );
   }
 
@@ -107,13 +114,22 @@ class ViewController extends React.Component {
       -((image.yZero)*scale),
       null,
       null,
-      scale
+      scale,
+      true
     );
+  }
+
+  componentDidMount() {
+    this.props.viewstore.addViewportListener(this._onViewChange);
+  }
+
+  componentWillUnmount() {
+    this.props.viewstore.removeViewportListener(this._onViewChange);
   }
 
   render() {
     return <div
-      style={this.componentStyle}
+      style={this.compactSegmentStyle}
       className='ui container segment'
       ref='component'>
       <div className='ui blue tiny basic label'

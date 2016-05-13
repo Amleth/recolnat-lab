@@ -82,9 +82,9 @@ class TopPane extends React.Component {
           metastore={this.props.metastore}
           managerstore={this.props.managerstore} />
         </div>
-        <div style={this.basketContainerStyle}>
-          <Basket managerstore={this.props.managerstore}/>
-        </div>
+
+
+
       </div>
       <div style={this.metadataColumnStyle}>
         <div className='ui segment'>

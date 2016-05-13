@@ -10,5 +10,6 @@ export default {
   UPDATE_VIEW_PROPERTIES: 'VIEW_updateViewProperties',
   FIT_SET_IN_VIEW: "VIEW_fitSetInView",
   UPDATE_LOADER: 'VIEW_updateLoader',
-  SHOW_ENTITY_METADATA_MODAL: 'VIEW_showEntityMetadataModal'
+  SELECTION_CHANGE: 'VIEW_selectionChange',
+  INSPECTOR_CONTENT_CHANGE: 'VIEW_inspectorContentChange'
 };

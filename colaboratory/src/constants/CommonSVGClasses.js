@@ -21,6 +21,12 @@ export default {
   BORDER_CLASS: 'border',
   // Class for the name plate (the black box drawn under the name of the image)
   NAMEPLATE_CLASS: 'namePlate',
+  // The actual <text> element containing the name for the image
+  NAME_CLASS: 'nameText',
+  // <rect> which when dragged resizes an image
+  RESIZE_CLASS: 'imageGroupResize',
+  // <rect> which, when dragged, moves an image
+  MOVE_CLASS: 'imageGroupMove',
 
   OBJECTS_CONTAINER_CLASS: 'objectsContainer',
 

@@ -61,7 +61,81 @@ class WorkbenchBorders extends React.Component {
       pointerEvents: 'auto'
     };
 
+    var view = props.viewstore.getView();
+
+    this.arrowNStyle = {
+      position: 'absolute',
+      top: 0,
+      left: view.width/2,
+      pointerEvents: 'auto',
+      width: 0,
+      height: 0,
+      borderLeft: '30px solid transparent',
+      borderRight: '30px solid transparent',
+      borderBottom: '30px solid rgba(127,127,127,0.5)'
+    };
+
+    this.arrowSStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowSStyle.top = null;
+    this.arrowSStyle.bottom = 0;
+    this.arrowSStyle.WebkitTransform = 'rotate(180deg)';
+    this.arrowSStyle.transform = 'rotate(180deg)';
+
+    this.arrowWStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowWStyle.top = view.height/2;
+    this.arrowWStyle.left = '-10px';
+    this.arrowWStyle.WebkitTransform = 'rotate(-90deg)';
+    this.arrowWStyle.transform = 'rotate(-90deg)';
+
+    this.arrowEStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowEStyle.top = view.height/2;
+    this.arrowEStyle.left = null;
+    this.arrowEStyle.right = '-10px';
+    this.arrowEStyle.WebkitTransform = 'rotate(90deg)';
+    this.arrowEStyle.transform = 'rotate(90deg)';
+
+    this.arrowNWStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowNWStyle.top = '-3px';
+    this.arrowNWStyle.left = '-15px';
+    this.arrowNWStyle.WebkitTransform = 'rotate(-45deg)';
+    this.arrowNWStyle.transform = 'rotate(-45deg)';
+
+    this.arrowNEStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowNEStyle.top = '-3px';
+    this.arrowNEStyle.left = null;
+    this.arrowNEStyle.right = '-15px';
+    this.arrowNEStyle.WebkitTransform = 'rotate(45deg)';
+    this.arrowNEStyle.transform = 'rotate(45deg)';
+
+    this.arrowSWStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowSWStyle.top = null;
+    this.arrowSWStyle.bottom = '-3px';
+    this.arrowSWStyle.left = '-15px';
+    this.arrowSWStyle.WebkitTransform = 'rotate(-135deg)';
+    this.arrowSWStyle.transform = 'rotate(-135deg)';
+
+    this.arrowSEStyle = JSON.parse(JSON.stringify(this.arrowNStyle));
+    this.arrowSEStyle.top = null;
+    this.arrowSEStyle.left = null;
+    this.arrowSEStyle.bottom = '-3px';
+    this.arrowSEStyle.right = '-15px';
+    this.arrowSEStyle.WebkitTransform = 'rotate(135deg)';
+    this.arrowSEStyle.transform = 'rotate(135deg)';
+
     this.scrollInterval = null;
+
+    this._onViewChange = () => {
+      const updateArrowPositions = () => this.updateArrowPositions(this.props.viewstore.getView());
+      return updateArrowPositions.apply(this);
+    };
+  }
+
+  updateArrowPositions(view) {
+    this.arrowNStyle.left = view.width / 2;
+    this.arrowSStyle.left = view.width / 2;
+    this.arrowEStyle.top = view.height / 2;
+    this.arrowWStyle.top = view.height / 2;
+    this.setState({});
   }
 
   startScroll(top, right, bottom, left) {
@@ -83,7 +157,7 @@ class WorkbenchBorders extends React.Component {
     else if(viewport.scale < 0.5) {
       moveFactor = 3;
     }
-      else if(viewport.scale < 1) {
+    else if(viewport.scale < 1) {
       moveFactor = 4;
     }
     else {
@@ -111,24 +185,44 @@ class WorkbenchBorders extends React.Component {
     window.clearInterval(this.scrollInterval);
   }
 
+  componentDidMount() {
+    this.props.viewstore.addViewportListener(this._onViewChange);
+  }
+
+  componentWillUnmount() {
+    this.props.viewstore.removeViewportListener(this._onViewChange);
+  }
+
   render() {
     return <div style={this.componentStyle}>
-      <div style={this.leftBorderStyle}
-           onMouseEnter={this.startScroll.bind(this, false, false, false, true)}
+      <div style={this.arrowNWStyle}
+           onMouseEnter={this.startScroll.bind(this, true, false, false, true)}
            onMouseLeave={this.stopScrolling.bind(this)}>
       </div>
-      <div style={this.rightBorderStyle}
-           onMouseEnter={this.startScroll.bind(this, false, true, false, false)}
-           onMouseLeave={this.stopScrolling.bind(this)}>
-      </div>
-      <div style={this.topBorderStyle}
+      <div style={this.arrowNStyle}
            onMouseEnter={this.startScroll.bind(this, true, false, false, false)}
-           onMouseLeave={this.stopScrolling.bind(this)}>
-      </div>
-      <div style={this.bottomBorderStyle}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+      <div style={this.arrowNEStyle}
+           onMouseEnter={this.startScroll.bind(this, true, true, false, false)}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+
+      <div style={this.arrowWStyle}
+           onMouseEnter={this.startScroll.bind(this, false, false, false, true)}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+      <div style={this.arrowEStyle}
+           onMouseEnter={this.startScroll.bind(this, false, true, false, false)}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+
+      <div style={this.arrowSWStyle}
+           onMouseEnter={this.startScroll.bind(this, false, false, true, true)}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+      <div style={this.arrowSStyle}
            onMouseEnter={this.startScroll.bind(this, false, false, true, false)}
-           onMouseLeave={this.stopScrolling.bind(this)}>
-      </div>
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+      <div style={this.arrowSEStyle}
+           onMouseEnter={this.startScroll.bind(this, false, true, true, false)}
+           onMouseLeave={this.stopScrolling.bind(this)}> </div>
+
     </div>
   }
 }

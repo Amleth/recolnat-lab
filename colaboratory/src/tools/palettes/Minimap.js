@@ -54,6 +54,13 @@ class Minimap extends React.Component {
       return updateView.apply(this);
     };
 
+    this._onLabBenchUpdate = () => {
+      const updateStoreWithPosition = () => {
+        this.updateStoreWithPosition();
+      };
+      return updateStoreWithPosition.apply(this);
+    };
+
     this.state = {
       imgUrl: null,
       view: {
@@ -66,34 +73,27 @@ class Minimap extends React.Component {
       ratio: null,
       dragging: false
     };
-
-
   }
 
-  componentDidMount() {
-    this.props.ministore.addInitListener(this._onImageInit);
-    this.props.viewstore.addViewportListener(this._onViewChange);
-    $('.ui.button.small.compact', this.refs.component.getDOMNode()).popup();
-  }
+  updateStoreWithPosition() {
+    var imageId = this.props.toolstore.getSelectedImageId();
+    if(!imageId) {
+      return;
+    }
+    var viewData = this.props.benchstore.getActiveViewData();
+    var imageUrl = this.props.ministore.getImage().url;
+    if(!imageUrl) {
+      return;
+    }
 
-  componentWillUpdate(nextProps, nextState) {
-    if(nextState.view.left != null) {
-      this.boundingBoxStyle.left = nextState.view.left + "px";
-    }
-    if(nextState.view.top != null) {
-      this.boundingBoxStyle.top = nextState.view.top + "px";
-    }
-    if(nextState.view.width != null) {
-      this.boundingBoxStyle.width = nextState.view.width + "px";
-    }
-    if(nextState.view.height != null) {
-      this.boundingBoxStyle.height = nextState.view.height + "px";
-    }
-  }
+    for(var i = 0; i < viewData.displays.length; ++i) {
+      if(viewData.displays[i].link == imageId) {
+        var displayData = viewData.displays[i];
 
-  componentDidUpdate(prevProps, prevState) {
-    if(this.state.ratio == null) {
-      this.updateViewportLocation(this.props.viewstore.getView());
+        window.setTimeout(
+        MinimapActions.initMinimap.bind(null, imageUrl, displayData.displayWidth, displayData.displayHeight, displayData.x, displayData.y), 10);
+        break;
+      }
     }
   }
 
@@ -129,7 +129,8 @@ class Minimap extends React.Component {
       -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom,
       this.state.view.width*this.state.ratio*this.state.view.zoom,
       this.state.view.height*this.state.ratio*this.state.view.zoom,
-      this.state.view.zoom
+      this.state.view.zoom,
+      true
     );
   }
 
@@ -171,7 +172,8 @@ class Minimap extends React.Component {
         -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom*1.05,
         null,
         null,
-        this.state.view.zoom*1.05
+        this.state.view.zoom*1.05,
+        true
       );
     }
     if(event.deltaY > 0) {
@@ -181,9 +183,44 @@ class Minimap extends React.Component {
         -((event.clientY-node.top-this.state.view.height/2)*this.state.ratio + image.yZero)*this.state.view.zoom*0.95,
         null,
         null,
-        this.state.view.zoom*0.95
+        this.state.view.zoom*0.95,
+        true
       );
     }
+  }
+
+  componentDidMount() {
+    this.props.ministore.addInitListener(this._onImageInit);
+    this.props.viewstore.addViewportListener(this._onViewChange);
+    this.props.benchstore.addLabBenchLoadListener(this._onLabBenchUpdate);
+    $('.ui.button.small.compact', this.refs.component.getDOMNode()).popup();
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.view.left != null) {
+      this.boundingBoxStyle.left = nextState.view.left + "px";
+    }
+    if(nextState.view.top != null) {
+      this.boundingBoxStyle.top = nextState.view.top + "px";
+    }
+    if(nextState.view.width != null) {
+      this.boundingBoxStyle.width = nextState.view.width + "px";
+    }
+    if(nextState.view.height != null) {
+      this.boundingBoxStyle.height = nextState.view.height + "px";
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(this.state.ratio == null) {
+      this.updateViewportLocation(this.props.viewstore.getView());
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.ministore.removeInitListener(this._onImageInit);
+    this.props.viewstore.removeViewportListener(this._onViewChange);
+    this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchUpdate);
   }
 
   render() {

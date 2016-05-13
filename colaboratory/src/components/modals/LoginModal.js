@@ -26,6 +26,8 @@ class LoginModal extends React.Component {
       return userLogOut.apply(this);
     };
 
+    this.loginWindow = null;
+
     this.state = {
       active: false
     };
@@ -39,14 +41,27 @@ class LoginModal extends React.Component {
     this.setState({active: false});
   }
 
+  openLoginPopup() {
+    this.loginWindow = window.open('https://cas.recolnat.org/login',
+       'casLogin', 'menubar=no,status=no,titlebar=no,toolbar=no,width=700,height=800,top=' + window.self.screenY + ',left=' + window.self.screenX);
+  }
+
+  openRegisterPopup() {
+    window.open('http://signup.recolnat.org/#/register', 'menubar=no,status=no,titlebar=no,toolbar=no,width=700,height=800,top=' + window.self.screenY + ',left=' + window.self.screenX);
+  }
+
   componentDidMount() {
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.active && !this.state.active) {
+    if(!nextState.active && this.state.active) {
       $(this.refs.modal.getDOMNode()).modal('hide');
+      if(this.loginWindow) {
+        this.loginWindow.close();
+        this.loginWindow = null;
+      }
     }
   }
 
@@ -69,11 +84,13 @@ class LoginModal extends React.Component {
       <div className='ui content'>
         <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
         <a className='ui button'
-           target='_blank'
-           href={'https://cas.recolnat.org/login?service=' + window.location.protocol  + '//' + window.location.hostname + '/' + window.location.pathname}>Me Connecter</a>
+           onClick={this.openLoginPopup.bind(this)}>
+          Me Connecter
+        </a>
         <a className='ui button'
-           target='_blank'
-           href='http://signup.recolnat.org/#/register'>Créer compte</a>
+           onClick={this.openRegisterPopup.bind(this)}>
+          Créer compte
+        </a>
       </div>
     </div>
   }

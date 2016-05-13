@@ -9,10 +9,12 @@ import ToolConstants from "../constants/ToolConstants";
 import ViewConstants from '../constants/ViewConstants';
 
 import ToolEvents from "./events/ToolEvents";
+import ViewEvents from "./events/ViewEvents";
 
 import ViewActions from "../actions/ViewActions";
+import MetadataActions from '../actions/MetadataActions';
 
-class EditorStore extends EventEmitter {
+class ToolStore extends EventEmitter {
   constructor() {
     super();
 
@@ -40,9 +42,10 @@ class EditorStore extends EventEmitter {
           this.runTool(action.x, action.y, action.misc);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_SET_SELECTION:
-          if(this.imageId != action.selection.uid) {
+          if(this.imageId != action.selection.id) {
             this.resetActiveTool();
-            this.imageId = action.selection.uid;
+            this.imageId = action.selection.id;
+            this.emit(ViewEvents.SELECTION_CHANGE);
           }
           //console.log('post sel=' + this.imageId);
           break;
@@ -159,8 +162,7 @@ class EditorStore extends EventEmitter {
     console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
     request.post(data.serviceUrl)
       .set("Content-Type", "application/json")
-      .send({parent: this.imageId})
-      .send({payload: data.payload})
+      .send(data)
       .withCredentials()
       .end((err, res) => {
         if (err) {
@@ -168,7 +170,7 @@ class EditorStore extends EventEmitter {
           alert("Impossible de sauvegarder les changements");
         }
         else {
-          ViewActions.updateMetadata(this.imageId);
+          MetadataActions.updateLabBenchFrom(data.parent);
           //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
           onSuccessCallback();
         }
@@ -199,13 +201,13 @@ class EditorStore extends EventEmitter {
     this.removeListener(ToolEvents.CHANGE_ACTIVE_TOOL_POPUP_EVENT, callback);
   }
 
-  addImageReloadListener(callback) {
-    this.on(ToolEvents.RELOAD_IMAGE_EVENT, callback);
+  addSelectionChangeListener(callback) {
+    this.on(ViewEvents.SELECTION_CHANGE, callback);
   }
 
-  removeImageReloadListener(callback) {
-    this.removeListener(ToolEvents.RELOAD_IMAGE_EVENT, callback);
+  removeSelectionChangeListener(callback) {
+    this.removeListener(ViewEvents.SELECTION_CHANGE, callback);
   }
 }
 
-export default EditorStore;
+export default ToolStore;

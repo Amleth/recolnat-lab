@@ -4,5 +4,5 @@
 'use strict';
 
 export default {
-  DISPLAY_CONTEXT_MENU: 'contextMenu'
+  DISPLAY_CONTEXT_MENU: 'MENU_contextMenu'
 };

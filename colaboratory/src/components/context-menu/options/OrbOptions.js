@@ -48,28 +48,31 @@ class OrbOptions {
     alert("Cette fonctionnalité n'est pas disponible dans la version actuelle");
   }
 
-  static showMetdata(data) {
+  static showMetadata(data) {
     ViewActions.displayMetadataAboutEntity(data.uid);
   }
 
   static zoomToObject(d3id, view) {
-    //console.log('zoom');
-    // Retrieve object coordinates and size in d3
+    // Retrieve object coordinates and size in browser window
     var object = d3.select(d3id);
-    var data = object.node().getBBox();
     var winLoc = object.node().getBoundingClientRect();
+    var oldHeight = winLoc.height;
+    var oldWidth = winLoc.width;
+    var oldScale = view.scale;
 
     // Calculate fitting area
     var scale = 1.0;
-    if(data.height > data.width) {
-      scale = (view.height) / (data.height);
+    if(oldHeight > oldWidth) {
+      scale = (view.height * oldScale) / (oldHeight);
     }
     else {
-      scale = (view.width) / (data.width);
+      scale = (view.width * oldScale) / (oldWidth);
     }
-    scale = scale*0.95;
-    var marginX = (view.width - data.width*scale)/2;
-    var marginY = (view.height - data.height*scale)/2;
+    scale = scale*0.90;
+
+    // Leave half empty screen as margin to center the object in the viewport
+    var marginX = (view.width - oldWidth*scale/view.scale)/2;
+    var marginY = (view.height - oldHeight*scale/view.scale)/2;
 
     // Dispatch action
     ViewActions.updateViewport(
@@ -77,7 +80,8 @@ class OrbOptions {
       (view.top - winLoc.top + view.topFromWindow)*scale/view.scale + marginY,
       null,
       null,
-      scale
+      scale,
+      true
     );
   }
 
@@ -98,88 +102,89 @@ class OrbOptions {
   }
 
   static beginAnimation(item) {
-    switch(item.type) {
-      case TypeConstants.point:
-        var bakRect = d3.select('#POI-' + item.uid).select('rect');
-        var text = d3.select('#POI-' + item.uid).select('text');
+    if(!d3.select('#POI-' + item).empty()) {
+      var bakRect = d3.select('#POI-' + item).select('rect');
+      var text = d3.select('#POI-' + item).select('text');
 
-        window.setTimeout(function() {
-          OrbOptions.blink(bakRect, bakRect.attr('fill'), text.attr('fill') , 'fill');
-          OrbOptions.blink(text, text.attr('fill'), bakRect.attr('fill') , 'fill');
-        }, 10);
+      window.setTimeout(function() {
+        OrbOptions.blink(bakRect, bakRect.attr('fill'), text.attr('fill') , 'fill');
+        OrbOptions.blink(text, text.attr('fill'), bakRect.attr('fill') , 'fill');
+      }, 10);
 
-        return {
-          rect: bakRect,
-          text: text,
-          rectColor: bakRect.attr('fill'),
-          textColor: text.attr('fill')
-        };
-        break;
-      case TypeConstants.path:
-        var comp = d3.select('#PATH-' + item.uid);
-        var color = comp.attr('stroke');
-        var newColor = 'blue';
-        if(color == 'blue') {
-          newColor = 'red';
-        }
-        window.setTimeout(function() {
-          OrbOptions.blink(comp, color, newColor, 'stroke');
-        }, 10);
-
-        return {
-          d3component: comp,
-          color: color
-        };
-        break;
-      case TypeConstants.region:
-        var comp = d3.select('#ROI-' + item.uid);
-        var color = comp.attr('fill');
-        var newColor = 'red';
-        if(color == 'red') {
-          newColor = 'blue';
-        }
-
-        window.setTimeout(function() {
-          OrbOptions.blink(comp, color, newColor, 'fill');
-        }, 10);
-
-        return {
-          d3component: comp,
-            color: color
-        };
-        break;
-      case TypeConstants.sheet:
-        var comp = d3.select('#NODE-' + item.uid);
-
-        window.setTimeout(function() {
-          OrbOptions.blink(comp, 1.0, 0.3, 'opacity');
-        }, 10);
-
-        return {
-            d3component: comp
-          };
-
-        break;
-      default:
-        break;
+      return {
+        type: TypeConstants.point,
+        rect: bakRect,
+        text: text,
+        rectColor: bakRect.attr('fill'),
+        textColor: text.attr('fill')
+      };
     }
+    else if(!d3.select('#PATH-' + item).empty()) {
+      var comp = d3.select('#PATH-' + item);
+      var color = comp.attr('stroke');
+      var newColor = 'blue';
+      if(color == 'blue') {
+        newColor = 'red';
+      }
+      window.setTimeout(function() {
+        OrbOptions.blink(comp, color, newColor, 'stroke');
+      }, 10);
 
-    return null;
+      return {
+        type: TypeConstants.trail,
+        d3component: comp,
+        color: color
+      };
+    }
+    else if(!d3.select('#ROI-' + item).empty()) {
+      var comp = d3.select('#ROI-' + item);
+      var color = comp.attr('fill');
+      var newColor = 'red';
+      if(color == 'red') {
+        newColor = 'blue';
+      }
+
+      window.setTimeout(function() {
+        OrbOptions.blink(comp, color, newColor, 'fill');
+      }, 10);
+
+      return {
+        type: TypeConstants.region,
+        d3component: comp,
+        color: color
+      };
+    }
+    else if(!d3.select('#NODE-' + item).empty()) {
+      var comp = d3.select('#NODE-' + item);
+
+      window.setTimeout(function() {
+        OrbOptions.blink(comp, 1.0, 0.3, 'opacity');
+      }, 10);
+
+      return {
+        type: TypeConstants.image,
+        d3component: comp
+      };
+    }
+    else {
+      console.warn('No animation for ' + item);
+      return null;
+    }
   }
 
-  static stopAnimation(item, animationData) {
-    switch(item.type) {
+  static stopAnimation(animationData) {
+    switch(animationData.type) {
       case TypeConstants.point:
         animationData.rect.interrupt().transition().attr('fill', animationData.rectColor);
         animationData.text.interrupt().transition().attr('fill', animationData.textColor);
         break;
-      case TypeConstants.path:
+      case TypeConstants.trail:
         animationData.d3component.interrupt().transition().attr('stroke', animationData.color);
         break;
       case TypeConstants.region:
         animationData.d3component.interrupt().transition().attr('fill', animationData.color);
         break;
-      case TypeConstants.sheet:
+      case TypeConstants.image:
         animationData.d3component.interrupt().transition().attr('opacity', 1.0);
         break;
       default:

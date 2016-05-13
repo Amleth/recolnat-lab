@@ -13,6 +13,14 @@ class Basket extends React.Component {
   constructor(props) {
     super(props);
 
+    this.basketContainerStyle = {
+      minHeight: '50%',
+      maxHeight: '50%',
+      width: '100%',
+      overflowY: 'auto',
+      overflowX: 'hidden'
+    };
+
     this.cardRowStyle = {
       display: 'flex',
       flexDirection: 'row',
@@ -106,13 +114,13 @@ class Basket extends React.Component {
     if(!prevState.basketReady && this.state.basketReady) {
       this.reloadBasket();
     }
-    if(this.state.basketItems.length > 0) {
-      $('.basketItem .image', this.refs.cards.getDOMNode()).dimmer({
-        on: 'hover',
-        opacity: 0.2
-      });
-      $('.ui.button', this.refs.buttons.getDOMNode()).popup({delay: {show: 1000, hide:0}});
-    }
+      if (this.state.basketItems.length > 0) {
+        $('.basketItem .image', this.refs.cards.getDOMNode()).dimmer({
+          on: 'hover',
+          opacity: 0.2
+        });
+        $('.ui.button', this.refs.buttons.getDOMNode()).popup({delay: {show: 1000, hide: 0}});
+      }
   }
 
   componentWillUnmount() {
@@ -121,12 +129,12 @@ class Basket extends React.Component {
 
   render() {
     if(!this.state.basketReady) {
-      return <div>
+      return <div style={this.basketContainerStyle}>
         Connexion au panier
       </div>;
     }
     var self = this;
-    return <div>
+    return <div style={this.basketContainerStyle}>
       <div className='ui buttons' ref='buttons'>
         <div className='ui button'
              onClick={this.reloadBasket.bind(this)}

@@ -7,6 +7,7 @@ import React from 'react';
 
 import MetadataActions from '../../actions/MetadataActions';
 import MinimapActions from '../../actions/MinimapActions';
+import ViewActions from '../../actions/ViewActions';
 
 import Globals from '../../utils/Globals';
 
@@ -14,10 +15,8 @@ class GroupSelector extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      listOfImages: [],
-      selectedImageIdx: -1,
-      selectedImageName: 'Choisissez une image'
+    this.compactSegmentStyle = {
+      padding: '5px 5px 5px 5px'
     };
 
     this.buttonStyle = {
@@ -25,20 +24,40 @@ class GroupSelector extends React.Component {
       paddingRight: '.4em'
     };
 
-    this.dropdownStyle = {
-      minWidth: 'initial',
-      maxWidth: '100%'
+    this.openListStyle = {
+      //display: 'none',
+      maxHeight: '0px',
+      overflowY: 'scroll',
+      WebkitTransition: 'max-height 0.5s ease',
+      transition: 'max-height 0.5s ease'
+    };
+
+    this.selectedOptionStyle = {
+      color: 'blue'
     };
 
     this.labelStyle = {
       position: 'relative',
-      top: '-25px',
-      left: '-10px'
+      top: '-15px',
+      left: '10px'
     };
 
     this._onLabBenchLoaded = () => {
       const getViewImages = () => this.getViewImages();
       return getViewImages.apply(this);
+    };
+
+    this._onSelectionChange = () => {
+      const changeActiveImage = () => this.changeActiveImage();
+      return changeActiveImage.apply(this);
+    };
+
+    this.state = {
+      viewId: null,
+      listOfImages: [],
+      isListOpen: false,
+      selectedImageIdx: -1,
+      selectedImageName: 'Choisissez une image'
     };
   }
 
@@ -57,35 +76,74 @@ class GroupSelector extends React.Component {
         }
         images.push(displayedEntity);
       }
+      images = _.sortBy(images, Globals.getName);
     }
-    this.setState({listOfImages: images, selectedImageIdx: -1, selectedImageName: 'Choisissez une image'});
+
+    if(this.props.benchstore.getActiveViewId() == this.state.viewId) {
+      this.setState({
+        listOfImages: images,
+        viewId: this.props.benchstore.getActiveViewId()
+      });
+    }
+    else {
+      this.setState({
+        listOfImages: images,
+        selectedImageIdx: -1,
+        selectedImageName: 'Choisissez une image',
+        viewId: this.props.benchstore.getActiveViewId()
+      });
+    }
+  }
+
+  changeActiveImage() {
+    var imageId = this.props.toolstore.getSelectedImageId();
+    if(!imageId) {
+      this.setState({selectedImageIdx: -1, selectedImageName: 'Choisissez une image'});
+      return;
+    }
+
+    for(var i = 0; i < this.state.listOfImages.length; ++i) {
+      if(this.state.listOfImages[i].link == imageId) {
+        this.setState({selectedImageIdx: i, selectedImageName: this.state.listOfImages[i].name});
+        return;
+      }
+    }
+  }
+
+  setActiveImage(index) {
+    if(index == -1) {
+      ViewActions.changeSelection(null, {});
+    }
+    else {
+      ViewActions.changeSelection(this.state.listOfImages[index].link, {});
+    }
   }
 
   previous() {
     if(this.state.selectedImageIdx == 0) {
-      this.setState({selectedImageIdx: this.state.listOfImages.length-1});
+      ViewActions.changeSelection(this.state.listOfImages[this.state.listOfImages.length-1].link, {});
     }
     else {
-      this.setState({selectedImageIdx: this.state.selectedImageIdx-1});
+      ViewActions.changeSelection(this.state.listOfImages[this.state.selectedImageIdx-1].link, {});
     }
   }
 
   next() {
     if(this.state.selectedImageIdx+1 == this.state.listOfImages.length) {
-      this.setState({selectedImageIdx: 0});
+      ViewActions.changeSelection(this.state.listOfImages[0].link, {});
     }
     else {
-      this.setState({selectedImageIdx: this.state.selectedImageIdx+1});
+      ViewActions.changeSelection(this.state.listOfImages[this.state.selectedImageIdx+1].link, {});
     }
   }
 
+  displayList(display) {
+    this.setState({isListOpen: display});
+  }
+
   componentDidMount() {
-    $(this.refs.imageDropdown.getDOMNode()).dropdown({
-      onChange: (value) => {
-        this.setState({selectedImageIdx: value});
-      }
-    });
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
+    this.props.toolstore.addSelectionChangeListener(this._onSelectionChange);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -93,50 +151,66 @@ class GroupSelector extends React.Component {
     if(nextState.selectedImageIdx != this.state.selectedImageIdx) {
       if(nextState.selectedImageIdx < 0) {
         nextState.selectedImageName = 'Choisissez une image';
-        MinimapActions.initMinimap(null, null, null, null, null);
+        window.setTimeout(
+        MinimapActions.initMinimap.bind(null, null, null, null, null, null), 10);
       }
       else {
         var imageData = nextState.listOfImages[nextState.selectedImageIdx];
         nextState.selectedImageName = imageData.name;
-        MinimapActions.initMinimap(imageData.thumbnail, imageData.width, imageData.height, imageData.x, imageData.y);
+        window.setTimeout(MinimapActions.initMinimap.bind(null, imageData.thumbnail, imageData.displayWidth, imageData.displayHeight, imageData.x, imageData.y), 10);
       }
+    }
+
+    if(nextState.isListOpen && !this.state.isListOpen) {
+      this.openListStyle.maxHeight = '100px';
+    }
+    if(this.state.isListOpen && !nextState.isListOpen) {
+      this.openListStyle.maxHeight = '0px';
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    $(this.refs.imageDropdown.getDOMNode()).dropdown('refresh');
+
   }
 
   componentWillUnmount() {
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
+    this.props.toolstore.removeSelectionChangeListener(this._onSelectionChange);
   }
 
   render() {
-    return <div className='ui container segment'>
+    var self = this;
+    return <div className='ui container segment' style={this.compactSegmentStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
         Groupes & Images
       </div>
       <div>
-        <div ref='imageDropdown'
-             style={this.dropdownStyle}
-             className='ui search selection dropdown'>
-          <input name='imageName' type='hidden'/>
-          <i className='ui floating dropdown icon'></i>
-          <div className='default text'>{this.state.selectedImageName} </div>
-          <div className='scrolling menu'>
-            <div className='item'
-                 data-value={-1}>Image</div>
+        <div className='ui fluid button'
+             onClick={this.displayList.bind(this, !this.state.isListOpen)}>
+          {this.state.selectedImageName}
+        </div>
+        <div style={this.openListStyle} className='ui divided link list'>
             {this.state.listOfImages.map(function(image, index) {
-              return <div className='item' data-value={index}>{image.name}</div>;
+              var style = {};
+              if(index == self.state.selectedImageIdx) {
+                style = self.selectedOptionStyle;
+              }
+              return <a
+                key={index}
+                style={style}
+                className='item'
+                data-value={index}
+                onClick={self.setActiveImage.bind(self, index)}>
+                {image.name}
+              </a>;
             })}
-          </div>
         </div>
       </div>
-      <div className='ui tiny compact buttons'>
+      <div className='ui tiny fluid buttons'>
         <div className='ui icon button'
              style={this.buttonStyle}
-             onClick={this.setState.bind(this, {selectedImageIdx: 0})}>
+             onClick={this.setActiveImage.bind(this, 0)}>
           <i className='angle double left icon'/>
         </div>
         <div className='ui icon button'
@@ -154,7 +228,7 @@ class GroupSelector extends React.Component {
         </div>
         <div className='ui icon button'
              style={this.buttonStyle}
-             onClick={this.setState.bind(this, {selectedImageIdx: this.state.listOfImages.length})}>
+             onClick={this.setActiveImage.bind(this, this.state.listOfImages.length-1)}>
           <i className='angle double right icon'/>
         </div>
       </div>

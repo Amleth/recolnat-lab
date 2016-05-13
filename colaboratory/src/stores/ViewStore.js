@@ -26,6 +26,7 @@ class ViewStore extends EventEmitter {
     this.viewport.top = 0;
     this.viewport.left = 0;
     this.viewport.scale = 1.0;
+    this.viewport.animate = false;
     this.viewport.topFromWindow = null;
     this.viewport.leftFromWindow = null;
 
@@ -39,7 +40,7 @@ class ViewStore extends EventEmitter {
       //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT:
-          this.setViewportData(action.x, action.y, action.width, action.height, action.scale);
+          this.setViewportData(action.x, action.y, action.width, action.height, action.scale, action.animate);
           this.emit(ViewEvents.UPDATE_VIEWPORT);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_FIT_ALL:
@@ -85,7 +86,7 @@ class ViewStore extends EventEmitter {
     return this.loader;
   }
 
-  setViewportData(x, y, width, height, scale) {
+  setViewportData(x, y, width, height, scale, animate) {
     if(x) {
       this.viewport.left = x;
     }
@@ -101,6 +102,7 @@ class ViewStore extends EventEmitter {
     if(scale) {
       this.viewport.scale = scale;
     }
+    this.viewport.animate = animate;
   }
 
   setViewportLocationInWindow(top, left) {

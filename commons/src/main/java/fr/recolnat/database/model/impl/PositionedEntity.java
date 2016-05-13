@@ -20,6 +20,8 @@ public class PositionedEntity implements Comparable<PositionedEntity> {
   public final Integer x;
   public final Integer y;
   public final Integer z;
+  public Integer displayHeight = null;
+  public Integer displayWidth = null;
   public final Float opacity;
   public final String linkId;
   public final String parentViewId;
@@ -31,6 +33,20 @@ public class PositionedEntity implements Comparable<PositionedEntity> {
     this.y = eLink.getProperty(DataModel.Properties.coordY);
     this.z = eLink.getProperty(DataModel.Properties.coordZ);
     this.opacity = eLink.getProperty(DataModel.Properties.opacity);
+    this.displayHeight = eLink.getProperty(DataModel.Properties.height);
+    if(this.displayHeight == null) {
+      this.displayHeight = vDisplayedEntity.getProperty(DataModel.Properties.height);
+      if(this.displayHeight == null) {
+        this.displayHeight = 200;
+      }
+    }
+    this.displayWidth = eLink.getProperty(DataModel.Properties.width);
+    if(this.displayWidth == null) {
+      this.displayWidth = vDisplayedEntity.getProperty(DataModel.Properties.width);
+      if(this.displayWidth == null) {
+        this.displayWidth = 200;
+      }
+    }
     
     this.parentViewId = vParent.getProperty(DataModel.Properties.id);
     this.displayedEntityId = vDisplayedEntity.getProperty(DataModel.Properties.id);
@@ -46,6 +62,8 @@ public class PositionedEntity implements Comparable<PositionedEntity> {
     ret.put("x", this.x);
     ret.put("y", this.y);
     ret.put("z", this.z);
+    ret.put("displayWidth", this.displayWidth);
+    ret.put("displayHeight", this.displayHeight);
     ret.put("opacity", this.opacity);
     
     return ret;

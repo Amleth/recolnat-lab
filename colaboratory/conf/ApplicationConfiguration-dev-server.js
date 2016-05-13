@@ -44,7 +44,8 @@ var Actions = {
 
   viewServiceActions: {
     place: Endpoints.viewService + '/place',
-    move: Endpoints.viewService + '/move'
+    move: Endpoints.viewService + '/move',
+    resize: Endpoints.viewService + '/resize'
   },
 
   studyServiceActions: {

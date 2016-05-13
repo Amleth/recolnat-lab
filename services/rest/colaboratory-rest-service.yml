@@ -8,7 +8,7 @@ test:
   userUUID: 5b6b4be2-20b8-476f-86f8-54464e2893b0
   specialSessionID: special
   defaultWorkbench: root
-  testTGT: TGT-854-gtoSUnGdmeDfKL6JnL0kBbbhb5C464KAR9yH7q7PZHTdAPIk5O-cas.recolnat.org
+  testTGT: TGT-1365-ZgCnDcm26UlC7GoIadYao0BegjqmmIuQ6LfdrIYmfgtwqRwVgx-cas.recolnat.org
 server:
   applicationConnectors:
   - type: http

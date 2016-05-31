@@ -52,7 +52,15 @@ class GroupSelector extends React.Component {
       return changeActiveImage.apply(this);
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this.state = {
+      isVisibleInCurrentMode: false,
       viewId: null,
       listOfImages: [],
       isListOpen: false,
@@ -144,9 +152,16 @@ class GroupSelector extends React.Component {
   componentDidMount() {
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.addSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
   componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.compactSegmentStyle.display = '';
+    }
+    else {
+      this.compactSegmentStyle.display = 'none';
+    }
     // Update name display, send minimap init
     if(nextState.selectedImageIdx != this.state.selectedImageIdx) {
       if(nextState.selectedImageIdx < 0) {
@@ -176,6 +191,7 @@ class GroupSelector extends React.Component {
   componentWillUnmount() {
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.removeSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {

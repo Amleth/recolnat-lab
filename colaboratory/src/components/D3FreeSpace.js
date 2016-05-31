@@ -7,6 +7,7 @@ import ViewActions from '../actions/ViewActions.js';
 import MinimapActions from "../actions/MinimapActions.js";
 import ToolActions from "../actions/ToolActions.js";
 import MenuActions from '../actions/MenuActions';
+import InspectorActions from '../actions/InspectorActions';
 
 import Classes from '../constants/CommonSVGClasses';
 import TypeConstants from '../constants/TypeConstants';
@@ -121,7 +122,7 @@ class D3FreeSpace {
   }
 
   updateViewWithProperties(properties) {
-    console.log('updateView');
+    //console.log('updateView');
     d3.selectAll('.' + Classes.POI_CLASS)
       .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')scale(' + properties.sizeOfTextAndObjects + ')');
 
@@ -142,9 +143,10 @@ class D3FreeSpace {
       return;
     }
 
+    var view = this.viewstore.getView();
     // Add 100px offset from borders
-    var xLen = this.displayData.xMax - this.displayData.xMin + 600;
-    var yLen = this.displayData.yMax - this.displayData.yMin + 600;
+    var xLen = this.displayData.xMax - this.displayData.xMin;
+    var yLen = this.displayData.yMax - this.displayData.yMin;
     var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
     var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
     if (scaleX > scaleY) {
@@ -154,8 +156,8 @@ class D3FreeSpace {
       scale = scaleX;
     }
 
-    var x = -(this.displayData.xMin-300)*scale;
-    var y = -(this.displayData.yMin-300)*scale;
+    var x = -(this.displayData.xMin)*scale;
+    var y = -(this.displayData.yMin)*scale;
 
     window.setTimeout(function() {
         ViewActions.updateViewport(
@@ -178,7 +180,7 @@ class D3FreeSpace {
   }
 
   displayShadow(data) {
-    console.log('displayShadow');
+    //console.log('displayShadow');
     //console.log(JSON.stringify(data));
     if(d3.select('#SHADOW').empty()) {
       d3.select('svg')
@@ -335,10 +337,10 @@ class D3FreeSpace {
         paramName = 'url';
         break;
       case 2:
-        paramName = 'thumburl';
+        paramName = 'thumbnail';
         break;
       default:
-        console.log('Unknown image source level ' + level);
+        console.warn('Unknown image source level ' + level);
         paramName = 'url';
         break;
     }
@@ -349,7 +351,8 @@ class D3FreeSpace {
   }
 
   drawChildEntities() {
-    console.log('drawChildEntities');
+    //console.log('drawChildEntities');
+
     var self = this;
     let group = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
     var viewData = this.buildDisplayDataElement();
@@ -366,6 +369,9 @@ class D3FreeSpace {
 
     for(var i = 0; i < viewData.displays.length; ++i) {
       var element = viewData.displays[i];
+      //console.log('------');
+      //console.log('url=' + element.url);
+      //console.log('thumbnail=' + element.thumbnail);
       window.setTimeout(this.loadImage.bind(self, element), 10);
     }
 
@@ -386,6 +392,13 @@ class D3FreeSpace {
       for(var j = 0; j < viewData.displays.length; ++j) {
         var posEntity = viewData.displays[j];
         //console.log('posEntity =' +JSON.stringify(posEntity));
+        if (posEntity.x != null && posEntity.y != null) {
+          this.displayData.xMin = Math.min(this.displayData.xMin, posEntity.x - 60);
+          this.displayData.yMin = Math.min(this.displayData.yMin, posEntity.y - 60);
+
+          this.displayData.xMax = Math.max(posEntity.displayWidth + posEntity.x + 20, this.displayData.xMax);
+          this.displayData.yMax = Math.max(posEntity.displayHeight + posEntity.y + 20, this.displayData.yMax);
+        }
         var entityMetadata = this.benchstore.getData(posEntity.entity);
         //console.log('entityMetadata =' +JSON.stringify(entityMetadata));
         if(entityMetadata) {
@@ -405,14 +418,6 @@ class D3FreeSpace {
           for(i = 0; i < posEntity.rois.length; ++i) {
             posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
           }
-
-          if (posEntity.x && posEntity.y) {
-            this.displayData.xMin = Math.min(this.displayData.xMin, posEntity.x - 60);
-            this.displayData.yMin = Math.min(this.displayData.yMin, posEntity.y - 60);
-
-            this.displayData.xMax = Math.max(posEntity.displayWidth + posEntity.x + 20, this.displayData.xMax);
-            this.displayData.yMax = Math.max(posEntity.displayHeight + posEntity.y + 20, this.displayData.yMax);
-          }
         }
       }
       //console.log(JSON.stringify(viewData));
@@ -431,16 +436,17 @@ class D3FreeSpace {
   }
 
   loadImage(elt) {
-    console.log('loadImage');
+    //console.log('loadImage');
+    //console.log('url=' + elt.url);
+    //console.log('thumb=' + elt.thumbnail);
+    //console.log('------');
     var self = this;
     var displayLoadedImageCallback = function (image) {
-      //console.log('loaded ' + JSON.stringify(elt));
+      //console.log('loaded ' + image.src);
       var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
 
-      var url = image.src;
-
       group.select("#IMAGE-" + elt.link)
-        .attr("xlink:href", d => d.thumburl ? d.thumburl : d.url);
+        .attr("xlink:href", image.src);
 
       this.loadData.imagesLoaded += 1;
       window.setTimeout(function() {
@@ -452,25 +458,11 @@ class D3FreeSpace {
     };
 
     window.setTimeout(
-      ViewActions.loadImage.bind(null, elt.thumburl, displayLoadedImageCallback.bind(this)),
+      (function(url) {
+        return ViewActions.loadImage(url, displayLoadedImageCallback.bind(self));
+      })(elt.thumbnail),
       10);
   }
-
-  //updateAllAttributes(id) {
-  //  // Update displayed positions for all elements.
-  //  // Do not display any non-spatialized elements (null coordinate)
-  //  d3.select('#GROUP-' + id)
-  //    .transition()
-  //    .duration(200)
-  //    .attr('transform', d => !d.x ? null : 'translate(' + d.x + ',' + d.y + ')')
-  //    .attr('display', d => !d.x ? 'none' : null);
-  //
-  //  d3.select('#BORDER-' + id);
-  //
-  //  window.setTimeout(function() {
-  //    ToolActions.reset();
-  //  }, 10);
-  //}
 
   findObjectsAtCoords(coordinatesFromD3Origin) {
     var objects = {
@@ -549,7 +541,13 @@ class D3FreeSpace {
   leftClick(self) {
     var coords = d3.mouse(this);
     var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
-    console.log(JSON.stringify(objectsAtEvent));
+    //console.log(JSON.stringify(objectsAtEvent));
+    var inspectorObjects = [];
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.images);
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois);
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois);
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois);
+    window.setTimeout(InspectorActions.setInspectorData.bind(null, inspectorObjects), 10);
     if(objectsAtEvent.images.length > 0) {
       window.setTimeout(ViewActions.changeSelection.bind(null, objectsAtEvent.images[objectsAtEvent.images.length - 1], {type: TypeConstants.image}), 10);
     }

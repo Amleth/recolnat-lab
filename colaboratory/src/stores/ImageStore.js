@@ -17,7 +17,7 @@ class ImageStore extends EventEmitter {
     this.imagesToLoad = {};
     this.imagesLoaded = {};
 
-    this.loader = window.setInterval(this.loadNextImage.bind(this), 250);
+    this.loader = window.setInterval(this.loadNextImage.bind(this), 100);
     this.imageFailsLoadingCheck = window.setInterval(this.restartCurrentLoad.bind(this), 10000);
     this.currentlyLoadingImage = null;
 
@@ -84,7 +84,7 @@ class ImageStore extends EventEmitter {
         for(var i = 0; i < this.currentlyLoadingImage.callbacks.length; ++i) {
           window.setTimeout((function (image, callback) {
             callback(image);
-          })(this.currentlyLoadingImage.image, this.currentlyLoadingImage.callbacks[i]), 100);
+          })(this.currentlyLoadingImage.image, this.currentlyLoadingImage.callbacks[i]), 10);
         }
 
         // Clear the current pointer

@@ -13,6 +13,9 @@ import markerSVG from '../images/marker.svg';
 
 export default class D3ViewUtils {
   static drawBenchData(data, self) {
+    //console.log('drawing ' + JSON.stringify(data.map(function(d) {
+    //    return {url: d.url, thumb: d.thumbnail};
+    //  })));
     var root = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
     var children = root.selectAll('.' + Classes.CHILD_GROUP_CLASS)
       .data(data, d => d.link);
@@ -21,11 +24,9 @@ export default class D3ViewUtils {
       .append('g')
       .attr('class', Classes.CHILD_GROUP_CLASS)
       .attr('id', d => 'GROUP-' + d.link)
-      .attr('transform', d => !d.x ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')')
-      .attr('display', d => !d.x ? 'none' : null);
+      .attr('transform', d => d.x == null ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')');
     children.exit().remove();
-    children.attr('transform', d => !d.x ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')')
-      .attr('display', d => !d.x ? 'none' : null);
+    children.attr('transform', d => d.x == null ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')');
 
     // BEGIN under image update
     var under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);

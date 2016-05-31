@@ -6,7 +6,9 @@
 package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
@@ -28,16 +30,15 @@ import org.codehaus.jettison.json.JSONObject;
  */
 public class StudySet extends AbstractObject {
 
-  private final Set<String> parentIds = new HashSet<String>();
-  private final Set<String> subSetIds = new HashSet<String>();
-  private final Set<String> itemIds = new HashSet<String>();
+  private final Set<LinkedEntity> parentIds = new HashSet<>();
+  private final Set<LinkedEntity> subSetIds = new HashSet<>();
+  private final Set<LinkedEntity> itemIds = new HashSet<>();
   private String viewId = null;
 
 //  private String id;
 //  private String linkId = null;
 //  private final String type = "bag";
 //  private String name;
-
   public StudySet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     super(vSet, vUser, g);
     if (!AccessRights.canRead(vUser, vSet, g)) {
@@ -49,38 +50,59 @@ public class StudySet extends AbstractObject {
 //    this.id = (String) vSet.getProperty(DataModel.Properties.id);
 
     // Process parent sets
-    Iterator<Vertex> itParents = vSet.getVertices(Direction.IN, DataModel.Links.containsSubSet).iterator();
-    while (itParents.hasNext()) {
-      OrientVertex vParent = (OrientVertex) itParents.next();
-      if (AccessUtils.isLatestVersion(vParent)) {
-        if (AccessRights.canRead(vUser, vParent, g)) {
-          this.parentIds.add((String) vParent.getProperty(DataModel.Properties.id));
+    Iterator<Edge> itParentLinks = vSet.getEdges(Direction.IN, DataModel.Links.containsSubSet).iterator();
+    while (itParentLinks.hasNext()) {
+      OrientEdge eParentLink = (OrientEdge) itParentLinks.next();
+      if (AccessUtils.isLatestVersion(eParentLink)) {
+        OrientVertex vParent = eParentLink.getVertex(Direction.OUT);
+        if (AccessUtils.isLatestVersion(vParent)) {
+          if (AccessRights.canRead(vUser, vParent, g)) {
+            this.parentIds.add(
+                new LinkedEntity(
+                    (String) vParent.getProperty(DataModel.Properties.id),
+                    (String) eParentLink.getProperty(DataModel.Properties.id)
+                ));
+          }
         }
       }
     }
 
     // Process children sets
-    Iterator<Vertex> itSubSets = vSet.getVertices(Direction.OUT, DataModel.Links.containsSubSet).iterator();
-    while (itSubSets.hasNext()) {
-      OrientVertex vSubset = (OrientVertex) itSubSets.next();
-      if (AccessUtils.isLatestVersion(vSubset)) {
-        if (AccessRights.canRead(vUser, vSubset, g)) {
-          this.subSetIds.add((String) vSubset.getProperty(DataModel.Properties.id));
+    Iterator<Edge> itSubSetLinks = vSet.getEdges(Direction.OUT, DataModel.Links.containsSubSet).iterator();
+    while (itSubSetLinks.hasNext()) {
+      OrientEdge eSubSetLink = (OrientEdge) itSubSetLinks.next();
+      if (AccessUtils.isLatestVersion(eSubSetLink)) {
+        OrientVertex vSubset = eSubSetLink.getVertex(Direction.IN);
+        if (AccessUtils.isLatestVersion(vSubset)) {
+          if (AccessRights.canRead(vUser, vSubset, g)) {
+            this.subSetIds.add(
+                new LinkedEntity(
+                    (String) vSubset.getProperty(DataModel.Properties.id),
+                    (String) eSubSetLink.getProperty(DataModel.Properties.id)
+                ));
+          }
         }
       }
     }
 
     // Process children enities (not sets)
-    Iterator<Vertex> itChildren = vSet.getVertices(Direction.OUT, DataModel.Links.containsItem).iterator();
-    while(itChildren.hasNext()) {
-      OrientVertex vChild = (OrientVertex) itChildren.next();
-      if(AccessUtils.isLatestVersion(vChild)) {
-        if(AccessRights.canRead(vUser, vChild, g)) {
-          this.itemIds.add((String) vChild.getProperty(DataModel.Properties.id));
+    Iterator<Edge> itChildLinks = vSet.getEdges(Direction.OUT, DataModel.Links.containsItem).iterator();
+    while (itChildLinks.hasNext()) {
+      OrientEdge eChildLink = (OrientEdge) itChildLinks.next();
+      if (AccessUtils.isLatestVersion(eChildLink)) {
+        OrientVertex vChild = eChildLink.getVertex(Direction.IN);
+        if (AccessUtils.isLatestVersion(vChild)) {
+          if (AccessRights.canRead(vUser, vChild, g)) {
+            this.itemIds.add(
+                new LinkedEntity(
+                    (String) vChild.getProperty(DataModel.Properties.id),
+                    (String) eChildLink.getProperty(DataModel.Properties.id)
+                ));
+          }
         }
       }
     }
-    
+
     // Process views (or, temorarily, one view)
     // @TODO V1, process all views and view creation
     OrientVertex vView = AccessUtils.findLatestVersion(vSet.getVertices(Direction.OUT, DataModel.Links.hasView).iterator(), g);
@@ -98,16 +120,16 @@ public class StudySet extends AbstractObject {
     ret.put("deletable", this.userCanDelete);
 
     JSONArray aParents = new JSONArray();
-    for (String parent : this.parentIds) {
-      aParents.put(parent);
+    for (LinkedEntity parent : this.parentIds) {
+      aParents.put(parent.toJSON());
     }
     JSONArray aSubsets = new JSONArray();
-    for (String subset : this.subSetIds) {
-      aSubsets.put(subset);
+    for (LinkedEntity subset : this.subSetIds) {
+      aSubsets.put(subset.toJSON());
     }
     JSONArray aItems = new JSONArray();
-    for (String item : this.itemIds) {
-      aItems.put(item);
+    for (LinkedEntity item : this.itemIds) {
+      aItems.put(item.toJSON());
     }
 
     ret.put("parents", aParents);

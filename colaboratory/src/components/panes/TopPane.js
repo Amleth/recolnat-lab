@@ -5,12 +5,12 @@
 
 import React from 'react';
 
-import Basket from './manager/Basket';
-import SetActions from './manager/SetActions';
-import StudyManager from './manager/StudyManager';
-import SpecimenMetadataDisplay from './manager/SpecimenMetadataDisplay';
-import SetMetadataDisplay from './manager/SetMetadataDisplay';
-import MetadataDisplay from './manager/AbstractManagerMetadataDisplay';
+import Basket from './../manager/Basket';
+import SetActions from './../manager/SetActions';
+import StudyManager from './../manager/StudyManager';
+import SpecimenMetadataDisplay from './../manager/SpecimenMetadataDisplay';
+import SetMetadataDisplay from './../manager/SetMetadataDisplay';
+import MetadataDisplay from './../manager/AbstractManagerMetadataDisplay';
 
 class TopPane extends React.Component {
   constructor(props) {

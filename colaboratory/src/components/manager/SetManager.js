@@ -7,7 +7,7 @@ import React from 'react';
 import request from 'superagent';
 
 import SetDisplay from './SetDisplay';
-import StudyDisplay from './StudyDisplay';
+import StudyDisplay from './../../tools/palettes/StudyDisplay';
 
 import ManagerActions from '../../actions/ManagerActions';
 
@@ -22,7 +22,8 @@ class StudyManager extends React.Component {
       flexDirection: 'column',
       minHeight: '100%',
       maxHeight: '100%',
-      height: '100%'
+      height: '100%',
+      backgroundColor: 'white'
     };
 
     this.optionBarStyle = {
@@ -36,8 +37,8 @@ class StudyManager extends React.Component {
       minHeight: '100%',
       maxHeight: '100%',
       height: '100%',
-      overflowX: 'auto'
-      //overflowY: 'auto'
+      overflowX: 'auto',
+      overflowY: 'hidden'
     };
 
     this._onUserLogIn = () => {
@@ -57,7 +58,15 @@ class StudyManager extends React.Component {
       return updateDisplay.apply(this);
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this.state = {
+      isVisibleInCurrentMode: true,
       userLoggedIn: false,
       studyContainer: null,
       displayedSets: []
@@ -68,6 +77,16 @@ class StudyManager extends React.Component {
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.addManagerUpdateListener(this._onSetUpdate);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = 'flex';
+    }
+    else {
+      this.containerStyle.display = 'none';
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -75,7 +94,7 @@ class StudyManager extends React.Component {
       ManagerActions.loadStudiesAndSets();
     }
     if(this.state.displayedSets.length != prevState.displayedSets.length) {
-      var node = this.refs.displayedSets.getDOMNode();
+      var node = this.refs.sets.getDOMNode();
       var scrollAnimate = window.setInterval(function () {
         //console.log('left=' + node.scrollLeft + ' scollwidth=' + node.scrollWidth + ' clientwidth=' + node.clientWidth);
         if (node.scrollLeft < node.scrollWidth - node.clientWidth - 2) {
@@ -92,6 +111,7 @@ class StudyManager extends React.Component {
     this.props.userstore.removeUserLogInListener(this._onUserLogIn);
     this.props.userstore.removeUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.removeManagerUpdateListener(this._onSetUpdate);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
@@ -99,9 +119,8 @@ class StudyManager extends React.Component {
     return <div style={this.containerStyle} >
       <div style={this.optionBarStyle}></div>
       <div style={this.workbenchExplorerStyle} ref='sets'>
-        <StudyDisplay managerstore={this.props.managerstore} />
         {this.state.displayedSets.map(function(s, idx) {
-            return <SetDisplay key={'SET-NODE-' + s.uid + '-' + idx}
+            return <SetDisplay key={'SET-NODE-' + idx + '-' + s.uid}
                                set={s}
                                index={idx}
                                managerstore={self.props.managerstore}

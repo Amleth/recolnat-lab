@@ -9,8 +9,10 @@ import _ from 'lodash';
 import ViewActions from '../../actions/ViewActions';
 import ManagerActions from '../../actions/ManagerActions';
 import ModalActions from '../../actions/ModalActions';
+import ModeActions from '../../actions/ModeActions';
 
 import ModalConstants from '../../constants/ModalConstants';
+import ModeConstants from '../../constants/ModeConstants';
 
 import Globals from '../../utils/Globals';
 
@@ -35,12 +37,12 @@ class StudyDisplay extends React.Component {
     };
 
     this.titleStyle = {
-      height: '10%',
+      height: '40px',
       padding: '4px 0px'
     };
 
     this.listContainerStyle = {
-      height: '90%',
+      height: 'auto',
       overflowY: 'auto',
       overflowX: 'hidden',
       margin: 0,
@@ -92,14 +94,15 @@ class StudyDisplay extends React.Component {
 
   selectAndLoadSet(setId) {
     window.setTimeout(ViewActions.setActiveSet.bind(null, setId), 10);
-    window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
+    window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.ORGANISATION),20);
+    window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),30);
   }
 
   setActive(study) {
-    window.setTimeout(ManagerActions.select.bind(null,study.core.uid, 'bag', study.name, null, null),10);
+    window.setTimeout(ManagerActions.select.bind(null,study.core.uid, study.core.type, study.name, null, null),10);
 
-    window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, study.core.uid, 'bag', 0, undefined, undefined, true)
-      , 10);
+    //window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, study.core.uid, 'bag', 0, undefined, undefined, true)
+    //  , 10);
 
     this.setState({selectedId: study.uid});
   }
@@ -192,7 +195,7 @@ class StudyDisplay extends React.Component {
           }
         </div>
         <div style={this.noMarginPaddingStyle}
-             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.createStudy)}
+             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.createStudy, null)}
              className='ui center aligned basic segment'>
           <i className='large add circle green icon' />
         </div>

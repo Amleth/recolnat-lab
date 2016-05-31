@@ -145,22 +145,6 @@ class GlobalFunctions {
     return entity.name;
   }
 
-  static createStudy(name, callback = undefined) {
-    request.post(conf.actions.studyServiceActions.createStudy)
-      .send({name: name})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error(err);
-          alert('La création a échoué : ' + err);
-        }
-        else {
-          // Reload studies
-          callback();
-        }
-      });
-  }
-
   static setMode(mode) {
     ModeActions.changeMode(mode);
   }
@@ -170,6 +154,16 @@ class GlobalFunctions {
       coordinates[0] <= box.right &&
       coordinates[1] >= box.top &&
       coordinates[1] <= box.bottom;
+  }
+
+  static preserveSetSelection(newSet, oldSet) {
+    if(oldSet) {
+      if(oldSet.uid == newSet.uid) {
+        if (oldSet.selectedId) {
+          newSet.selectedId = oldSet.selectedId;
+        }
+      }
+    }
   }
 
 }

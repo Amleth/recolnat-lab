@@ -61,7 +61,15 @@ class Minimap extends React.Component {
       return updateStoreWithPosition.apply(this);
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this.state = {
+      isVisibleInCurrentMode: false,
       imgUrl: null,
       view: {
         top: 0,
@@ -190,6 +198,7 @@ class Minimap extends React.Component {
   }
 
   componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.ministore.addInitListener(this._onImageInit);
     this.props.viewstore.addViewportListener(this._onViewChange);
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchUpdate);
@@ -197,6 +206,12 @@ class Minimap extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.componentStyle.display = 'flex';
+    }
+    else {
+      this.componentStyle.display = 'none';
+    }
     if(nextState.view.left != null) {
       this.boundingBoxStyle.left = nextState.view.left + "px";
     }
@@ -221,6 +236,7 @@ class Minimap extends React.Component {
     this.props.ministore.removeInitListener(this._onImageInit);
     this.props.viewstore.removeViewportListener(this._onViewChange);
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchUpdate);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {

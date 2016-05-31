@@ -26,13 +26,21 @@ class ViewController extends React.Component {
       left: '10px'
     };
 
-    this.state = {
-      zoom: 1.0
-    };
-
     this._onViewChange = () => {
       const updateView = () => this.updateViewData(this.props.viewstore.getView());
       return updateView.apply(this);
+    };
+
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
+    this.state = {
+      isVisibleInCurrentMode: false,
+      zoom: 1.0
     };
 
     this.timeout = null;
@@ -120,11 +128,22 @@ class ViewController extends React.Component {
   }
 
   componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.viewstore.addViewportListener(this._onViewChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if (nextState.isVisibleInCurrentMode) {
+      this.compactSegmentStyle.display = '';
+    }
+    else {
+      this.compactSegmentStyle.display = 'none';
+    }
   }
 
   componentWillUnmount() {
     this.props.viewstore.removeViewportListener(this._onViewChange);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {

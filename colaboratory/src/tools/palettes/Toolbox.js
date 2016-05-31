@@ -48,6 +48,34 @@ class Toolbox extends React.Component {
       top: '-15px',
       left: '10px'
     };
+
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
+    this.state = {
+      isVisibleInCurrentMode: false
+    };
+  }
+
+  componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if (nextState.isVisibleInCurrentMode) {
+      this.componentStyle.display = '';
+    }
+    else {
+      this.componentStyle.display = 'none';
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {

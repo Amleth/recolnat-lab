@@ -7,8 +7,10 @@ import request from 'superagent';
 import d3 from 'd3';
 
 import ViewActions from '../../../actions/ViewActions';
+import ModalActions from '../../../actions/ModalActions';
 
 import TypeConstants from '../../../constants/TypeConstants';
+import ModalConstants from '../../../constants/ModalConstants';
 
 import conf from '../../../conf/ApplicationConfiguration';
 
@@ -35,6 +37,17 @@ class OrbOptions {
         }
       });
   }
+
+  static unlinkFromSet(data, errorCallback=null, successCallback=null) {
+    console.log('Entering unlinkFromSet');
+    ModalActions.showModal(ModalConstants.Modals.confirmDelete, data, successCallback, errorCallback);
+    //if(!confirm("L'entité choisie sera enlevée du set. Confirmation ?")) {
+    //  return;
+    //}
+    //console.log('Deleting');
+
+
+}
 
   static edit(data) {
 
@@ -154,8 +167,8 @@ class OrbOptions {
         color: color
       };
     }
-    else if(!d3.select('#NODE-' + item).empty()) {
-      var comp = d3.select('#NODE-' + item);
+    else if(!d3.select('#IMAGE-' + item).empty()) {
+      var comp = d3.select('#IMAGE-' + item);
 
       window.setTimeout(function() {
         OrbOptions.blink(comp, 1.0, 0.3, 'opacity');

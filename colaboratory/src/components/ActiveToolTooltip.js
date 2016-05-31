@@ -1,8 +1,6 @@
 'use strict';
 
 import React from 'react';
-import AppDispatcher from '../dispatcher/AppDispatcher';
-import ToolConstants from '../constants/ToolConstants';
 
 class ActiveToolTooltip extends React.Component {
   constructor(props) {
@@ -27,16 +25,15 @@ class ActiveToolTooltip extends React.Component {
       fontSize: "14px",
       charSet: "utf8"
     };
+
+    this._onTooltipContentUpdate = () => {
+      const setTooltipContent = () => this.setState({text: this.props.toolstore.getTooltipContent()});
+      return setTooltipContent.apply(this);
+    }
   }
 
   componentDidMount() {
-    AppDispatcher.register((action) => {
-      switch (action.actionType) {
-        case ToolConstants.ActionTypes.TOOL_UPDATE_DATA_DISPLAY:
-          this.setState({text: action.content});
-          break;
-      }
-    });
+    this.props.toolstore.addTooltipChangeListener(this._onTooltipContentUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -47,6 +44,10 @@ class ActiveToolTooltip extends React.Component {
         this.componentStyle.display = "none";
       }
 
+  }
+
+  componentWillUnmount() {
+    this.props.toolstore.removeTooltipChangeListener(this._onTooltipContentUpdate);
   }
 
   render() {

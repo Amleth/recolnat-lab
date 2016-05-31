@@ -21,6 +21,7 @@ class ToolStore extends EventEmitter {
     this.tools = {};
     this.activeTool = null;
     this.activeToolPopup = null;
+    this.tooltipContent = null;
     this.imageId = null;
 
     AppDispatcher.register((action) => {
@@ -59,10 +60,18 @@ class ToolStore extends EventEmitter {
           this.setActiveToolPopup(action.popup);
           this.emit(ToolEvents.CHANGE_ACTIVE_TOOL_POPUP_EVENT);
           break;
+        case ToolConstants.ActionTypes.TOOL_UPDATE_DATA_DISPLAY:
+          this.tooltipContent = action.content;
+          this.emit(ToolEvents.TOOLTIP_CONTENT_UPDATE);
+          break;
       }
     });
 
     this.register("null", function() {}, null);
+  }
+
+  getTooltipContent() {
+    return this.tooltipContent;
   }
 
   getSelectedImageId() {
@@ -207,6 +216,14 @@ class ToolStore extends EventEmitter {
 
   removeSelectionChangeListener(callback) {
     this.removeListener(ViewEvents.SELECTION_CHANGE, callback);
+  }
+
+  addTooltipChangeListener(callback) {
+    this.on(ToolEvents.CHANGE_TOOL_EVENT, callback);
+  }
+
+  removeTooltipChangeListener(callback) {
+    this.removeListener(ToolEvents.CHANGE_TOOL_EVENT, callback);
   }
 }
 

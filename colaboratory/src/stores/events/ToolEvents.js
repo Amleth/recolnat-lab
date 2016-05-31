@@ -4,6 +4,7 @@
 'use strict';
 
 export default {
-  CHANGE_TOOL_EVENT: "changeTool",
-  CHANGE_ACTIVE_TOOL_POPUP_EVENT: "changeActiveToolPopup"
+  CHANGE_TOOL_EVENT: "TOOL_changeTool",
+  CHANGE_ACTIVE_TOOL_POPUP_EVENT: "TOOL_changeActiveToolPopup",
+  TOOLTIP_CONTENT_UPDATE: 'TOOL_tooltipContentUpdate'
 };

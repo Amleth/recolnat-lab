@@ -18,7 +18,15 @@ class TagCloud extends React.Component {
       overflowY: 'auto'
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this.state = {
+      isVisibleInCurrentMode: false,
       tags: _.sortBy([
         {name: 'Anthère', size: 'mini'},
         {name: 'Aranéeux', size: 'tiny'},
@@ -57,6 +65,23 @@ class TagCloud extends React.Component {
 
   setScope(scope) {
     this.setState({scope: scope});
+  }
+
+  componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = '';
+    }
+    else {
+      this.containerStyle.display = 'none';
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {

@@ -21,28 +21,28 @@ class StudyDisplay extends React.Component {
     super(props);
 
     this.containerStyle = {
-      margin: 0,
-      padding: 0,
+      padding: '5px 5px 5px 5px',
+      //margin: 0,
+      //padding: 0,
       height: '100%',
-      maxWidth: '150px',
-      minWidth: '150px'
+      width: '100%'
+      //maxWidth: '150px',
+      //minWidth: '150px'
     };
 
-    // Override automatic position:absolute
     this.labelStyle = {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      margin: 0
+      position: 'relative',
+      top: '-15px',
+      left: '10px'
     };
 
     this.titleStyle = {
-      height: '40px',
+      height: '25px',
       padding: '4px 0px'
     };
 
     this.listContainerStyle = {
-      height: 'auto',
+      height: '250px',
       overflowY: 'auto',
       overflowX: 'hidden',
       margin: 0,
@@ -61,6 +61,13 @@ class StudyDisplay extends React.Component {
       userSelect: 'none'
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this._onUpdate = () => {
       const updateDisplay = () => this.setStudies(this.props.managerstore.getStudies());
       return updateDisplay.apply(this);
@@ -72,6 +79,7 @@ class StudyDisplay extends React.Component {
     };
 
     this.state = {
+      isVisibleInCurrentMode: true,
       selectedId: null,
       studiesContainer: null
     };
@@ -110,18 +118,33 @@ class StudyDisplay extends React.Component {
   componentDidMount() {
     this.props.managerstore.addManagerUpdateListener(this._onUpdate);
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = '';
+    }
+    else {
+      this.containerStyle.display = 'none';
+    }
   }
 
   componentWillUnmount() {
     this.props.managerstore.removeManagerUpdateListener(this._onUpdate);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
     var self = this;
     // No content yet, show a loader
     if(!this.state.studiesContainer) {
-      return <div className='ui segment' style={this.containerStyle}>
+      return <div className='ui container segment' style={this.containerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          Mes études
+        </div>
         <div className='ui active inverted dimmer'>
           <div className='ui text loader'></div>
         </div>
@@ -129,8 +152,12 @@ class StudyDisplay extends React.Component {
     }
 
     if(this.state.studiesContainer.error) {
-      return <div className='ui segments' style={this.containerStyle}>
-        <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.state.studiesContainer.name}</div>
+      return <div className='ui container segments' style={this.containerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          Mes études
+        </div>
+
         <div className='ui compact error message segment'>
           <div className='ui center aligned justified header'>
             <i className='large warning sign icon' />
@@ -144,8 +171,12 @@ class StudyDisplay extends React.Component {
 
     // Content received but set is empty at the moment.
     if(this.state.studiesContainer.studies.length == 0) {
-      return <div className='ui segments' style={this.containerStyle}>
-        <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.state.studiesContainer.name}</div>
+      return <div className='ui container segments' style={this.containerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          Mes études
+        </div>
+
         <div className='ui compact info message segment'>
           <div className='ui center aligned justified header'>
             <i className='large inbox icon' />
@@ -161,9 +192,12 @@ class StudyDisplay extends React.Component {
     }
 
     // Display children. List has attached style to prevent that stupid label from padding
-    return <div style={this.containerStyle} className='ui segments'>
-      <div className='ui tertiary center aligned segment'
-           style={this.titleStyle}>{this.state.studiesContainer.name}</div>
+    return <div style={this.containerStyle} className='ui container segments'>
+      <div className='ui blue tiny basic label'
+           style={this.labelStyle}>
+        Mes études
+      </div>
+
       <div className='ui segment'
            style={this.listContainerStyle}>
         <div className='ui selection list'
@@ -203,5 +237,8 @@ class StudyDisplay extends React.Component {
     </div>
   }
 }
+
+//<div className='ui tertiary center aligned segment'
+//     style={this.titleStyle}>{this.state.studiesContainer.name}</div>
 
 export default StudyDisplay;

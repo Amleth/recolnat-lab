@@ -52,16 +52,37 @@ class MetadataViewer extends React.Component {
       return loadMetadata.apply(this);
     };
 
-    this._onMetadataUpdated = () => {
-      const displayMetadata = () => this.displayMetadata();
-      return displayMetadata.apply(this);
+    this._onImageMetadataUpdated = () => {
+      const displayImageMetadata = () => this.displayImageMetadata();
+      return displayImageMetadata.apply(this);
+    };
+
+    this._onSpecimenMetadataUpdated = () => {
+      const displaySpecimenMetadata = () => this.displaySpecimenMetadata();
+      return displaySpecimenMetadata.apply(this);
+    };
+
+    this._onSourceMetadataUpdated = () => {
+      const displaySourceMetadata = () => this.displayOriginalSourceMetadata();
+      return displaySourceMetadata.apply(this);
+    };
+
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
     };
 
     this.state = {
+      isVisibleInCurrentMode: false,
       loading: true,
       noContent: true,
-      entity: null,
-      coLabMetadata: null,
+      imageCoLabId: null,
+      specimenCoLabId: null,
+      originalSourceCoLabId: null,
+      coLabImageMetadata: null,
+      coLabSpecimenMetadata: null,
       specimen: null,
       determinations: [],
       harvest: null,
@@ -76,6 +97,7 @@ class MetadataViewer extends React.Component {
   }
 
   loadMetadata() {
+    //console.log('loadMetadata');
     var imageLinkId = this.props.toolstore.getSelectedImageId();
     var view = this.props.benchstore.getActiveViewData();
     var imageId = null;
@@ -91,18 +113,29 @@ class MetadataViewer extends React.Component {
       }
     }
 
-    if(imageId != this.state.entity) {
-      if(this.state.entity) {
-        this.props.metastore.removeMetadataUpdateListener(this.state.entity, this._onMetadataUpdated);
+    //console.log('fetching metadata for image ' + imageId);
+
+    if(imageId != this.state.imageCoLabId) {
+      if(this.state.imageCoLabId) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onImageMetadataUpdated);
+      }
+      if(this.state.specimenCoLabId) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.specimenCoLabId, this._onSpecimenMetadataUpdated);
+      }
+      if(this.state.originalSourceCoLabId) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.originalSourceCoLabId, this._onSourceMetadataUpdated);
       }
       if(imageId) {
-        this.props.metastore.addMetadataUpdateListener(imageId, this._onMetadataUpdated);
+        this.props.metastore.addMetadataUpdateListener(imageId, this._onImageMetadataUpdated);
       }
       this.setState({
-        entity: imageId,
         loading: imageId != null,
         noContent: imageId == null,
-        coLabMetadata: null,
+        imageCoLabId: imageId,
+        specimenCoLabId: null,
+        originalSourceCoLabId: null,
+        coLabImageMetadata: null,
+        coLabSpecimenMetadata: null,
         specimen: null,
         determinations: [],
         harvest: null,
@@ -112,11 +145,12 @@ class MetadataViewer extends React.Component {
         loadingHarvest: true,
         loadingLocation: true});
     }
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, imageId), 100);
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, [imageId]), 100);
   }
 
-  displayMetadata() {
-    var id = this.state.entity;
+  displayImageMetadata() {
+    //console.log('displayImageMetadata');
+    var id = this.state.imageCoLabId;
     //console.log(id);
     if(!id) {
       this.setState({loading: false, noContent: true});
@@ -124,45 +158,63 @@ class MetadataViewer extends React.Component {
     }
 
     var metadata = this.props.metastore.getMetadataAbout(id);
+    var specimenId = null;
+    var loading = false;
     //console.log(JSON.stringify(metadata));
-
-    if(metadata.originalSource) {
-      this.loadOriginalSourceMetadata(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
+    if(metadata.specimens) {
+      if(metadata.specimens.length > 0) {
+        loading = true;
+        if(metadata.specimens.length > 1) {
+          console.warn('Multiple specimens for image ' + id);
+        }
+        specimenId = metadata.specimens[0];
+        this.props.metastore.addMetadataUpdateListener(specimenId, this._onSpecimenMetadataUpdated);
+        window.setTimeout(MetadataActions.updateMetadata.bind(null, metadata.specimens), 10);
+      }
     }
-    this.setState({loading: false, coLabMetadata: metadata});
 
-    // Get CoLab metadata about this entity
-    //request.get(conf.actions.databaseActions.getData)
-    //  .query({id: id})
-    //  .withCredentials()
-    //  .end((err, res) => {
-    //    if(err) {
-    //      console.error('Error connecting to CoLab database service ' + err);
-    //      this.setState({loading: false, noContent: true});
-    //    }
-    //    else {
-    //      var metadata = JSON.parse(res.text);
-    //      if(metadata.originalSource) {
-    //        this.loadOriginalSourceMetadata(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
-    //      }
-    //      this.setState({loading: false, coLabMetadata: metadata});
-    //    }
-    //  });
+
+    this.setState({coLabImageMetadata: metadata, specimenCoLabId: specimenId, loading: loading});
   }
 
-  loadOriginalSourceMetadata(id, type, origin) {
-    switch(origin) {
+  displaySpecimenMetadata() {
+    //console.log('displaySpecimenMetadata');
+    if(!this.state.specimenCoLabId) {
+      this.setState({loading: false});
+      return;
+    }
+    var metadata = this.props.metastore.getMetadataAbout(this.state.specimenCoLabId);
+    this.setState({coLabSpecimenMetadata: metadata});
+
+    if(metadata.originalSource) {
+      this.setState({originalSourceCoLabId: metadata.originalSource});
+      this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onSourceMetadataUpdated);
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, [metadata.originalSource]), 10);
+    }
+  }
+
+  displayOriginalSourceMetadata() {
+    //console.log('displayOriginalSourceMetadata');
+    var metadata = this.props.metastore.getMetadataAbout(this.state.originalSourceCoLabId);
+    if(!metadata) {
+      return;
+    }
+    var origin = metadata.origin;
+    var type = metadata.typeInOriginSource;
+    var id = metadata.idInOriginSource;
+    switch(origin.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
         break;
       default:
         console.error('Unknown data source ' + origin);
+        this.setState({loading: false});
         break;
     }
   }
 
   getRecolnatMetadata(id, type) {
-    switch(type) {
+    switch(type.toLowerCase()) {
       case 'specimen':
         this.getRecolnatSpecimenMetadata(id);
         break;
@@ -176,6 +228,7 @@ class MetadataViewer extends React.Component {
     // Example id 3A160E6F-8ED3-4ED3-A46A-D6737893E844
     // https://api.recolnat.org/erecolnat/v1/specimens/3a160e6f-8ed3-4ed3-a46a-d6737893e844
     // Then go to determination(s)
+    //console.log('getting recolnat data about ' + id);
     request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
       //.withCredentials()
       .end((err, res) => {
@@ -239,9 +292,9 @@ class MetadataViewer extends React.Component {
   }
 
   displaySelectedName() {
-    if(this.state.coLabMetadata) {
-      if(this.state.coLabMetadata.name) {
-        return this.state.coLabMetadata.name;
+    if(this.state.coLabSpecimenMetadata) {
+      if(this.state.coLabSpecimenMetadata.name) {
+        return this.state.coLabSpecimenMetadata.name;
       }
       return 'Nom manquant';
     }
@@ -255,47 +308,59 @@ class MetadataViewer extends React.Component {
       });
     }
     this.props.toolstore.addSelectionChangeListener(this._onChangeSelection);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.coLabMetadata) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.tableStyle.display = '';
+      this.placeholderStyle.display = '';
+    }
+    else {
+      this.tableStyle.display = 'none';
+      this.placeholderStyle.display = 'none';
+    }
+    if(nextState.coLabImageMetadata) {
       nextState.noContent = false;
     }
     else {
       nextState.noContent = true;
     }
 
-    if(!nextState.entity) {
-      nextState.loading = false;
-    }
-    else if(nextState.entity != this.state.entity) {
-      nextState.loading = true;
-      nextState.loadingSpecimen = true;
-      nextState.loadingHarvest = true;
-      nextState.loadingDeterminations = true;
-      nextState.loadingLocation = true;
-      //nextState.specimen = null;
-      //nextState.determinations = [];
-      //nextState.harvest = null;
-      //nextState.location = null;
-      window.setTimeout(this.displayMetadata.bind(this), 100);
-    }
+    //if(!nextState.imageCoLabId) {
+    //  nextState.loading = false;
+    //}
+    //else if(nextState.imageCoLabId != this.state.imageCoLabId) {
+    //  nextState.loading = true;
+    //  nextState.loadingSpecimen = true;
+    //  nextState.loadingHarvest = true;
+    //  nextState.loadingDeterminations = true;
+    //  nextState.loadingLocation = true;
+    //  //nextState.specimen = null;
+    //  //nextState.determinations = [];
+    //  //nextState.harvest = null;
+    //  //nextState.location = null;
+    //  //window.setTimeout(this.displayMetadata.bind(this), 100);
+    //}
 
-    if(nextState.loading) {
-      this.loaderStyle.display = '';
-      this.noDataStyle.display = 'none';
-      this.tableStyle.display = 'none';
-    }
-    else if(nextState.noContent) {
+    //if(nextState.loading) {
+    //  this.loaderStyle.display = '';
+    //  this.noDataStyle.display = 'none';
+    //  this.tableStyle.display = 'none';
+    //}
+    //else if(nextState.noContent) {
+    //  this.loaderStyle.display = 'none';
+    //  this.noDataStyle.display = '';
+    //  this.tableStyle.display = 'none';
+    //}
+    //else {
+    //  this.loaderStyle.display = 'none';
+    //  this.noDataStyle.display = 'none';
+    //  this.tableStyle.display = '';
+    //}
       this.loaderStyle.display = 'none';
-      this.noDataStyle.display = '';
-      this.tableStyle.display = 'none';
-    }
-    else {
-      this.loaderStyle.display = 'none';
       this.noDataStyle.display = 'none';
-      this.tableStyle.display = '';
-    }
+    this.tableStyle.display = '';
 
     //console.log('current state=' + JSON.stringify(this.state));
     //console.log('future state=' + JSON.stringify(nextState));
@@ -309,8 +374,12 @@ class MetadataViewer extends React.Component {
 
   componentWillUnmount() {
     this.props.toolstore.removeSelectionChangeListener(this._onChangeSelection);
-    if(this.state.entity) {
-      this.props.metastore.removeMetadataUpdateListener(this.state.entity, this._onMetadataUpdated);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    if(this.state.imageCoLabId) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onImageMetadataUpdated);
+    }
+    if(this.state.specimenCoLabId) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onSpecimenMetadataUpdated);
     }
   }
 

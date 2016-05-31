@@ -20,22 +20,44 @@ class MetadataStore extends EventEmitter {
   constructor() {
     super();
     this.metadata = {};
+    this.metadataToLoad = [];
+    this.metadataLoading = [];
+    this.setMaxListeners(1000);
 
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
       switch (action.actionType) {
         case MetadataConstants.ActionTypes.RELOAD_METADATA:
-          if(action.entityId) {
-            this.downloadMetadata(action.entityId);
+          if(action.entities) {
+            for(var i = 0; i < action.entities.length; ++i) {
+              if(this.metadata[action.entities[i]]) {
+                this.emitUpdateEvent(action.entities[i]);
+              }
+              if(_.contains(this.metadataToLoad, action.entities[i])) {
+                //console.log('waiting to loead ' + action.entities[i]);
+                continue;
+              }
+              if(_.contains(this.metadataLoading, action.entities[i])) {
+                //console.log('already loading ' + action.entities[i]);
+                continue;
+              }
+              //console.log('adding to queue ' + action.entities[i]);
+              this.metadataToLoad.push(action.entities[i]);
+            }
           }
           else {
-            this.downloadAllMetadataFromServer();
+            var keys = Object.keys(this.metadata);
+            Array.prototype.push.apply(this.metadataToLoad, keys);
+            //this.downloadAllMetadataFromServer();
           }
+          this.checkDownloadStatus();
           break;
         default:
           break;
       }
     });
+
+    window.setInterval(this.checkDownloadStatus.bind(this), 1000);
   }
 
   getMetadataAbout(id) {
@@ -49,29 +71,49 @@ class MetadataStore extends EventEmitter {
     var metadata = this.metadata[id];
   }
 
-  downloadMetadata(id) {
-    //console.log('downloadMetadata(' + id + ')');
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+  checkDownloadStatus() {
+    if(this.metadataLoading.length > 0) {
+      return;
+    }
+    //this.metadataLoading = JSON.parse(JSON.stringify(this.metadataToLoad));
+    Array.prototype.push.apply(this.metadataLoading, this.metadataToLoad);
+    this.metadataToLoad = [];
+    if(this.metadataLoading.length > 0) {
+      this.downloadMetadata(this.metadataLoading);
+    }
+  }
+
+  downloadMetadata(ids) {
+    //console.log('downloadMetadata(' + ids + ')');
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
           console.log(err);
-          this.metadata[id] = undefined;
-          //delete this.metadata[id];
+          for(var i = 0; i < ids.length; ++i) {
+            this.metadata[ids[i]] = undefined;
+            this.emitUpdateEvent(ids[i]);
+          }
+          this.metadataLoading = [];
         }
         else {
-          this.metadata[id] = JSON.parse(res.text);
+          //console.log('response ' + res.text);
+          var metadatas = JSON.parse(res.text);
+          this.metadataLoading = [];
+          for(var i = 0; i < metadatas.length; ++i) {
+            var metadata = metadatas[i];
+
+            this.metadata[metadata.uid] = metadata;
+            this.emitUpdateEvent(metadata.uid);
+          }
         }
-        this.emitUpdateEvent(id);
       });
   }
 
   downloadAllMetadataFromServer() {
     var ids = Object.keys(this.metadata);
-    for(var i = 0; i < ids.length; ++i) {
-      this.getMetadataAbout(ids[i]);
-    }
+    this.getMetadataAbout(ids);
   }
 
   emitUpdateEvent(id) {

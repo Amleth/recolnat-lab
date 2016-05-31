@@ -8,41 +8,105 @@ import request from 'superagent';
 
 import AbstractMetadataDisplay from './AbstractManagerMetadataDisplay';
 
-class SheetMetadataDisplay extends AbstractMetadataDisplay {
+import MetadataActions from '../../actions/MetadataActions';
+
+import conf from '../../conf/ApplicationConfiguration';
+
+class SheetMetadataDisplay extends React.Component {
   constructor(props) {
     super(props);
+
+    this.containerStyle = {
+      overflowY: 'auto',
+      height: this.props.height
+    };
+
+    this.textStyle = {
+      wordBreak: 'break-all'
+    };
+
+    this._onOriginalSourceMetadataAvailable = (id) => {
+      const getDataFromSource = (id) => this.getMetadataFromSource(this.props.metastore.getMetadataAbout(id));
+      return getDataFromSource.apply(this, [id]);
+    };
+
+    this._onSelectionChange = () => {
+      const updateMetadataDisplay = () => this.downloadMetadata(this.props.managerstore.getSelected().id);
+      updateMetadataDisplay.apply(this);
+    };
+
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
+    this.state = this.initialState();
   }
 
   initialState() {
     return {
+      isVisibleInCurrentMode: true,
+      metadata: null,
       source: null,
-      name: null,
-      genus: null,
-      family: null,
-      scName: null,
-      scNameAuthor: null,
-      harvester: null,
-      harvestLocation: null,
-      collection: null,
+      scientificName: null,
+      scientificNameAuthorship: null,
+      determinationStatusWarning: null,
+      harvestRecordedBy: null,
+      harvestFieldNumber: null,
+      harvestVerbatimLocality: null,
+      institutionCode: null,
+      catalogNumber: null,
       linkToExplore: null
     };
+  }
+
+  downloadMetadata(id) {
+    request.post(conf.actions.databaseActions.getData)
+      .send([id])
+      .withCredentials()
+      .end((err, res) => {
+          if(err) {
+            console.error("Could not get data about object " + err);
+            this.setState(this.initialState());
+          }
+          else {
+            var metadata = JSON.parse(res.text);
+            //console.log(res.text);
+            if(metadata[0]) {
+              this.processCoLabMetadata(metadata[0]);
+            }
+          }
+        }
+      );
   }
 
   processCoLabMetadata(metadata) {
     if(metadata.type == 'Specimen') {
       this.setState(this.initialState());
       //console.log(JSON.stringify(metadata));
-
       if(metadata.originalSource) {
-        this.getMetadataFromSource(metadata.originalSource.uid, metadata.originalSource.type, metadata.originalSource.origin);
+        if(this.state.metadata) {
+          this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
+        }
+        this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onOriginalSourceMetadataAvailable);
+        window.setTimeout(MetadataActions.updateMetadata.bind(null, [metadata.originalSource]), 10);
       }
 
-      this.setState({name: metadata.name});
+      this.setState({metadata: metadata});
     }
   }
 
-  getMetadataFromSource(id, type, source) {
-    switch(source) {
+  getMetadataFromSource(colabMetadata) {
+    if(!colabMetadata) {
+      return;
+    }
+
+    var id = colabMetadata.idInOriginSource;
+    var type = colabMetadata.typeInOriginSource;
+    var source = colabMetadata.origin;
+    switch(source.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
         break;
@@ -54,7 +118,7 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
   }
 
   getRecolnatMetadata(id, type) {
-    switch(type) {
+    switch(type.toLowerCase()) {
       case 'specimen':
         this.getRecolnatSpecimenMetadata(id);
         break;
@@ -73,15 +137,28 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
       .end((err, res) => {
         if(err) {
           console.error('Could not retrieve resource data from recolnat about ' + id);
-          alert('Impossible de récupérer les données associées dans ReColNat');
-        }
-        else {
-          var specimen = JSON.parse(res.text);
-          //console.log('specimen=' + res.text);
           this.setState({
             type: 'specimen',
             source: 'recolnat',
-            collection: specimen.institutioncode + ' ' + specimen.catalognumber
+            institutionCode: 'Erreur réseau: spécimen indisponible pour le moment',
+            catalogNumber: ''
+          });
+        }
+        else {
+          var specimen = JSON.parse(res.text);
+          var institCode = 'Code institution indisponible';
+          var catalogNum = 'N° catalogue indisponible';
+          if(specimen.institutioncode) {
+            institCode = specimen.institutioncode
+          }
+          if(specimen.catalognumber) {
+            catalogNum = specimen.catalognumber;
+          }
+          this.setState({
+            type: 'specimen',
+            source: 'recolnat',
+            institutionCode: institCode,
+            catalogNumber: catalogNum
           });
         }
       });
@@ -92,24 +169,35 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
         if(err) {
           console.error('Error requesting determinations about ' + id);
           this.setState({
-            genus: 'Erreur réseau',
-            family: 'Erreur réseau',
-            scName: 'Erreur réseau',
-            scNameAuthor: 'Erreur réseau'
+            scientificName: 'Erreur réseau: déterminations indisponibles pour le moment',
+            scientificNameAuthorship: ''
           });
         }
         else {
           var determinations = JSON.parse(res.text);
+          var scName = 'Donnée indisponible';
+          var scNameAuth = 'Donnée indisponible';
+          var determinationStatusWarning = 'warning';
           //console.log('determinations=' + res.text);
-          if(determinations.length > 0) {
-            var determination = determinations[0];
-            this.setState({
-              genus: determination.taxon.genus,
-                family: determination.taxon.family,
-              scName: determination.taxon.scientificName,
-              scNameAuthor: determination.taxon.scientificNameAuthorship
-            });
+          for(var i = 0; i < determinations.length; ++i) {
+            var determination = determinations[i];
+            if(determination.taxon.scientificName) {
+              scName = determination.taxon.scientificName;
+            }
+            if(determination.taxon.scientificNameAuthorship) {
+              scNameAuth = determination.taxon.scientificNameAuthorship;
+            }
+            if(determination.identificationverificationstatus == 1) {
+              console.log('determination1=' + JSON.stringify(determination));
+              determinationStatusWarning = null;
+              break;
+            }
           }
+          this.setState({
+            scientificName: scName,
+            scientificNameAuthorship: scNameAuth,
+            determinationStatusWarning: determinationStatusWarning
+          });
         }
       });
 
@@ -119,30 +207,32 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
         if(err) {
           console.error('Error requesting harvest data about ' + id);
           this.setState({
-            harvester: 'Erreur réseau',
-            harvestLocation: 'Erreur réseau'
+            harvestVerbatimLocality: 'Erreur réseau: données de récolte indisponibles pour le moment',
+            harvestRecordedBy: 'Erreur réseau: données de récolte indisponibles pour le moment',
+            harvestFieldNumber: ''
           });
         }
         else {
           var harvest = JSON.parse(res.text);
           //console.log('harvest=' + res.text);
+          var recBy = 'Donnée indisponible';
+          var fieldNum = 'Donnée indisponible';
+          var verbatimLoc = 'Donnée indisponible';
 
           if(harvest.recordedBy) {
-            this.setState({harvester: harvest.recordedBy});
+            recBy = harvest.recordedBy;
           }
-          else {
-            this.setState({harvester: 'Donnée manquante'});
+          if(harvest.localisation.verbatimlocality) {
+            verbatimLoc = harvest.localisation.verbatimlocality;
           }
-
-          if(harvest.localisation.country) {
-            this.setState({harvestLocation: harvest.localisation.country});
+          if(harvest.fieldnumber) {
+            fieldNum = harvest.fieldnumber;
           }
-          else {
-            this.setState({harvestLocation: 'Donnée manquante'});
-          }
-
-
-
+          this.setState({
+            harvestVerbatimLocality: verbatimLoc,
+            harvestRecordedBy: recBy,
+            harvestFieldNumber: fieldNum
+          });
         }
       });
 
@@ -153,50 +243,30 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
   }
 
   createMetadataTable() {
-    if(!this.state.name) {
+    if(!this.state.linkToExplore) {
       return null;
     }
-    if(this.state.source == 'recolnat') {
+
       // Name, Species, Harvester, Location, Collection, Link-to-Explore
       return (
         <table className='ui selectable striped structured very compact table'>
           <thead>
           <tr>
-            <th colSpan='2' className='center aligned'>{this.state.name}</th>
+            <th colSpan='2' className='center aligned'><i className={'ui yellow ' + this.state.determinationStatusWarning + ' icon'} ref='warning' data-content="Le fournisseur de données n'a marqué aucune détermination comme acceptée. La détermination affichée est la dernière trouvée par le système."/><i>{this.state.scientificName}</i> {this.state.scientificNameAuthorship}</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-            <td className='right aligned'>Nom</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.name}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>Famille</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.family}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>Genus</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.genus}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>Nom scientifique</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.scName}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>Auteur</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.scNameAuthor}</td>
-          </tr>
-          <tr>
             <td className='right aligned'>Récolteur</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.harvester}</td>
+            <td className='left aligned' style={this.textStyle}>{this.state.harvestRecordedBy} {this.state.harvestFieldNumber}</td>
           </tr>
           <tr>
             <td className='right aligned'>Lieu de récolte</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.harvestLocation}</td>
+            <td className='left aligned' style={this.textStyle}>{this.state.harvestVerbatimLocality}</td>
           </tr>
           <tr>
-            <td className='right aligned'>Collection</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.collection}</td>
+            <td className='right aligned'>Numéro inventaire</td>
+            <td className='left aligned' style={this.textStyle}>{this.state.institutionCode} {this.state.catalogNumber}</td>
           </tr>
           <tr>
             <td className='center aligned' style={this.textStyle} colSpan='2'><a href={this.state.linkToExplore} target='_blank'>Page Explore du spécimen</a></td>
@@ -204,25 +274,41 @@ class SheetMetadataDisplay extends AbstractMetadataDisplay {
           </tbody>
         </table>
       );
+
+  }
+
+  componentDidMount() {
+    this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = '';
     }
     else {
-      // Name, Not R-Nat (for non-recolnat)
-      return (
-        <table className='ui selectable striped very compact table'>
-          <thead>
-          <tr>
-            <th colSpan='2' className='center aligned'>{this.state.name}</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td className='ui right aligned'>Nom</td>
-            <td className='ui left aligned' style={this.textStyle}>{this.state.name}</td>
-          </tr>
-          </tbody>
-        </table>
-      );
+      this.containerStyle.display = 'none';
     }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(this.state.determinationStatusWarning) {
+      $(this.refs.warning.getDOMNode()).popup();
+    }
+  }
+
+  componentWillUnmount() {
+    if(this.state.metadata) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
+    }
+    this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
+  }
+
+  render() {
+    return (<div style={this.containerStyle} className='ui container'>
+      {this.createMetadataTable()}
+    </div>)
   }
 }
 

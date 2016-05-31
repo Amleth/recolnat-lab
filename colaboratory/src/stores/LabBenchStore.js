@@ -103,10 +103,14 @@ class LabBenchStore extends EventEmitter {
   }
 
   getDisplayData(id) {
-    var displayedStuff = this.labBench.views[this.activeView].displays;
-    for(var i = 0; i < displayedStuff.length; ++i) {
-      if(displayedStuff[i].link == id || displayedStuff[i].entity == id) {
-        return JSON.parse(JSON.stringify(displayedStuff[i]));
+    if(this.labBench) {
+      if (this.labBench.views && this.activeView) {
+        var displayedStuff = this.labBench.views[this.activeView].displays;
+        for (var i = 0; i < displayedStuff.length; ++i) {
+          if (displayedStuff[i].link == id || displayedStuff[i].entity == id) {
+            return JSON.parse(JSON.stringify(displayedStuff[i]));
+          }
+        }
       }
     }
 
@@ -196,9 +200,11 @@ class LabBenchStore extends EventEmitter {
 
   loadBench(setId) {
     this.labBench.id = setId;
-    window.setTimeout(
-      MetadataActions.updateMetadata.bind(null, setId), 10);
+    //window.setTimeout(
+    //  MetadataActions.updateMetadata.bind(null, setId), 10);
     console.log('load bench');
+    this.loaded = 0;
+    this.toLoad = 0;
     var self = this;
     request.get(conf.actions.setServiceActions.getSet)
       .query({id: setId})
@@ -210,7 +216,7 @@ class LabBenchStore extends EventEmitter {
         }
         else {
           var studySet = JSON.parse(res.text);
-          this.toLoad = studySet.items.length + 1;
+          //this.toLoad = studySet.items.length + 1;
 
           this.labBench.subSets = {};
           this.labBench.images = {};
@@ -223,30 +229,42 @@ class LabBenchStore extends EventEmitter {
           this.labBench.measurements = {};
           this.labBench.metadata = studySet;
 
-          studySet.subsets.forEach(function(subsetId) {
-            self.loadSubSet(subsetId);
-          });
-          studySet.items.forEach(function(itemId) {
-            self.loadItem(itemId);
-          });
+          this.toLoad = 3;
+          this.loadSubSets(studySet.subsets);
+          this.loadItems(studySet.items.map(function (item) {return item.uid}));
+          //studySet.subsets.forEach(function(subsetId) {
+          //  self.loadSubSet(subsetId);
+          //});
+          //studySet.items.forEach(function(itemId) {
+          //  self.loadItem(itemId);
+          //});
           this.loadView(studySet.view);
         }
       });
   }
 
-  loadSubSet(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+  loadSubSets(linksAndIds) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    var ids = [];
+    for(var i = 0; i < linksAndIds.length; ++i) {
+      ids.push()
+    }
 
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load set ' + setId + ': ' + err);
+          console.error('Could not load set ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          this.labBench.subSets[id] = JSON.parse(res.text);
+          var metadatas = JSON.parse(res.text);
+          for(var i =0; i < metadatas.length; ++i) {
+            var metadata = metadatas[i];
+            this.labBench.subSets[metadata.uid] = metadata;
+          }
+
         }
         this.loaded++;
         this.onLoadingDone();
@@ -254,18 +272,18 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadView(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    request.post(conf.actions.databaseActions.getData)
+      .send([id])
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load set ' + setId + ': ' + err);
+          console.error('Could not load set ' + id + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          console.log(res.text);
-          this.labBench.views[id] = JSON.parse(res.text);
+          //console.log(res.text);
+          this.labBench.views[id] = JSON.parse(res.text)[0];
           this.activeView = id;
           this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
         }
@@ -274,11 +292,11 @@ class LabBenchStore extends EventEmitter {
       });
   }
 
-  loadItem(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+  loadItems(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
     var self = this;
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -286,36 +304,41 @@ class LabBenchStore extends EventEmitter {
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          var item = JSON.parse(res.text);
+          var items = JSON.parse(res.text);
+          for(var i = 0;  i < items.length; ++i) {
+            var item = items[i];
+            switch(item.type) {
+              case 'Image':
+                this.labBench.images[item.uid] = item;
 
-          switch(item.type) {
-            case 'Image':
-              this.labBench.images[id] = item;
-
-              this.toLoad += item.rois.length + item.pois.length + item.tois.length + item.scales.length;
-
-              item.rois.forEach(function(roiId) {
-                self.loadRoI(roiId);
-              });
-              item.pois.forEach(function(poiId) {
-                self.loadPoI(poiId);
-              });
-              item.tois.forEach(function(toiId) {
-                self.loadToI(toiId);
-              });
-              item.scales.forEach(function(scaleId) {
-                self.loadMeasureStandard(scaleId);
-              });
-              break;
-            case 'Specimen':
-              this.labBench.specimens[id] = item;
-              this.toLoad += item.images.length;
-              item.images.forEach(function(imageId) {
-                self.loadItem(imageId);
-              });
-              break;
-            default:
-              break;
+                if(item.rois.length > 0) {
+                  this.loadRoIs(item.rois);
+                  this.toLoad++;
+                }
+                if(item.pois.length > 0) {
+                  this.loadPoIs(item.pois);
+                  this.toLoad++;
+                }
+                if(item.tois.length > 0) {
+                  this.loadToIs(item.tois);
+                  this.toLoad++;
+                }
+                if(item.scales.length > 0) {
+                  this.loadMeasureStandards(item.scales);
+                  this.toLoad++;
+                }
+                window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
+                break;
+              case 'Specimen':
+                this.labBench.specimens[item.uid] = item;
+                if(item.images.length > 0) {
+                  this.toLoad++;
+                  this.loadItems(item.images);
+                }
+                break;
+              default:
+                break;
+            }
           }
         }
         this.loaded++;
@@ -323,55 +346,63 @@ class LabBenchStore extends EventEmitter {
       });
   }
 
-  loadRoI(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+  loadRoIs(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
     var self = this;
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load RoI ' + id + ': ' + err);
+          console.error('Could not load RoI ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          var roi = JSON.parse(res.text);
+          var rois = JSON.parse(res.text);
           console.log(res.text);
-          this.toLoad += roi.measurements.length;
-          this.labBench.rois[id] = roi;
-          roi.measurements.forEach(function(measureId) {
-            self.loadMeasurement(measureId);
-          });
+          for(var i = 0; i < rois.length; ++i) {
+            var roi = rois[i];
+            this.labBench.rois[roi.uid] = roi;
+            if(roi.measurements.length > 0) {
+              this.toLoad++;
+              this.loadMeasurements(roi.measurements);
+            }
+          }
+
         }
         this.loaded++;
         this.onLoadingDone();
       });
   }
 
-  loadPoI(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+  loadPoIs(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
 
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load PoI ' + id + ': ' + err);
+          console.error('Could not load PoIs ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          this.labBench.pois[id] = JSON.parse(res.text);
+          var pois = JSON.parse(res.text);
+          for(var i = 0; i < pois.length; ++i) {
+            var poi = pois[i];
+            this.labBench.pois[poi.uid] = poi;
+          }
         }
         this.loaded++;
         this.onLoadingDone();
       });
   }
 
-  loadToI(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+  loadToIs(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
     var self = this;
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -379,22 +410,25 @@ class LabBenchStore extends EventEmitter {
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          var toi = JSON.parse(res.text);
-          this.toLoad += toi.measurements.length;
-          this.labBench.tois[id] = toi;
-          toi.measurements.forEach(function(measureId) {
-            self.loadMeasurement(measureId);
-          });
+          var tois = JSON.parse(res.text);
+          for(var i = 0; i < tois.length; ++i) {
+            var toi = tois[i];
+            this.labBench.tois[toi.uid] = toi;
+            if(toi.measurements.length> 0) {
+              this.toLoad++;
+              this.loadMeasurements(toi.measurements);
+            }
+          }
         }
         this.loaded++;
         this.onLoadingDone();
       });
   }
 
-  loadMeasureStandard(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+  loadMeasureStandards(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -402,17 +436,21 @@ class LabBenchStore extends EventEmitter {
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          this.labBench.measureStandards[id] = JSON.parse(res.text);
+          var standards = JSON.parse(res.text);
+          for(var i = 0; i < standards.length; ++i) {
+            var standard = standards[i];
+            this.labBench.measureStandards[standard.uid] = standard;
+          }
         }
         this.loaded++;
         this.onLoadingDone();
       });
   }
 
-  loadMeasurement(id) {
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+  loadMeasurements(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -420,24 +458,28 @@ class LabBenchStore extends EventEmitter {
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
-          this.labBench.measurements[id] = JSON.parse(res.text);
+          var measurements = JSON.parse(res.text);
+          for(var i = 0; i < measurements.length; ++i) {
+            var measurement = measurements[i];
+            this.labBench.measurements[measurement.uid] = measurement;
+          }
         }
         this.loaded++;
         this.onLoadingDone();
       });
-
-
   }
 
   onLoadingDone() {
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.loaded  + '/' + this.toLoad + ' éléments chargés'), 10);
     console.log('loaded ' + this.loaded + '/' + this.toLoad);
     if(this.isLoaded()) {
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 50);
       this.emit(MetadataEvents.LAB_BENCH_READY);
     }
   }
 
   isLoaded() {
-    return this.toLoad == this.loaded;
+    return this.toLoad <= this.loaded;
   }
 
   addLabBenchLoadListener(callback) {

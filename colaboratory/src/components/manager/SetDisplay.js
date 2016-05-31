@@ -9,8 +9,12 @@ import ViewActions from '../../actions/ViewActions';
 import MetadataActions from '../../actions/MetadataActions';
 import ManagerActions from '../../actions/ManagerActions';
 import ModalActions from '../../actions/ModalActions';
+import ModeActions from '../../actions/ModeActions';
+import InspectorActions from '../../actions/InspectorActions';
+import MenuActions from '../../actions/MenuActions';
 
 import ModalConstants from '../../constants/ModalConstants';
+import ModeConstants from '../../constants/ModeConstants';
 
 import Globals from '../../utils/Globals';
 
@@ -71,26 +75,27 @@ class SetDisplay extends React.Component {
 
     this.state = {
       subSets: [],
-      items: [],
-      selectedId: null
+      items: []
+      //selectedId: null
     };
+
+    //console.log(JSON.stringify(props.set));
+
+
   }
 
   setActive(idx, node) {
     //console.log(JSON.stringify(this.props.set));
-    window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.set.uid, node.linkId),10);
-
-    if(node.type == 'bag') {
-      window.setTimeout(this.props.managerstore.requestGraphAround(node.uid, node.type, this.props.index + 1, undefined, undefined, true), 100);
-    }
-
-    //ManagerActions.selectEntityInSet(this.props.index, idx);
-    this.setState({selectedId: node.uid});
+    window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.set.uid, node.linkToParent),10);
+    window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, node.uid), 10);
+    window.setTimeout(InspectorActions.setInspectorData.bind(null, [node.uid]), 10);
   }
 
   selectAndLoadSet(idx, item) {
     window.setTimeout(ViewActions.setActiveSet.bind(null, item.uid), 10);
+    window.setTimeout(ManagerActions.selectEntityInSet.bind(null, this.props.index, idx), 10);
     window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
+    window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.ORGANISATION),30);
   }
 
   updateMetadata() {
@@ -99,8 +104,10 @@ class SetDisplay extends React.Component {
     if(this.props.set) {
       if(this.props.set.subsets) {
         for (var i = 0; i < this.props.set.subsets.length; ++i) {
-          var metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i]);
+          var metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i].uid);
           if (metadata) {
+            //console.log('pushing subset ' +metadata.uid);
+            metadata.linkToParent = this.props.set.subsets[i].link;
             subSets.push(metadata);
           }
         }
@@ -110,8 +117,10 @@ class SetDisplay extends React.Component {
 
       if(this.props.set.items) {
         for (i = 0; i < this.props.set.items.length; ++i) {
-          var metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i]);
+          var metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i].uid);
           if (metadata) {
+            metadata.linkToParent = this.props.set.items[i].link;
+            //console.log('pushing item ' +metadata.uid);
             items.push(metadata);
           }
         }
@@ -123,34 +132,79 @@ class SetDisplay extends React.Component {
     this.setState({items: items, subSets: subSets});
   }
 
-  getChildrenData() {
-    if(this.props.set) {
-      for (var i = 0; i < this.props.set.subsets.length; ++i) {
-        MetadataActions.updateMetadata(this.props.set.subsets[i]);
+  getChildrenData(props) {
+    if(props.set) {
+      var idsOfElementsToUpdate = [];
+      if(props.set.subsets.length > 0) {
+        //console.log(JSON.stringify(props.set.subsets));
+        for(var i = 0; i < props.set.subsets.length; ++i) {
+          idsOfElementsToUpdate.push(props.set.subsets[i].uid);
+        }
       }
-      for(var j = 0; j < this.props.set.items.length; ++j) {
-        MetadataActions.updateMetadata(this.props.set.items[j]);
+      if(props.set.items.length > 0) {
+        //console.log(JSON.stringify(props.set.items));
+        for(var j = 0; j < props.set.items.length; ++j) {
+          idsOfElementsToUpdate.push(props.set.items[j].uid);
+        }
       }
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, idsOfElementsToUpdate), 10);
     }
+  }
+
+  callContextMenu(entity, index, event) {
+    event.preventDefault();
+    var objectsAtEvent = {
+      sets:[],
+      specimens: [],
+      images: []
+    };
+    switch(entity.type) {
+      case 'Set':
+        objectsAtEvent.sets.push({
+          parent: this.props.set.uid,
+          link: entity.linkToParent,
+          data: entity
+        });
+        break;
+      case 'Specimen':
+        objectsAtEvent.specimens.push({
+          parent: this.props.set.uid,
+          link: entity.linkToParent,
+          data: entity
+        });
+        break;
+      case 'Image':
+        objectsAtEvent.images.push({
+          parent: this.props.set.uid,
+          link: entity.linkToParent,
+          data: entity
+        });
+        break;
+      default:
+        console.error('No processor for ' + entity.type);
+    }
+    MenuActions.displayContextMenu(event.clientX, event.clientY, objectsAtEvent);
   }
 
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
+    this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
+    if(this.props.set.hash) {
+      //this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
+
+      this.getChildrenData(this.props);
+    }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    // Has set but does not have set metadata
-    if(!this.props.set.loading && prevProps.set.loading) {
-      this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
+  componentWillReceiveProps(props) {
 
-      this.getChildrenData();
+    if(props.set.loading) {
+      this.setState({subSets: [], items: []});
     }
+    else if(props.set.hash != this.props.set.hash) {
+      //this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
 
-    // Has metadata for all set items and subsets
-    if(this.props.set.subSets && this.props.set.items) {
-      if(this.state.items.length == this.props.set.items.length && this.state.subSets.length == this.props.set.subsets.length) {
-        this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
-      }
+      this.getChildrenData(props);
     }
   }
 
@@ -176,7 +230,7 @@ class SetDisplay extends React.Component {
         <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.set.name}</div>
         <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
           <i className='large add circle green icon'
-             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet)}/>
+             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
         </div>
       </div>;
     }
@@ -192,7 +246,7 @@ class SetDisplay extends React.Component {
               margin: 0
             };
 
-            if(s.uid == self.state.selectedId) {
+            if(self.props.set.selectedId == s.uid) {
               linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
             }
             if(s.uid == self.props.managerstore.getSelected().id) {
@@ -204,6 +258,7 @@ class SetDisplay extends React.Component {
                  style={linkStyle}
                  key={'SET-OPTION-' + s.uid}
                  onClick={self.setActive.bind(self, idx, s)}
+                 onContextMenu={self.callContextMenu.bind(self, s, idx)}
                  onDoubleClick={self.selectAndLoadSet.bind(self, idx, s)}>
                 <div>
                   <i className='ui icon folder' style={self.textStyle} />{s.name}
@@ -218,7 +273,7 @@ class SetDisplay extends React.Component {
               margin: 0
             };
 
-            if(item.uid == self.state.selectedId) {
+            if(self.props.set.selectedId == item.uid) {
               linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
             }
             if(item.uid == self.props.managerstore.getSelected().id) {
@@ -238,6 +293,7 @@ class SetDisplay extends React.Component {
             return <a className={'item '}
                       style={linkStyle}
                       key={'SET-OPTION-' + item.uid}
+                      onContextMenu={self.callContextMenu.bind(self, item, idx)}
                       onClick={self.setActive.bind(self, idx, item)}
             >
               <div >
@@ -249,7 +305,7 @@ class SetDisplay extends React.Component {
         </div>
         <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
           <i className='large add circle green icon'
-             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet)}/>
+             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
         </div>
       </div>
     </div>

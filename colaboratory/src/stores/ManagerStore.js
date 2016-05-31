@@ -5,6 +5,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import UUID from 'node-uuid';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
 
@@ -13,12 +14,17 @@ import ManagerConstants from '../constants/ManagerConstants';
 import ManagerEvents from './events/ManagerEvents';
 
 import ManagerActions from '../actions/ManagerActions';
+import ViewActions from '../actions/ViewActions';
+
+import Globals from '../utils/Globals';
 
 import conf from '../conf/ApplicationConfiguration';
 
 class ManagerStore extends EventEmitter {
   constructor() {
     super();
+
+    this.setMaxListeners(500);
 
     this.isVisible = true;
     this.selectedNode = {
@@ -28,7 +34,7 @@ class ManagerStore extends EventEmitter {
       parent: null,
       linkToParent: null
     };
-    this.sets = [];
+    this.displayedSets = [];
     this.studyContainer = {
       name: 'Mes études',
       studies: [],
@@ -59,6 +65,10 @@ class ManagerStore extends EventEmitter {
               parent: action.parent,
               linkToParent: action.linkToParent
             };
+            if(action.type == 'Set') {
+              var parentIndex = this.indexOfDisplayedSet(action.parent);
+              this.requestGraphAround(action.id, action.type, parentIndex+1, undefined, Globals.preserveSetSelection, true);
+            }
           }
           else {
             this.selectedNode = {
@@ -69,10 +79,11 @@ class ManagerStore extends EventEmitter {
               linkToParent: null
             };
           }
+
           this.emit(ManagerEvents.SET_SELECTED_NODE);
           break;
         case ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS:
-          this.reloadWorkbenches();
+          this.reloadDisplayedSets();
           break;
         case ManagerConstants.ActionTypes.BASKET_CHANGE_SELECTION:
           if(action.id) {
@@ -93,38 +104,38 @@ class ManagerStore extends EventEmitter {
           this.removeItemFromBasket(action.item);
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
-        //case ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET:
-        //  var setIdx = null;
-        //  var itemId = null;
-        //  if(action.parentSetId) {
-        //    // Find indices
-        //    this.sets.forEach(function(s, idx) {
-        //      if(s) {
-        //        if (s.uid == action.parentSetId) {
-        //          setIdx = idx;
-        //        }
-        //      }
-        //    });
-        //    itemId = action.entityId;
-        //  }
-        //  else if(action.setIndex != undefined) {
-        //    setIdx = action.setIndex;
-        //    if(setIdx == -1) {
-        //      itemId = this.studyContainer.studies[action.entityIndex].core.uid;
-        //    }
-        //    else {
-        //      itemId = this.sets[setIdx].children[action.entityIndex].uid;
-        //    }
-        //  }
-        //  else {
-        //    console.error('Unprocessable action content ' + JSON.stringify(action));
-        //    break;
-        //  }
-        //  this.setActive(setIdx, itemId);
-        //  this.emit(ManagerEvents.BASKET_UPDATE);
-        //  break;
+        case ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET:
+          var setIdx = null;
+          var itemId = null;
+          if(action.parentSetId) {
+            // Find indices
+            this.displayedSets.forEach(function(s, idx) {
+              if(s) {
+                if (s.uid == action.parentSetId) {
+                  setIdx = idx;
+                }
+              }
+            });
+            itemId = action.entityId;
+          }
+          else if(action.setIndex != undefined) {
+            setIdx = action.setIndex;
+            if(setIdx == -1) {
+              itemId = this.studyContainer.studies[action.entityIndex].core.uid;
+            }
+            else {
+              itemId = this.displayedSets[setIdx].subsets[action.entityIndex].uid;
+            }
+          }
+          else {
+            console.error('Unprocessable action content ' + JSON.stringify(action));
+            break;
+          }
+          this.setSelected(setIdx, itemId);
+          this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
+          break;
         case ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_SET:
-          this.addBasketItemsToSet(action.items, action.workbench, action.keepInBasket);
+          this.addBasketItemsToSet(action.set, action.keepInBasket);
           break;
         default:
           break;
@@ -132,12 +143,21 @@ class ManagerStore extends EventEmitter {
     });
   }
 
+  indexOfDisplayedSet(id) {
+    for(var i = 0; i < this.displayedSets.length; ++i) {
+      if(this.displayedSets[i].uid == id) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   getSets() {
-    return this.sets;
+    return JSON.parse(JSON.stringify(this.displayedSets));
   }
 
   getStudies() {
-    return this.studyContainer;
+    return JSON.parse(JSON.stringify(this.studyContainer));
   }
 
   updateBasketSelection(id, selected) {
@@ -165,7 +185,7 @@ class ManagerStore extends EventEmitter {
   }
 
   getBasket() {
-    return this.basket;
+    return JSON.parse(JSON.stringify(this.basket));
   }
 
   getBasketSelection() {
@@ -174,28 +194,28 @@ class ManagerStore extends EventEmitter {
 
   getBasketItem(id) {
     for(var i = 0; i < this.basket.length; ++i) {
-      if(this.basket[i].uid == id) {
-        return this.basket[i];
+      if(this.basket[i].id == id) {
+        return JSON.parse(JSON.stringify(this.basket[i]));
       }
     }
   }
 
-  //setActive(wbIdx, itemId) {
-  //  //console.log('setActive(' + wbIdx + ',' + itemId + ')');
-  //  if(wbIdx == -1) {
-  //    this.base.activeId = itemId;
-  //  }
-  //  else {
-  //    this.workbenches[wbIdx].activeId = itemId;
-  //  }
-  //}
+  setSelected(setIdx, itemId) {
+    console.log('setSelected(' + setIdx + ',' + itemId + ')');
+    if(setIdx == -1) {
+      this.studyContainer.selectedId = itemId;
+    }
+    else {
+      this.displayedSets[setIdx].selectedId = itemId;
+    }
+  }
 
   getManagerVisibility() {
     return this.isVisible;
   }
 
   getSelected() {
-    return this.selectedNode;
+    return JSON.parse(JSON.stringify(this.selectedNode));
   }
 
   loadStudies() {
@@ -219,9 +239,9 @@ class ManagerStore extends EventEmitter {
   }
 
   reloadDisplayedSets() {
-    var setsIds = Object.keys(this.sets);
-    for(var i = 0; i < setsIds.length; ++i) {
-      var id = setsIds[i];
+    //var setsIds = Object.keys(this.displayedSets);
+    for(var i = 0; i < this.displayedSets.length; ++i) {
+      var id = this.displayedSets[i].uid;
       this.reloadSet(id, i);
     }
   }
@@ -233,15 +253,16 @@ class ManagerStore extends EventEmitter {
       .end((err, res) => {
         if (err) {
           console.error(err);
-          delete this.sets[id];
+          delete this.displayedSets[index];
         }
         else {
           var newSet = JSON.parse(res.text);
+          newSet.hash = UUID.v4();
 
-          if (this.sets[index]) {
-            newSet.activeId = this.sets[index].activeId;
+          if (this.displayedSets[index]) {
+            newSet.selectedId = this.displayedSets[index].selectedId;
           }
-          this.sets[index] = newSet;
+          this.displayedSets[index] = newSet;
         }
         this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
       });
@@ -253,14 +274,18 @@ class ManagerStore extends EventEmitter {
       return;
     }
     if(setIdx == null) {
-      setIdx = this.sets.length;
+      setIdx = this.displayedSets.length;
     }
     var previousSet = null;
-    if(this.sets[setIdx]) {
-      previousSet = JSON.parse(JSON.stringify(this.sets[setIdx]));
+    if(this.displayedSets[setIdx]) {
+      previousSet = JSON.parse(JSON.stringify(this.displayedSets[setIdx]));
     }
 
-    this.sets[setIdx] = {
+    if(splice) {
+      this.displayedSets.splice(setIdx);
+    }
+
+    this.displayedSets[setIdx] = {
       uid: id,
       loading: true
     };
@@ -274,12 +299,14 @@ class ManagerStore extends EventEmitter {
       .end((err, res)=> {
         if(err) {
           console.error("Error occurred when retrieving workbench. Server returned: " + err);
-          this.sets.splice(setIdx);
+          this.displayedSets.splice(setIdx);
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
         }
         else {
           //console.log("Received response " + res.text);
+          //console.log("Previous set " + JSON.stringify(previousSet));
           var nSet = JSON.parse(res.text);
+          nSet.hash = UUID.v4();
           if(replacementCallback) {
             //console.log('running callback');
             replacementCallback(nSet);
@@ -289,10 +316,9 @@ class ManagerStore extends EventEmitter {
               workbenchPostProcessCallback(nSet, previousSet);
             }
 
-            this.sets[setIdx] = nSet;
-            if(splice) {
-              this.sets.splice(setIdx+1);
-            }
+
+            this.displayedSets[setIdx] = nSet;
+
           }
           //console.log('emit screen update event');
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
@@ -300,12 +326,18 @@ class ManagerStore extends EventEmitter {
       });
   }
 
-  addBasketItemsToWorkbench(items, workbenchId, keepInBasket) {
-
-    if(!workbenchId) {
-      alert('Vous devez choisir une étude de destination');
+  addBasketItemsToSet(targetSetId, keepInBasket) {
+    if(!targetSetId) {
+      alert('Vous devez choisir un set de destination');
       return;
     }
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
+
+    var items = this.getBasketSelection();
+    //this.actionProgress = 0;
+    //this.actionProgressMax = items.length;
+
+    var specimens = [];
 
     for(var i = 0; i < items.length; ++i) {
       var itemId = items[i];
@@ -317,32 +349,48 @@ class ManagerStore extends EventEmitter {
 
       var itemData = this.getBasketItem(itemId);
       //console.log('uuid=' + itemUuid);
-      (function(uuid, workbench, id, data) {
-        request.post(conf.actions.virtualWorkbenchServiceActions.import)
-          .set('Content-Type', "application/json")
-          .send({workbench: workbench})
-          .send({recolnatSpecimenUUID: uuid})
-          .send({url: data.image[0].url})
-          .send({thumburl: data.image[0].thumburl})
-          .send({catalogNumber: data.catalognumber})
-          .send({name: data.scientificname})
-          .withCredentials()
-          .end((err, res) => {
-            if (err) {
-              alert('Import de ' + data.scientificname + ' a échoué. Les autres planches ne sont pas impactées');
-              console.error(err);
-            }
-            else {
-              //console.log(res);
-              ManagerActions.reloadDisplayedSets();
-              ManagerActions.changeBasketSelectionState(id, false);
-              if (!keepInBasket) {
-                ManagerActions.removeItemFromBasket(id);
-              }
-            }
-          });
-      })(itemUuid, workbenchId, itemId, itemData)
+      specimens.push({
+        recolnatSpecimenUuid: itemUuid,
+        images: itemData.image,
+        name: itemData.scientificname
+      });
     }
+
+    request.post(conf.actions.setServiceActions.importRecolnatSpecimen)
+      .set('Content-Type', "application/json")
+      .send({set: targetSetId})
+      .send({specimens: specimens})
+      //.send({recolnatSpecimenUUID: itemUuid})
+      //.send({images: itemData.image})
+      //.send({name: itemData.scientificname})
+      .withCredentials()
+      .end((err, res) => {
+        this.actionProgress++;
+        if (err) {
+          //alert('Import de ' + itemData.scientificname + ' a échoué. Les autres planches ne sont pas impactées');
+          alert("Problème lors de l'import");
+          console.error(err);
+        }
+        else {
+        }
+        //window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours : " + this.actionProgress + "/" + this.actionProgressMax), 10);
+
+        //if(this.actionProgress == this.actionProgressMax) {
+        //  this.actionProgress = null;
+        //  this.actionProgressMax = 1;
+        ManagerActions.reloadDisplayedSets();
+        ManagerActions.changeBasketSelectionState(null, false);
+        if(!keepInBasket) {
+          for (var j = 0; j < items.length; ++j) {
+            this.removeItemFromBasket(items[j]);
+          }
+        }
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, null, 10));
+        this.emit(ManagerEvents.BASKET_UPDATE);
+        //}
+      });
+
+
   }
 
   addManagerVisibilityListener(callback) {

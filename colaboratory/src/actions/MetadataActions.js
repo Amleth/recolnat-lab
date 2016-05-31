@@ -7,10 +7,10 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 import MetadataConstants from '../constants/MetadataConstants';
 
 export default {
-  updateMetadata: (id = null) => {
+  updateMetadata: (ids = null) => {
     AppDispatcher.dispatch({
       actionType: MetadataConstants.ActionTypes.RELOAD_METADATA,
-      entityId: id
+      entities: ids
     });
   },
 

@@ -3,12 +3,13 @@
 import React from 'react';
 import request from 'superagent';
 
-import VirtualBenchLab from './components/VirtualBenchLab';
-import LeftPane from './components/LeftPane';
-import RightPane from './components/RightPane';
-import PopupToolContainer from './components/PopupToolComponent';
-import Tooltip from './components/ActiveToolTooltip';
-import TopPane from './components/TopPane';
+//import VirtualBenchLab from './components/VirtualBenchLab';
+import LeftPane from './components/panes/LeftPane';
+import CenterPane from './components/panes/CenterPane';
+import RightPane from './components/panes/RightPane';
+//import PopupToolContainer from './components/PopupToolComponent';
+//import Tooltip from './components/ActiveToolTooltip';
+import TopPane from './components/panes/TopPane';
 import MainMenu from './components/MainMenu';
 import Modals from './components/Modals';
 
@@ -23,6 +24,10 @@ import MetadataStore from './stores/MetadataStore';
 import ModalStore from './stores/ModalStore';
 import LabBenchStore from './stores/LabBenchStore';
 import ModeStore from './stores/ModeStore';
+import DragNDropStore from './stores/DragNDropStore';
+import InspectorStore from './stores/InspectorStore';
+
+import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
 
 import ViewActions from './actions/ViewActions';
 import MetadataActions from './actions/MetadataActions';
@@ -44,6 +49,8 @@ const metastore = new MetadataStore();
 const modalstore = new ModalStore();
 const benchstore = new LabBenchStore();
 const modestore = new ModeStore();
+const inspecstore = new InspectorStore();
+const dragstore = new DragNDropStore();
 const controller = new InterStoreCommunicationsController({
   ministore: ministore,
   viewstore: viewstore,
@@ -132,31 +139,17 @@ class Window extends React.Component {
     this.leftButtonStyle = {
       position: 'fixed',
       left: this.leftPaneWidth + 'px',
-      top: '35vh',
+      top: '10vh',
       zIndex: ViewConstants.zIndices.leftPaneCloseButton,
       height: '20px',
       WebkitTransition: 'left 1s',
       transition: 'left 1s'
     };
 
-    this.topButtonStyle = {
-      position: 'fixed',
-      left: '20vw',
-      top: (window.innerHeight -this.closeTopPaneButtonHeight) + 'px',
-      zIndex: ViewConstants.zIndices.topPaneCloseButton,
-      height: this.closeTopPaneButtonHeight + 'px',
-      maxHeight: this.closeTopPaneButtonHeight + 'px',
-      width: '200px',
-      maxWidth: '200px',
-      fontSize: '12',
-      WebkitTransition: 'top 1.1s',
-      transition: 'top 1.1s'
-    };
-
     this.rightButtonStyle = {
       position: 'absolute',
       right: this.rightPaneWidth + 'px',
-      top: '35vh',
+      top: '10vh',
       zIndex: ViewConstants.zIndices.rightPaneCloseButton,
       height: '20px',
       WebkitTransition: 'right 1s',
@@ -190,7 +183,8 @@ class Window extends React.Component {
       userLoggedIn: false,
       leftSidebar: true,
       rightSidebar: true,
-      topSidebar: true,
+      //topSidebar: true,
+      topSidebar: false,
       leftSidebarIcon: 'left',
       rightSidebarIcon: 'right',
       activeSetName: "Pas d'étude chargée"
@@ -207,20 +201,14 @@ class Window extends React.Component {
     };
 
     this._onManagerVisibilityToggle = () => {
-      const toggle = () => this.toggleTopMenu(managerstore.getManagerVisibility());
-      return toggle.apply(this);
+      //const toggle = () => this.toggleTopMenu(managerstore.getManagerVisibility());
+      //return toggle.apply(this);
     };
 
-    this._onSetIdChange = () => {
-      const changeDisplayedName = () => this.setActiveSetName();
-      return changeDisplayedName.apply(this);
-    }
+
   }
 
   login() {
-    //console.log('calling login in window');
-    // Open connection to websocket
-    //api.openWebsocket();
     this.setState({userLoggedIn: true});
   }
 
@@ -245,9 +233,6 @@ class Window extends React.Component {
           console.log('Unknown event action ' + event.data.action);
       }
     }
-    else {
-      //console.log('Rejected unauthorized event from ' + event.origin + ' : ' + JSON.stringify(event.data));
-    }
   }
 
   redirectCASLogin() {
@@ -258,23 +243,18 @@ class Window extends React.Component {
     window.location.href = 'https://cas.recolnat.org/logout';
   }
 
-  setActiveSetName() {
-    console.log(JSON.stringify(managerstore.getSelected()));
-    if(managerstore.getSelected().name) {
-      this.setState({activeSetName: managerstore.getSelected().name});
-    }
-  }
+
 
   toggleTopMenu(visible = undefined) {
-    if(visible === undefined) {
-      if(managerstore.getSelected().id) {
-        ViewActions.setActiveSet(managerstore.getSelected().id);
-      }
-      this.setState({topSidebar: !this.state.topSidebar});
-    }
-    else {
-      this.setState({topSidebar: visible});
-    }
+    //if(visible === undefined) {
+    //  if(managerstore.getSelected().id) {
+    //    ViewActions.setActiveSet(managerstore.getSelected().id);
+    //  }
+    //  this.setState({topSidebar: !this.state.topSidebar});
+    //}
+    //else {
+    //  this.setState({topSidebar: visible});
+    //}
   }
 
   toggleLeftMenu() {
@@ -309,10 +289,11 @@ class Window extends React.Component {
   componentDidMount() {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
-    managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
-    viewstore.setViewportData(null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null);
-    viewstore.setViewportLocationInWindow(this.menuHeight, this.leftPaneWidth);
-    managerstore.addSelectionChangeListener(this._onSetIdChange);
+    //managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
+    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null), 10);
+    window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, this.leftPaneWidth), 10);
+    //viewstore.setViewportData(null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null);
+    //viewstore.setViewportLocationInWindow(this.menuHeight, this.leftPaneWidth);
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
     window.addEventListener("message", this.receiveMessage.bind(this));
@@ -356,12 +337,12 @@ class Window extends React.Component {
       }
       this.topSliderStyle.top = '0px';
       this.topSliderStyle.height = height + 'px';
-      this.topButtonStyle.top = (height -this.closeTopPaneButtonHeight) + 'px';
+      //this.topButtonStyle.top = (height -this.closeTopPaneButtonHeight) + 'px';
     }
     else {
       this.topSliderStyle.height = height + 'px';
       this.topSliderStyle.top = (-height) + 'px';
-      this.topButtonStyle.top = this.menuHeight + 'px';
+      //this.topButtonStyle.top = this.menuHeight + 'px';
     }
 
     this.columnMiddleStyle.left = left + 'px';
@@ -370,8 +351,11 @@ class Window extends React.Component {
     this.columnRightSideStyle.height = (window.innerHeight - this.menuHeight) + 'px';
     this.columnMiddleStyle.height = (window.innerHeight - this.menuHeight) + 'px';
 
-    viewstore.setViewportData(null, null, width, window.innerHeight -this.menuHeight, null);
-    viewstore.setViewportLocationInWindow(this.menuHeight, left);
+    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, width, window.innerHeight-this.menuHeight, null), 10);
+    window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, left), 10);
+
+    //viewstore.setViewportData(null, null, width, window.innerHeight -this.menuHeight, null);
+    //viewstore.setViewportLocationInWindow(this.menuHeight, left);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -385,14 +369,14 @@ class Window extends React.Component {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
     managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
-    managerstore.addSelectionChangeListener(this._onSetIdChange);
+
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
   render() {
     return(
       <div style={this.containerStyle}>
-        <div>
+
           <iframe id="recolnatMenu"
                   ref='recolnatMenu'
                   style={this.recolnatMenuStyle}
@@ -400,7 +384,7 @@ class Window extends React.Component {
                   scrolling="no"
                   onLoad={this.signalIframeReady.bind(this)}
                   src='https://www.recolnat.org/menu'></iframe>
-        </div>
+
         <Modals userstore={userstore}
                 viewstore={viewstore}
                 toolstore={toolstore}
@@ -410,6 +394,8 @@ class Window extends React.Component {
                 ministore={ministore}
                 benchstore={benchstore}
                 modestore={modestore}
+                inspecstore={inspecstore}
+                imagestore={imagestore}
                 managerstore={managerstore} />
         <MainMenu top={this.menuHeight}
                   width={this.leftPaneWidth}
@@ -420,7 +406,16 @@ class Window extends React.Component {
                   ministore={ministore}
                   metastore={metastore}
                   modestore={modestore}
+                  inspecstore={inspecstore}
                   managerstore={managerstore} />
+        <OrbalContextMenu
+          menustore={menustore}
+          ministore={ministore}
+          metastore={metastore}
+          benchstore={benchstore}
+          viewstore={viewstore}
+          toolstore={toolstore}
+        />
         <div style={this.topSliderStyle}>
           <TopPane userstore={userstore}
                    viewstore={viewstore}
@@ -430,30 +425,17 @@ class Window extends React.Component {
                    metastore={metastore}
                    modestore={modestore}
                    modalstore={modalstore}
+                   inspecstore={inspecstore}
                    managerstore={managerstore}
                    menuHeight={this.menuHeight}
                    windowHeight={window.innerHeight}
                    closeButtonHeight={this.closeTopPaneButtonHeight}
           />
         </div>
-        <div className="ui bottom attached button mini compact"
-             style={this.topButtonStyle} onClick={this.toggleTopMenu.bind(this, undefined)}><i className={'ui icon sidebar'} />{this.state.activeSetName}</div>
+
         <div>
           <div style={this.columnLeftSideStyle}>
             <LeftPane
-              userstore={userstore}
-              viewstore={viewstore}
-              toolstore={toolstore}
-              metastore={metastore}
-              modalstore={modalstore}
-              modestore={modestore}
-              ministore={ministore}
-              benchstore={benchstore}
-              />
-          </div>
-          <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
-          <div style={this.columnMiddleStyle}>
-            <VirtualBenchLab
               userstore={userstore}
               viewstore={viewstore}
               toolstore={toolstore}
@@ -463,7 +445,27 @@ class Window extends React.Component {
               modestore={modestore}
               ministore={ministore}
               benchstore={benchstore}
-              managerstore={managerstore}/>
+              managerstore={managerstore}
+              dragstore={dragstore}
+              inspecstore={inspecstore}
+              />
+          </div>
+          <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
+          <div style={this.columnMiddleStyle}>
+            <CenterPane
+              userstore={userstore}
+              viewstore={viewstore}
+              toolstore={toolstore}
+              menustore={menustore}
+              metastore={metastore}
+              modalstore={modalstore}
+              modestore={modestore}
+              ministore={ministore}
+              benchstore={benchstore}
+              managerstore={managerstore}
+              dragstore={dragstore}
+              inspecstore={inspecstore}
+            />
           </div>
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>
@@ -471,10 +473,15 @@ class Window extends React.Component {
               userstore={userstore}
               viewstore={viewstore}
               toolstore={toolstore}
+              menustore={menustore}
               metastore={metastore}
               modalstore={modalstore}
               modestore={modestore}
+              ministore={ministore}
               benchstore={benchstore}
+              managerstore={managerstore}
+              dragstore={dragstore}
+              inspecstore={inspecstore}
               />
           </div>
         </div>

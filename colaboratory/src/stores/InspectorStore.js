@@ -7,7 +7,7 @@ import {EventEmitter} from 'events';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
-import MenuConstants from '../constants/MenuConstants';
+import InspectorConstants from '../constants/InspectorConstants';
 
 import ViewEvents from './events/ViewEvents';
 
@@ -19,8 +19,8 @@ class InspectorStore extends EventEmitter {
 
     AppDispatcher.register((action) => {
       switch (action.actionType) {
-        case MenuConstants.ActionTypes.INSPECT_ELEMENTS:
-          this.setInspectorContent(action.elements);
+        case InspectorConstants.ActionTypes.SET_DATA:
+          this.setInspectorContent(action.data);
           this.emit(ViewEvents.INSPECTOR_CONTENT_CHANGE);
           break;
         default:
@@ -34,7 +34,7 @@ class InspectorStore extends EventEmitter {
   }
 
   getInspectorContent() {
-    return this.elementsToInspect;
+    return JSON.parse(JSON.stringify(this.elementsToInspect));
   }
 
   addContentChangeListener(callback) {

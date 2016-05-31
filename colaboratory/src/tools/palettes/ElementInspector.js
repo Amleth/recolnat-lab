@@ -5,6 +5,8 @@
 
 import React from 'react';
 
+import MetadataActions from '../../actions/MetadataActions';
+
 class ElementInspector extends React.Component {
   constructor(props) {
     super(props);
@@ -25,22 +27,38 @@ class ElementInspector extends React.Component {
 
     this.metadataStyle = {
       overflowY: 'auto',
-      height: '40%'
+      height: '80%'
     };
 
     this.tagsStyle = {
+      display: 'none',
       overflowY: 'auto',
-      height: '40%'
+      height: 0
     };
 
     this._onSelectionChange = () => {
-      const setElementsUnderCursor = () => this.setElementsUnderCursor();
+      const setElementsUnderCursor = () => this.setInspectorContent();
       return setElementsUnderCursor.apply(this);
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode() || this.props.modestore.isInSetMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
+    this._onMetadataChange = () => {
+      const displayMetadata = () => this.displayMetadata();
+      return displayMetadata.apply(this);
+    };
+
     this.state = {
+      isVisibleInCurrentMode: true,
       imageUrl: 'https://upload.wikimedia.org/wikipedia/en/8/89/Construction_Icon_small.png',
       name: 'Nom bidon',
+      currentIndex: -1,
+      elementIds: [],
       metadata: [
         {key: 'Distance', value: '20 bornes'},
         {key: 'Nom', value: 'Pigeon temporaire'},
@@ -60,8 +78,77 @@ class ElementInspector extends React.Component {
     };
   }
 
-  setElementsUnderCursor() {
+  setInspectorContent() {
+    if(this.state.currentIndex > -1) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.elementIds[this.state.currentIndex], this._onMetadataChange);
+    }
+    var elements = this.props.inspecstore.getInspectorContent();
+    this.setState({elementIds: elements});
+    if(elements.length > 0) {
+      this.setState({currentIndex: 0});
+      this.props.metastore.addMetadataUpdateListener(elements[0], this._onMetadataChange);
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
+    }
+    else {
+      this.setState({currentIndex: -1});
+    }
+  }
 
+  displayMetadata() {
+    if(this.state.currentIndex < 0) {
+      return;
+    }
+    var metadata = this.props.metastore.getMetadataAbout(this.state.elementIds[this.state.currentIndex]);
+    if(!metadata) {
+      console.error('No metadata');
+      return;
+    }
+    var keyValueArray = [];
+    var keys = Object.keys(metadata);
+    for(var i = 0; i < keys.length; ++i) {
+      var key = keys[i];
+      switch(typeof metadata[key]) {
+        case 'number':
+        case 'string':
+        case 'boolean':
+        case 'symbol':
+          keyValueArray.push({key: key, value: metadata[key]});
+          break;
+        case 'function':
+          break;
+        case 'object':
+          if(!Array.isArray(metadata[key])) {
+            keyValueArray.push({key: key, value: metadata[key]});
+          }
+          break;
+        default:
+          console.error('No processor for type ' + typeof metadata[key] + ' / ' + metadata[key] + ' / ' + key);
+      }
+    }
+
+    this.setState({metadata: keyValueArray, name: metadata.name, tags: []});
+  }
+
+  componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.inspecstore.addContentChangeListener(this._onSelectionChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = '';
+    }
+    else {
+      this.containerStyle.display = 'none';
+    }
+  }
+
+  componentWillUnmount() {
+    if(this.state.currentIndex > -1) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.elementIds[this.state.currentIndex], this._onMetadataChange);
+    }
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
   }
 
   render() {

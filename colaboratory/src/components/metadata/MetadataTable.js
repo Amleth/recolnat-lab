@@ -14,7 +14,7 @@ class MetadataTable extends React.Component {
     };
 
     this.accordionTitleStyle = {
-      backgroundColor: '#a39d76'
+      //backgroundColor: '#a39d76'
     };
 
     this.contentStyle = {

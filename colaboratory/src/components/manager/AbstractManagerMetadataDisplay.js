@@ -25,11 +25,19 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
       overflowY: 'auto'
     };
 
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
+      });
+      return setModeVisibility.apply(this);
+    };
+
     this.state = this.initialState();
   }
 
   initialState() {
     return {
+      isVisibleInCurrentMode: true,
       type: null,
       source: null,
       name: null,
@@ -42,8 +50,8 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
   }
 
   downloadMetadata(id) {
-    request.get(conf.actions.databaseActions.getData)
-      .query({id: id})
+    request.post(conf.actions.databaseActions.getData)
+      .send([id])
       .withCredentials()
       .end((err, res) => {
           if(err) {
@@ -53,11 +61,12 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
           else {
             var metadata = JSON.parse(res.text);
             //console.log(res.text);
-            this.processCoLabMetadata(metadata);
+            if(metadata[0]) {
+              this.processCoLabMetadata(metadata[0]);
+            }
           }
         }
       );
-
   }
 
   processCoLabMetadata(metadata) {
@@ -71,14 +80,25 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
 
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onWorkbenchSelectionChange);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.containerStyle.display = '';
+    }
+    else {
+      this.containerStyle.display = 'none';
+    }
   }
 
   componentWillUnmount() {
     this.props.managerstore.removeSelectionChangeListener(this._onWorkbenchSelectionChange);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
-    return(<div style={this.containerStyle}>
+    return(<div style={this.containerStyle} className='ui container'>
       {this.createMetadataTable()}
     </div>)
   }

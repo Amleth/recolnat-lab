@@ -72,11 +72,10 @@ export default {
     });
   },
 
-  addBasketItemsToSet: (items, id, keep) => {
+  addBasketItemsToSet: (id, keep) => {
     AppDispatcher.dispatch({
       actionType: ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_SET,
-      items: items,
-      workbench: id,
+      set: id,
       keepInBasket: keep
     });
   }

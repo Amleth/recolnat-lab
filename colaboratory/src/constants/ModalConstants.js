@@ -10,6 +10,7 @@ ActionTypes: {
   Modals: {
     createStudy: 'MODAL_createStudy',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
-    login: 'MODAL_login'
+    login: 'MODAL_login',
+    confirmDelete: 'MODAL_confirmDelete'
   }
 };

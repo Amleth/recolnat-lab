@@ -16,12 +16,33 @@ class ModalStore extends EventEmitter {
     super();
 
     this.displayedModalId = null;
+    this.targetData = null;
+    this.onSuccess = function() {};
+    this.onError = function() {};
 
     AppDispatcher.register((action) => {
       switch(action.actionType) {
         case ModalConstants.ActionTypes.SHOW_MODAL:
           console.log('store modal ' + action.id);
           this.displayedModalId = action.id;
+          if(action.target) {
+            this.targetData = JSON.parse(JSON.stringify(action.target));
+          }
+          else {
+            this.targetData = action.target;
+          }
+          if(action.onSuccess) {
+            this.onSuccess = action.onSuccess;
+          }
+          else {
+            this.onSuccess = function() {};
+          }
+          if(action.onError) {
+            this.onError = action.onError;
+          }
+          else {
+            this.onError = function() {};
+          }
           this.emit(ModalEvents.SHOW_MODAL);
           break;
         default:
@@ -30,8 +51,20 @@ class ModalStore extends EventEmitter {
     });
   }
 
+  getTargetData() {
+    return this.targetData;
+  }
+
   getModalId() {
     return this.displayedModalId;
+  }
+
+  runSuccessCallback(data) {
+    this.onSuccess(data);
+  }
+
+  runErrorCallback(data) {
+    this.onError(data);
   }
 
   addModalChangeListener(callback) {

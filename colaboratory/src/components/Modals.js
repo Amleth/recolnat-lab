@@ -10,6 +10,7 @@ import ModalConstants from '../constants/ModalConstants';
 import AddEntitiesToSetModal from './modals/AddEntitiesToSetModal';
 import NewStudyModal from './modals/NewStudyModal';
 import LoginModal from './modals/LoginModal';
+import ConfirmDeleteModal from './modals/ConfirmDelete';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -53,8 +54,13 @@ class ManagerModals extends React.Component {
   render() {
     return <div style={this.containerStyle}>
       <LoginModal userstore={this.props.userstore} />
-      <NewStudyModal modalstore={this.props.modalstore} managerstore={this.props.managerstore} />
-      <AddEntitiesToSetModal modalstore={this.props.modalstore} managerstore={this.props.managerstore} />
+      <NewStudyModal modalstore={this.props.modalstore}
+                     managerstore={this.props.managerstore} />
+      <AddEntitiesToSetModal modalstore={this.props.modalstore}
+                             metastore={this.props.metastore}
+                             managerstore={this.props.managerstore} />
+      <ConfirmDeleteModal modalstore={this.props.modalstore}
+                          metastore={this.props.metastore} />
     </div>
   }
 }

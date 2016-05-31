@@ -7,10 +7,13 @@ import AppDispatcher from '../dispatcher/AppDispatcher';
 import ModalConstants from '../constants/ModalConstants';
 
 export default {
-  showModal: (id) => {
+  showModal: (modalId, targetData = undefined, onSuccess = undefined, onError = undefined) => {
     AppDispatcher.dispatch({
       actionType: ModalConstants.ActionTypes.SHOW_MODAL,
-      id: id
+      id: modalId,
+      target: targetData,
+      onSuccess: onSuccess,
+      onError: onError
     });
   }
 }

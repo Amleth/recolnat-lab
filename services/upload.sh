@@ -7,7 +7,7 @@ then
 	exit 1
 fi
 
-SFTP_COMMANDS="put rest/target/virtual-workbench-rest-service-1.0-SNAPSHOT.jar /home/cnamuser/services/$1/jars/virtual-workbench-rest-service-1.0-SNAPSHOT.jar
+SFTP_COMMANDS="put rest/target/colaboratory-rest-service-1.0-SNAPSHOT.jar /home/cnamuser/services/$1/jars/colaboratory-rest-service-1.0-SNAPSHOT.jar
 	put websocket/target/virtual-workbench-service-1.0-SNAPSHOT.jar /home/cnamuser/services/$1/jars/virtual-workbench-service-1.0-SNAPSHOT.jar"
 	
 
@@ -16,7 +16,7 @@ then
 if [ $2 = "conf" ]
 then
 SFTP_COMMANDS="$SFTP_COMMANDS
-put rest/virtual-workbench-rest-service.yml /home/cnamuser/services/$1/conf/virtual-workbench-rest-service.yml
+put rest/colaboratory-rest-service.yml /home/cnamuser/services/$1/conf/colaboratory-rest-service.yml
 put websocket/virtual-workbench-service.yml /home/cnamuser/services/$1/conf/virtual-workbench-service.yml
 "
 fi

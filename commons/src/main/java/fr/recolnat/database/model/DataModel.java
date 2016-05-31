@@ -7,6 +7,7 @@ public class DataModel {
   public static class Classes {
     // Links to stuff that was imported from the outside world (i.e. ReColNat)
     public static final String originalSource = "OriginalSource";
+    
 //      public static final String abstractEntity = "Entity";
       
 //      public static final String leafEntity = "LeafEntity";
@@ -126,6 +127,7 @@ public class DataModel {
     // OriginalSource
     public static final String origin = "origin";
     public static final String idInOriginSource = "idInOriginSource";
+    public static final String typeInOriginSource = "typeInOriginSource";
     
     // User
     public static final String login = "login";
@@ -154,6 +156,9 @@ public class DataModel {
     public static final String pxValue = "valueInPx";
     public static final String opacity = "opacity";
     public static final String letters = "letters";
+    
+    // Accss rights for everyone
+    public static final String publicAccess = "publicAccess";
     
     // Edge-only property, level of access
     public static final String accessRights = "accessRights";

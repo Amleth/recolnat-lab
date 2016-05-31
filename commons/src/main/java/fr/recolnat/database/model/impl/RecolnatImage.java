@@ -34,29 +34,40 @@ import java.util.logging.Level;
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
  */
 public class RecolnatImage extends AbstractObject {
-
+  
+  private Set<String> specimensReferencingThisImage = new HashSet<>();
   private Set<String> regionsOfInterest = new HashSet<>();
   private Set<String> pointsOfInterest = new HashSet<>();
   private Set<String> trailsOfInterest = new HashSet<>();
   private Set<String> measureStandards = new HashSet<>();
   private Metadata rawImageMetadata = null;
   private String source = null;
-
+  
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
-
+  
   public RecolnatImage(OrientVertex image, OrientVertex user, OrientGraph g) throws AccessDeniedException {
     super(image, user, g);
-
+    
     if (!AccessRights.canRead(user, image, g)) {
       throw new AccessDeniedException("Access denied " + image.toString());
     }
-
+    
     Iterator<Vertex> itOriginalSource = image.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
     OrientVertex vOriginalSource = AccessUtils.findLatestVersion(itOriginalSource, g);
     if (vOriginalSource != null) {
       this.source = vOriginalSource.getProperty(DataModel.Properties.id);
     }
-
+    
+    Iterator<Vertex> itSpecimens = image.getVertices(Direction.IN, DataModel.Links.hasImage).iterator();
+    while (itSpecimens.hasNext()) {
+      OrientVertex vSpecimen = (OrientVertex) itSpecimens.next();
+      if (AccessUtils.isLatestVersion(vSpecimen)) {
+        if (AccessRights.canRead(user, vSpecimen, g)) {
+          this.specimensReferencingThisImage.add((String) vSpecimen.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
+    
     Iterator<Vertex> itRois = image.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
     while (itRois.hasNext()) {
       OrientVertex vRoi = (OrientVertex) itRois.next();
@@ -66,7 +77,7 @@ public class RecolnatImage extends AbstractObject {
         }
       }
     }
-
+    
     Iterator<Vertex> itPois = image.getVertices(Direction.OUT, DataModel.Links.poi).iterator();
     while (itPois.hasNext()) {
       OrientVertex vPoi = (OrientVertex) itPois.next();
@@ -98,13 +109,14 @@ public class RecolnatImage extends AbstractObject {
         }
       }
     }
-
+    
     String url = (String) this.properties.get(DataModel.Properties.imageUrl);
+    File imageFile = null;
     if (url != null) {
       try {
         URL imageUrl = new URL(url);
-        File imageFile = File.createTempFile("image", ".tmp");
-        FileUtils.copyURLToFile(imageUrl, imageFile);
+        imageFile = File.createTempFile("image", ".tmp");
+        FileUtils.copyURLToFile(imageUrl, imageFile, 50, 200);
         Metadata imageMetadata = ImageMetadataReader.readMetadata(imageFile);
         this.rawImageMetadata = imageMetadata;
         imageFile.delete();
@@ -114,46 +126,57 @@ public class RecolnatImage extends AbstractObject {
         log.error("EXIF failed, could not create/delete temporary file", e);
       } catch (ImageProcessingException ex) {
         log.warn("Unable to read image metadata from " + url, ex);
+      } finally {
+        if (imageFile != null) {
+          imageFile.delete();
+        }
       }
     }
   }
-
+  
   @Override
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
-
+    
     if (this.source != null) {
       ret.put("originalSource", this.source);
     }
-
+    
+    JSONArray jSpecimens = new JSONArray();
+    Iterator<String> itSpecimens = this.specimensReferencingThisImage.iterator();
+    while(itSpecimens.hasNext()) {
+      jSpecimens.put(itSpecimens.next());
+    }
+    ret.put("specimens", jSpecimens);
+    
     JSONArray jRois = new JSONArray();
     Iterator<String> itRois = this.regionsOfInterest.iterator();
     while (itRois.hasNext()) {
       jRois.put(itRois.next());
     }
     ret.put("rois", jRois);
-
+    
     JSONArray jPois = new JSONArray();
     Iterator<String> itPois = this.pointsOfInterest.iterator();
     while (itPois.hasNext()) {
       jPois.put(itPois.next());
     }
     ret.put("pois", jPois);
-
+    
     JSONArray jPaths = new JSONArray();
     Iterator<String> itPaths = this.trailsOfInterest.iterator();
     while (itPaths.hasNext()) {
       jPaths.put(itPaths.next());
     }
     ret.put("tois", jPaths);
-
+    
     JSONArray jScales = new JSONArray();
     Iterator<String> itScales = this.measureStandards.iterator();
     while (itScales.hasNext()) {
       jScales.put(itScales.next());
     }
     ret.put("scales", jScales);
-
+    
     if (this.rawImageMetadata != null) {
       JSONObject jMetadata = new JSONObject();
       for (Directory dir : this.rawImageMetadata.getDirectories()) {
@@ -165,11 +188,11 @@ public class RecolnatImage extends AbstractObject {
       }
       ret.put("exif", jMetadata);
     }
-
+    
     if (log.isTraceEnabled()) {
       log.trace(ret.toString());
     }
-
+    
     return ret;
   }
 }

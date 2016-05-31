@@ -47,23 +47,30 @@ public class AccessRights {
     }
 
     // Check public access rights
-    OrientVertex vPublic = AccessUtils.getPublic(graph);
-    if (vPublic == null) {
-      log.error("User PUBLIC does not exist in database.");
-    } 
-    else {
-      e = AccessUtils.getEdgeBetweenVertices(vPublic, node, DataModel.Links.hasAccessRights, true, graph);
-      if (e != null) {
-        // Public has access rights
-        int accessRight = e.getProperty(DataModel.Properties.accessRights);
-        ret = DataModel.Enums.AccessRights.fromInt(accessRight);
-      }
-
-      if (ret == DataModel.Enums.AccessRights.WRITE) {
-        // Highest rights available. No point in checking elsewhere.
+    Integer publicAccessRights = node.getProperty(DataModel.Properties.publicAccess);
+    if(publicAccessRights != null) {
+      ret = DataModel.Enums.AccessRights.fromInt(publicAccessRights);
+      if(ret == DataModel.Enums.AccessRights.WRITE) {
         return ret;
       }
     }
+//    OrientVertex vPublic = AccessUtils.getPublic(graph);
+//    if (vPublic == null) {
+//      log.error("User PUBLIC does not exist in database.");
+//    } 
+//    else {
+//      e = AccessUtils.getEdgeBetweenVertices(vPublic, node, DataModel.Links.hasAccessRights, true, graph);
+//      if (e != null) {
+//        // Public has access rights
+//        int accessRight = e.getProperty(DataModel.Properties.accessRights);
+//        ret = DataModel.Enums.AccessRights.fromInt(accessRight);
+//      }
+//
+//      if (ret == DataModel.Enums.AccessRights.WRITE) {
+//        // Highest rights available. No point in checking elsewhere.
+//        return ret;
+//      }
+//    }
 
     // Check group access rights
     Iterator<Edge> itMemberships = user.getEdges(Direction.OUT, DataModel.Links.isMemberOfGroup).iterator();
@@ -94,6 +101,17 @@ public class AccessRights {
     }
     return false;
   }
+  
+  public static boolean canPublicRead(OrientVertex vNode, OrientGraph g) {
+    Integer publicAccessRights = vNode.getProperty(DataModel.Properties.publicAccess);
+    if(publicAccessRights == null) {
+      return false;
+    }
+    if(publicAccessRights >= DataModel.Enums.AccessRights.READ.value()) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Checks to see if user is allowed to grant access must be performed before
@@ -117,6 +135,10 @@ public class AccessRights {
 
     edge.setProperty(DataModel.Properties.accessRights, rights.value());
     return edge;
+  }
+  
+  public static void grantPublicAccessRights(OrientVertex node, DataModel.Enums.AccessRights rights, OrientGraph graph) {
+    node.setProperty(DataModel.Properties.publicAccess, rights.value());
   }
 
   public static void revokeAccessRights(OrientVertex user, OrientVertex node, OrientGraph graph) {

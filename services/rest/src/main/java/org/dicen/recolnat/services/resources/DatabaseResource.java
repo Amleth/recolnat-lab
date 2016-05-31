@@ -28,6 +28,7 @@ import fr.recolnat.database.utils.DatabaseTester;
 import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import org.codehaus.jettison.json.JSONException;
@@ -38,6 +39,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.SessionManager;
 import org.dicen.recolnat.services.core.logbook.Log;
@@ -57,7 +59,8 @@ public class DatabaseResource {
   @Path("/create-structure")
   @Timed
   public String createStructure(final String input) throws JSONException {
-    OrientGraphNoTx gntx = DatabaseAccess.databaseConnector.getNonTransactionalGraph();
+//    OrientGraphNoTx gntx = DatabaseAccess.databaseConnector.getNonTransactionalGraph();
+OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
     try {
       StructureBuilder.createRecolnatDataModel(gntx);
       StructureBuilder.createDefaultNodes(gntx);
@@ -68,36 +71,40 @@ public class DatabaseResource {
     return Globals.OK;
   }
 
-  @GET
+  @POST
   @Path("/get-data")
   @Timed
-  public Response getData(@QueryParam("id") String id, @Context HttpServletRequest request) {
+  public Response getData(final String input, @Context HttpServletRequest request) {
     if (log.isTraceEnabled()) {
-      log.trace("Entering with id=" + id);
+      log.trace("Entering with id=" + input);
     }
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    JSONObject metadata = null;
+    JSONArray metadata = new JSONArray();
 
     OrientGraph g = DatabaseAccess.getTransactionalGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-      OrientVertex v = (OrientVertex) AccessUtils.getNodeById(id, g);
-      if (v != null) {
+      JSONArray ids = new JSONArray(input);
+      for(int i = 0; i < ids.length(); ++i) {
+        String id = ids.getString(i);
+        OrientVertex v = (OrientVertex) AccessUtils.getNodeById(id, g);
+        if (v != null) {
         if (!AccessRights.canRead(vUser, v, g)) {
           throw new WebApplicationException("User not authorized to access data", Response.Status.UNAUTHORIZED);
         }
-
-        metadata = this.getVertexMetadata(v, vUser, g).toJSON();
+        
+        metadata.put(this.getVertexMetadata(v, vUser, g).toJSON());
 
       } else {
         OrientEdge e = (OrientEdge) AccessUtils.getEdgeById(id, g);
         // Perhaps we should check access rights on both sides of the edge ?
         if (e != null) {
-          metadata = this.getEdgeMetadata(e, vUser, g).toJSON();
+          metadata.put(this.getEdgeMetadata(e, vUser, g).toJSON());
         } else {
           throw new WebApplicationException("Object not found", Response.Status.NOT_FOUND);
         }
+      }
       }
     } catch (JSONException ex) {
       log.error("Unable to put element in JSON");
@@ -109,11 +116,12 @@ public class DatabaseResource {
       g.shutdown();
     }
 
-    if (metadata == null) {
-      throw new WebApplicationException("No metadata", Response.Status.INTERNAL_SERVER_ERROR);
-    } else {
-      return Response.ok(metadata.toString(), MediaType.APPLICATION_JSON_TYPE).build();
-    }
+    return Response.ok(metadata.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+//    if (metadata == null) {
+//      throw new WebApplicationException("No metadata", Response.Status.INTERNAL_SERVER_ERROR);
+//    } else {
+//      
+//    }
   }
 
   /**

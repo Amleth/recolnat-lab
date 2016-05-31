@@ -37,25 +37,37 @@ public class DeleteUtils {
    * @param graph
    * @return
    */
-  public static void unlinkItemFromSet(String linkId, String itemOrSetId, String parentSetId, OrientVertex vUser, OrientGraph graph) {
-    OrientVertex vParentSet = AccessUtils.getSet(parentSetId, graph);
-    OrientVertex vChildItemOrSet = AccessUtils.getNodeById(itemOrSetId, graph);
+  public static boolean unlinkItemFromSet(String linkId, OrientVertex vUser, OrientGraph graph) {
+//    OrientVertex vParentSet = AccessUtils.getSet(parentSetId, graph);
+//    OrientVertex vChildItemOrSet = AccessUtils.getNodeById(itemOrSetId, graph);
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
     if (eLink == null) {
       // Link already removed, nothing to do
-      return;
+      return true;
     }
+    OrientVertex vParentSet = eLink.getVertex(Direction.OUT);
+    OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
 
     if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph)) {
-      return;
+      return false;
     }
     // Create new version of the parent
     OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vParentSet, (String) vUser.getProperty(DataModel.Properties.id), graph);
 
+    if(log.isDebugEnabled()) {
+      log.debug("New vertex version created");
+    }
     // Get the updated version of the link from parent using nextVerionId and remove it
-    OrientEdge eNewLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), graph);
-
-    DeleteUtils.unlinkItemFromSet(eNewLink, vChildItemOrSet, vNewParent, vUser, graph);
+    eLink = AccessUtils.getEdgeById(linkId, graph);
+//    OrientEdge eNewLink = AccessUtils.findLatestVersion(eLink, graph);
+    if(log.isDebugEnabled()) {
+      log.debug(eLink.toString());
+//      log.debug(eNewLink.toString());
+    }
+//    OrientEdge eNewLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), graph);
+    eLink.remove();
+    return true;
+//    DeleteUtils.unlinkItemFromSet(eNewLink, vChildItemOrSet, vNewParent, vUser, graph);
   }
 
   /**
@@ -67,6 +79,9 @@ public class DeleteUtils {
    * @param g
    */
   private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientGraph g) {
+    if(log.isDebugEnabled()) {
+      log.debug("unlinkItemFromSet(" + eLink.toString() + "," + vChildItemOrSet.toString() + ", " + vParentSet.toString() + ", " + vUser.toString() + ")");
+    }
     eLink.remove();
 
     // Now process parent views
@@ -482,8 +497,13 @@ public class DeleteUtils {
       // User requires WRITE permission to delete
       return false;
     }
+    
+    // Does the public have access to the vertex?
+    if(AccessRights.canPublicRead(vObject, g)) {
+      return false;
+    }
 
-    // Does the public or anyone else have access to the vertex?
+    // Does anyone else have access to the vertex?
     Iterator<Vertex> itAccessors = vObject.getVertices(Direction.IN, DataModel.Links.hasAccessRights).iterator();
     while (itAccessors.hasNext()) {
       OrientVertex vAccessor = (OrientVertex) itAccessors.next();
@@ -491,10 +511,10 @@ public class DeleteUtils {
         continue;
       }
       if (AccessRights.canRead(vAccessor, vObject, g)) {
-        if (vAccessor.getProperty(DataModel.Properties.id).equals(DataModel.Globals.PUBLIC_GROUP_ID)) {
-          // Object shared with general public
-          return false;
-        }
+//        if (vAccessor.getProperty(DataModel.Properties.id).equals(DataModel.Globals.PUBLIC_GROUP_ID)) {
+//          // Object shared with general public
+//          return false;
+//        }
 
         if (!DataModel.Classes.user.equals(vAccessor.getProperty("@class"))) {
           // Object is shared with a group

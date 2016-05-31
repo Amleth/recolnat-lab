@@ -14,7 +14,6 @@ import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
 import fr.recolnat.database.utils.UpdateUtils;
-import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -50,11 +49,17 @@ public class StudyResource {
   @Path("/list-user-studies")
   @Timed
   public Response listUserStudies(@Context HttpServletRequest request) throws JSONException {
+    if(log.isTraceEnabled()) {
+      log.trace("Entering listUserStudies");
+    }
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
     
     JSONArray listOfStudies = new JSONArray();
     OrientGraph g = DatabaseAccess.getTransactionalGraph();
+    if(log.isTraceEnabled()) {
+      log.trace("Got graph");
+    }
     try {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
       
@@ -134,14 +139,21 @@ public class StudyResource {
         String userId = (String) vUser.getProperty(DataModel.Properties.id);
         OrientVertex vStudy = CreatorUtils.createStudy(name, vUser, g);
         OrientVertex vCoreSet = CreatorUtils.createSet(name, DataModel.Globals.SET_ROLE, g);
+        OrientVertex vView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
         
         UpdateUtils.link(vStudy, vCoreSet, DataModel.Links.hasCoreSet, userId, g);
         UpdateUtils.addCreator(vCoreSet, vUser, g);
         AccessRights.grantAccessRights(vUser, vCoreSet, DataModel.Enums.AccessRights.WRITE, g);
         
+        UpdateUtils.link(vCoreSet, vView, DataModel.Links.hasView, userId, g);
+        UpdateUtils.addCreator(vView, vUser, g);
+        AccessRights.grantAccessRights(vUser, vView, DataModel.Enums.AccessRights.WRITE, g);
+        
+        g.commit();
+        
         ret.put("study", (String) vStudy.getProperty(DataModel.Properties.id));
         ret.put("coreSet", (String) vCoreSet.getProperty(DataModel.Properties.id));
-        g.commit();
+        ret.put("defaultView", (String) vView.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;

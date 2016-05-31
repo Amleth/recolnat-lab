@@ -6,10 +6,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.exceptions.AlreadyExistsException;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.NullArgumentException;
-import org.apache.tools.ant.IntrospectionHelper;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -49,18 +46,18 @@ public class CreatorUtils {
    * @return
    */
   public static String newVertexUUID(OrientGraph graph) {
-    String uuid = UUID.randomUUID().toString();
+    String uuid = "V-" + UUID.randomUUID().toString();
     Iterator<Vertex> itExistingEntities = graph.getVertices("V",
         new String[]{DataModel.Properties.id},
         new Object[]{uuid}).iterator();
     while(itExistingEntities.hasNext()) {
-      uuid = UUID.randomUUID().toString();
+      uuid = "V-" + UUID.randomUUID().toString();
       itExistingEntities = graph.getVertices("V",
           new String[]{DataModel.Properties.id},
           new Object[]{uuid}).iterator();
     }
 
-    return "V-" + uuid;
+    return uuid;
   }
 
   /**
@@ -69,14 +66,14 @@ public class CreatorUtils {
    * @return
    */
   public static String newEdgeUUID(OrientGraph graph) {
-    String uuid = UUID.randomUUID().toString();
+    String uuid = "E-" + UUID.randomUUID().toString();
     Iterator<Edge> itExistingEntities = graph.getEdges(DataModel.Properties.id, uuid).iterator();
     while(itExistingEntities.hasNext()) {
-      uuid = UUID.randomUUID().toString();
+      uuid = "E-" + UUID.randomUUID().toString();
       itExistingEntities = graph.getEdges(DataModel.Properties.id, uuid).iterator();
     }
 
-    return "E-" + uuid;
+    return uuid;
   }
 
   /**
@@ -253,13 +250,14 @@ public class CreatorUtils {
    */
   public static OrientVertex createNewUserAndUserData(String loginName, OrientGraph g) {
     OrientVertex vUser = CreatorUtils.createUser(loginName, g);
-    OrientVertex vRootSet = CreatorUtils.createSet("Mes espaces de travail", DataModel.Globals.ROOT_SET_ROLE, g);
+    OrientVertex vRootSet = CreatorUtils.createSet("Racine des sets", DataModel.Globals.ROOT_SET_ROLE, g);
     OrientVertex vDefaultView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
     UpdateUtils.addCreator(vRootSet, vUser, g);
     UpdateUtils.addCreator(vDefaultView, vUser, g);
     AccessRights.grantAccessRights(vUser, vRootSet, DataModel.Enums.AccessRights.WRITE, g);
     AccessRights.grantAccessRights(vUser, vDefaultView, DataModel.Enums.AccessRights.WRITE, g);
     
+    UpdateUtils.link(vUser, vRootSet, DataModel.Links.hasCoreSet, loginName, g);
     UpdateUtils.link(vRootSet, vDefaultView, DataModel.Links.hasView, (String) vUser.getProperty(DataModel.Properties.id), g);
     
     return vUser;
@@ -349,7 +347,7 @@ public class CreatorUtils {
         new String[] {
           DataModel.Properties.id, 
           DataModel.Properties.origin, 
-          DataModel.Properties.type,
+          DataModel.Properties.typeInOriginSource,
           DataModel.Properties.branch
         }, 
         new Object[] {
@@ -368,7 +366,7 @@ public class CreatorUtils {
     entity.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     entity.setProperty(DataModel.Properties.idInOriginSource, id);
     entity.setProperty(DataModel.Properties.origin, source);
-    entity.setProperty(DataModel.Properties.type, type);
+    entity.setProperty(DataModel.Properties.typeInOriginSource, type);
     entity.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     return entity;

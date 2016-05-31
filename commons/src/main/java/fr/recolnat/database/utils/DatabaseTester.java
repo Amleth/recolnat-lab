@@ -12,14 +12,14 @@ public class DatabaseTester {
   public static void createTestWorkbench(OrientVertex user, OrientGraph g) {
 //    OrientVertex user = CreatorUtils.createUser("Robert LeRouge", g);
       String userId = user.getProperty(DataModel.Properties.id);
-      OrientVertex rootSet = (OrientVertex) AccessUtils.getRootSet(user, g);
+      OrientVertex rootSet = (OrientVertex) AccessUtils.getCoreSet(user, g);
 
       OrientVertex sampleSet = CreatorUtils.createSet("Set exemple", DataModel.Globals.SET_ROLE, g);
       OrientVertex defaultView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
       UpdateUtils.link(sampleSet, defaultView, DataModel.Links.hasView, userId, g);
 
-      OrientVertex sampleStudy = CreatorUtils.createStudy("Étude exemple", user, g);
-      UpdateUtils.link(sampleStudy, sampleSet, DataModel.Links.hasCoreSet, userId, g);
+//      OrientVertex sampleStudy = CreatorUtils.createStudy("Étude exemple", user, g);
+//      UpdateUtils.link(sampleStudy, sampleSet, DataModel.Links.hasCoreSet, userId, g);
 
       OrientVertex scirpusSpecimen = CreatorUtils.createSpecimen("Spécimen 1", g);
       OrientVertex scirpusImage = CreatorUtils.createImage(CreatorUtils.generateName("Image "), "http://mediaphoto.mnhn.fr/media/1447490476437bXB6YuApRzu492vJ", 3398, 5072, "http://mediaphoto.mnhn.fr/media/1447490476437bXB6YuApRzu492vJ", g);
@@ -40,7 +40,7 @@ public class DatabaseTester {
       UpdateUtils.addItemToSet(festucaSpecimen, sampleSet, user, g);
       UpdateUtils.addItemToSet(ophiloImage, sampleSet, user, g);
 
-      UpdateUtils.addCreator(sampleStudy, user, g);
+//      UpdateUtils.addCreator(sampleStudy, user, g);
       UpdateUtils.addCreator(sampleSet, user, g);
       UpdateUtils.addCreator(defaultView, user, g);
       UpdateUtils.addCreator(scirpusSpecimen, user, g);
@@ -49,7 +49,7 @@ public class DatabaseTester {
       UpdateUtils.addCreator(festucaImage, user, g);
       UpdateUtils.addCreator(ophiloImage, user, g);
       
-      AccessRights.grantAccessRights(user, sampleStudy, DataModel.Enums.AccessRights.WRITE, g);
+//      AccessRights.grantAccessRights(user, sampleStudy, DataModel.Enums.AccessRights.WRITE, g);
       AccessRights.grantAccessRights(user, sampleSet, DataModel.Enums.AccessRights.WRITE, g);
       AccessRights.grantAccessRights(user, defaultView, DataModel.Enums.AccessRights.WRITE, g);
       AccessRights.grantAccessRights(user, scirpusSpecimen, DataModel.Enums.AccessRights.WRITE, g);

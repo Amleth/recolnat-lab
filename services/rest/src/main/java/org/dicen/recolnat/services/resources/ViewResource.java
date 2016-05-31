@@ -23,6 +23,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.DatabaseAccess;
@@ -43,45 +44,50 @@ public class ViewResource {
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
 
-    JSONObject message = new JSONObject(input);
-    String viewId = message.getString("view");
-    String entityId = message.getString("entity");
-    Integer x = message.getInt("x");
-    Integer y = message.getInt("y");
+    JSONArray message = new JSONArray(input);
+    JSONArray entityLocs = new JSONArray();
+    for (int i = 0; i < message.length(); ++i) {
+      JSONObject data = message.getJSONObject(i);
 
-    JSONObject ret = new JSONObject();
-    ret.put("view", viewId);
-    ret.put("entity", entityId);
-    boolean retry = true;
-    while (retry) {
-      retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-      try {
-        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vView = AccessUtils.getView(viewId, g);
-        OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
-        if (!AccessRights.canWrite(vUser, vView, g)) {
-          throw new WebApplicationException(Status.FORBIDDEN);
+      String viewId = data.getString("view");
+      String entityId = data.getString("entity");
+      Integer x = data.getInt("x");
+      Integer y = data.getInt("y");
+
+      JSONObject ret = new JSONObject();
+      ret.put("view", viewId);
+      ret.put("entity", entityId);
+      boolean retry = true;
+      while (retry) {
+        retry = false;
+        OrientGraph g = DatabaseAccess.getTransactionalGraph();
+        try {
+          OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+          OrientVertex vView = AccessUtils.getView(viewId, g);
+          OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
+          if (!AccessRights.canWrite(vUser, vView, g)) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+          }
+          if (!AccessRights.canRead(vUser, vEntity, g)) {
+            throw new WebApplicationException(Status.FORBIDDEN);
+          }
+
+          OrientEdge eLink = UpdateUtils.showItemInView(x, y, vEntity, vView, vUser, g);
+          g.commit();
+
+          ret.put("x", x);
+          ret.put("y", y);
+          ret.put("link", (String) eLink.getProperty(DataModel.Properties.id));
+          entityLocs.put(ret);
+        } catch (OConcurrentModificationException e) {
+          retry = true;
+        } finally {
+          g.rollback();
+          g.shutdown();
         }
-        if (!AccessRights.canRead(vUser, vEntity, g)) {
-          throw new WebApplicationException(Status.FORBIDDEN);
-        }
-
-        OrientEdge eLink = UpdateUtils.showItemInView(x, y, vEntity, vView, vUser, g);
-        g.commit();
-
-        ret.put("x", x);
-        ret.put("y", y);
-        ret.put("link", (String) eLink.getProperty(DataModel.Properties.id));
-      } catch (OConcurrentModificationException e) {
-        retry = true;
-      } finally {
-        g.rollback();
-        g.shutdown();
       }
     }
-
-    return Response.ok(ret.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+    return Response.ok(entityLocs.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
   @POST

@@ -19,6 +19,7 @@ class ModeStore extends EventEmitter {
     super();
 
     this.mode = ModeConstants.Modes.SET;
+    this.setMaxListeners(100);
 
     AppDispatcher.register((action) => {
       switch (action.actionType) {
@@ -34,6 +35,22 @@ class ModeStore extends EventEmitter {
 
   getMode() {
     return this.mode;
+  }
+
+  isInSetMode() {
+    return this.mode == ModeConstants.Modes.SET;
+  }
+
+  isInOrganisationMode() {
+    return this.mode == ModeConstants.Modes.ORGANISATION;
+  }
+
+  isInObservationMode() {
+    return this.mode == ModeConstants.Modes.OBSERVATION;
+  }
+
+  isInTabularMode() {
+    return this.mode == ModeConstants.Modes.TABULAR;
   }
 
   addModeChangeListener(callback) {

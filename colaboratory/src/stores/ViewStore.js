@@ -25,7 +25,7 @@ class ViewStore extends EventEmitter {
     this.viewport.width = null;
     this.viewport.top = 0;
     this.viewport.left = 0;
-    this.viewport.scale = 1.0;
+    this.viewport.scale = 0.01;
     this.viewport.animate = false;
     this.viewport.topFromWindow = null;
     this.viewport.leftFromWindow = null;
@@ -41,6 +41,10 @@ class ViewStore extends EventEmitter {
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT:
           this.setViewportData(action.x, action.y, action.width, action.height, action.scale, action.animate);
+          this.emit(ViewEvents.UPDATE_VIEWPORT);
+          break;
+        case ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT_LOCATION:
+          this.setViewportLocationInWindow(action.top, action.left);
           this.emit(ViewEvents.UPDATE_VIEWPORT);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_FIT_ALL:

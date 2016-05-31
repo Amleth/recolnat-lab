@@ -22,7 +22,7 @@ class ModeSwitcher extends React.Component {
 
     this.state = {
       activeMode: ModeConstants.Modes.SET
-    }
+    };
   }
 
   hilightActiveMode() {
@@ -64,9 +64,8 @@ class ModeSwitcher extends React.Component {
          onClick={Globals.setMode.bind(null, ModeConstants.Modes.ORGANISATION)}>
         <i className='cubes icon' />
       </a>
-      <a className={'blue item ' + this.isActive(ModeConstants.Modes.TABULAR)}
-         data-content='Tabulaire'
-         onClick={Globals.setMode.bind(null, ModeConstants.Modes.TABULAR)}>
+      <a className={'blue item disabled ' + this.isActive(ModeConstants.Modes.TABULAR)}
+         data-content='Tabulaire (indisponible dans la version actuelle)'>
         <i className='grid layout icon' />
       </a>
     </div>

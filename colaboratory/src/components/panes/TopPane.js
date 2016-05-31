@@ -7,7 +7,7 @@ import React from 'react';
 
 import Basket from './../manager/Basket';
 import SetActions from './../manager/SetActions';
-import StudyManager from './../manager/StudyManager';
+import StudyManager from './../manager/SetManager';
 import SpecimenMetadataDisplay from './../manager/SpecimenMetadataDisplay';
 import SetMetadataDisplay from './../manager/SetMetadataDisplay';
 import MetadataDisplay from './../manager/AbstractManagerMetadataDisplay';
@@ -68,38 +68,37 @@ class TopPane extends React.Component {
   }
 
   render() {
-    return <div style={this.containerStyle}>
-      <div style={this.menuContainerStyle}>
-        <SetActions
-          managerstore={this.props.managerstore}
-                          metastore={this.props.metastore}
-        />
-      </div>
-      <div style={this.centerColumnStyle}>
-        <div style={this.managerContainerStyle}>
-          <StudyManager
-          userstore={this.props.userstore}
-          metastore={this.props.metastore}
-          managerstore={this.props.managerstore} />
-        </div>
-
-
-
-      </div>
-      <div style={this.metadataColumnStyle}>
-        <div className='ui segment'>
-          <SetMetadataDisplay
-            metastore={this.props.metastore}
-            managerstore={this.props.managerstore}/>
-        </div>
-        <div className='ui segment'>
-          <SpecimenMetadataDisplay
-            metastore={this.props.metastore}
-            managerstore={this.props.managerstore}/>
-        </div>
-      </div>
-    </div>;
+    return null;
   }
+  //  return <div style={this.containerStyle}>
+  //    <div style={this.menuContainerStyle}>
+  //      <SetActions
+  //        managerstore={this.props.managerstore}
+  //                        metastore={this.props.metastore}
+  //      />
+  //    </div>
+  //    <div style={this.centerColumnStyle}>
+  //      <div style={this.managerContainerStyle}>
+  //        <StudyManager
+  //        userstore={this.props.userstore}
+  //        metastore={this.props.metastore}
+  //        managerstore={this.props.managerstore} />
+  //      </div>
+  //    </div>
+  //    <div style={this.metadataColumnStyle}>
+  //      <div className='ui segment'>
+  //        <SetMetadataDisplay
+  //          metastore={this.props.metastore}
+  //          managerstore={this.props.managerstore}/>
+  //      </div>
+  //      <div className='ui segment'>
+  //        <SpecimenMetadataDisplay
+  //          metastore={this.props.metastore}
+  //          managerstore={this.props.managerstore}/>
+  //      </div>
+  //    </div>
+  //  </div>;
+  //}
 }
 
 export default TopPane;

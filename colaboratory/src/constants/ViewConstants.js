@@ -12,6 +12,7 @@ export default {
     },
     Local: {
       UPDATE_VIEWPORT: "VIEW_UPDATE_VIEWPORT",
+      UPDATE_VIEWPORT_LOCATION: "VIEW_UPDATE_VIEWPORT_LOCATION",
       UPDATE_VIEW_PROPERTIES: "VIEW_UPDATE_VIEW_PROPERTIES",
       SET_ACTIVE_VIEW: 'VIEW_SET_ACTIVE_VIEW',
       VIEW_SET_SELECTION: "VIEW_SET_SELECTION",
@@ -19,7 +20,7 @@ export default {
       GO_TO_ITEM_IDX: "VIEW_GO_TO_ITEM_IDX",
       RELOAD_METADATA: "VIEW_RELOAD_METADATA",
       LOADER_CHANGE_STATE: "VIEW_LOADER_CHANGE_STATE",
-      SCHEDULE_IMAGE_LOAD: "VIEW_SCHEDULE_IMAGE_LOAD",
+      SCHEDULE_IMAGE_LOAD: "VIEW_SCHEDULE_IMAGE_LOAD"
     }
   },
   zIndices: {
@@ -30,6 +31,7 @@ export default {
     rightPaneCloseButton: 499,
     topPaneCloseButton: 502,
     mainMenu: 9000,
+    contextMenu: 9001,
     loginRequiredModal: 99999
   }
 };

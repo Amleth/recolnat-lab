@@ -65,6 +65,14 @@ export default {
     });
   },
 
+  updateViewportLocation: (top, left) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT_LOCATION,
+      top: top,
+      left: left
+    });
+  },
+
   updateViewProperties: (properties) => {
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_PROPERTIES,
@@ -79,7 +87,7 @@ export default {
     });
   },
 
-  loadImage: (source, onLoadCallback) => {
+  loadImage: (source, onLoadCallback = function() {}) => {
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.SCHEDULE_IMAGE_LOAD,
       source: source,

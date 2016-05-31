@@ -13,6 +13,10 @@ import ViewController from '../../tools/palettes/ViewController';
 import Organisation from '../../tools/palettes/Organisation';
 import ModeSwitcher from '../../tools/palettes/ModeSwitcher';
 import GroupSelector from '../../tools/palettes/GroupSelector';
+//import StudyDisplay from '../../tools/palettes/StudyDisplay';
+import SetSelectorDisplay from '../../tools/palettes/SetSelectorDisplay';
+
+import ModeConstants from '../../constants/ModeConstants'
 
 import toolboxIcon from '../../images/tools.svg';
 
@@ -36,18 +40,24 @@ class LeftPane extends React.Component {
            className='ui container'>
         <div className='ui divider'></div>
         <ModeSwitcher modestore={this.props.modestore} />
+        <SetSelectorDisplay modestore={this.props.modestore}
+                      managerstore={this.props.managerstore} />
         <GroupSelector
           modestore={this.props.modestore}
           toolstore={this.props.toolstore}
           benchstore={this.props.benchstore} />
         <Minimap ministore={this.props.ministore}
                  viewstore={this.props.viewstore}
+                 modestore={this.props.modestore}
                  toolstore={this.props.toolstore}
                  benchstore={this.props.benchstore}/>
         <ViewController
           ministore={this.props.ministore}
+          modestore={this.props.modestore}
+          toolstore={this.props.toolstore}
           viewstore={this.props.viewstore} />
         <Toolbox ministore={this.props.ministore}
+                 modestore={this.props.modestore}
                  viewstore={this.props.viewstore}
                  toolstore={this.props.toolstore}
                  benchstore={this.props.benchstore}/>

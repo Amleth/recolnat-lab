@@ -49,11 +49,6 @@ class FreeSpace extends React.Component {
       const viewPropertiesUpdate = () => this.viewPropertiesUpdate(this.props.viewstore.getViewProperties());
       return viewPropertiesUpdate.apply(this);
     };
-
-    this._onMetadataUpdate = () => {
-      const updateDisplay = () => this.updateDisplay();
-      return updateDisplay.apply(this);
-    };
   }
 
   clearLabBench() {
@@ -67,16 +62,9 @@ class FreeSpace extends React.Component {
   displayLabBench() {
     if(this.props.benchstore.getActiveViewId()) {
       d3Component.loadView(this.props.benchstore.getActiveViewId());
-      //d3Component.updateChildEntities();
-      d3Component.updateEntitiesMetadata();
     }
   }
 
-  updateDisplay() {
-    //d3Component.updateWorkbenchMetadata();
-    //d3Component.updateChildEntities();
-    d3Component.updateEntitiesMetadata();
-  }
 
   displayDragged(event) {
     if(this.props.drag.getType() == 'inboxMove') {

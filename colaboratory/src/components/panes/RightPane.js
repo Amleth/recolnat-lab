@@ -6,11 +6,14 @@
 import React from 'react';
 
 import MetadataViewer from './../MetadataViewer';
-import UserLabBook from './../lab-book/UserLabBook';
-import SheetLabBook from './../lab-book/SheetLabBook';
-import GroupLabBook from './../lab-book/GroupLabBook';
 import ElementInspector from './../../tools/palettes/ElementInspector';
 import TagCloud from './../../tools/palettes/TagCloud';
+import SimpleImageDisplay from './../../tools/palettes/SimpleImageDisplay';
+
+import SpecimenMetadataDisplay from './../manager/SpecimenMetadataDisplay';
+import SetMetadataDisplay from './../manager/SetMetadataDisplay';
+
+import ModeConstants from '../../constants/ModeConstants'
 
 class RightPane extends React.Component {
 
@@ -39,28 +42,44 @@ class RightPane extends React.Component {
       padding: '2px 2px 2px 2px'
       //overflow: 'auto'
     };
-
-  }
-
-  componentDidMount() {
   }
 
   render() {
-    var self = this;
     return(
       <div style={this.containerStyle}>
-          <MetadataViewer
-            height='32%'
-            toolstore={this.props.toolstore}
-            metastore={this.props.metastore}
-            viewstore={this.props.viewstore}
-            benchstore={this.props.benchstore}
-            />
-        <TagCloud height='32%' />
+        <SimpleImageDisplay
+          height='32%'
+          metastore={this.props.metastore}
+          modestore={this.props.modestore}
+          managerstore={this.props.managerstore}
+          />
+        <SetMetadataDisplay
+          metastore={this.props.metastore}
+          toolstore={this.props.toolstore}
+          modestore={this.props.modestore}
+          managerstore={this.props.managerstore}/>
+        <MetadataViewer
+          height='32%'
+          toolstore={this.props.toolstore}
+          metastore={this.props.metastore}
+          viewstore={this.props.viewstore}
+          modestore={this.props.modestore}
+          benchstore={this.props.benchstore}
+        />
+        <SpecimenMetadataDisplay
+          height='32%'
+          metastore={this.props.metastore}
+          toolstore={this.props.toolstore}
+          modestore={this.props.modestore}
+          managerstore={this.props.managerstore}/>
         <ElementInspector
+          toolstore={this.props.toolstore}
+          modestore={this.props.modestore}
+          metastore={this.props.metastore}
+          inspecstore={this.props.inspecstore}
           height='32%'
         />
-        </div>
+      </div>
     );
   }
 }

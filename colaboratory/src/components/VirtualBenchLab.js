@@ -9,9 +9,9 @@ import BenchLabFreeSpace from './FreeSpace';
 
 import ContextMenu from './context-menu/ContextMenu';
 import OrbalContextMenu from './context-menu/OrbalContextMenu';
-import Tooltip from "./ActiveToolTooltip";
 import Inbox from './Inbox';
 import BenchLabBorders from './BenchLabBorders';
+import ActiveSetNameDisplay from './ActiveSetNameDisplay';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
@@ -20,6 +20,7 @@ import ToolActions from '../actions/ToolActions';
 import MetadataActions from '../actions/MetadataActions';
 
 import ViewConstants from '../constants/ViewConstants';
+import ModeConstants from '../constants/ModeConstants';
 
 const drag = new DragNDropStore();
 
@@ -35,6 +36,7 @@ class VirtualBenchLab extends React.Component {
     };
 
     this.state = {
+      isVisibleInCurrentMode: false,
       loader: null,
       loading: ''
     };
@@ -43,13 +45,27 @@ class VirtualBenchLab extends React.Component {
       const updateLoader = () => this.setState({loader: this.props.viewstore.getLoader().text});
       return updateLoader.apply(this);
     };
+
+    this._onModeChange = () => {
+      const setModeVisibility = () => this.setState({
+        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+      });
+      return setModeVisibility.apply(this);
+    };
   }
 
   componentDidMount() {
     this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
+    this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
   componentWillUpdate(nextProps, nextState) {
+    if(nextState.isVisibleInCurrentMode) {
+      this.componentContainerStyle.display = 'block';
+    }
+    else {
+      this.componentContainerStyle.display = 'none';
+    }
     if(nextState.loader) {
       nextState.loading = 'active'
     }
@@ -60,6 +76,7 @@ class VirtualBenchLab extends React.Component {
 
   componentWillUnmount() {
     this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
@@ -69,10 +86,12 @@ class VirtualBenchLab extends React.Component {
           <div className='ui large header'>Chargement en cours</div>
           <div className="ui large text loader">{this.state.loader}</div>
         </div>
-        <Tooltip />
+        <ActiveSetNameDisplay managerstore={this.props.managerstore}/>
+
         <Inbox
           benchstore={this.props.benchstore}
           metastore={this.props.metastore}
+          viewstore={this.props.viewstore}
           drag={drag}/>
         <OrbalContextMenu
           menustore={this.props.menustore}
@@ -82,7 +101,9 @@ class VirtualBenchLab extends React.Component {
           viewstore={this.props.viewstore}
           toolstore={this.props.toolstore}
         />
-        <BenchLabBorders viewstore={this.props.viewstore} />
+        <BenchLabBorders
+          viewstore={this.props.viewstore}
+        />
         <BenchLabFreeSpace
           width='100%'
           height='100%'

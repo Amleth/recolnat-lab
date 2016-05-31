@@ -13,7 +13,7 @@ import ManagerActions from '../../actions/ManagerActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
-class StudyManager extends React.Component {
+class SetManager extends React.Component {
   constructor(props) {
     super(props);
 
@@ -132,4 +132,4 @@ class StudyManager extends React.Component {
   }
 }
 
-export default StudyManager;
+export default SetManager;

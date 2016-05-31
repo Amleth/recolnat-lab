@@ -8,8 +8,11 @@ import React from 'react';
 import AbstractModal from './AbstractModal';
 
 import Globals from '../../utils/Globals';
+import REST from '../../utils/REST';
 
 import ModalConstants from '../../constants/ModalConstants';
+
+import ManagerActions from '../../actions/ManagerActions';
 
 class NewStudyModal extends AbstractModal {
   constructor(props) {
@@ -43,7 +46,8 @@ class NewStudyModal extends AbstractModal {
       alert('Une étude doit avoir un nom');
       return;
     }
-    Globals.createStudy(this.state.newStudyNameInput, ManagerActions.loadStudiesAndSets);
+    REST.createStudy(this.state.newStudyNameInput, ManagerActions.loadStudiesAndSets);
+    this.cancel();
   }
 
   render() {
@@ -66,7 +70,6 @@ class NewStudyModal extends AbstractModal {
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>
           Annuler
-
         </div>
         <div className="ui positive right labeled icon button"
              onClick={this.createNewStudy.bind(this)}>

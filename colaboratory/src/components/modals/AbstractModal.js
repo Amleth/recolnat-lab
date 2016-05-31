@@ -24,6 +24,7 @@ class AbstractModal extends React.Component {
   }
 
   activateModal(modal) {
+    //console.log('Activating modal ' + modal);
     if(modal == this.modalName) {
       this.setState({active: true});
     }
@@ -34,7 +35,7 @@ class AbstractModal extends React.Component {
 
   cancel() {
     window.setTimeout(
-    ModalActions.showModal.bind(null, null),
+    ModalActions.showModal.bind(null, null, null),
       10);
   }
 

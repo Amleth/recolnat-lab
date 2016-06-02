@@ -69,7 +69,7 @@ gulp.task('deploy-test', ['build-test'], function() {
   gulp.src(distSrc)
     .pipe(sftp({
       host: 'wp5test.mnhn.fr',
-      remotePath: '/home/cnamuser/www/labo',
+      remotePath: '/home/cnamuser/www/labo-test',
       user: 'cnamuser',
       pass: ""
     }));

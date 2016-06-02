@@ -5,38 +5,53 @@ var Integration = {
 };
 
 var Services = {
-  laboratoryRESTService: 'https://wp5test.recolnat.org/test',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/test/websockets'
+  laboratoryRESTService: 'https://wp5test.recolnat.org/services/test',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/test/websockets'
 };
 
 var Endpoints = {
-  imageEditorService: Services.laboratoryRESTService + '/image-editor',
-  virtualWorkbenchService: Services.laboratoryRESTService + '/virtual-workbench',
   authenticationService: Services.laboratoryRESTService + '/authentication',
-  userProfileService: Services.laboratoryRESTService + '/user-profile',
   dataAccessService: Services.laboratoryRESTService + '/database',
+  imageService: Services.laboratoryRESTService + '/image',
+  setService: Services.laboratoryRESTService + '/set',
+  studyService: Services.laboratoryRESTService + '/study',
+  userProfileService: Services.laboratoryRESTService + '/user-profile',
+  viewService: Services.laboratoryRESTService + '/view',
+
   virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
 };
 
 var Actions = {
-  imageEditorServiceActions: {
-    getImageData: Endpoints.imageEditorService + "/get-image",
-    createPolygon: Endpoints.imageEditorService + "/create-polygon",
-    createPointOfInterest: Endpoints.imageEditorService + "/create-vertex",
-    createPath: Endpoints.imageEditorService + "/create-path",
-    addAnnotation: Endpoints.imageEditorService + "/add-annotation",
-    addScalingData: Endpoints.imageEditorService + "/add-scaling-data"
+  imageServiceActions: {
+    getImage: Endpoints.imageService + "/get-image",
+    getSpecimen: Endpoints.imageService + "/get-specimen",
+    createRegionOfInterest: Endpoints.imageService + "/create-roi",
+    createPointOfInterest: Endpoints.imageService + "/create-poi",
+    createTrailOfInterest: Endpoints.imageService + "/create-toi",
+    addMeasureStandard: Endpoints.imageService + "/add-measure-standard"
   },
 
-  virtualWorkbenchServiceActions: {
-    createNewWorkbench: Endpoints.virtualWorkbenchService + '/create-new-workbench',
-    deleteWorkbench : Endpoints.virtualWorkbenchService + '/delete-workbench',
-    copypaste: Endpoints.virtualWorkbenchService + '/copypaste',
-    cutpaste: Endpoints.virtualWorkbenchService + '/cutpaste',
-    import: Endpoints.virtualWorkbenchService + '/import',
-    importSheet: Endpoints.virtualWorkbenchService + '/import-item-to-workbench',
-    listUserWorkbenches: Endpoints.virtualWorkbenchService + "/list-user-workbenches",
-    addItemsToWorkbench: Endpoints.virtualWorkbenchService + "/add-items-to-workbench"
+  setServiceActions: {
+    getSet: Endpoints.setService + "/get-set",
+    createSet: Endpoints.setService + "/create-set",
+    deleteFromSet: Endpoints.setService + "/delete-element-from-set",
+    link: Endpoints.setService + "/link",
+    copy: Endpoints.setService + "/copy",
+    cutPaste: Endpoints.setService + "/cutpaste",
+    importRecolnatSpecimen: Endpoints.setService + "/import-recolnat-specimen",
+    importExternalImage: Endpoints.setService + "/import-external-image"
+  },
+
+  viewServiceActions: {
+    place: Endpoints.viewService + '/place',
+    move: Endpoints.viewService + '/move',
+    resize: Endpoints.viewService + '/resize'
+  },
+
+  studyServiceActions: {
+    listUserStudies: Endpoints.studyService + "/list-user-studies",
+    getStudy: Endpoints.studyService + "/get-study",
+    createStudy: Endpoints.studyService + "/create-study"
   },
 
   authenticationServiceActions: {

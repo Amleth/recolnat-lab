@@ -22,16 +22,6 @@ class Inbox extends React.Component {
       maxWidth: '160px'
     };
 
-    //this._onLabBenchLoaded = () => {
-    //  const downloadMetadata = () => this.listenForContentChange(this.props.benchstore.getActiveViewId());
-    //  return downloadMetadata.apply(this);
-    //};
-    //
-    //this._onViewMetadataReceived = () => {
-    //  const calculateUnplacedEntities = () => this.calculateUnplacedEntities();
-    //  return calculateUnplacedEntities.apply(this);
-    //};
-
     this._onLabBenchLoaded = () => {
       const calculateUnplacedEntities = () => this.calculateUnplacedEntities();
       return calculateUnplacedEntities.apply(this);
@@ -50,18 +40,6 @@ class Inbox extends React.Component {
       content: []
     };
   }
-
-  //listenForContentChange(viewId) {
-  //  //console.log('listenForContentChange()');
-  //  if(this.state.viewId) {
-  //    this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewMetadataReceived);
-  //  }
-  //  if(viewId) {
-  //    this.props.metastore.addMetadataUpdateListener(viewId, this._onViewMetadataReceived);
-  //    window.setTimeout(MetadataActions.updateMetadata.bind(null, viewId), 10);
-  //  }
-  //  this.setState({viewId: viewId, active: false, open: false, content: []});
-  //}
 
   calculateUnplacedEntities() {
     var labBench = this.props.benchstore.getLabBench();

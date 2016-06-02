@@ -225,10 +225,12 @@ class MetadataViewer extends React.Component {
   }
 
   getRecolnatSpecimenMetadata(id) {
+
     // Example id 3A160E6F-8ED3-4ED3-A46A-D6737893E844
     // https://api.recolnat.org/erecolnat/v1/specimens/3a160e6f-8ed3-4ed3-a46a-d6737893e844
     // Then go to determination(s)
     //console.log('getting recolnat data about ' + id);
+    if(this.state.loadingSpecimen) {
     request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
       //.withCredentials()
       .end((err, res) => {
@@ -247,44 +249,74 @@ class MetadataViewer extends React.Component {
             specimen: specimen,
             loadingSpecimen: false
           });
-        }
-      });
 
-    request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/determinations')
-      //.withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Error requesting determinations about ' + id + ' -> ' + err);
-          this.setState({
-            determinations: [],
-            loadingDeterminations: false
-          });
-        }
-        else {
-          var determinations = JSON.parse(res.text);
-          //console.log('determinations=' + res.text);
-          this.setState({determinations: determinations,
-            loadingDeterminations: false});
+          if(specimen.links) {
+            for(var i = 0; i < specimen.links.length; ++i) {
+              var link = specimen.links[i];
+              switch(link.rel) {
+                case "determinations":
+                if(this.state.loadingDeterminations) {
+                  request.get(link.href)
+                    //.withCredentials()
+                    .end((err, res) => {
+                      if(err) {
+                        console.error('Error requesting determinations about ' + id + ' -> ' + err);
+                        this.setState({
+                          determinations: [],
+                          loadingDeterminations: false
+                        });
+                      }
+                      else {
+                        var determinations = JSON.parse(res.text);
+                        //console.log('determinations=' + res.text);
+                        this.setState({determinations: determinations,
+                          loadingDeterminations: false});
+                      }
+                    });
+                  }
+                  else {
+                    this.setState({
+                      determinations: [],
+                      loadingDeterminations: false
+                    });
+                  }
+                break;
+                case "recolte":
+                if(this.state.loadingHarvest) {
+                  request.get(link.href)
+                    //.withCredentials()
+                    .end((err, res) => {
+                      if(err) {
+                        console.error('Error requesting harvest data about ' + id + ' -> ' + err);
+                        this.setState({
+                          harvest: null,
+                          loadingHarvest: false,
+                          loadingLocation: false
+                        });
+                      }
+                      else {
+                        var harvest = JSON.parse(res.text);
+                        //console.log('harvest=' + res.text);
+                        this.setState({harvest: harvest, location: harvest.localisation, loadingHarvest: false, loadingLocation: false});
+                      }
+                    });
+                  }
+                  else {
+                  this.setState({
+                    harvest: null,
+                    loadingHarvest: false,
+                    loadingLocation: false
+                  });
+                  }
+                break;
+                default:
+                break;
+              }
+            }
+          }
         }
       });
-
-    request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/recolte')
-      //.withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Error requesting harvest data about ' + id + ' -> ' + err);
-          this.setState({
-            harvest: null,
-            loadingHarvest: false,
-            loadingLocation: false
-          });
-        }
-        else {
-          var harvest = JSON.parse(res.text);
-          //console.log('harvest=' + res.text);
-          this.setState({harvest: harvest, location: harvest.localisation, loadingHarvest: false, loadingLocation: false});
-        }
-      });
+    }
 
     this.setState({
       linkToExplore: 'https://explore.recolnat.org/#/specimen/botanique/' + id.split('-').join('')

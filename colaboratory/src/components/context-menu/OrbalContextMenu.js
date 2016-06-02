@@ -242,7 +242,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   setContextMenuData(elements) {
-    //console.log(JSON.stringify(elements));
+    // console.log(JSON.stringify(elements));
     //elements.unshift({type: 'workbench', id: this.props.entitystore.getSetId()});
     var arrElements = [];
     if(elements.images) {
@@ -288,10 +288,11 @@ class OrbalContextMenu extends React.Component {
 
   closeMenu(delay, event) {
     //console.log('closeMenu(' + event + ','  + delay + ')');
-    if(event.isPropagationStopped()) {
-      return;
-    }
+    // if(event.isPropagationStopped()) {
+    //   return;
+    // }
     if(delay) {
+      console.log('closeMenu with delay');
       this.closeDelay = window.setTimeout(this.setState.bind(this, OrbalContextMenu.getInitialState()), delay);
     }
     else {
@@ -300,6 +301,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   cancelCloseMenu() {
+    console.log('cancelCloseMenu');
     if(this.closeDelay) {
       window.clearTimeout(this.closeDelay);
       this.closeDelay = null;
@@ -308,7 +310,7 @@ class OrbalContextMenu extends React.Component {
 
   setActiveItem(index, itemIds, keepActive=true) {
     var entity = itemIds[index];
-    console.log(JSON.stringify(entity));
+    // console.log(JSON.stringify(entity));
     var id = entity.data.uid;
     var link = entity.link;
     //if(this.props.benchstore.getDisplayData(id)) {
@@ -374,6 +376,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   menuIsDeactivated() {
+    console.log('menuIsDeactivated');
     this.menuContainerStyle.visibility = 'hidden';
     this.resetOrbs();
   }
@@ -632,6 +635,8 @@ class OrbalContextMenu extends React.Component {
     this.orbSStyle.visibility = '';
     this.orbSEStyle.visibility = '';
 
+    // console.log('this state active='+this.state.active);
+    // console.log('next state active='+nextState.active);
     if(nextState.active && !this.state.active) {
       // Transition from closed to open
       this.menuIsActivated();

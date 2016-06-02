@@ -166,6 +166,20 @@ class GlobalFunctions {
     }
   }
 
+  static isElementInViewport(boundingClientRect) {
+    if(boundingClientRect.bottom <= 0 ||
+    boundingClientRect.top >= window.innerHeight ||
+  boundingClientRect.right <= 0 ||
+boundingClientRect.left >= window.innerWidth) {
+      return false;
+    }
+  return true;
+    // return boundingClientRect.top >= 0 &&
+    // boundingClientRect.left >= 0 &&
+    // boundingClientRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    // boundingClientRect.right <= (window.innerWidth || document.documentElement.clientWidth);
+  }
+
 }
 
 export default GlobalFunctions;

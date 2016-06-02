@@ -31,7 +31,7 @@ class MetadataStore extends EventEmitter {
           if(action.entities) {
             for(var i = 0; i < action.entities.length; ++i) {
               if(this.metadata[action.entities[i]]) {
-                this.emitUpdateEvent(action.entities[i]);
+                // this.emitUpdateEvent(action.entities[i]);
               }
               if(_.contains(this.metadataToLoad, action.entities[i])) {
                 //console.log('waiting to loead ' + action.entities[i]);
@@ -117,6 +117,7 @@ class MetadataStore extends EventEmitter {
   }
 
   emitUpdateEvent(id) {
+    // console.log('meta updated emit '+ id);
     this.emit(MetadataEvents.METADATA_UPDATE + '_' + id, id);
     this.emit(MetadataEvents.METADATA_UPDATE, id);
   }

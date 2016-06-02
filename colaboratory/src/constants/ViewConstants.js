@@ -33,5 +33,10 @@ export default {
     mainMenu: 9000,
     contextMenu: 9001,
     loginRequiredModal: 99999
+  },
+  imageQuality: {
+    Low: 1,
+    High: 2,
+    Original: 3
   }
 };

@@ -11,6 +11,7 @@ import InspectorActions from '../actions/InspectorActions';
 
 import Classes from '../constants/CommonSVGClasses';
 import TypeConstants from '../constants/TypeConstants';
+import ViewConstants from '../constants/ViewConstants';
 
 import D3EventHandlers from '../utils/D3EventHandlers';
 import D3ViewUtils from '../utils/D3ViewUtils';
@@ -45,11 +46,12 @@ class D3FreeSpace {
     this.metadatastore = null;
     this.benchstore = null;
     this.viewstore = null;
-    this.imageSourceLevel = 0;
+    this.imageSourceLevel = ViewConstants.imageQuality.Low;
     this.loadData = {
       imagesToLoad: 0,
       imagesLoaded: 0
     };
+    this.visibleImages = [];
 
     this._onEndDragFromInbox = () => {
       const addFromInbox = () => this.fixShadow();
@@ -62,6 +64,9 @@ class D3FreeSpace {
       xMax: Number.NEGATIVE_INFINITY,
       yMin: Number.POSITIVE_INFINITY,
       yMax: Number.NEGATIVE_INFINITY};
+
+// Check visible images every second and reload if necessary
+      window.setInterval(this.updateVisibleImages.bind(this), 1500);
   }
 
   create(el, props) {
@@ -95,6 +100,7 @@ class D3FreeSpace {
   clearDisplay() {
     d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
+    this.imageSourceLevel = ViewConstants.imageQuality.Low;
   }
 
   setMetadataStore(store) {
@@ -201,14 +207,6 @@ class D3FreeSpace {
         //.attr("xlink:href", d => d.thumbnail)
         .style('opacity', 0.3);
 
-      //var img = new Image();
-      //img.onload = function () {
-      //  d3.select('#SHADOW').select('image')
-      //    .attr("height", this.height)
-      //    .attr("width", this.width);
-      //};
-      //img.src = data.url;
-
       var appendShadowCallback = function (image) {
         d3.select('#SHADOW').select('image')
           .attr("xlink:href", image.src);
@@ -275,15 +273,42 @@ class D3FreeSpace {
     })(id), 500);
   }
 
+  updateVisibleImages() {
+    // Calculate visible images and load if necessary
+    // console.log('before=' + JSON.stringify(this.visibleImages));
+    var visibleImagesAfter = [];
+    var quality = this.imageSourceLevel;
+    // var urlParamName = this.getImageUrlParamName();
+    var self = this;
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).each(function(d) {
+      var box = this.getBoundingClientRect();
+      if(Globals.isElementInViewport(box)) {
+        var url = D3ViewUtils.getImageUrlFromQuality(d, quality);
+        visibleImagesAfter.push(url);
+        if(!_.contains(self.visibleImages, url)) {
+          console.log('loading image ' + url);
+          self.loadImage(d);
+        }
+      }
+    });
+    // console.log('after=' + JSON.stringify(visibleImagesAfter));
+    // console.log("visible images " + visibleImagesAfterMove.length);
+    this.visibleImages = visibleImagesAfter;
+  }
+
   viewportTransition(animate) {
-    // if the new zoom level is above a certain value, replace thumbnails with full-size images if available
-    if(this.view.scale > 0.1 && this.imageSourceLevel != 1) {
-      //console.log("Switch to full scale images");
-      this.switchImageSources(1);
-    }
-    else if(this.view.scale < 0.1 && this.imageSourceLevel != 2) {
+    // If image quality is not at a certain level for the given scale, change image quality.
+    if(this.view.scale < 0.05 && this.imageSourceLevel != ViewConstants.imageQuality.Low) {
       //console.log("Switch to thumbnail images");
-      this.switchImageSources(2);
+      this.switchImageSources(ViewConstants.imageQuality.Low);
+    }
+    else if(this.view.scale > 0.05 && this.view.scale < 0.2 && this.imageSourceLevel != ViewConstants.imageQuality.High) {
+      //console.log("Switch to high quality images");
+      this.switchImageSources(ViewConstants.imageQuality.High);
+    }
+    else if(this.view.scale > 0.2 && this.imageSourceLevel != ViewConstants.imageQuality.Original) {
+//console.log("Switch to full scale images");
+      this.switchImageSources(ViewConstants.imageQuality.Original);
     }
 
     this.zoom.translate([this.view.x, this.view.y]);
@@ -331,23 +356,7 @@ class D3FreeSpace {
   }
 
   switchImageSources(level) {
-    var paramName = null;
-    switch(level) {
-      case 1:
-        paramName = 'url';
-        break;
-      case 2:
-        paramName = 'thumbnail';
-        break;
-      default:
-        console.warn('Unknown image source level ' + level);
-        paramName = 'url';
-        break;
-    }
-
     this.imageSourceLevel = level;
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).select('.' + Classes.IMAGE_CLASS)
-      .attr('xlink:href', d => d[paramName] ? d[paramName] : d.url);
   }
 
   drawChildEntities() {
@@ -375,9 +384,9 @@ class D3FreeSpace {
       window.setTimeout(this.loadImage.bind(self, element), 10);
     }
 
-    if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
-      D3FreeSpace.endLoad();
-    }
+    // if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
+    //   D3FreeSpace.endLoad();
+    // }
 
     if(this.viewId != this.benchstore.getActiveViewId()) {
       this.viewId = this.benchstore.getActiveViewId();
@@ -435,32 +444,39 @@ class D3FreeSpace {
       ViewActions.changeLoaderState(null)},20);
   }
 
+  // getImageUrlParamName() {
+  //   switch(this.imageSourceLevel) {
+  //     case 1:
+  //       return 'url';
+  //     case 2:
+  //       return 'thumbnail';
+  //     default:
+  //       return 'url';
+  //   }
+  // }
+
   loadImage(elt) {
     //console.log('loadImage');
     //console.log('url=' + elt.url);
     //console.log('thumb=' + elt.thumbnail);
     //console.log('------');
-    var self = this;
-    var displayLoadedImageCallback = function (image) {
-      //console.log('loaded ' + image.src);
-      var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+    // var self = this;
 
-      group.select("#IMAGE-" + elt.link)
-        .attr("xlink:href", image.src);
-
-      this.loadData.imagesLoaded += 1;
-      window.setTimeout(function() {
-        ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.imagesLoaded + '/' + self.loadData.imagesToLoad )},10);
-
-      if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
-        D3FreeSpace.endLoad();
-      }
-    };
+    var source = D3ViewUtils.getImageUrlFromQuality(elt, this.imageSourceLevel);
+    // switch(this.imageSourceLevel) {
+    //   case 1:
+    //   source = elt.url;
+    //   break;
+    //   case 2:
+    //   source = elt.thumbnail;
+    //   break;
+    //   default:
+    //   source = elt.thumbnail;
+    // }
 
     window.setTimeout(
-      (function(url) {
-        return ViewActions.loadImage(url, displayLoadedImageCallback.bind(self));
-      })(elt.thumbnail),
+        ViewActions.loadImage.bind(null, source, D3ViewUtils.displayLoadedImage.bind(null, elt))
+      ,
       10);
   }
 
@@ -486,52 +502,32 @@ class D3FreeSpace {
     var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
     groups.each(
       function(d, i) {
-        var box = d3.select(this).node().getBoundingClientRect();
+        var group = d3.select(this);
+        var box = group.node().getBoundingClientRect();
 
         if(Globals.isCoordsInBoundingBox(coordinatesFromWindow, box)) {
-          objects.images.push(d.link);
+          objects.images.push(d);
           // Process objects in sheet
-          var metadata = benchstore.getData(d.entity);
-          if(metadata) {
-            // Find polygons
-            if (metadata.rois) {
-              for (var m = 0; m < metadata.rois.length; ++m) {
-                var polygon = metadata.rois[m];
-                var polygonBox = d3.select('#ROI-' + polygon).node().getBoundingClientRect();
-                if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, polygonBox)) {
-                  if (objects.rois.indexOf(polygon) < 0) {
-                    objects.rois.push(polygon);
-                  }
-                }
-              }
+          group.selectAll('.' + Classes.ROI_CLASS).each(function(d) {
+            var roi = d3.select(this).node().getBoundingClientRect();
+            if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, roi)) {
+                objects.rois.push(d);
             }
+          });
 
-            // Find paths
-            if (metadata.tois) {
-              for (var j = 0; j < metadata.tois.length; ++j) {
-                var path = metadata.tois[j];
-                var pathBox = d3.select('#PATH-' + path).node().getBoundingClientRect();
-                if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, pathBox)) {
-                  if (objects.tois.indexOf(path) < 0) {
-                    objects.tois.push(path);
-                  }
-                }
-              }
+          group.selectAll('.' + Classes.PATH_CLASS).each(function(d) {
+            var path = d3.select(this).node().getBoundingClientRect();
+            if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, path)) {
+                objects.tois.push(d);
             }
+          });
 
-            // Find points
-            if (metadata.pois) {
-              for (var n = 0; n < metadata.pois.length; ++n) {
-                var poi = metadata.pois[n];
-                var poiBox = d3.select('#POI-' + poi).node().getBoundingClientRect();
-                if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, poiBox)) {
-                  if (objects.pois.indexOf(poi) < 0) {
-                    objects.pois.push(poi);
-                  }
-                }
-              }
+          group.selectAll('.' + Classes.POI_CLASS).each(function(d) {
+            var poi = d3.select(this).node().getBoundingClientRect();
+            if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, poi)) {
+                objects.pois.push(d);
             }
-          }
+          });
         }
       }
     );
@@ -543,13 +539,18 @@ class D3FreeSpace {
     var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
     //console.log(JSON.stringify(objectsAtEvent));
     var inspectorObjects = [];
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.images);
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois);
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois);
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois);
+    var getIds = function(data) {return data.uid};
+    Array.prototype.push.apply(
+      inspectorObjects, objectsAtEvent.images.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
+    console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
+
     window.setTimeout(InspectorActions.setInspectorData.bind(null, inspectorObjects), 10);
+
     if(objectsAtEvent.images.length > 0) {
-      window.setTimeout(ViewActions.changeSelection.bind(null, objectsAtEvent.images[objectsAtEvent.images.length - 1], {type: TypeConstants.image}), 10);
+      window.setTimeout(ViewActions.changeSelection.bind(null, objectsAtEvent.images[objectsAtEvent.images.length - 1].link, {type: TypeConstants.image}), 10);
     }
     d3.event.preventDefault();
   }
@@ -558,8 +559,27 @@ class D3FreeSpace {
     d3.event.preventDefault();
     var coords = d3.mouse(this);
     var objectsAtEvent = self.findObjectsAtCoords(coords);
+    var contextMenuObjects = {
+      images: [],
+      rois: [],
+      tois: [],
+      pois: []
+    };
+    var buildContextMenuElement = function (elt) {
+      return {
+        parent: self.viewId,
+        link: elt.link,
+        data: {
+          uid: elt.uid
+        }
+      };
+    }
+    Array.prototype.push.apply(contextMenuObjects.images, objectsAtEvent.images.map(buildContextMenuElement));
+    Array.prototype.push.apply(contextMenuObjects.pois, objectsAtEvent.pois.map(buildContextMenuElement));
+    Array.prototype.push.apply(contextMenuObjects.rois, objectsAtEvent.rois.map(buildContextMenuElement));
+    Array.prototype.push.apply(contextMenuObjects.tois, objectsAtEvent.tois.map(buildContextMenuElement));
     //console.log(JSON.stringify(objectsAtEvent));
-    MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, objectsAtEvent);
+    MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, contextMenuObjects);
   }
 
 }

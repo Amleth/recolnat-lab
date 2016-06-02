@@ -8,6 +8,7 @@ import d3 from 'd3';
 import D3EventHandlers from './D3EventHandlers';
 
 import Classes from '../constants/CommonSVGClasses';
+import ViewConstants from '../constants/ViewConstants';
 
 import markerSVG from '../images/marker.svg';
 
@@ -196,5 +197,37 @@ var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => 
     region.exit().remove();
     region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
     // END over image update
+  }
+
+  static displayLoadedImage(data, image) {
+    // console.log('image=' + image.src);
+    // console.log('data=' + data.link);
+    //console.log('loaded ' + image.src);
+    var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+
+    group.select("#IMAGE-" + data.link)
+      .attr("xlink:href", image.src);
+
+    // this.loadData.imagesLoaded += 1;
+    // window.setTimeout(function() {
+    //   ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.imagesLoaded + '/' + self.loadData.imagesToLoad )},10);
+    //
+    // if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
+    //   D3FreeSpace.endLoad();
+    // }
+  }
+
+  static getImageUrlFromQuality(data, quality) {
+    switch(quality) {
+      case ViewConstants.imageQuality.Low:
+      return data.thumbnail;
+      case ViewConstants.imageQuality.High:
+      // http://imager.mnhn.fr/imager2/w400/2012/11/20/6/P00048663.jpg
+      return data.thumbnail.replace('v25', 'w400');
+      case ViewConstants.imageQuality.Original:
+      return data.url;
+      default:
+      return data.thumbnail;
+    }
   }
 }

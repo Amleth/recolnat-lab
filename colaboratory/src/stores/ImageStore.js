@@ -24,6 +24,7 @@ class ImageStore extends EventEmitter {
     AppDispatcher.register((action) => {
       switch(action.actionType) {
         case ViewConstants.ActionTypes.Local.SCHEDULE_IMAGE_LOAD:
+        // console.log("'scheduling '" + action.source);
           this.addImageToLoad(action.source, action.callback);
           break;
         default:
@@ -35,7 +36,7 @@ class ImageStore extends EventEmitter {
   addImageToLoad(source, callback) {
     // Check if image is already loaded
     if(this.imagesLoaded[source]) {
-      //console.log("Image already loaded " + JSON.stringify(this.imagesLoaded[source]));
+      // console.log("Image already loaded " + source);
       // Image is already loaded, just call callback
       window.setTimeout((function(callback, image) {
         callback(image);
@@ -44,19 +45,22 @@ class ImageStore extends EventEmitter {
     }
     else if(this.currentlyLoadingImage) {
       //console.log("Image currently loading " + this.currentlyLoadingImage.image);
-      if (this.currentlyLoadingImage.source = source) {
+      if (this.currentlyLoadingImage.source === source) {
         // Image is currently loading, add callback
+        // console.log('Adding another callback for currently loading image ' + source);
         this.currentlyLoadingImage.callbacks.push(callback);
       }
     }
     else if(this.imagesToLoad[source]) {
       //console.log("Image already scheduled to load " + this.imagesToLoad[source].image);
+      // console.log('Adding another callback for queued image ' + source);
       // Image is waiting to be loaded already, add callback to existing
       this.imagesToLoad[source].callbacks.push(callback);
     }
     else {
       //console.log("Image will be scheduled to load ");
       // Add new image to load queue
+      // console.log('Queuing new image ' + source);
       this.imagesToLoad[source] = {
         source: source,
         callbacks: [callback]
@@ -75,12 +79,13 @@ class ImageStore extends EventEmitter {
         // The current image is done loading, add it to imagesLoaded
         this.imagesLoaded[this.currentlyLoadingImage.source] = {
           source: this.currentlyLoadingImage.source,
-          image: this.currentlyLoadingImage.image
+          image: $.extend(true, {}, this.currentlyLoadingImage.image)
         };
 
         //console.log(JSON.stringify(this.currentlyLoadingImage));
 
         // Call the callbacks
+        // console.log('calling ' + this.currentlyLoadingImage.callbacks.length + ' callbacks for ' + this.currentlyLoadingImage.image.src);
         for(var i = 0; i < this.currentlyLoadingImage.callbacks.length; ++i) {
           window.setTimeout((function (image, callback) {
             callback(image);
@@ -88,7 +93,7 @@ class ImageStore extends EventEmitter {
         }
 
         // Clear the current pointer
-        this.currentlyLoadingImage = null;
+        delete this.currentlyLoadingImage;
       }
     }
     // Schedule next image to load
@@ -97,7 +102,7 @@ class ImageStore extends EventEmitter {
       var image = this.imagesToLoad[keys[0]];
       this.currentlyLoadingImage = {
         source: image.source,
-        callbacks: image.callbacks,
+        callbacks: $.extend(true, [], image.callbacks),
         image: new Image()
       };
 
@@ -105,9 +110,7 @@ class ImageStore extends EventEmitter {
 
       //console.log(this.currentlyLoadingImage.image);
       var self = this;
-      this.currentlyLoadingImage.image.onload = function() {
-        self.loadNextImage.bind(self);
-      };
+      this.currentlyLoadingImage.image.onload = this.loadNextImage.bind(self);
 
       //console.log(this.currentlyLoadingImage.image);
       this.currentlyLoadingImage.image.onerror = function() {

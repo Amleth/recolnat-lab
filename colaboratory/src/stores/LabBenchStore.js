@@ -26,6 +26,7 @@ class LabBenchStore extends EventEmitter {
     this.labBench = {};
     this.toLoad = 0;
     this.loaded = 0;
+    this.allElementIds = [];
 
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
@@ -34,11 +35,13 @@ class LabBenchStore extends EventEmitter {
           if(action.id) {
             console.log('loading bench ' + action.id);
               this.labBench = {};
+              this.allElementIds = [];
               this.loadBench(action.id);
           }
           else {
             console.log('unloading bench');
             this.labBench = {};
+            this.allElementIds = [];
             this.emit(MetadataEvents.LAB_BENCH_READY);
           }
           break;
@@ -58,6 +61,7 @@ class LabBenchStore extends EventEmitter {
           }
           break;
         case MetadataConstants.ActionTypes.UPDATE_LAB_BENCH:
+          this.allElementIds = [];
           this.reloadBenchFrom(action.id);
           break;
         default:
@@ -140,6 +144,28 @@ class LabBenchStore extends EventEmitter {
     return this.labBench.id;
   }
 
+  getMeasureStandardForMeasure(measureId) {
+    // Get RoI or ToI corresponding to measure.
+    if(this.labBench.measurements[measureId]) {
+      var thingOfInterestId = this.labBench.measurements[measureId].parents[0];
+
+var imageId = null;
+      if(this.labBench.rois[thingOfInterestId]) {
+        imageId = this.labBench.rois[thingOfInterestId].parents[0];
+      }
+      else if(this.labBench.tois[thingOfInterestId]) {
+imageId = this.labBench.tois[thingOfInterestId].parents[0];
+      }
+      else {
+        console.warn('No thing of interest corresponding to id ' + thingOfInterestId);
+        return null;
+      }
+      var mmPerPixel = Globals.getEXIFScalingData(this.labBench.images[imageId]);
+      return mmPerPixel;
+    }
+    return null;
+  }
+
   reloadBenchFrom(id) {
     if(this.labBench.id == id) {
       this.toLoad = 1;
@@ -149,17 +175,17 @@ class LabBenchStore extends EventEmitter {
     else if(this.labBench.subSets[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadSubSet(id);
+      this.loadSubSets([id]);
     }
     else if(this.labBench.images[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadItem(id);
+      this.loadItems([id]);
     }
     else if(this.labBench.specimens[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadItem(id);
+      this.loadItems([id]);
     }
     else if(this.labBench.views[id]) {
       this.toLoad = 1;
@@ -169,27 +195,27 @@ class LabBenchStore extends EventEmitter {
     else if(this.labBench.rois[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadRoI(id);
+      this.loadRoIs([id]);
     }
     else if(this.labBench.pois[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadPoI(id);
+      this.loadPoIs([id]);
     }
     else if(this.labBench.tois[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadToI(id);
+      this.loadToIs([id]);
     }
     else if(this.labBench.measureStandards[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadMeasureStandard(id);
+      this.loadMeasureStandards([id]);
     }
     else if(this.labBench.measurements[id]) {
       this.toLoad = 1;
       this.loaded = 0;
-      this.loadMeasurement(id);
+      this.loadMeasurements([id]);
     }
     else {
       this.toLoad = 1;
@@ -199,6 +225,7 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadBench(setId) {
+    this.allElementIds.push(setId);
     this.labBench.id = setId;
     //window.setTimeout(
     //  MetadataActions.updateMetadata.bind(null, setId), 10);
@@ -245,10 +272,13 @@ class LabBenchStore extends EventEmitter {
 
   loadSubSets(linksAndIds) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+
+
     var ids = [];
     for(var i = 0; i < linksAndIds.length; ++i) {
-      ids.push()
+      ids.push(linksAndIds[i].uid);
     }
+    Array.prototype.push.apply(this.allElementIds, ids);
 
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -273,6 +303,8 @@ class LabBenchStore extends EventEmitter {
 
   loadView(id) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    Array.prototype.push.apply(this.allElementIds, [id]);
+
     request.post(conf.actions.databaseActions.getData)
       .send([id])
       .withCredentials()
@@ -294,6 +326,7 @@ class LabBenchStore extends EventEmitter {
 
   loadItems(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
     var self = this;
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -348,6 +381,7 @@ class LabBenchStore extends EventEmitter {
 
   loadRoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
     var self = this;
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -377,6 +411,7 @@ class LabBenchStore extends EventEmitter {
 
   loadPoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+Array.prototype.push.apply(this.allElementIds, ids);
 
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -400,6 +435,8 @@ class LabBenchStore extends EventEmitter {
 
   loadToIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
+
     var self = this;
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -427,6 +464,8 @@ class LabBenchStore extends EventEmitter {
 
   loadMeasureStandards(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
+
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
       .withCredentials()
@@ -449,6 +488,8 @@ class LabBenchStore extends EventEmitter {
 
   loadMeasurements(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
+
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
       .withCredentials()
@@ -473,6 +514,7 @@ class LabBenchStore extends EventEmitter {
     window.setTimeout(ViewActions.changeLoaderState.bind(null, this.loaded  + '/' + this.toLoad + ' éléments chargés'), 10);
     console.log('loaded ' + this.loaded + '/' + this.toLoad);
     if(this.isLoaded()) {
+      window.setTimeout(MetadataActions.updateMetadata.bind(null, this.allElementIds), 500);
       window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 50);
       this.emit(MetadataEvents.LAB_BENCH_READY);
     }

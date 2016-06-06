@@ -134,10 +134,12 @@ class ViewStore extends EventEmitter {
 
   sendPlaceRequest(viewId, entityId, x, y) {
     request.post(conf.actions.viewServiceActions.place)
-      .send({view: viewId})
-      .send({entity: entityId})
-      .send({x: x})
-      .send({y: y})
+      .send([{
+        view: viewId,
+        entity: entityId,
+        x: x,
+        y: y
+      }])
       .withCredentials()
       .end((err, res) => {
         if(err) {

@@ -17,6 +17,24 @@ class MetadataTable extends React.Component {
       //backgroundColor: '#a39d76'
     };
 
+    this.headerStyle = {
+      height: 0,
+      lineHeight:0,
+      overflow: 'hidden',
+      margin: 0,
+      padding:0
+    };
+
+    this.headerRowStyle = {
+      padding:0,
+      margin:0
+    };
+
+    this.headerCellStyle = {
+      padding:0,
+      margin:0
+    };
+
     this.contentStyle = {
       padding: '2px 2px 2px 2px'
     };
@@ -55,9 +73,12 @@ class MetadataTable extends React.Component {
     return <div className='ui container'>
       <p className='ui title' style={this.accordionTitleStyle}>{this.props.title}</p>
       <div className='ui content' style={this.contentStyle}>
-        <table className='ui selectable striped very compact table'>
-          <thead>
-          <tr><th className='four wide'>Nom</th><th className='twelve wide'>Valeur</th></tr>
+        <table className='ui basic striped very compact table'>
+          <thead style={this.headerStyle}>
+            <tr style={this.headerRowStyle}>
+              <th className='four wide' style={this.headerCellStyle}></th>
+              <th className='twelve wide' style={this.headerCellStyle}></th>
+            </tr>
           </thead>
           {this.buildDisplayTableBody()}
         </table>

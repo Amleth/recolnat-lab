@@ -77,6 +77,7 @@ class RightPane extends React.Component {
           modestore={this.props.modestore}
           metastore={this.props.metastore}
           inspecstore={this.props.inspecstore}
+          benchstore={this.props.benchstore}
           height='32%'
         />
       </div>

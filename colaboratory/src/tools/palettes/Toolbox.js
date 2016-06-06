@@ -10,6 +10,7 @@ import SelectObject from '../impl/SelectObject.js';
 import MoveView from '../impl/MoveView';
 import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
+import NoTool from '../impl/NoTool';
 
 import Popup from "../../components/PopupToolComponent";
 
@@ -51,7 +52,7 @@ class Toolbox extends React.Component {
 
     this._onModeChange = () => {
       const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+        isVisibleInCurrentMode:  this.props.modestore.isInObservationMode()
       });
       return setModeVisibility.apply(this);
     };
@@ -91,6 +92,7 @@ class Toolbox extends React.Component {
           <SelectObject />
         </div>
         <div className='ui four buttons' style={this.buttonRowsStyle}>
+          <NoTool />
           <LineMeasure
             toolstore={this.props.toolstore}
             benchstore={this.props.benchstore}

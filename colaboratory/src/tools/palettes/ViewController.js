@@ -4,8 +4,11 @@
 'use strict';
 
 import React from 'react';
+import d3 from 'd3';
 
 import ViewActions from '../../actions/ViewActions';
+
+import OrbOptions from '../../components/context-menu/options/OrbOptions';
 
 class ViewController extends React.Component {
   constructor(props) {
@@ -107,24 +110,41 @@ class ViewController extends React.Component {
   }
 
   fitViewToImage() {
-    var image = this.props.ministore.getImage();
-    var scale = 1.0;
-
-    if(image.height > image.width) {
-      scale = (this.props.viewstore.getView().height) / image.height;
-    }
-    else {
-      scale = (this.props.viewstore.getView().width) / image.width;
+    // var image = this.props.ministore.getImage();
+    var view = this.props.viewstore.getView();
+    var linkId = this.props.toolstore.getSelectedImageId();
+    if(!linkId) {
+      return;
     }
 
-    ViewActions.updateViewport(
-      -((image.xZero)*scale),
-      -((image.yZero)*scale),
-      null,
-      null,
-      scale,
-      true
-    );
+    OrbOptions.zoomToObject('#GROUP-' + linkId, this.props.viewstore.getView());
+
+    // var d3image = d3.select('#GROUP-' + linkId);
+    // var imageLoc = d3image.node().getBoundingClientRect();
+    // var oldHeight = imageLoc.height;
+    // var oldWidth = imageLoc.width;
+    // var oldScale = view.scale;
+    // var scale = 1.0;
+    //
+    // if(oldHeight > oldWidth) {
+    //   scale = (view.height * oldScale) / (oldHeight);
+    // }
+    // else {
+    //   scale = (view.width * oldScale) / (oldWidth);
+    // }
+    // scale = scale*0.90;
+    //
+    // var marginX = (view.width - oldWidth*scale/view.scale)/2;
+    // var marginY = (view.height - oldHeight*scale/view.scale)/2;
+    //
+    // ViewActions.updateViewport(
+    //   (view.left - winLoc.left + view.leftFromWindow)*scale/view.scale + marginX,
+    //   (view.top - winLoc.top + view.topFromWindow)*scale/view.scale + marginY,
+    //   null,
+    //   null,
+    //   scale,
+    //   true
+    // );
   }
 
   componentDidMount() {

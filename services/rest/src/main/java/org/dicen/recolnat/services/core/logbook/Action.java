@@ -65,8 +65,8 @@ public class Action implements Comparable<Action> {
         this.date = e.getProperty(DataModel.Properties.creationDate);
         // Sort action by type, find target if necessary
         switch((String) linkedVertex.getProperty("@class")) {
-          case DataModel.Classes.comment:
-            this.action = "Comment";
+          case DataModel.Classes.annotation:
+            this.action = "Annotation";
             break;
 //            case DataModel.Classes.coordinates:
 //              this.action = "Coordinates";

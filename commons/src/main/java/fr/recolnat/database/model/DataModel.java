@@ -23,7 +23,9 @@ public class DataModel {
       public static final String tag = "Tag";
       public static final String tagging = "TagAssociation";
       
-      public static final String comment = "Comment";
+      public static final String annotation = "Annotation";
+      
+//      public static final String comment = "Comment";
 //      public static final String transcription = "Transcription";
 //      public static final String determination = "Determination";
 //      public static final String vernacularName = "VernacularName";
@@ -119,10 +121,13 @@ public class DataModel {
     
     // Shared (used in more than one class)
     public static final String name = "name";
-    public static final String type = "type";
+//    public static final String type = "type";
     public static final String coordX = "x";
     public static final String coordY = "y";
     public static final String coordZ = "z";
+    
+    // Measurement
+    public static final String measureType = "measureType";
     
     // OriginalSource
     public static final String origin = "origin";

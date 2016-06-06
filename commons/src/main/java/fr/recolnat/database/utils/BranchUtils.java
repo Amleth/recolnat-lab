@@ -32,7 +32,7 @@ public class BranchUtils {
     OrientVertex vBranch = null;
     Iterator<Vertex> itLinks = null;
     switch ((String) vStart.getProperty("@class")) {
-      case DataModel.Classes.comment:
+      case DataModel.Classes.annotation:
         // Do not branch
         return null;
       case DataModel.Classes.discussion:
@@ -213,8 +213,8 @@ public class BranchUtils {
 
   private static OrientVertex branchMeasurement(OrientVertex vMeasurement, OrientVertex vUser, OrientGraph g) {
     Double value = vMeasurement.getProperty(DataModel.Properties.pxValue);
-    DataModel.Enums.Measurement type = vMeasurement.getProperty(DataModel.Properties.type);
-    OrientVertex vMeasurementFork = CreatorUtils.createMeasurement(value, type, g);
+    DataModel.Enums.Measurement measureType = vMeasurement.getProperty(DataModel.Properties.measureType);
+    OrientVertex vMeasurementFork = CreatorUtils.createMeasurement(value, measureType, g);
     vMeasurementFork.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_SIDE);
 
     UpdateUtils.link(vMeasurement, vMeasurementFork, DataModel.Links.isForkedAs, (String) vUser.getProperty(DataModel.Properties.id), g);

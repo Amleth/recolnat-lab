@@ -22,6 +22,7 @@ import java.util.Set;
  */
 public class RegionOfInterest extends AbstractObject {
   private final Set<String> measurements = new HashSet<>();
+  
 
   public RegionOfInterest(OrientVertex vRoi, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
     super(vRoi, vUser, g);
@@ -38,6 +39,16 @@ public class RegionOfInterest extends AbstractObject {
       if(AccessUtils.isLatestVersion(vMeasurement)) {
         if(AccessRights.canRead(vUser, vMeasurement, g)) {
           measurements.add((String) vMeasurement.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
+    
+    Iterator<Vertex> itParents = vRoi.getVertices(Direction.IN, DataModel.Links.roi).iterator();
+    while(itParents.hasNext()) {
+      OrientVertex vParent = (OrientVertex) itParents.next();
+      if(AccessUtils.isLatestVersion(vParent)) {
+        if(AccessRights.canRead(vUser, vParent, g)) {
+          this.parents.add((String) vParent.getProperty(DataModel.Properties.id));
         }
       }
     }

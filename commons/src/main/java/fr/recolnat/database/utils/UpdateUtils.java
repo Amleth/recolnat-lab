@@ -223,6 +223,10 @@ public class UpdateUtils {
 
     return link;
   }
+  
+  public static OrientEdge linkAnnotationToEntity(OrientVertex annotation, OrientVertex entity, String userId, OrientGraph g) {
+      return UpdateUtils.link(entity, annotation, DataModel.Links.hasAnnotation, userId, g);
+  }
 
   public static OrientEdge linkRegionOfInterestToImage(OrientVertex image, OrientVertex regionOfInterest, String userId, OrientGraph g) {
     return UpdateUtils.link(image, regionOfInterest, DataModel.Links.roi, userId, g);

@@ -39,6 +39,11 @@ public class DatabaseTester {
       UpdateUtils.addItemToSet(scirpusSpecimen, sampleSet, user, g);
       UpdateUtils.addItemToSet(festucaSpecimen, sampleSet, user, g);
       UpdateUtils.addItemToSet(ophiloImage, sampleSet, user, g);
+      
+      // Place images
+      UpdateUtils.showItemInView(-1000, -1000, scirpusImage, defaultView, user, g);
+      UpdateUtils.showItemInView(5000, -1000, festucaImage, defaultView, user, g);
+      UpdateUtils.showItemInView(2000, 6000, ophiloImage, defaultView, user, g);
 
 //      UpdateUtils.addCreator(sampleStudy, user, g);
       UpdateUtils.addCreator(sampleSet, user, g);

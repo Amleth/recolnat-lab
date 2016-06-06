@@ -193,39 +193,6 @@ public class ImageEditorResource {
         }
       }
     }
-
-    // Store ROI annotation
-//    retry = true;
-//    while (retry) {
-//      retry = false;
-//      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-//      try {
-//        // No need to check rights, it is freshly created.
-//        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-//        // Create annotation of the right type
-//        OrientVertex vArea = CreatorUtils.createMeasurement(area, DataModel.Enums.Measurement.AREA, g);
-//        OrientVertex vPerim = CreatorUtils.createMeasurement(perimeter, DataModel.Enums.Measurement.PERIMETER, g);
-//        // Link annotation to polygon
-//        UpdateUtils.linkAnnotationToEntity(roiId, vArea, g);
-//        UpdateUtils.linkAnnotationToEntity(roiId, vPerim, g);
-//        // Link annotation to creator user
-//        UpdateUtils.addCreator(vArea, vUser, g);
-//        UpdateUtils.addCreator(vPerim, vUser, g);
-//        // Grant access rights to creator
-//        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, g);
-//        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, g);
-//        g.commit();
-//      } catch (OConcurrentModificationException e) {
-//        log.warn("Database busy, retrying operation");
-//        retry = true;
-//      } finally {
-//        if (!g.isClosed()) {
-//          g.rollback();
-//          g.shutdown();
-//        }
-//      }
-//    }
-
     // Return OK
     return Globals.OK;
   }
@@ -287,71 +254,56 @@ public class ImageEditorResource {
     return Globals.OK;
   }
 
-//  @POST
-//  @Consumes(MediaType.APPLICATION_JSON)
-//  @Path("/add-annotation")
-//  @Timed
-//  public String addAnnotation(final String input, @Context HttpServletRequest request) throws JSONException {
-//    if (log.isTraceEnabled()) {
-//      log.trace("Entering /add-annotation");
-//    }
-//    JSONObject params = new JSONObject(input);
-//    String session = SessionManager.getSessionId(request, true);
-//    String user = SessionManager.getUserLogin(session);
-//    String parentObjectId = params.getString("parent");
-//    String annotationType = params.getString("type");
-//    String annotationText = params.getString("content");
-//    boolean retry;
-//
-//    // Convert data exchange model annotation type to database model type
-//    if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.transcription))
-//    {
-//      annotationType = DataModel.Classes.transcription;
-//    }
-//    else if (annotationType.equals(Globals.ExchangeModel.ImageEditorProperties.AnnotationTypes.note))
-//    {
-//      annotationType = DataModel.Classes.comment;
-//    }
-//    else {
-//      log.error("Unrecognized annotation type " + annotationType);
-//      throw new WebApplicationException("Unrecognized annotation type " + annotationType);
-//    }
-//
-//    retry = true;
-//    while(retry) {
-//      retry = false;
-//      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-//      try {
-//        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-//        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
-//        // Check write rights
-//        if(!AccessRights.canWrite(vUser, vEntity, g)) {
-//          throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Status.FORBIDDEN);
-//        }
-//        // Create annotation of the right type
-//        OrientVertex vAnnotation = CreatorUtils.createTextAnnotation(annotationType, annotationText, g);
-//        // Link annotation to polygon
-//        UpdateUtils.linkAnnotationToEntity(parentObjectId, vAnnotation, g);
-//        // Link annotation to creator user
-//        UpdateUtils.addCreator(vAnnotation, vUser , g);
-//        // Grant creator rights
-//        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
-//        g.commit();
-//      }
-//      catch(OConcurrentModificationException e) {
-//        log.warn("Database busy, retrying operation");
-//        retry = true;
-//      }
-//      finally {
-//        if (!g.isClosed()) {
-//          g.rollback();
-//          g.shutdown();
-//        }
-//      }
-//    }
-//
-//    return Globals.OK;
-//  }
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/add-annotation")
+  @Timed
+  public String addAnnotation(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Entering /add-annotation");
+    }
+    JSONObject params = new JSONObject(input);
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String parentObjectId = params.getString("parent");
+    String annotationText = params.getString("content");
+    
+    boolean retry = true;
+    while(retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
+        // Check write rights
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Status.FORBIDDEN);
+        }
+        // Create annotation of the right type
+        OrientVertex vAnnotation = CreatorUtils.createAnnotation(annotationText, g);
+        // Link annotation to polygon
+        UpdateUtils.linkAnnotationToEntity(vAnnotation, vEntity, (String) vUser.getProperty(DataModel.Properties.id), g);
+        // Link annotation to creator user
+        UpdateUtils.addCreator(vAnnotation, vUser , g);
+        // Grant creator rights
+        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
+        g.commit();
+      }
+      catch(OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      }
+      finally {
+        if (!g.isClosed()) {
+          g.rollback();
+          g.shutdown();
+        }
+      }
+    }
+
+    return Globals.OK;
+  }
+  
   /**
    * Unit must be mm, cm, m, in
    *

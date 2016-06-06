@@ -14,21 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.AccessDeniedException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Iterator;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
  */
-@Deprecated
 public class Annotation extends AbstractObject{
-//  private String id = null;
-  
-//  private Long date = null;
-//  private String textContent = null;
-  private String creator = null;
-  private final Set<String> discussions = new HashSet<>();
-//  private boolean userCanDelete = false;
+    String creator;
 
   private final static Logger log = LoggerFactory.getLogger(Annotation.class);
 
@@ -42,12 +34,22 @@ public class Annotation extends AbstractObject{
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(v, vUser, g);
     this.creator = AccessUtils.getCreatorId(v, g);
     
+    Iterator<Vertex> itParents = v.getVertices(Direction.IN, DataModel.Links.hasMeasurement, DataModel.Links.hasAnnotation).iterator();
+    while(itParents.hasNext()) {
+      OrientVertex vParent = (OrientVertex) itParents.next();
+      if(AccessUtils.isLatestVersion(vParent)) {
+        if(AccessRights.canRead(vUser, vParent, g)) {
+          this.parents.add((String) vParent.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
+    
   }
 
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
-    ret.put("creator", creator);
-
+    ret.put("creator", this.creator);
+    
     return ret;
   }
 }

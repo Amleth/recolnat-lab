@@ -5,12 +5,20 @@
  */
 package fr.recolnat.database.model.impl;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.utils.AccessRights;
+import fr.recolnat.database.utils.AccessUtils;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -22,7 +30,9 @@ import org.slf4j.LoggerFactory;
  */
 public class AbstractObject {
   protected final Map<String, Object> properties = new HashMap<>();
+  protected final Set<String> parents = new HashSet<>();
   protected boolean userCanDelete = false;
+  protected final Set<String> annotations = new HashSet<>();
   private String type = null;
   
   private final Logger log = LoggerFactory.getLogger(AbstractObject.class);
@@ -48,6 +58,20 @@ public class AbstractObject {
       log.trace("----- END OBJECT PROPERTIES -----");
     }
     this.type = e.getProperty("@class");
+    
+    // Get annotations
+    if(e.getElementType().equals("Vertex")) {
+        OrientVertex v = (OrientVertex) e;
+        Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
+        while(itAnnots.hasNext()) {
+            OrientVertex vAnnotation = (OrientVertex) itAnnots.next();
+            if(AccessUtils.isLatestVersion(vAnnotation)) {
+              if(AccessRights.canRead(vUser, vAnnotation, g)) {
+                this.annotations.add((String) vAnnotation.getProperty(DataModel.Properties.id));
+              }
+            }
+        }
+    }
   }
   
   public JSONObject toJSON() throws JSONException {
@@ -60,6 +84,20 @@ public class AbstractObject {
     }
     ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
+    
+    JSONArray jAnnots = new JSONArray();
+    Iterator<String> itAnnots = annotations.iterator();
+    while(itAnnots.hasNext()) {
+      jAnnots.put(itAnnots.next());
+    }
+    ret.put("annotations", jAnnots);
+    
+    JSONArray jParents = new JSONArray();
+    Iterator<String> itParents = parents.iterator();
+    while(itParents.hasNext()) {
+      jParents.put(itParents.next());
+    }
+    ret.put("parents", jParents);
     
     return ret;
   }

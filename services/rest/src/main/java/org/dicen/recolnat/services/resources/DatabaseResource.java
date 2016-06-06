@@ -12,6 +12,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.StructureBuilder;
 import fr.recolnat.database.model.impl.AbstractObject;
+import fr.recolnat.database.model.impl.Annotation;
 import fr.recolnat.database.model.impl.MeasureStandard;
 import fr.recolnat.database.model.impl.OriginalSource;
 import fr.recolnat.database.model.impl.PointOfInterest;
@@ -252,6 +253,8 @@ OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
         return new RegionOfInterest(v, vUser, g);
       case DataModel.Classes.trailOfInterest:
         return new TrailOfInterest(v, vUser, g);
+      case DataModel.Classes.annotation:
+        return new Annotation(v, vUser, g);
       case DataModel.Classes.image:
         return new RecolnatImage(v, vUser, g);
       case DataModel.Classes.measureStandard:

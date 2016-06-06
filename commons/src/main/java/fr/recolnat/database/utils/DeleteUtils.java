@@ -347,9 +347,16 @@ public class DeleteUtils {
       // Can a part be deleted without deleting the sheet it is part of?
 //        return false;
       case DataModel.Classes.specimen:
-        // Not deletable, but the link between an entity and a specimen is deletable
-        // Unless someone identified a new specimen
+        // Main branch not deletable, side branch deletable with the usual restrictions
+        if(!BranchUtils.isMainBranch(vObject, g)) {
+            return true;
+        }
         return false;
+      case DataModel.Classes.image:
+          if(!BranchUtils.isMainBranch(vObject, g)) {
+            return true;
+            }
+          return false;
       case DataModel.Classes.user:
         // Not deletable
         return false;
@@ -376,7 +383,7 @@ public class DeleteUtils {
         // Deletable only if not shared and user has write access
         // Sharing already checked
         return true;
-      case DataModel.Classes.comment:
+      case DataModel.Classes.annotation:
         return true;
 //      case DataModel.Classes.coordinates:
 //        return true;

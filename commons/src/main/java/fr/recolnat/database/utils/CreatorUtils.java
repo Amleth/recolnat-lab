@@ -397,21 +397,13 @@ public class CreatorUtils {
     return pointOfInterest;
   }
 
-  public static OrientVertex createAnnotation(String type, OrientGraph g) {
-    OrientVertex annotation = g.addVertex("class:" + type);
+  public static OrientVertex createAnnotation(String text, OrientGraph g) {
+    OrientVertex annotation = g.addVertex("class:" + DataModel.Classes.annotation);
 
     annotation.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     annotation.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
     annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
-
-    return annotation;
-  }
-
-  public static OrientVertex createTextAnnotation(String type, String textContent, OrientGraph g) {
-    OrientVertex annotation = CreatorUtils.createAnnotation(type, g);
-
-    annotation.setProperty(DataModel.Properties.content, textContent);
-    annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
+    annotation.setProperty(DataModel.Properties.content, text);
 
     return annotation;
   }
@@ -455,7 +447,7 @@ public class CreatorUtils {
     OrientVertex annotation = CreatorUtils.createAnnotation(DataModel.Classes.measurement, g);
 
     annotation.setProperty(DataModel.Properties.pxValue, value);
-    annotation.setProperty(DataModel.Properties.type, type.value());
+    annotation.setProperty(DataModel.Properties.measureType, type.value());
     annotation.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
 
     return annotation;

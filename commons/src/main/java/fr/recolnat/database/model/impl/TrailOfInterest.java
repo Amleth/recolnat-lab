@@ -41,12 +41,21 @@ public class TrailOfInterest extends AbstractObject {
         }
       }
     }
+    
+    Iterator<Vertex> itParents = vPath.getVertices(Direction.IN, DataModel.Links.roi).iterator();
+    while(itParents.hasNext()) {
+      OrientVertex vParent = (OrientVertex) itParents.next();
+      if(AccessUtils.isLatestVersion(vParent)) {
+        if(AccessRights.canRead(vUser, vParent, g)) {
+          this.parents.add((String) vParent.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
   }
 
   @Override
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
-    
 
     JSONArray jMeasurements = new JSONArray();
     Iterator<String> itAnnot = measurements.iterator();

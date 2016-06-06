@@ -7,6 +7,8 @@ import React from 'react';
 
 import MetadataActions from '../../actions/MetadataActions';
 
+import Globals from '../../utils/Globals';
+
 class ElementInspector extends React.Component {
   constructor(props) {
     super(props);
@@ -48,9 +50,19 @@ class ElementInspector extends React.Component {
       return setModeVisibility.apply(this);
     };
 
-    this._onMetadataChange = () => {
-      const displayMetadata = () => this.displayMetadata();
-      return displayMetadata.apply(this);
+    this._onEntityMetadataChange = () => {
+      const processEntityMetadata = () => this.processEntityMetadata();
+      return processEntityMetadata.apply(this);
+    };
+
+    this._onAnnotationMetadataChange = () => {
+      const processAnnotationMetadata = () => this.processAnnotationMetadata();
+      return processAnnotationMetadata.apply(this);
+    };
+
+      this._onCreatorMetadataChange = () => {
+        const processCreatorMetadata = () => this.processCreatorMetadata();
+        return processCreatorMetadata.apply(this);
     };
 
     this.state = {
@@ -58,35 +70,41 @@ class ElementInspector extends React.Component {
       imageUrl: 'https://upload.wikimedia.org/wikipedia/en/8/89/Construction_Icon_small.png',
       name: 'Nom bidon',
       currentIndex: -1,
-      elementIds: [],
+      entityIds: [],
+      selectedEntityMetadata: null,
+      annotationIds: [],
+      annotationsMetadata: {},
+      creatorIds: [],
+      creatorsMetadata: {},
       metadata: [
-        {key: 'Distance', value: '20 bornes'},
-        {key: 'Nom', value: 'Pigeon temporaire'},
-        {key: 'KPI', value: '21.3'},
-        {key: "Les sanglots longs des violons de l'automne", value: "Blessent mon coeur d'une langueur monotone"},
-        {key: 'Rien', value: ''}
+
       ],
       tags: [
-        {name: 'Velue'},
-        {name: 'Glanuleuse'},
-        {name: 'Spinescent'},
-        {name: 'Infundibuliforme'},
-        {name: "C'est quoi ?"},
-        {name: "!!!!"},
-        {name: "12/03/2002"}
+
       ]
     };
   }
 
   setInspectorContent() {
     if(this.state.currentIndex > -1) {
-      this.props.metastore.removeMetadataUpdateListener(this.state.elementIds[this.state.currentIndex], this._onMetadataChange);
+      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
+    }
+    else {
+      this.clearListeners(null, true, true);
     }
     var elements = this.props.inspecstore.getInspectorContent();
-    this.setState({elementIds: elements});
+    this.setState({
+      entityIds: elements,
+      selectedEntityMetadata: null,
+      annotationIds: [],
+      annotationsMetadata: {},
+      creatorIds: [],
+      creatorsMetadata: {},
+    });
+
     if(elements.length > 0) {
       this.setState({currentIndex: 0});
-      this.props.metastore.addMetadataUpdateListener(elements[0], this._onMetadataChange);
+      this.props.metastore.addMetadataUpdateListener(elements[0], this._onEntityMetadataChange);
       window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
     }
     else {
@@ -94,39 +112,213 @@ class ElementInspector extends React.Component {
     }
   }
 
-  displayMetadata() {
-    if(this.state.currentIndex < 0) {
-      return;
+  previousItem() {
+    var index = this.state.currentIndex;
+    if(index == 0) {
+      this.setActiveElement(this.state.entityIds.length-1);
     }
-    var metadata = this.props.metastore.getMetadataAbout(this.state.elementIds[this.state.currentIndex]);
-    if(!metadata) {
-      console.error('No metadata');
-      return;
+    else {
+      this.setActiveElement(index-1);
     }
-    var keyValueArray = [];
-    var keys = Object.keys(metadata);
-    for(var i = 0; i < keys.length; ++i) {
-      var key = keys[i];
-      switch(typeof metadata[key]) {
-        case 'number':
-        case 'string':
-        case 'boolean':
-        case 'symbol':
-          keyValueArray.push({key: key, value: metadata[key]});
-          break;
-        case 'function':
-          break;
-        case 'object':
-          if(!Array.isArray(metadata[key])) {
-            keyValueArray.push({key: key, value: metadata[key]});
-          }
-          break;
-        default:
-          console.error('No processor for type ' + typeof metadata[key] + ' / ' + metadata[key] + ' / ' + key);
+  }
+
+  nextItem() {
+    var index = this.state.currentIndex;
+    if(index == this.state.entityIds.length-1) {
+      this.setActiveElement(0);
+    }
+    else {
+      this.setActiveElement(index+1);
+    }
+  }
+
+  clearListeners(entity, removeAnnotations, removeCreators) {
+    if(entity) {
+      this.props.metastore.removeMetadataUpdateListener(entity, this._onEntityMetadataChange);
+    }
+
+    if(removeAnnotations) {
+      for(var i = 0; i < this.state.annotationIds.length; ++i) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.annotationIds[i], this._onAnnotationMetadataChange);
       }
     }
 
-    this.setState({metadata: keyValueArray, name: metadata.name, tags: []});
+    if(removeCreators) {
+      for(var j = 0; j < this.state.creatorIds.length; ++j) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.creatorIds[j], this._onCreatorMetadataChange);
+      }
+    }
+  }
+
+  setActiveElement(index) {
+    if(this.state.currentIndex > -1) {
+      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
+    }
+
+    this.setState({
+      currentIndex: index,
+      selectedEntityMetadata: null,
+      annotationIds: [],
+      annotationsMetadata: {},
+      creatorIds: [],
+      creatorsMetadata: {},
+    });
+    this.props.metastore.addMetadataUpdateListener([this.state.entityIds[index]], this._onEntityMetadataChange);
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, [this.state.entityIds[index]]), 10);
+  }
+
+  processEntityMetadata() {
+    if(this.state.currentIndex < 0) {
+      return;
+    }
+
+    var metadata = this.props.metastore.getMetadataAbout(this.state.entityIds[this.state.currentIndex]);
+
+    if(!metadata) {
+      console.error('No metadata for ' + this.state.entityIds[this.state.currentIndex]);
+      return;
+    }
+
+    var metadataIds = [];
+    if(metadata.annotations) {
+      for(var i = 0; i < metadata.annotations.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(metadata.annotations[i], this._onAnnotationMetadataChange);
+        metadataIds.push(metadata.annotations[i]);
+      }
+    }
+
+    if(metadata.measurements) {
+      for(var j = 0; j < metadata.measurements.length; ++j) {
+        this.props.metastore.addMetadataUpdateListener(metadata.measurements[j], this._onAnnotationMetadataChange);
+        metadataIds.push(metadata.measurements[j]);
+      }
+    }
+
+
+    this.setState({
+      selectedEntityMetadata: metadata,
+      annotationIds: metadataIds,
+      annotationsMetadata: {},
+      name: metadata.name
+    });
+
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, metadataIds), 10);
+  }
+
+  processAnnotationMetadata() {
+    var annotations = {};
+    var creatorIds = [];
+    for(var i = 0; i < this.state.annotationIds.length; ++i) {
+      var metadata = this.props.metastore.getMetadataAbout(this.state.annotationIds[i]);
+      if(metadata) {
+        annotations[metadata.uid] = metadata;
+        if(metadata.creator) {
+          creatorIds.push(metadata.creator);
+        }
+      }
+    }
+
+    creatorIds = _.uniq(creatorIds);
+    var newCreatorIds = _.difference(creatorIds, this.state.creatorIds);
+    var removedCreatorIds = _.difference(this.state.creatorIds, creatorIds);
+
+    for(var k = 0; k < newCreatorIds.length; ++k) {
+      this.props.metastore.addMetadataUpdateListener(newCreatorIds[k], this._onCreatorMetadataChange);
+    }
+    for(k = 0; k < removedCreatorIds.length; ++k) {
+      this.props.metastore.removeMetadataUpdateListener(newCreatorIds[k], this._onCreatorMetadataChange);
+    }
+    this.setState({
+      annotationsMetadata: annotations,
+      creatorIds: creatorIds
+    });
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, newCreatorIds), 10);
+  }
+
+  processCreatorMetadata() {
+    var creators = {};
+    for(var i = 0; i < this.state.creatorIds.length; ++i) {
+      var metadata = this.props.metastore.getMetadataAbout(this.state.creatorIds[i]);
+      if(metadata) {
+        creators[metadata.uid] = metadata;
+      }
+    }
+    this.setState({
+      creatorsMetadata: creators
+    });
+  }
+
+  buildDisplay(state) {
+    var metadatas = [];
+    if(state.currentIndex >= 0) {
+      var displayedEntityId = state.entityIds[state.currentIndex];
+      if(state.selectedEntityMetadata) {
+        if(state.selectedEntityMetadata.annotations) {
+        for(var i = 0; i < state.selectedEntityMetadata.annotations.length; ++i) {
+          var annotationMetadata = state.annotationsMetadata[state.selectedEntityMetadata.annotations[i]];
+          if(annotationMetadata) {
+            var item = {
+              date: new Date(annotationMetadata.creationDate),
+              value: annotationMetadata.content
+            };
+            if(!annotationMetadata.creator) {
+              item.author = 'Système ReColNat';
+            }
+            else {
+            var authorMetadata = state.creatorsMetadata[annotationMetadata.creator];
+            if(authorMetadata) {
+              item.author = authorMetadata.name;
+            }
+          }
+
+            metadatas.push(item);
+          }
+        }
+      }
+
+      if(state.selectedEntityMetadata.measurements) {
+        for(i = 0; i < state.selectedEntityMetadata.measurements.length; ++i) {
+          var measureMetadata = state.annotationsMetadata[state.selectedEntityMetadata.measurements[i]];
+          if(measureMetadata) {
+            var item = {
+              date: new Date(measureMetadata.creationDate)
+            };
+            // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
+            var imageId = state.selectedEntityMetadata.parents[0];
+            var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
+            var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+            if(mmPerPixel) {
+              switch(measureMetadata.measureType) {
+                case 101: // Length or perimeter
+                item.value = (mmPerPixel * measureMetadata.valueInPx) + ' mm';
+                break;
+                case 100: // Area
+                item.value = (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
+                break;
+                default:
+                console.warn('Unknown measure type ' + measureMetadata.measureType);
+              }
+            }
+            else {
+              item.value = measureMetadata.valueInPx + ' px';
+              item.warning = 'Aucun étalon disponible pour la conversion';
+            }
+            if(!measureMetadata.creator) {
+              item.author = 'Système ReColNat';
+            }
+            else {
+            var authorMetadata = state.creatorsMetadata[measureMetadata.creator];
+            if(authorMetadata) {
+              item.author = authorMetadata.name;
+            }
+          }
+            metadatas.push(item);
+          }
+        }
+      }
+      }
+    }
+    return metadatas;
   }
 
   componentDidMount() {
@@ -137,15 +329,20 @@ class ElementInspector extends React.Component {
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.containerStyle.display = '';
+      nextState.metadata = this.buildDisplay(nextState);
     }
     else {
       this.containerStyle.display = 'none';
     }
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    $('.yellow.warning.icon', $(this.refs.annotations.getDOMNode())).popup();
+  }
+
   componentWillUnmount() {
     if(this.state.currentIndex > -1) {
-      this.props.metastore.removeMetadataUpdateListener(this.state.elementIds[this.state.currentIndex], this._onMetadataChange);
+      this.props.metastore.removeMetadataUpdateListener(this.state.entityIds[this.state.currentIndex], this._onMetadataChange);
     }
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
@@ -167,27 +364,36 @@ class ElementInspector extends React.Component {
         </a>
         <div className='ui icon right menu'>
           <a className='fitted item'>
-            <i className='left arrow icon' />
+            <i className='left arrow icon' onClick={this.previousItem.bind(this)}/>
           </a>
           <a className='fitted item'>
-            <i className='right arrow icon' />
+            <i className='right arrow icon' onClick={this.nextItem.bind(this)}/>
           </a>
         </div>
       </div>
 
-      <div className='meta' style={this.metadataStyle}>
-        <table className='ui small celled striped very compact table'>
-          <tbody>
+      <div ref='annotations' className='ui comments' style={this.metadataStyle}>
+      <h3 class="ui dividing header">Mesures & Annotations</h3>
           {
             this.state.metadata.map(function(meta, index) {
-              return <tr key={index}>
-                <td className='right aligned six wide'><b>{meta.key}</b></td>
-                <td className='left aligned ten wide'>{meta.value}</td>
-              </tr>
+              var icon = '';
+              if(meta.warning) {
+                icon = 'yellow warning icon';
+              }
+              return <div className='comment' key={index}>
+              <div className="content">
+                <a className="author">{meta.author}</a>
+                <div className="metadata">
+                  <span className="date">{meta.date}</span>
+                </div>
+                <div className="text">
+                  {meta.value}<i className={icon} data-content={meta.warning}/>
+                </div>
+              </div>
+              </div>
             })
           }
-          </tbody>
-        </table>
+
       </div>
       <div className='extra' style={this.tagsStyle}>
         <div className='ui tag labels'>

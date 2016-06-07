@@ -11,6 +11,7 @@ import AddEntitiesToSetModal from './modals/AddEntitiesToSetModal';
 import NewStudyModal from './modals/NewStudyModal';
 import LoginModal from './modals/LoginModal';
 import ConfirmDeleteModal from './modals/ConfirmDelete';
+import AddAnnotationToEntity from './modals/AddAnnotationToEntity';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -61,6 +62,8 @@ class ManagerModals extends React.Component {
                              managerstore={this.props.managerstore} />
       <ConfirmDeleteModal modalstore={this.props.modalstore}
                           metastore={this.props.metastore} />
+      <AddAnnotationToEntity modalstore={this.props.modalstore}
+      />
     </div>
   }
 }

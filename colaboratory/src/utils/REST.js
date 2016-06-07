@@ -72,6 +72,28 @@ export default class REST {
             onSuccessCallback(JSON.parse(res.text));
           }
         }
+      });
+  }
+
+  static addAnnotation(annotationText, entity, onSuccessCallback=undefined, onErrorCallback = undefined) {
+    request.post(conf.actions.databaseActions.addAnnotation)
+      .send({
+        entity: entity,
+        text: annotationText
+      })
+      .withCredentials()
+      .end((err, res) => {
+        if(err) {
+          console.error('Error adding annotation to ' + entity + ' : ' + err);
+          if(onErrorCallback) {
+            onErrorCallback();
+          }
+        }
+        else {
+          if(onSuccessCallback) {
+            onSuccessCallback(JSON.parse(res.text));
+          }
+        }
       })
   }
 };

@@ -31,17 +31,21 @@ class ModalStore extends EventEmitter {
           else {
             this.targetData = action.target;
           }
-          if(action.onSuccess) {
-            this.onSuccess = action.onSuccess;
-          }
-          else {
-            this.onSuccess = function() {};
-          }
-          if(action.onError) {
-            this.onError = action.onError;
-          }
-          else {
-            this.onError = function() {};
+          if(action.id) {
+            if (action.onSuccess) {
+              this.onSuccess = action.onSuccess;
+            }
+            else {
+              this.onSuccess = function () {
+              };
+            }
+            if (action.onError) {
+              this.onError = action.onError;
+            }
+            else {
+              this.onError = function () {
+              };
+            }
           }
           this.emit(ModalEvents.SHOW_MODAL);
           break;

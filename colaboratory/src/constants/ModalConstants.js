@@ -4,13 +4,16 @@
 'use strict';
 
 export default {
-ActionTypes: {
-  SHOW_MODAL: 'MODAL_SHOW_MODAL'
-},
+  ActionTypes: {
+    SHOW_MODAL: 'MODAL_SHOW_MODAL',
+    SUCCESS: 'MODAL_SUCCESS',
+    ERROR: 'MODAL_ERROR'
+  },
   Modals: {
     createStudy: 'MODAL_createStudy',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
     login: 'MODAL_login',
-    confirmDelete: 'MODAL_confirmDelete'
+    confirmDelete: 'MODAL_confirmDelete',
+    addAnnotationToEntity: 'MODAL_addAnnotationToEntity'
   }
 };

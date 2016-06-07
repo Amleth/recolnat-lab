@@ -25,8 +25,10 @@ import fr.recolnat.database.model.impl.StudySet;
 import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
+import fr.recolnat.database.utils.CreatorUtils;
 import fr.recolnat.database.utils.DatabaseTester;
 import fr.recolnat.database.utils.DeleteUtils;
+import fr.recolnat.database.utils.UpdateUtils;
 import java.nio.file.AccessDeniedException;
 import java.util.Iterator;
 import java.util.List;
@@ -238,6 +240,56 @@ OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
       g.rollback();
       g.shutdown();
     }
+  }
+  
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/add-annotation")
+  @Timed
+  public String addAnnotation(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Entering /add-annotation");
+    }
+    JSONObject params = new JSONObject(input);
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String parentObjectId = params.getString("entity");
+    String annotationText = params.getString("text");
+    
+    boolean retry = true;
+    while(retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
+        // Check write rights
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + parentObjectId, Response.Status.FORBIDDEN);
+        }
+        // Create annotation of the right type
+        OrientVertex vAnnotation = CreatorUtils.createAnnotation(annotationText, g);
+        // Link annotation to polygon
+        UpdateUtils.linkAnnotationToEntity(vAnnotation, vEntity, (String) vUser.getProperty(DataModel.Properties.id), g);
+        // Link annotation to creator user
+        UpdateUtils.addCreator(vAnnotation, vUser , g);
+        // Grant creator rights
+        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
+        g.commit();
+      }
+      catch(OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      }
+      finally {
+        if (!g.isClosed()) {
+          g.rollback();
+          g.shutdown();
+        }
+      }
+    }
+
+    return Globals.OK;
   }
 
   private AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException, AccessDeniedException {

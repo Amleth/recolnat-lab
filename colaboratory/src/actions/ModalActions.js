@@ -15,5 +15,17 @@ export default {
       onSuccess: onSuccess,
       onError: onError
     });
+  },
+
+  runSuccess: () => {
+    AppDispatcher.dispatch({
+      actionType: ModalConstants.ActionTypes.SUCCESS,
+    });
+  },
+
+  runError: () => {
+    AppDispatcher.dispatch({
+      actionType: ModalConstants.ActionTypes.ERROR,
+    });
   }
 }

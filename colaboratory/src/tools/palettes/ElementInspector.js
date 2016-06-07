@@ -6,6 +6,9 @@
 import React from 'react';
 
 import MetadataActions from '../../actions/MetadataActions';
+import ModalActions from '../../actions/ModalActions';
+
+import ModalConstants from '../../constants/ModalConstants';
 
 import Globals from '../../utils/Globals';
 
@@ -16,7 +19,8 @@ class ElementInspector extends React.Component {
     this.containerStyle = {
       height: this.props.height,
       padding: '5px 5px 5px 5px',
-      margin: '1%'
+      margin: '1%',
+      overflow: 'hidden'
     };
 
     this.fixedHeightStyle = {
@@ -29,7 +33,17 @@ class ElementInspector extends React.Component {
 
     this.metadataStyle = {
       overflowY: 'auto',
-      height: '80%'
+      height: '80%',
+      margin: 0,
+      padding: 0
+    };
+
+    this.annotationTitleStyle = {
+      margin: 0,
+      width: '80%',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     };
 
     this.tagsStyle = {
@@ -60,15 +74,15 @@ class ElementInspector extends React.Component {
       return processAnnotationMetadata.apply(this);
     };
 
-      this._onCreatorMetadataChange = () => {
-        const processCreatorMetadata = () => this.processCreatorMetadata();
-        return processCreatorMetadata.apply(this);
+    this._onCreatorMetadataChange = () => {
+      const processCreatorMetadata = () => this.processCreatorMetadata();
+      return processCreatorMetadata.apply(this);
     };
 
     this.state = {
       isVisibleInCurrentMode: true,
       imageUrl: 'https://upload.wikimedia.org/wikipedia/en/8/89/Construction_Icon_small.png',
-      name: 'Nom bidon',
+      name: "Inspecteur d'élements",
       currentIndex: -1,
       entityIds: [],
       selectedEntityMetadata: null,
@@ -99,7 +113,7 @@ class ElementInspector extends React.Component {
       annotationIds: [],
       annotationsMetadata: {},
       creatorIds: [],
-      creatorsMetadata: {},
+      creatorsMetadata: {}
     });
 
     if(elements.length > 0) {
@@ -254,71 +268,90 @@ class ElementInspector extends React.Component {
       var displayedEntityId = state.entityIds[state.currentIndex];
       if(state.selectedEntityMetadata) {
         if(state.selectedEntityMetadata.annotations) {
-        for(var i = 0; i < state.selectedEntityMetadata.annotations.length; ++i) {
-          var annotationMetadata = state.annotationsMetadata[state.selectedEntityMetadata.annotations[i]];
-          if(annotationMetadata) {
-            var item = {
-              date: new Date(annotationMetadata.creationDate),
-              value: annotationMetadata.content
-            };
-            if(!annotationMetadata.creator) {
-              item.author = 'Système ReColNat';
-            }
-            else {
-            var authorMetadata = state.creatorsMetadata[annotationMetadata.creator];
-            if(authorMetadata) {
-              item.author = authorMetadata.name;
-            }
-          }
-
-            metadatas.push(item);
-          }
-        }
-      }
-
-      if(state.selectedEntityMetadata.measurements) {
-        for(i = 0; i < state.selectedEntityMetadata.measurements.length; ++i) {
-          var measureMetadata = state.annotationsMetadata[state.selectedEntityMetadata.measurements[i]];
-          if(measureMetadata) {
-            var item = {
-              date: new Date(measureMetadata.creationDate)
-            };
-            // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
-            var imageId = state.selectedEntityMetadata.parents[0];
-            var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
-            var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
-            if(mmPerPixel) {
-              switch(measureMetadata.measureType) {
-                case 101: // Length or perimeter
-                item.value = (mmPerPixel * measureMetadata.valueInPx) + ' mm';
-                break;
-                case 100: // Area
-                item.value = (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
-                break;
-                default:
-                console.warn('Unknown measure type ' + measureMetadata.measureType);
+          for(var i = 0; i < state.selectedEntityMetadata.annotations.length; ++i) {
+            var annotationMetadata = state.annotationsMetadata[state.selectedEntityMetadata.annotations[i]];
+            if(annotationMetadata) {
+              var item = {
+                date: new Date(),
+                value: annotationMetadata.content
+              };
+              item.date.setTime(annotationMetadata.creationDate);
+              item.date = item.date.toLocaleDateString();
+              if(!annotationMetadata.creator) {
+                item.author = 'Système ReColNat';
               }
+              else {
+                var authorMetadata = state.creatorsMetadata[annotationMetadata.creator];
+                if(authorMetadata) {
+                  item.author = authorMetadata.name;
+                }
+              }
+
+              metadatas.push(item);
             }
-            else {
-              item.value = measureMetadata.valueInPx + ' px';
-              item.warning = 'Aucun étalon disponible pour la conversion';
-            }
-            if(!measureMetadata.creator) {
-              item.author = 'Système ReColNat';
-            }
-            else {
-            var authorMetadata = state.creatorsMetadata[measureMetadata.creator];
-            if(authorMetadata) {
-              item.author = authorMetadata.name;
-            }
-          }
-            metadatas.push(item);
           }
         }
-      }
+
+        if(state.selectedEntityMetadata.measurements) {
+          for(i = 0; i < state.selectedEntityMetadata.measurements.length; ++i) {
+            var measureMetadata = state.annotationsMetadata[state.selectedEntityMetadata.measurements[i]];
+            if(measureMetadata) {
+              var item = {
+                date: new Date()
+              };
+              item.date.setTime(measureMetadata.creationDate);
+              item.date = item.date.toLocaleDateString();
+              // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
+              var imageId = state.selectedEntityMetadata.parents[0];
+              var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
+              var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+              if(mmPerPixel) {
+                switch(measureMetadata.measureType) {
+                  case 101: // Length or perimeter
+                    item.value = (mmPerPixel * measureMetadata.valueInPx) + ' mm';
+                    break;
+                  case 100: // Area
+                    item.value = (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
+                    break;
+                  default:
+                    console.warn('Unknown measure type ' + measureMetadata.measureType);
+                }
+              }
+              else {
+                item.value = measureMetadata.valueInPx + ' px';
+                item.warning = 'Aucun étalon disponible pour la conversion';
+              }
+              if(!measureMetadata.creator) {
+                item.author = 'Système ReColNat';
+              }
+              else {
+                var authorMetadata = state.creatorsMetadata[measureMetadata.creator];
+                if(authorMetadata) {
+                  item.author = authorMetadata.name;
+                }
+              }
+              metadatas.push(item);
+            }
+          }
+        }
       }
     }
     return metadatas;
+  }
+
+  addAnnotation() {
+    if(!this.state.selectedEntityMetadata) {
+      alert('Aucune entité sélectionnée');
+      return;
+    }
+    var id = this.state.selectedEntityMetadata.uid;
+    window.setTimeout(
+      ModalActions.showModal.bind(
+        null,
+        ModalConstants.Modals.addAnnotationToEntity,
+        {entity: id},
+        MetadataActions.updateMetadata.bind(null, id)),
+      10);
   }
 
   componentDidMount() {
@@ -338,11 +371,16 @@ class ElementInspector extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     $('.yellow.warning.icon', $(this.refs.annotations.getDOMNode())).popup();
+    $(this.refs.addIcon.getDOMNode()).popup();
+    $(this.refs.title.getDOMNode()).popup();
   }
 
   componentWillUnmount() {
     if(this.state.currentIndex > -1) {
-      this.props.metastore.removeMetadataUpdateListener(this.state.entityIds[this.state.currentIndex], this._onMetadataChange);
+      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
+    }
+    else {
+      this.clearListeners(null, true, true);
     }
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
@@ -359,7 +397,7 @@ class ElementInspector extends React.Component {
                  alt='Image'/>
           </div>
         </a>
-        <a className='fitted item'>
+        <a className='fitted item' ref='title' data-content={this.state.name}>
           {this.state.name}
         </a>
         <div className='ui icon right menu'>
@@ -373,26 +411,32 @@ class ElementInspector extends React.Component {
       </div>
 
       <div ref='annotations' className='ui comments' style={this.metadataStyle}>
-      <h3 class="ui dividing header">Mesures & Annotations</h3>
-          {
-            this.state.metadata.map(function(meta, index) {
-              var icon = '';
-              if(meta.warning) {
-                icon = 'yellow warning icon';
-              }
-              return <div className='comment' key={index}>
+        <h3 class="ui dividing header" style={this.annotationTitleStyle}>
+          Mesures & Annotations
+          <i className='green small add square icon'
+             ref='addIcon'
+             data-content='Ajouter une annotation'
+             onClick={this.addAnnotation.bind(this)}/>
+        </h3>
+        {
+          this.state.metadata.map(function(meta, index) {
+            var icon = '';
+            if(meta.warning) {
+              icon = 'yellow warning icon';
+            }
+            return <div className='comment' key={index}>
               <div className="content">
                 <a className="author">{meta.author}</a>
                 <div className="metadata">
                   <span className="date">{meta.date}</span>
                 </div>
                 <div className="text">
-                  {meta.value}<i className={icon} data-content={meta.warning}/>
+                  <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
                 </div>
               </div>
-              </div>
-            })
-          }
+            </div>
+          })
+        }
 
       </div>
       <div className='extra' style={this.tagsStyle}>

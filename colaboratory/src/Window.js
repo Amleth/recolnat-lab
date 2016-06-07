@@ -142,6 +142,8 @@ class Window extends React.Component {
       top: '10vh',
       zIndex: ViewConstants.zIndices.leftPaneCloseButton,
       height: '20px',
+      width: '10px',
+      opacity: 0.6,
       WebkitTransition: 'left 1s',
       transition: 'left 1s'
     };
@@ -152,6 +154,8 @@ class Window extends React.Component {
       top: '10vh',
       zIndex: ViewConstants.zIndices.rightPaneCloseButton,
       height: '20px',
+      width: '10px',
+      opacity: 0.6,
       WebkitTransition: 'right 1s',
       transition: 'right 1s'
     };

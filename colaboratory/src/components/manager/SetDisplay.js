@@ -39,8 +39,12 @@ class SetDisplay extends React.Component {
     };
 
     this.titleStyle = {
-      height: '10%',
-      padding: '4px 0px'
+      height: '30px',
+      padding: '4px 0px',
+      width: '100%',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     };
 
     this.listContainerStyle = {

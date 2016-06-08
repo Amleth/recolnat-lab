@@ -540,11 +540,12 @@ class D3FreeSpace {
     //console.log(JSON.stringify(objectsAtEvent));
     var inspectorObjects = [];
     var getIds = function(data) {return data.uid};
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
     Array.prototype.push.apply(
       inspectorObjects, objectsAtEvent.images.map(getIds));
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois.map(getIds));
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
-    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
+      
     console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
 
     window.setTimeout(InspectorActions.setInspectorData.bind(null, inspectorObjects), 10);

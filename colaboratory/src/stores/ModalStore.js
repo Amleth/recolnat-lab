@@ -49,6 +49,12 @@ class ModalStore extends EventEmitter {
           }
           this.emit(ModalEvents.SHOW_MODAL);
           break;
+          case ModalConstants.ActionTypes.SUCCESS:
+          this.runSuccessCallback();
+          break;
+          case ModalConstants.ActionTypes.ERROR:
+          this.runErrorCallback();
+          break;
         default:
           break;
       }

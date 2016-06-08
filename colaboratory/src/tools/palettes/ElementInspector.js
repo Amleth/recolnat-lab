@@ -350,7 +350,7 @@ class ElementInspector extends React.Component {
         null,
         ModalConstants.Modals.addAnnotationToEntity,
         {entity: id},
-        MetadataActions.updateMetadata.bind(null, id)),
+        function(data) {  window.setTimeout(MetadataActions.updateMetadata.bind(null, [id]), 10);}),
       10);
   }
 

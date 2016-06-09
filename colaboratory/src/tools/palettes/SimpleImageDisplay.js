@@ -142,6 +142,9 @@ class SimpleImageDisplay extends React.Component {
   componentWillUpdate(nextProps, nextState) {
     if (nextState.isVisibleInCurrentMode) {
       this.componentStyle.display = '';
+      if(nextState.imageUrl == null && nextState.imagesOfSelection.length > 0) {
+        nextState.imageUrl = nextState.imagesOfSelection[0].thumbnail;
+      }
     }
     else {
       this.componentStyle.display = 'none';

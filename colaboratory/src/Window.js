@@ -440,6 +440,7 @@ class Window extends React.Component {
         <div>
           <div style={this.columnLeftSideStyle}>
             <LeftPane
+              imagestore={imagestore}
               userstore={userstore}
               viewstore={viewstore}
               toolstore={toolstore}
@@ -457,6 +458,7 @@ class Window extends React.Component {
           <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
           <div style={this.columnMiddleStyle}>
             <CenterPane
+              imagestore={imagestore}
               userstore={userstore}
               viewstore={viewstore}
               toolstore={toolstore}

@@ -16,6 +16,7 @@ class ImageStore extends EventEmitter {
     super();
     this.imagesToLoad = {};
     this.imagesLoaded = {};
+    this.imageLoadedEvent = 'IMAGE_imageLoaded';
 
     this.loader = window.setInterval(this.loadNextImage.bind(this), 100);
     this.imageFailsLoadingCheck = window.setInterval(this.restartCurrentLoad.bind(this), 10000);
@@ -26,6 +27,7 @@ class ImageStore extends EventEmitter {
         case ViewConstants.ActionTypes.Local.SCHEDULE_IMAGE_LOAD:
         // console.log("'scheduling '" + action.source);
           this.addImageToLoad(action.source, action.callback);
+          this.emit(this.imageLoadedEvent);
           break;
         default:
           break;
@@ -119,6 +121,8 @@ class ImageStore extends EventEmitter {
 
       this.currentlyLoadingImage.image.src = this.currentlyLoadingImage.source;
     }
+
+    this.emit(this.imageLoadedEvent);
   }
 
   restartCurrentLoad() {
@@ -130,6 +134,23 @@ class ImageStore extends EventEmitter {
       };
       this.currentlyLoadingImage = null;
     }
+    this.emit(this.imageLoadedEvent);
+  }
+
+  countLoadingImages() {
+    var count = Object.keys(this.imagesToLoad).length;
+    if(this.currentlyLoadingImage) {
+      count++;
+    }
+    return count;
+  }
+
+  addLoadingStateChangeListener(callback) {
+    this.on(this.imageLoadedEvent, callback);
+  }
+
+  removeLoadingStateChangeListener(callback) {
+    this.removeListener(this.imageLoadedEvent, callback);
   }
 
 }

@@ -25,6 +25,10 @@ class CenterPane extends React.Component {
       width: '100%'
     };
 
+    this.dimmerStyle = {
+      opacity: '0.5 !important'
+    };
+
     this.state = {
       loader: null,
       loading: ''
@@ -56,12 +60,13 @@ class CenterPane extends React.Component {
   render() {
     return (
       <div style={this.componentContainerStyle}>
-        <div className={"ui " + this.state.loading + " dimmer"}>
+        <div className={"ui " + this.state.loading + " dimmer"} style={this.dimmerStyle}>
           <div className='ui large header'>Chargement en cours</div>
           <div className="ui large text loader">{this.state.loader}</div>
         </div>
         <Tooltip toolstore={this.props.toolstore}  />
         <VirtualBenchLab
+          imagestore={this.props.imagestore}
           userstore={this.props.userstore}
           viewstore={this.props.viewstore}
           toolstore={this.props.toolstore}

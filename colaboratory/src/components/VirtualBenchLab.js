@@ -12,15 +12,18 @@ import OrbalContextMenu from './context-menu/OrbalContextMenu';
 import Inbox from './Inbox';
 import BenchLabBorders from './BenchLabBorders';
 import ActiveSetNameDisplay from './ActiveSetNameDisplay';
+import ImagesLoadingStatus from './ImagesLoadingStatus';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
 import ViewActions from "../actions/ViewActions";
 import ToolActions from '../actions/ToolActions';
 import MetadataActions from '../actions/MetadataActions';
+import ModalActions from '../actions/ModalActions';
 
 import ViewConstants from '../constants/ViewConstants';
 import ModeConstants from '../constants/ModeConstants';
+import ModalConstants from '../constants/ModalConstants';
 
 const drag = new DragNDropStore();
 
@@ -35,16 +38,28 @@ class VirtualBenchLab extends React.Component {
       width: '100%'
     };
 
+    this.dimmerStyle = {
+      display: 'none',
+      opacity: '0.5 !important'
+    };
+
+    this.importSheetButtonStyle = {
+      position: 'absolute',
+      right: '100px',
+      bottom: '5px',
+      width: '15px'
+    };
+
     this.state = {
       isVisibleInCurrentMode: false,
       loader: null,
       loading: ''
     };
 
-    this._onLoaderUpdate = () => {
-      const updateLoader = () => this.setState({loader: this.props.viewstore.getLoader().text});
-      return updateLoader.apply(this);
-    };
+    // this._onLoaderUpdate = () => {
+    //   const updateLoader = () => this.setState({loader: this.props.viewstore.getLoader().text});
+    //   return updateLoader.apply(this);
+    // };
 
     this._onModeChange = () => {
       const setModeVisibility = () => this.setState({
@@ -55,7 +70,7 @@ class VirtualBenchLab extends React.Component {
   }
 
   componentDidMount() {
-    this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
+    // this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
     this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
@@ -75,24 +90,29 @@ class VirtualBenchLab extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
+    // this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
     return(
       <div style={this.componentContainerStyle}>
-        <div className={"ui " + this.state.loading + " dimmer"}>
+        <div style={this.dimmerStyle} className={"ui " + this.state.loading + " dimmer"}>
           <div className='ui large header'>Chargement en cours</div>
           <div className="ui large text loader">{this.state.loader}</div>
         </div>
         <ActiveSetNameDisplay managerstore={this.props.managerstore}/>
-
         <Inbox
           benchstore={this.props.benchstore}
           metastore={this.props.metastore}
           viewstore={this.props.viewstore}
-          drag={drag}/>
+          drag={drag}
+        />
+        <ImagesLoadingStatus imagestore={this.props.imagestore}/>
+        <div style={this.importSheetButtonStyle} className='ui container'>
+          <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: this.props.benchstore.getActiveSetId()})}
+          className='ui small blue button'>+</a>
+        </div>
         <OrbalContextMenu
           menustore={this.props.menustore}
           ministore={this.props.ministore}

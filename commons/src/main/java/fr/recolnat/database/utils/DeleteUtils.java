@@ -38,8 +38,6 @@ public class DeleteUtils {
    * @return
    */
   public static boolean unlinkItemFromSet(String linkId, OrientVertex vUser, OrientGraph graph) {
-//    OrientVertex vParentSet = AccessUtils.getSet(parentSetId, graph);
-//    OrientVertex vChildItemOrSet = AccessUtils.getNodeById(itemOrSetId, graph);
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
     if (eLink == null) {
       // Link already removed, nothing to do
@@ -52,22 +50,72 @@ public class DeleteUtils {
       return false;
     }
     // Create new version of the parent
-    OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vParentSet, (String) vUser.getProperty(DataModel.Properties.id), graph);
+    String userId = (String) vUser.getProperty(DataModel.Properties.id);
+    OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vParentSet, userId, graph);
 
     if(log.isDebugEnabled()) {
       log.debug("New vertex version created");
     }
     // Get the updated version of the link from parent using nextVerionId and remove it
     eLink = AccessUtils.getEdgeById(linkId, graph);
-//    OrientEdge eNewLink = AccessUtils.findLatestVersion(eLink, graph);
     if(log.isDebugEnabled()) {
       log.debug(eLink.toString());
-//      log.debug(eNewLink.toString());
     }
-//    OrientEdge eNewLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), graph);
     eLink.remove();
+    
+    // Remove item from all associated views
+    Iterator<Vertex> itViews = vNewParent.getVertices(Direction.OUT, DataModel.Links.hasView).iterator();
+    while(itViews.hasNext()) {
+      OrientVertex vView = (OrientVertex) itViews.next();
+      if(AccessUtils.isLatestVersion(vView)) {
+        // No need to check for rights. If the user was able to remove entity from set, it must be removed from view
+        // Check if view displays the child (which can be a Set, a Specimen, or an Image). Specimens are not displayed, but their images are.
+        boolean noProcessor = true;
+        String type = (String) vChildItemOrSet.getProperty("@class");
+        switch(type) {
+          case DataModel.Classes.specimen:
+            // If vChildItemOrSet is a Specimen we need to process every Image associated with it
+            Iterator<Vertex> itImages = vChildItemOrSet.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+            while(itImages.hasNext()) {
+              OrientVertex vImage = (OrientVertex) itImages.next();
+              if(AccessUtils.isLatestVersion(vImage)) {
+                DeleteUtils.removeEntityFromView(vImage, vView, userId, graph);
+              }
+            }
+            break;
+          case DataModel.Classes.set:
+            noProcessor = false;
+          case DataModel.Classes.image:
+            noProcessor = false;
+          default:
+            if(noProcessor) {
+              log.info("No specific processor for view containing element of type " + type);
+            }
+            DeleteUtils.removeEntityFromView(vChildItemOrSet, vView, userId, graph);
+            break;
+        }
+      }
+    }
     return true;
-//    DeleteUtils.unlinkItemFromSet(eNewLink, vChildItemOrSet, vNewParent, vUser, graph);
+  }
+  
+  /**
+   * Does not check user rights or versioning.
+   * @param vEntity
+   * @param vView
+   * @param userId
+   * @param g 
+   */
+  private static void removeEntityFromView(OrientVertex vEntity, OrientVertex vView, String userId, OrientGraph g) {
+    Iterator<Edge> itDisplays = vView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
+            if(itDisplays.hasNext()) {
+              // Fork view.
+              OrientVertex vNewView = UpdateUtils.createNewVertexVersion(vView, userId, g);
+              itDisplays = vNewView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
+              while(itDisplays.hasNext()) {
+                itDisplays.next().remove();
+              }
+            }
   }
 
   /**

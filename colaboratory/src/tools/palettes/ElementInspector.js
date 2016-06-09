@@ -397,7 +397,7 @@ class ElementInspector extends React.Component {
                  alt='Image'/>
           </div>
         </a>
-        <a className='fitted item' ref='title' data-content={this.state.name}>
+        <a className='fitted item' ref='title' data-content={this.state.name} style={this.annotationTitleStyle}>
           {this.state.name}
         </a>
         <div className='ui icon right menu'>
@@ -411,7 +411,7 @@ class ElementInspector extends React.Component {
       </div>
 
       <div ref='annotations' className='ui comments' style={this.metadataStyle}>
-        <h3 class="ui dividing header" style={this.annotationTitleStyle}>
+        <h3>
           Mesures & Annotations
           <i className='green small add square icon'
              ref='addIcon'

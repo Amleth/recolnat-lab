@@ -61,8 +61,15 @@ class LabBenchStore extends EventEmitter {
           }
           break;
         case MetadataConstants.ActionTypes.UPDATE_LAB_BENCH:
+        if(this.labBench.id) {
           this.allElementIds = [];
+          if(action.id) {
           this.reloadBenchFrom(action.id);
+        }
+        else {
+          this.reloadBenchFrom(this.labBench.id);
+        }
+        }
           break;
         default:
           //console.log('selected=' + JSON.stringify(this.selection));

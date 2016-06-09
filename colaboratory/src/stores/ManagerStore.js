@@ -17,6 +17,7 @@ import ManagerActions from '../actions/ManagerActions';
 import ViewActions from '../actions/ViewActions';
 
 import Globals from '../utils/Globals';
+import REST from '../utils/REST';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -326,71 +327,54 @@ class ManagerStore extends EventEmitter {
       });
   }
 
-  addBasketItemsToSet(targetSetId, keepInBasket) {
-    if(!targetSetId) {
-      alert('Vous devez choisir un set de destination');
-      return;
+  addBasketItemsToSet(specimens, targetSetId, keepInBasket) {
+    // if(!targetSetId) {
+    //   alert('Vous devez choisir un set de destination');
+    //   return;
+    // }
+    // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
+    //
+    // var items = this.getBasketSelection();
+    // //this.actionProgress = 0;
+    // //this.actionProgressMax = items.length;
+    //
+    // var specimens = [];
+    //
+    // for(var i = 0; i < items.length; ++i) {
+    //   var itemId = items[i];
+    //   var itemUuid = itemId.slice(0, 8) + '-'
+    //     + itemId.slice(8, 12) + '-'
+    //     + itemId.slice(12, 16) + '-'
+    //     + itemId.slice(16, 20) + '-'
+    //     + itemId.slice(20);
+    //
+    //   var itemData = this.getBasketItem(itemId);
+    //   //console.log('uuid=' + itemUuid);
+    //   specimens.push({
+    //     recolnatSpecimenUuid: itemUuid,
+    //     images: itemData.image,
+    //     name: itemData.scientificname
+    //   });
+    // }
+
+    var specimenImportSuccess = function(response) {
+      ManagerActions.reloadDisplayedSets();
+      ManagerActions.changeBasketSelectionState(null, false);
+      var items = this.getBasketSelection();
+      if(!keepInBasket) {
+        for (var j = 0; j < items.length; ++j) {
+          this.removeItemFromBasket(items[j]);
+        }
+      }
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+      this.emit(ManagerEvents.BASKET_UPDATE);
     }
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
 
-    var items = this.getBasketSelection();
-    //this.actionProgress = 0;
-    //this.actionProgressMax = items.length;
-
-    var specimens = [];
-
-    for(var i = 0; i < items.length; ++i) {
-      var itemId = items[i];
-      var itemUuid = itemId.slice(0, 8) + '-'
-        + itemId.slice(8, 12) + '-'
-        + itemId.slice(12, 16) + '-'
-        + itemId.slice(16, 20) + '-'
-        + itemId.slice(20);
-
-      var itemData = this.getBasketItem(itemId);
-      //console.log('uuid=' + itemUuid);
-      specimens.push({
-        recolnatSpecimenUuid: itemUuid,
-        images: itemData.image,
-        name: itemData.scientificname
-      });
+    var specimenImportFailure = function(error) {
+      alert("Problème lors de l'import. Veuillez réessayer plus tard.");
     }
 
-    request.post(conf.actions.setServiceActions.importRecolnatSpecimen)
-      .set('Content-Type', "application/json")
-      .send({set: targetSetId})
-      .send({specimens: specimens})
-      //.send({recolnatSpecimenUUID: itemUuid})
-      //.send({images: itemData.image})
-      //.send({name: itemData.scientificname})
-      .withCredentials()
-      .end((err, res) => {
-        this.actionProgress++;
-        if (err) {
-          //alert('Import de ' + itemData.scientificname + ' a échoué. Les autres planches ne sont pas impactées');
-          alert("Problème lors de l'import");
-          console.error(err);
-        }
-        else {
-        }
-        //window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours : " + this.actionProgress + "/" + this.actionProgressMax), 10);
-
-        //if(this.actionProgress == this.actionProgressMax) {
-        //  this.actionProgress = null;
-        //  this.actionProgressMax = 1;
-        ManagerActions.reloadDisplayedSets();
-        ManagerActions.changeBasketSelectionState(null, false);
-        if(!keepInBasket) {
-          for (var j = 0; j < items.length; ++j) {
-            this.removeItemFromBasket(items[j]);
-          }
-        }
-        window.setTimeout(ViewActions.changeLoaderState.bind(null, null, 10));
-        this.emit(ManagerEvents.BASKET_UPDATE);
-        //}
-      });
-
-
+    REST.importRecolnatSpecimensIntoSet(specimens, targetSetId, specimenImportSuccess.bind(this), specimenImportFailure);
   }
 
   addManagerVisibilityListener(callback) {

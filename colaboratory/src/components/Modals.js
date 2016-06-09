@@ -59,7 +59,10 @@ class ManagerModals extends React.Component {
                      managerstore={this.props.managerstore} />
       <AddEntitiesToSetModal modalstore={this.props.modalstore}
                              metastore={this.props.metastore}
-                             managerstore={this.props.managerstore} />
+                             managerstore={this.props.managerstore}
+                             viewstore={this.props.viewstore}
+                             benchstore={this.props.benchstore}
+                             modestore={this.props.modestore} />
       <ConfirmDeleteModal modalstore={this.props.modalstore}
                           metastore={this.props.metastore} />
       <AddAnnotationToEntity modalstore={this.props.modalstore}

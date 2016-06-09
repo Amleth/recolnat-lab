@@ -8,10 +8,13 @@ package org.dicen.recolnat.services.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.model.impl.RecolnatImage;
 import fr.recolnat.database.model.impl.StudySet;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -23,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -364,7 +368,11 @@ public class SetResource {
 //    String name = params.getString("name");
 //    String recolnatSpecimenUuid = params.getString("recolnatSpecimenUUID");
 //    JSONArray images = params.getJSONArray("images");
-String imageUrl = null;
+    String imageUrl = null;
+    
+    JSONObject response = new JSONObject();
+    response.put("set", setId);
+    JSONArray importedObjects = new JSONArray();
 
     boolean retry = true;
     while (retry) {
@@ -418,8 +426,26 @@ String imageUrl = null;
           vSpecimen.setProperties(DataModel.Properties.name, name);
 
           // Link specimen to set
-          UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
+          OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
           g.commit();
+          
+          // Add specimen and images to response
+          JSONObject importedObject = new JSONObject();
+          importedObject.put("specimen", (String) vSpecimen.getProperty(DataModel.Properties.id));
+          importedObject.put("link", (String) eLink.getProperty(DataModel.Properties.id));
+          JSONArray jImages = new JSONArray();
+          Iterator<Vertex> itImages = vSpecimen.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+          while(itImages.hasNext()) {
+            OrientVertex vImage = (OrientVertex) itImages.next();
+            if(AccessUtils.isLatestVersion(vImage)) {
+              if(AccessRights.canRead(vUser, vImage, g)) {
+                RecolnatImage image = new RecolnatImage(vImage, vUser, g);
+                jImages.put(image.toJSON());
+              }
+            }
+          }
+          importedObject.put("images", jImages);
+          importedObjects.put(importedObject);
         }
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -435,7 +461,9 @@ String imageUrl = null;
         }
       }
     }
-    return Response.ok().build();
+    
+    response.put("linkedEntities", importedObjects);
+    return Response.ok(response.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
   @POST

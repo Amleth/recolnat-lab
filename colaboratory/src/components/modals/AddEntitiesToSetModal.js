@@ -10,10 +10,12 @@ import AbstractModal from './AbstractModal';
 import Basket from '../manager/Basket';
 
 import ModalConstants from '../../constants/ModalConstants';
+import ModeConstants from '../../constants/ModeConstants';
 
 import ManagerActions from '../../actions/ManagerActions';
 import MetadataActions from '../../actions/MetadataActions';
 import ModalActions from '../../actions/ModalActions';
+import ViewActions from '../../actions/ViewActions';
 
 import REST from '../../utils/REST';
 
@@ -28,7 +30,7 @@ class AddEntitiesToSetModal extends AbstractModal {
 
     this.state.source = 'subset';
     this.state.parentId = null;
-    this.state.parentIndex = null;
+    // this.state.parentIndex = null;
     this.state.displayName = '';
     this.state.nameInput = '';
     this.state.validatedItems = [];
@@ -38,7 +40,7 @@ class AddEntitiesToSetModal extends AbstractModal {
   clearState(state) {
     //state.source = 'subset';
     state.parentId = null;
-    state.parentIndex = null;
+    // state.parentIndex = null;
     state.displayName = '';
     state.nameInput = '';
     state.validatedItems = [];
@@ -85,7 +87,76 @@ class AddEntitiesToSetModal extends AbstractModal {
   }
 
   createFromBasket() {
-    window.setTimeout(ManagerActions.addBasketItemsToSet.bind(null, this.state.parentId, true), 10);
+    if(this.state.parentId.length < 1) {
+      alert('Aucun set sélectionné');
+      return;
+    }
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
+
+    var items = this.props.managerstore.getBasketSelection();
+    var specimens = [];
+    for(var i = 0; i < items.length; ++i) {
+      var itemId = items[i];
+      var itemUuid = itemId.slice(0, 8) + '-'
+        + itemId.slice(8, 12) + '-'
+        + itemId.slice(12, 16) + '-'
+        + itemId.slice(16, 20) + '-'
+        + itemId.slice(20);
+
+      var itemData = this.props.managerstore.getBasketItem(itemId);
+      //console.log('uuid=' + itemUuid);
+      specimens.push({
+        recolnatSpecimenUuid: itemUuid,
+        images: itemData.image,
+        name: itemData.scientificname
+      });
+    }
+
+    var onSuccess = null;
+    var onError = null;
+    switch(this.props.modestore.getMode()) {
+      case ModeConstants.Modes.SET:
+        this.props.managerstore.addBasketItemsToSet(specimens, this.state.parentId, true);
+        return;
+      case ModeConstants.Modes.ORGANISATION:
+      case ModeConstants.Modes.OBSERVATION:
+        onSuccess = function(response) {
+          // Place specimens in middle of screen
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
+          window.setTimeout(ManagerActions.changeBasketSelectionState.bind(null, null, false), 10);
+          var viewId = this.props.benchstore.getActiveViewId();
+
+          var data = [];
+          var view = this.props.viewstore.getView();
+          var x = view.left + view.width / 2;
+          var y = view.top + view.height / 2;
+          for(var j = 0; j < response.linkedEntities.length; ++j) {
+            var linkedEntity = response.linkedEntities[j];
+            for(var k = 0; k < linkedEntity.images.length; ++k) {
+              var image = linkedEntity.images[k];
+              data.push({
+                x: x,
+                y: y,
+                view: viewId,
+                entity: image.uid
+              });
+              x = x+image.width + 100;
+            }
+          }
+
+          REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom);
+        };
+        onError = function(err) {
+          alert("Problème lors de l'import. Veuillez réessayer plus tard.");
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+        };
+      break;
+      default:
+      log.error('Modal called from unsupported mode ' + this.props.modestore.getMode());
+      break;
+    }
+
+    REST.importRecolnatSpecimensIntoSet(specimens, this.state.parentId, onSuccess.bind(this), onError);
   }
 
   createFromWeb() {
@@ -128,7 +199,7 @@ class AddEntitiesToSetModal extends AbstractModal {
   componentWillUpdate(nextProps, nextState) {
     if(!this.state.active && nextState.active) {
       nextState.parentId = this.props.modalstore.getTargetData().parent;
-      nextState.parentIndex = this.props.modalstore.getTargetData().index;
+      // nextState.parentIndex = this.props.modalstore.getTargetData().index;
       this.props.metastore.addMetadataUpdateListener(nextState.parentId, this._onMetadataAvailable);
       window.setTimeout(MetadataActions.updateMetadata.bind(null, [nextState.parentId]), 10);
     }

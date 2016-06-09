@@ -62,7 +62,7 @@ export default class REST {
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Error placing entities ' + JSON.stringify(data) + ' in view ' + viewId + ' : ' + err);
+          console.error('Error placing entities ' + JSON.stringify(data) + ' : ' + err);
           if(onErrorCallback) {
             onErrorCallback();
           }
@@ -95,5 +95,29 @@ export default class REST {
           }
         }
       })
+  }
+
+  /**
+  Each specmen is an object which contains fields 'recolnatSpecimenUuid, images, name'
+  **/
+  static importRecolnatSpecimensIntoSet(specimens, setId, onSuccessCallback = undefined, onErrorCallback = undefined) {
+    request.post(conf.actions.setServiceActions.importRecolnatSpecimen)
+      .set('Content-Type', "application/json")
+      .send({set: setId})
+      .send({specimens: specimens})
+      .withCredentials()
+      .end((err, res) => {
+        if (err) {
+          console.error(err);
+          if(onErrorCallback) {
+            onErrorCallback(err);
+          }
+        }
+        else {
+          if(onSuccessCallback) {
+            onSuccessCallback(JSON.parse(res.text));
+          }
+        }
+      });
   }
 };

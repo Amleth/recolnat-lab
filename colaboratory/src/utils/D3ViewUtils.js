@@ -11,6 +11,7 @@ import Classes from '../constants/CommonSVGClasses';
 import ViewConstants from '../constants/ViewConstants';
 
 import markerSVG from '../images/marker.svg';
+import moveIcon from '../images/move.svg';
 
 export default class D3ViewUtils {
   static drawBenchData(data, self) {
@@ -94,19 +95,24 @@ export default class D3ViewUtils {
       .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
 
     var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
-    mover.enter().append("rect")
+    mover.enter()
+    // .append("rect")
+      .append('svg:image')
+      .attr('xlink:href', moveIcon)
       .attr('class', Classes.MOVE_CLASS)
       .attr('id', d => 'MOVE-' + d.link)
       .attr('x', d => d.width/2)
-      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 5/self.view.scale* d.height/ d.displayHeight)
+      .attr('y', d => -10/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight)
       .call(D3EventHandlers.dragMove())
-      .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-      .style('stroke', 'rgb(0,0,0)')
-      .style('fill-opacity', '0.0')
+      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
+      // .style('stroke', 'rgb(0,0,0)')
+      // .style('fill-opacity', '0.0')
       .style('cursor', '-webkit-grab')
-      .style('cursor', 'grab');
+      .style('cursor', 'grab')
+      .append('svg:title')
+      .text('Drag mouse to move this sheet');
     mover.exit().remove();
     mover.attr('x', d => d.width/2)
       .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)

@@ -333,9 +333,9 @@ class D3FreeSpace {
         .transition()
         .duration(1000)
         .ease('linear')
-        .attr('y', d => -5 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 5 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 5 / this.view.scale * d.height / d.displayHeight)
+        .attr('y', d => -10 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 10 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
     }
     else {
@@ -348,9 +348,9 @@ class D3FreeSpace {
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
 
       d3.selectAll('.' + Classes.MOVE_CLASS)
-        .attr('y', d => -5 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 5 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 5 / this.view.scale * d.height / d.displayHeight)
+        .attr('y', d => -10 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 10 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
     }
   }
@@ -545,7 +545,7 @@ class D3FreeSpace {
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
     Array.prototype.push.apply(
       inspectorObjects, objectsAtEvent.images.map(getIds));
-      
+
     console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
 
     window.setTimeout(InspectorActions.setInspectorData.bind(null, inspectorObjects), 10);

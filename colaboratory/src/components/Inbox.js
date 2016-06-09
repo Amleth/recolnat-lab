@@ -17,7 +17,7 @@ class Inbox extends React.Component {
     this.componentStyle = {
       position: 'absolute',
       left: '50px',
-      bottom: '50px',
+      bottom: '5px',
       maxHeight: '300px',
       maxWidth: '160px'
     };
@@ -137,8 +137,6 @@ class Inbox extends React.Component {
     REST.placeEntityInView(data,
       MetadataActions.updateLabBenchFrom.bind(null, viewId)
     );
-
-
   }
 
   componentDidMount() {

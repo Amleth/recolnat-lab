@@ -292,7 +292,7 @@ class OrbalContextMenu extends React.Component {
     //   return;
     // }
     if(delay) {
-      console.log('closeMenu with delay');
+      // console.log('closeMenu with delay');
       this.closeDelay = window.setTimeout(this.setState.bind(this, OrbalContextMenu.getInitialState()), delay);
     }
     else {
@@ -301,7 +301,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   cancelCloseMenu() {
-    console.log('cancelCloseMenu');
+    // console.log('cancelCloseMenu');
     if(this.closeDelay) {
       window.clearTimeout(this.closeDelay);
       this.closeDelay = null;
@@ -576,7 +576,7 @@ class OrbalContextMenu extends React.Component {
             },
             function (res) {
               MetadataActions.updateLabBenchFrom(metadata.uid);
-              ManagerActions.updateLabBenchFrom(metadata.uid);
+              ManagerActions.reloadDisplayedSets();
             }
           );
 

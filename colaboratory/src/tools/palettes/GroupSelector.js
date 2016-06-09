@@ -77,6 +77,9 @@ class GroupSelector extends React.Component {
         var displayedEntity = JSON.parse(JSON.stringify(viewData.displays[i]));
         var imageId = displayedEntity.entity;
         var data = this.props.benchstore.getData(imageId);
+        if(!data) {
+          continue;
+        }
         var keys = Object.keys(data);
         for(var j = 0; j < keys.length; ++j) {
           var key = keys[j];

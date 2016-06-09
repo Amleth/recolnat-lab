@@ -41,6 +41,22 @@ class SetManager extends React.Component {
       overflowY: 'hidden'
     };
 
+    this.helpIconStyle = {
+      position: 'absolute',
+      top: '5px',
+      right: '5px',
+      zIndex: 101
+    };
+
+    this.helpTextStyle = {
+      display: 'none',
+      position: 'absolute',
+      top: '0px',
+      right: '0px',
+      zIndex: 100,
+      width: '250px'
+    };
+
     this._onUserLogIn = () => {
       const userLogIn = () => this.setState({userLoggedIn: true});
       return userLogIn.apply(this);
@@ -71,6 +87,16 @@ class SetManager extends React.Component {
       studyContainer: null,
       displayedSets: []
     };
+  }
+
+  showHelp() {
+    this.helpTextStyle.display = '';
+    this.setState({});
+  }
+
+  hideHelp() {
+    this.helpTextStyle.display = 'none';
+    this.setState({});
   }
 
   componentDidMount() {
@@ -117,6 +143,21 @@ class SetManager extends React.Component {
   render() {
     var self = this;
     return <div style={this.containerStyle} >
+    <i className='ui large blue help circle icon' ref='helpIcon' style={this.helpIconStyle} onMouseEnter={this.showHelp.bind(this)} onMouseLeave={this.hideHelp.bind(this)}/>
+    <div className='ui text segment container' style={this.helpTextStyle}>
+    <div>
+    Cliquez sur un set <i className='ui icon folder' /> pour charger son contenu.
+    </div>
+    <div>
+     Double-cliquez sur un set <i className='ui icon folder' /> pour le charger dans la paillasse.
+     </div>
+     <div>
+      Le clic droit sur un set <i className='ui icon folder' /> permet d'afficher son menu contextuel.
+      </div>
+     <div>
+     Si le set choisi <i className='ui blue icon folder' /> contient des images, elles seront listées à droite.
+     </div>
+    </div>
       <div style={this.optionBarStyle}></div>
       <div style={this.workbenchExplorerStyle} ref='sets'>
         {this.state.displayedSets.map(function(s, idx) {

@@ -56,11 +56,6 @@ class VirtualBenchLab extends React.Component {
       loading: ''
     };
 
-    // this._onLoaderUpdate = () => {
-    //   const updateLoader = () => this.setState({loader: this.props.viewstore.getLoader().text});
-    //   return updateLoader.apply(this);
-    // };
-
     this._onModeChange = () => {
       const setModeVisibility = () => this.setState({
         isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
@@ -70,7 +65,6 @@ class VirtualBenchLab extends React.Component {
   }
 
   componentDidMount() {
-    // this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
     this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
@@ -90,17 +84,12 @@ class VirtualBenchLab extends React.Component {
   }
 
   componentWillUnmount() {
-    // this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
     return(
       <div style={this.componentContainerStyle}>
-        <div style={this.dimmerStyle} className={"ui " + this.state.loading + " dimmer"}>
-          <div className='ui large header'>Chargement en cours</div>
-          <div className="ui large text loader">{this.state.loader}</div>
-        </div>
         <ActiveSetNameDisplay managerstore={this.props.managerstore}/>
         <Inbox
           benchstore={this.props.benchstore}

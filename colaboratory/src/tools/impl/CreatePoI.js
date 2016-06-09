@@ -71,7 +71,7 @@ class CreatePoI extends AbstractTool {
     data.payload = {};
     data.payload.x = this.state.x;
     data.payload.y = this.state.y;
-    data.payload.name = this.state.text;
+    data.payload.name = this.state.name;
 
     return data;
   }
@@ -132,7 +132,8 @@ class CreatePoI extends AbstractTool {
     this.props.viewstore.removeViewportListener(this._onViewChange);
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
-      .on('click', null);
+      .on('click', null)
+      .style('cursor', 'default');
 
     this.setState(this.initialState());
   }

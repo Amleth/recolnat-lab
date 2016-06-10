@@ -299,9 +299,9 @@ public class SetResource {
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    String elementToPasteId = params.getString("target");
+//    String elementToPasteId = params.getString("target");
     String currentParentToElementLinkId = (String) params.get("linkId");
-    String currentParentId = params.getString("source");
+//    String currentParentId = params.getString("source");
     String futureParentId = params.getString("destination");
 
     boolean retry = true;
@@ -310,10 +310,14 @@ public class SetResource {
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vCurrentParentSet = AccessUtils.getSet(currentParentId, g);
+        
         OrientVertex vFutureParentSet = AccessUtils.getSet(futureParentId, g);
-        OrientVertex vTargetItemOrSet = AccessUtils.getNodeById(elementToPasteId, g);
+        
         OrientEdge eLinkCurrent = AccessUtils.getEdgeById(currentParentToElementLinkId, g);
+//        OrientVertex vTargetItemOrSet = AccessUtils.getNodeById(elementToPasteId, g);
+//        OrientVertex vCurrentParentSet = AccessUtils.getSet(currentParentId, g);
+        OrientVertex vTargetItemOrSet = eLinkCurrent.getVertex(Direction.IN);
+        OrientVertex vCurrentParentSet = eLinkCurrent.getVertex(Direction.OUT);
 
         // Check rights: WRITE current, WRITE future, READ target
         if (!AccessRights.canWrite(vUser, vCurrentParentSet, g)) {
@@ -325,12 +329,20 @@ public class SetResource {
         if (!AccessRights.canRead(vUser, vTargetItemOrSet, g)) {
           throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
+        
+        if(!DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g)) {
+          // Removal failed
+          throw new WebApplicationException("User not allowed to delete element from set.", Status.FORBIDDEN);
+        }
+        
+        vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
 
         // Create new version of parent and remove the updated version of link, thus 'cutting' from parent
-        OrientVertex vUpdatedCurrentParentSet = UpdateUtils.createNewVertexVersion(vCurrentParentSet, user, g);
-        AccessRights.grantAccessRights(vUser, vUpdatedCurrentParentSet, DataModel.Enums.AccessRights.WRITE, g);
-        OrientEdge eUpdatedLinkCurrent = AccessUtils.findLatestVersion(eLinkCurrent, g);
-        eUpdatedLinkCurrent.remove();
+//        OrientVertex vUpdatedCurrentParentSet = UpdateUtils.createNewVertexVersion(vCurrentParentSet, user, g);
+//        AccessRights.grantAccessRights(vUser, vUpdatedCurrentParentSet, DataModel.Enums.AccessRights.WRITE, g);
+//        OrientEdge eUpdatedLinkCurrent = AccessUtils.findLatestVersion(eLinkCurrent, g);
+//        DeleteUtils.unlinkItemFromSet(input, vUser, g)
+//        eUpdatedLinkCurrent.remove();
 
         // Link new version of target with new parent
         switch ((String) vTargetItemOrSet.getProperty("@class")) {
@@ -338,7 +350,7 @@ public class SetResource {
             UpdateUtils.addSubsetToSet(vFutureParentSet, vTargetItemOrSet, vUser, g);
             break;
           default:
-            UpdateUtils.addItemToSet(vFutureParentSet, vTargetItemOrSet, vUser, g);
+            UpdateUtils.addItemToSet(vTargetItemOrSet, vFutureParentSet, vUser, g);
             break;
         }
 
@@ -352,7 +364,7 @@ public class SetResource {
       }
     }
 
-    return Response.ok().build();
+    return Response.ok((new JSONObject()).toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
   @POST

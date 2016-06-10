@@ -202,7 +202,7 @@ class ManagerStore extends EventEmitter {
   }
 
   setSelected(setIdx, itemId) {
-    console.log('setSelected(' + setIdx + ',' + itemId + ')');
+    // console.log('setSelected(' + setIdx + ',' + itemId + ')');
     if(setIdx == -1) {
       this.studyContainer.selectedId = itemId;
     }
@@ -328,34 +328,6 @@ class ManagerStore extends EventEmitter {
   }
 
   addBasketItemsToSet(specimens, targetSetId, keepInBasket) {
-    // if(!targetSetId) {
-    //   alert('Vous devez choisir un set de destination');
-    //   return;
-    // }
-    // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
-    //
-    // var items = this.getBasketSelection();
-    // //this.actionProgress = 0;
-    // //this.actionProgressMax = items.length;
-    //
-    // var specimens = [];
-    //
-    // for(var i = 0; i < items.length; ++i) {
-    //   var itemId = items[i];
-    //   var itemUuid = itemId.slice(0, 8) + '-'
-    //     + itemId.slice(8, 12) + '-'
-    //     + itemId.slice(12, 16) + '-'
-    //     + itemId.slice(16, 20) + '-'
-    //     + itemId.slice(20);
-    //
-    //   var itemData = this.getBasketItem(itemId);
-    //   //console.log('uuid=' + itemUuid);
-    //   specimens.push({
-    //     recolnatSpecimenUuid: itemUuid,
-    //     images: itemData.image,
-    //     name: itemData.scientificname
-    //   });
-    // }
 
     var specimenImportSuccess = function(response) {
       ManagerActions.reloadDisplayedSets();

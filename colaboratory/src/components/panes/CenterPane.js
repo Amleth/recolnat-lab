@@ -84,6 +84,7 @@ class CenterPane extends React.Component {
           toolstore={this.props.toolstore}
           modestore={this.props.modestore}
           metastore={this.props.metastore}
+          dragstore={this.props.dragstore}
           managerstore={this.props.managerstore} />
       </div>
     );

@@ -165,6 +165,7 @@ class SetManager extends React.Component {
                                set={s}
                                index={idx}
                                managerstore={self.props.managerstore}
+                               dragstore={self.props.dragstore}
                                metastore={self.props.metastore}
             />;
         })}

@@ -120,4 +120,25 @@ export default class REST {
         }
       });
   }
+
+  static moveEntityFromSetToSet(linkId, targetSetId, onSuccessCallback = undefined, onErrorCallback = undefined) {
+    request.post(conf.actions.setServiceActions.cutPaste)
+      .set('Content-Type', "application/json")
+      .send({linkId: linkId})
+      .send({destination: targetSetId})
+      .withCredentials()
+      .end((err, res) => {
+        if (err) {
+          console.error(err);
+          if(onErrorCallback) {
+            onErrorCallback(err);
+          }
+        }
+        else {
+          if(onSuccessCallback) {
+            onSuccessCallback(JSON.parse(res.text));
+          }
+        }
+      });
+  }
 };

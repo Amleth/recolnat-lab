@@ -17,6 +17,7 @@ import ModalConstants from '../../constants/ModalConstants';
 import ModeConstants from '../../constants/ModeConstants';
 
 import Globals from '../../utils/Globals';
+import REST from '../../utils/REST';
 
 class SetDisplay extends React.Component {
   constructor(props) {
@@ -67,6 +68,10 @@ class SetDisplay extends React.Component {
       userSelect: 'none'
     };
 
+    this.dragDropSegmentStyle = {
+      height: '5px'
+    };
+
     this._onSelectionChange = () => {
       const changeSelected = () => this.setState({});
       return changeSelected.apply(this);
@@ -79,7 +84,8 @@ class SetDisplay extends React.Component {
 
     this.state = {
       subSets: [],
-      items: []
+      items: [],
+      validEntityDraggedOverSelf: false
       //selectedId: null
     };
 
@@ -190,6 +196,70 @@ class SetDisplay extends React.Component {
     MenuActions.displayContextMenu(event.clientX, event.clientY, objectsAtEvent);
   }
 
+  startDragSet(set, event) {
+    this.props.dragstore.setAction('managerDragSet', set);
+    event.dataTransfer.setData('text/plain', set.uid);
+  }
+
+  startDragItem(item, event) {
+    this.props.dragstore.setAction('managerDragItem', item);
+    event.dataTransfer.setData('text/plain', item.uid);
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  preventDefault(event) {
+    if(this.state.validEntityDraggedOverSelf) {
+      event.preventDefault();
+    }
+  }
+
+  displayDraggedEntity(event) {
+    // console.log('entering drop area');
+    switch(this.props.dragstore.getType()) {
+      case 'managerDragSet':
+        var data = this.props.dragstore.getData();
+        for(var i = 0; i < this.props.set.subsets.length; ++i) {
+          if(this.props.set.subsets[i].link == data.linkToParent) {
+            return;
+          }
+        }
+      case 'managerDragItem':
+        var data = this.props.dragstore.getData();
+        for(var i = 0; i < this.props.set.items.length; ++i) {
+          if(this.props.set.items[i].link == data.linkToParent) {
+            return;
+          }
+        }
+        this.setState({validEntityDraggedOverSelf: true});
+        event.preventDefault();
+      break;
+      default:
+        this.setState({validEntityDraggedOverSelf: false});
+      break;
+    }
+  }
+
+  removeDraggedEntity(event) {
+    this.setState({validEntityDraggedOverSelf: false});
+  }
+
+  addDraggedEntity(event) {
+    if(this.state.validEntityDraggedOverSelf) {
+      var data = this.props.dragstore.getData();
+
+      var error = function(err) {
+        alert("L'opération a échoué, veuillez réessayer plus tard");
+      };
+
+      REST.moveEntityFromSetToSet(data.linkToParent, this.props.set.uid, ManagerActions.reloadDisplayedSets, error);
+    }
+    this.setState({validEntityDraggedOverSelf: false});
+  }
+
+  clearDrag() {
+    this.props.dragstore.setAction(null, null);
+  }
+
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
     this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
@@ -212,6 +282,19 @@ class SetDisplay extends React.Component {
     }
   }
 
+  componentWillUpdate(nextProps, nextState) {
+    if(nextState.validEntityDraggedOverSelf) {
+      this.containerStyle.backgroundColor = 'rgba(20,20,20,0.6)';
+      this.noMarginPaddingStyle.pointerEvents = 'none';
+      this.textStyle.pointerEvents = 'none';
+    }
+    else {
+      this.containerStyle.backgroundColor = null;
+      this.noMarginPaddingStyle.pointerEvents = null;
+      this.textStyle.pointerEvents = null;
+    }
+  }
+
   componentWillUnmount() {
     this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
@@ -230,9 +313,15 @@ class SetDisplay extends React.Component {
 
     // Content received but set is empty at the moment.
     if(this.props.set.subsets.length == 0 && this.props.set.items.length == 0) {
-      return <div className='ui segments' style={this.containerStyle}>
+      return <div className='ui segments' style={this.containerStyle}
+      onDragEnter={this.displayDraggedEntity.bind(this)}
+      onDragOver={this.preventDefault.bind(this)}
+      onDragLeave={this.removeDraggedEntity.bind(this)}
+      onDrop={this.addDraggedEntity.bind(this)}>
         <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.set.name}</div>
-        <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
+        <div
+        style={this.noMarginPaddingStyle}
+        className='ui center aligned basic segment'>
           <i className='large add circle green icon'
              onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
         </div>
@@ -240,9 +329,16 @@ class SetDisplay extends React.Component {
     }
 
     // Display children. List has attached style to prevent that stupid label from padding
-    return <div style={this.containerStyle} className='ui segments'>
+    return <div style={this.containerStyle}
+     className='ui segments'>
       <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.set.name}</div>
-      <div className='ui segment' style={this.listContainerStyle}>
+      <div
+      className='ui segment'
+      onDragEnter={this.displayDraggedEntity.bind(this)}
+      onDragOver={this.preventDefault.bind(this)}
+      onDragLeave={this.removeDraggedEntity.bind(this)}
+      onDrop={this.addDraggedEntity.bind(this)}
+      style={this.listContainerStyle}>
         <div className='ui selection list' style={this.noMarginPaddingStyle}>
           {this.state.subSets.map(function(s, idx) {
             var icon = 'ui icon help';
@@ -257,12 +353,19 @@ class SetDisplay extends React.Component {
               linkStyle.color = 'blue';
             }
 
+            if(self.state.validEntityDraggedOverSelf) {
+              linkStyle.pointerEvents = 'none';
+            }
+
             return (
               <a className={'item '}
                  style={linkStyle}
                  key={'SET-OPTION-' + s.uid}
                  onClick={self.setActive.bind(self, idx, s)}
                  onContextMenu={self.callContextMenu.bind(self, s, idx)}
+                 draggable={true}
+                 onDragStart={self.startDragSet.bind(self, s)}
+                 onDragEnd={self.clearDrag.bind(self)}
                  onDoubleClick={self.selectAndLoadSet.bind(self, idx, s)}>
                 <div>
                   <i className='ui icon folder' style={self.textStyle} />{s.name}
@@ -283,6 +386,9 @@ class SetDisplay extends React.Component {
             if(item.uid == self.props.managerstore.getSelected().id) {
               linkStyle.color = 'blue';
             }
+            if(self.state.validEntityDraggedOverSelf) {
+              linkStyle.pointerEvents = 'none';
+            }
             switch(item.type) {
               case 'Specimen':
                 icon = 'ui icon barcode';
@@ -298,9 +404,12 @@ class SetDisplay extends React.Component {
                       style={linkStyle}
                       key={'SET-OPTION-' + item.uid}
                       onContextMenu={self.callContextMenu.bind(self, item, idx)}
+                      draggable={true}
+                      onDragStart={self.startDragItem.bind(self, item)}
+                      onDragEnd={self.clearDrag.bind(self)}
                       onClick={self.setActive.bind(self, idx, item)}
             >
-              <div >
+              <div>
                 <i className={icon} style={self.textStyle} />{item.name}
               </div>
             </a>

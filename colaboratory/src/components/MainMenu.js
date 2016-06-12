@@ -51,9 +51,8 @@ class MainMenu extends React.Component {
   }
 
   render() {
-    return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
+    return <div ref='dropdown' style={this.componentStyle} className='ui dropdown disabled'>
       <i className='circular inverted blue sidebar icon' style={this.enableEventsStyle}/>
-
       <div className='menu'  style={this.enableEventsStyle}>
         <div className='header'>Le Collaboratoire</div>
         <div className='item' style={this.optionStyle}>
@@ -66,7 +65,7 @@ class MainMenu extends React.Component {
         <div className='item' style={this.optionStyle}>
           <span className='text'>Outils</span>
           <div className='right menu'>
-            <div className='item'>Mesurer une ligne</div>
+            <div className='item'>Règle</div>
             <div className='item'>Marquer un point d'intérêt</div>
             <div className='item'>Tracer un chemin</div>
             <div className='item'>Créer un polygone</div>
@@ -75,18 +74,16 @@ class MainMenu extends React.Component {
         <div className='item' style={this.optionStyle}>
           <span className='text'>Modes</span>
           <div className='right menu'>
-            <div className='item'>Gestionnaire d'études</div>
+            <div className='item'>Gestionnaire de sets</div>
             <div className='item'>Agencement</div>
             <div className='item'>Observation/Annotation</div>
           </div>
         </div>
         <div className='item' style={this.optionStyle}>
-          <span className='text'>Etudes</span>
+          <span className='text'>Actions</span>
           <div className='right menu'>
-            <div className='item'>Ouvrir étude</div>
-            <div className='item'>Nouvelle étude</div>
-            <div className='item'>Ajouter la sélection à l'étude</div>
-            <div className='item'>Importer du contenu extérieur</div>
+            <div className='item'>Charger set</div>
+            <div className='item'>Importer des images</div>
             <div className='item'>Copier</div>
             <div className='item'>Couper</div>
             <div className='item'>Coller</div>

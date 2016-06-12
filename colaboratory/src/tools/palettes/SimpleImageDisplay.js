@@ -6,6 +6,10 @@
 import React from 'react';
 
 import MetadataActions from '../../actions/MetadataActions';
+import ViewActions from '../../actions/ViewActions';
+import ModeActions from '../../actions/ModeActions';
+
+import ModeConstants from '../../constants/ModeConstants';
 
 import Globals from '../../utils/Globals';
 
@@ -134,6 +138,20 @@ class SimpleImageDisplay extends React.Component {
     this.setState({imageUrl: url});
   }
 
+  loadParentSet(entityData) {
+    var sets = this.props.managerstore.getSets();
+    var id = sets[sets.length-1].uid;
+    if(id) {
+      window.setTimeout(ViewActions.setActiveSet.bind(null, id), 10);
+      // window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
+      window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.ORGANISATION),20);
+    }
+    else {
+      console.warn('Last displayed set not obtained');
+    }
+
+  }
+
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
@@ -185,6 +203,7 @@ class SimpleImageDisplay extends React.Component {
           return <div className={color + ' segment'}
                       key={'SIMPLE-IMAGE-' + image.uid}
                       style={self.compactBorderlessSegmentStyle}
+                      onDoubleClick={self.loadParentSet.bind(self, image)}
                       onClick={self.showImage.bind(self, image.thumbnail)}>
             {image.name}
           </div>

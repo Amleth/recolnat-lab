@@ -104,7 +104,7 @@ class SetDisplay extends React.Component {
   selectAndLoadSet(idx, item) {
     window.setTimeout(ViewActions.setActiveSet.bind(null, item.uid), 10);
     window.setTimeout(ManagerActions.selectEntityInSet.bind(null, this.props.index, idx), 10);
-    window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
+    // window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
     window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.ORGANISATION),30);
   }
 

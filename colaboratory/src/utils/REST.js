@@ -141,4 +141,32 @@ export default class REST {
         }
       });
   }
+
+  /**
+   *
+   * @param entityId
+   * @param properties an array of {'key', 'value'} objects; keys must mirror database fields
+   * @param onSuccessCallback
+   * @param onErrorCallback
+   */
+  static changeEntityProperties(entityId, properties, onSuccessCallback = undefined, onErrorCallback = undefined) {
+    request.post(conf.actions.databaseActions.editProperties)
+      .set('Content-Type', "application/json")
+      .send({entity: entityId})
+      .send({properties: properties})
+      .withCredentials()
+      .end((err, res) => {
+        if (err) {
+          console.error(err);
+          if(onErrorCallback) {
+            onErrorCallback(err);
+          }
+        }
+        else {
+          if(onSuccessCallback) {
+            onSuccessCallback(JSON.parse(res.text));
+          }
+        }
+      });
+  }
 };

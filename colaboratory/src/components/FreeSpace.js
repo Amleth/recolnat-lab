@@ -7,6 +7,7 @@ import D3FreeSpace from './D3FreeSpace';
 
 import MinimapActions from "../actions/MinimapActions";
 import MetadataActions from '../actions/MetadataActions';
+import ViewActions from '../actions/ViewActions';
 
 let d3Component = new D3FreeSpace();
 
@@ -49,6 +50,10 @@ class FreeSpace extends React.Component {
       const viewPropertiesUpdate = () => this.viewPropertiesUpdate(this.props.viewstore.getViewProperties());
       return viewPropertiesUpdate.apply(this);
     };
+
+    this.state = {
+      pinchLength: null
+    };
   }
 
   clearLabBench() {
@@ -85,6 +90,28 @@ class FreeSpace extends React.Component {
     d3Component.updateViewWithProperties(viewProps);
   }
 
+  pinchZoom(event) {
+    if(event.touches.length == 2) {
+      var length = Math.pow((event.touches[0].screenX - event.touches[1].screenX),2) + Math.pow((event.touches[0].screenY - event.touches[1].screenY), 2);
+      if (this.state.pinchLength) {
+        var view = this.props.viewstore.getView();
+        if(this.state.pinchLength < length) {
+          // User zooming out
+          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale*0.99), 10);
+        }
+        else {
+          // User zooming in
+          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale*1.01), 10);
+        }
+      }
+        this.setState({pinchLength: length});
+    }
+  }
+
+  clearTouch(event) {
+    this.setState({pinchLength: null});
+  }
+
   componentDidMount() {
     let el = React.findDOMNode(this);
     d3Component.create(
@@ -115,6 +142,8 @@ class FreeSpace extends React.Component {
   render() {
     return (
       <div className="freespace"
+           onTouchMove={this.pinchZoom.bind(this)}
+           onTouchEnd={this.clearTouch.bind(this)}
            onDragEnter={this.displayDragged.bind(this)}
            style={this.style}></div>
     );

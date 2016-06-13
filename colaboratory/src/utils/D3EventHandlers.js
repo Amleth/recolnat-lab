@@ -51,10 +51,6 @@ class D3EventHandlers {
     d3.select('#RESIZE_WINDOW')
       .attr('height', d.newHeight)
       .attr('width', d.newWidth);
-
-    //d3.select('#RESIZE-' + d.link)
-    //  .attr('x', d => d.newWidth)
-    //  .attr('y', d => d.newHeight);
   }
 
   static fixImageSize(d) {

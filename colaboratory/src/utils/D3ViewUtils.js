@@ -174,11 +174,19 @@ var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => 
     points.exit().remove();
 
     var point = points.selectAll('.' + Classes.POI_CLASS).data(d => d.pois, d => d.uid);
-    point.enter().append('g')
+    var poi = point.enter().append('g')
       .attr('class', Classes.POI_CLASS)
       .attr('id', d => 'POI-' + d.uid)
-      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
-      .append('svg:image')
+      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+    poi.append('rect')
+      .attr('rx', 5)
+      .attr('ry', 5)
+      .attr('width', 50)
+      .attr('height', 30)
+      .attr("x", -25)
+      .attr("y", -55)
+      .attr('fill', "white");
+    poi.append('svg:image')
       .attr('height', 60)
       .attr('width', 60)
       .attr('xlink:href', markerSVG)

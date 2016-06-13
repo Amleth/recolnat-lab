@@ -117,19 +117,15 @@ class OrbOptions {
   static beginAnimation(item) {
     if(!d3.select('#POI-' + item).empty()) {
       var bakRect = d3.select('#POI-' + item).select('rect');
-      var text = d3.select('#POI-' + item).select('text');
 
       window.setTimeout(function() {
-        OrbOptions.blink(bakRect, bakRect.attr('fill'), text.attr('fill') , 'fill');
-        OrbOptions.blink(text, text.attr('fill'), bakRect.attr('fill') , 'fill');
+        OrbOptions.blink(bakRect, 'red', 'blue' , 'fill');
       }, 10);
 
       return {
         type: TypeConstants.point,
         rect: bakRect,
-        text: text,
-        rectColor: bakRect.attr('fill'),
-        textColor: text.attr('fill')
+        rectColor: 'white'
       };
     }
     else if(!d3.select('#PATH-' + item).empty()) {
@@ -189,7 +185,6 @@ class OrbOptions {
     switch(animationData.type) {
       case TypeConstants.point:
         animationData.rect.interrupt().transition().attr('fill', animationData.rectColor);
-        animationData.text.interrupt().transition().attr('fill', animationData.textColor);
         break;
       case TypeConstants.trail:
         animationData.d3component.interrupt().transition().attr('stroke', animationData.color);

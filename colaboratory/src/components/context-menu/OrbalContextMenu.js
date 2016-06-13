@@ -14,6 +14,8 @@ import ManagerActions from '../../actions/ManagerActions';
 import TypeConstants from '../../constants/TypeConstants';
 import ViewConstants from '../../constants/ViewConstants';
 
+import EditPoI from '../../tools/editors/EditPoI';
+
 class OrbalContextMenu extends React.Component {
   constructor(props) {
     super(props);
@@ -394,7 +396,7 @@ class OrbalContextMenu extends React.Component {
     switch(metadata.type) {
       case TypeConstants.point:
         this.displayText = '(Point) ' + this.displayText;
-        this.northWestAction = OrbOptions.notAvailable.bind(null);
+        this.northWestAction = EditPoI.startEdit.bind(null, metadata);
         this.northAction = OrbOptions.zoomToObject.bind(null, '#POI-' + metadata.uid, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
@@ -415,6 +417,8 @@ class OrbalContextMenu extends React.Component {
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
         this.southWestIcon = 'info';
+        this.orbNEStyle.visibility = 'hidden';
+        this.orbSWStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
@@ -447,6 +451,8 @@ class OrbalContextMenu extends React.Component {
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
         this.southWestIcon = 'info';
+        this.orbNEStyle.visibility = 'hidden';
+        this.orbSWStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
@@ -479,6 +485,8 @@ class OrbalContextMenu extends React.Component {
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
         this.southWestIcon = 'info';
+        this.orbNEStyle.visibility = 'hidden';
+        this.orbSWStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
@@ -510,6 +518,9 @@ class OrbalContextMenu extends React.Component {
         this.northWestIcon = 'edit';
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
+        this.orbNEStyle.visibility = 'hidden';
+        this.orbNWStyle.visibility = 'hidden';
+        this.orbSWStyle.visibility = 'hidden';
         //this.southWestIcon = 'info';
         if(metadata.deletable) {
           this.southIcon = 'trash';

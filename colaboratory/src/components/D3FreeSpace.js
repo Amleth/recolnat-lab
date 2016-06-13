@@ -574,7 +574,7 @@ class D3FreeSpace {
           uid: elt.uid
         }
       };
-    }
+    };
     Array.prototype.push.apply(contextMenuObjects.images, objectsAtEvent.images.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.pois, objectsAtEvent.pois.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.rois, objectsAtEvent.rois.map(buildContextMenuElement));

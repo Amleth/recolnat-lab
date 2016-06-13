@@ -291,6 +291,53 @@ OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
 
     return Globals.OK;
   }
+  
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/edit-properties")
+  @Timed
+  public Response editProperties(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Entering /edit-properties");
+    }
+    JSONObject params = new JSONObject(input);
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String entityId = params.getString("entity");
+    JSONArray properties = params.getJSONArray("properties");
+    
+    boolean retry = true;
+    while(retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
+        // Check write rights
+        if(!AccessRights.canWrite(vUser, vEntity, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + entityId, Response.Status.FORBIDDEN);
+        }
+        
+        OrientVertex vNewEntityVersion = UpdateUtils.createNewVertexVersion(vEntity, (String) vUser.getProperty(DataModel.Properties.id), g);
+        for(int i = 0; i < properties.length(); ++i) {
+          vNewEntityVersion.setProperty(properties.getJSONObject(i).getString("key"), properties.getJSONObject(i).getString("value"));
+        }
+        g.commit();
+      }
+      catch(OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      }
+      finally {
+        if (!g.isClosed()) {
+          g.rollback();
+          g.shutdown();
+        }
+      }
+    }
+
+    return Response.ok(input, MediaType.APPLICATION_JSON_TYPE).build();
+  }
 
   private AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException, AccessDeniedException {
     String cl = v.getProperty("@class");

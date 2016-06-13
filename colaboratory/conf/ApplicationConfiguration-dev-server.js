@@ -69,7 +69,8 @@ var Actions = {
     getData: Endpoints.dataAccessService + '/get-data',
     remove: Endpoints.dataAccessService + '/remove',
     getLog: Endpoints.dataAccessService + '/get-change-log',
-    addAnnotation: Endpoints.dataAccessService + '/add-annotation'
+    addAnnotation: Endpoints.dataAccessService + '/add-annotation',
+    editProperties: Endpoints.dataAccessService + '/edit-properties'
   }
 };
 

@@ -85,7 +85,7 @@ class VirtualBenchLab extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.isVisibleInCurrentMode && !prevState.isVisibleInCurrentMode) {
-      $(this.refs.import.getDOMNode).popup({
+      $(this.refs.import.getDOMNode()).popup({
         position: 'top center'
       });
     }
@@ -106,9 +106,10 @@ class VirtualBenchLab extends React.Component {
           drag={drag}
         />
         <ImagesLoadingStatus imagestore={this.props.imagestore}/>
-        <div style={this.importSheetButtonStyle} className='ui container'>
+        <div style={this.importSheetButtonStyle}
+        data-content='Importer des images' ref='import' className='ui container'>
           <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: this.props.benchstore.getActiveSetId()})}
-          className='ui small green button' data-content='Importer des images' ref='import'>+</a>
+          className='ui small green button' ><i className='ui small add icon'/></a>
         </div>
         <OrbalContextMenu
           menustore={this.props.menustore}

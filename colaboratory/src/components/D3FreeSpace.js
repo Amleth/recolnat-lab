@@ -325,17 +325,18 @@ class D3FreeSpace {
         .transition()
         .duration(1000)
         .ease('linear')
-        .attr('width', d => 5 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 5 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / this.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
 
       d3.selectAll('.' + Classes.MOVE_CLASS)
         .transition()
         .duration(1000)
         .ease('linear')
-        .attr('y', d => -10 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 10 / this.view.scale * d.height / d.displayHeight)
+        .attr('x', d => d.width/2 - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -20 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
     }
     else {
@@ -343,14 +344,15 @@ class D3FreeSpace {
         .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
 
       d3.selectAll('.' + Classes.RESIZE_CLASS)
-        .attr('width', d => 5 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 5 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / this.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
 
       d3.selectAll('.' + Classes.MOVE_CLASS)
-        .attr('y', d => -10 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 10 / this.view.scale * d.height / d.displayHeight)
+        .attr('x', d => d.width/2 - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -20 / this.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
     }
   }

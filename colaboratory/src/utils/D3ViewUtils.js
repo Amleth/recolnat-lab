@@ -11,7 +11,8 @@ import Classes from '../constants/CommonSVGClasses';
 import ViewConstants from '../constants/ViewConstants';
 
 import markerSVG from '../images/marker.svg';
-import moveIcon from '../images/move.svg';
+import resizeIcon from '../images/resize_nw.svg';
+import moveIcon from '../images/hand_hex.svg';
 
 export default class D3ViewUtils {
   static drawBenchData(data, self) {
@@ -74,25 +75,28 @@ export default class D3ViewUtils {
       .text(d => d.name);
 
     var resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
-    resizer.enter().append("rect")
+    resizer.enter()
+    // .append("rect")
+      .append('svg:image')
+      .attr('xlink:href', resizeIcon)
       .attr('class', Classes.RESIZE_CLASS)
       .attr('id', d => 'RESIZE-' + d.link)
       .attr('x', d => d.width)
       .attr('y', d => d.height)
-      .attr('width', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 5/self.view.scale* d.height/ d.displayHeight)
+      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight)
       .call(D3EventHandlers.dragResize())
-      .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-      .style('stroke', 'rgb(0,0,0)')
-      .style('fill-opacity', '0.0')
+      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
+      // .style('stroke', 'rgb(0,0,0)')
+      // .style('fill-opacity', '0.0')
       .style('cursor', '-webkit-nwse-resize')
       .style('cursor', 'nwse-resize');
     resizer.exit().remove();
     resizer.attr('x', d => d.width)
       .attr('y', d => d.height)
-      .attr('width', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 5/self.view.scale* d.height/ d.displayHeight)
-      .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
+      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight);
+      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
 
     var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
     mover.enter()
@@ -101,10 +105,10 @@ export default class D3ViewUtils {
       .attr('xlink:href', moveIcon)
       .attr('class', Classes.MOVE_CLASS)
       .attr('id', d => 'MOVE-' + d.link)
-      .attr('x', d => d.width/2)
-      .attr('y', d => -10/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight)
+      .attr('x', d => d.width/2 - 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight)
       .call(D3EventHandlers.dragMove())
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
       // .style('stroke', 'rgb(0,0,0)')
@@ -114,11 +118,11 @@ export default class D3ViewUtils {
       .append('svg:title')
       .text('Drag mouse to move this sheet');
     mover.exit().remove();
-    mover.attr('x', d => d.width/2)
-      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 5/self.view.scale* d.height/ d.displayHeight)
-      .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
+    mover.attr('x', d => d.width/2 - 10)
+      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight);
+      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
     // END under image update
 
     var image = children.selectAll('.' + Classes.IMAGE_CLASS).data(d => [d], d => d.link);

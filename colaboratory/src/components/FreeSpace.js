@@ -8,6 +8,11 @@ import D3FreeSpace from './D3FreeSpace';
 import MinimapActions from "../actions/MinimapActions";
 import MetadataActions from '../actions/MetadataActions';
 import ViewActions from '../actions/ViewActions';
+import ToolActions from '../actions/ToolActions';
+
+import ModeConstants from '../constants/ModeConstants';
+
+import ToolConf from '../conf/Tools-conf';
 
 let d3Component = new D3FreeSpace();
 
@@ -67,9 +72,14 @@ class FreeSpace extends React.Component {
   displayLabBench() {
     if(this.props.benchstore.getActiveViewId()) {
       d3Component.loadView(this.props.benchstore.getActiveViewId());
+
+      if(this.props.modestore.isInOrganisationMode()) {
+        window.setTimeout(
+          ToolActions.setTool.bind(null, ToolConf.moveObject.id), 500
+        );
+      }
     }
   }
-
 
   displayDragged(event) {
     if(this.props.drag.getType() == 'inboxMove') {

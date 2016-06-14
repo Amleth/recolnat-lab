@@ -127,6 +127,7 @@ class VirtualBenchLab extends React.Component {
           height='100%'
           viewstore={this.props.viewstore}
           metastore={this.props.metastore}
+          modestore={this.props.modestore}
           benchstore={this.props.benchstore}
           managerstore={this.props.managerstore}
           drag={drag}

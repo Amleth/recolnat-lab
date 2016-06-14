@@ -88,7 +88,7 @@ class Toolbox extends React.Component {
         </div>
         <div style={this.hiddenButtons}>
           <MoveView />
-          <MoveObject />
+          <MoveObject viewstore={this.props.viewstore}/>
           <SelectObject />
         </div>
         <div className='ui four buttons' style={this.buttonRowsStyle}>

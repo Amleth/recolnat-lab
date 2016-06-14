@@ -71,6 +71,10 @@ class LineMeasure extends AbstractTool {
     };
   }
 
+  adaptMeasureDisplaysToZoom(view) {
+
+  }
+
   createActiveMeasure(x, y, uuid, data) {
     var activeToolGroup = d3.select('#OVER-' + data.link);
 
@@ -269,29 +273,8 @@ class LineMeasure extends AbstractTool {
     this.setState(this.initialState());
   }
 
-  /**
-   * Callback function to respond to user clicks.
-   * @param x click location x
-   * @param y click location y
-   * @returns {boolean} true if the tool has completed its task and the method toSVG() can be safely called, false when user input is still required
-   */
   click(self, x, y) {
-    //if(self.state.clicks == 0) {
-    //  // First click somewhere, set line beginning, create uuid
-    //
-    //}
-    //else if(self.state.clicks == 1) {
-    //  // Second click, set line end
-    //  self.removeMouseMoveListener();
-    //  self.setState({clicks: 2});
-    //}
-    //else {
-    //  // Line already complete, begin new measure.
-    //  window.setTimeout(function () {
-    //    ToolActions.updateTooltipData("Cliquez sur l'image pour commencer une nouvelle mesure");
-    //  }, 10);
-    //  self.setState({start: null, end: null, uuid: null, clicks: 0});
-    //}
+    // This is no longer necessary
   }
 
   setMode() {
@@ -506,24 +489,6 @@ class LineMeasure extends AbstractTool {
   componentDidMount() {
     ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    //if(this.state.clicks != prevState.clicks) {
-    //  switch(this.state.clicks) {
-    //    case 0:
-    //      break;
-    //    case 1:
-    //      this.createActiveMeasure();
-    //      break;
-    //    case 2:
-    //      this.makeActiveMeasurePassive();
-    //      this.setState({uuid: null, clicks: 0, start: null, end: null});
-    //      break;
-    //    default:
-    //      console.error('Invalid click count');
-    //  }
-    //}
   }
 
   componentWillUpdate(nextProps, nextState) {

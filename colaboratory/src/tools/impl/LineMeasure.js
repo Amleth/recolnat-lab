@@ -11,6 +11,7 @@ import AbstractTool from "../AbstractTool";
 
 import ToolActions from "../../actions/ToolActions";
 import ViewActions from '../../actions/ViewActions';
+import MetadataActions from '../../actions/MetadataActions';
 
 import ToolConf from "../../conf/Tools-conf";
 import conf from '../../conf/ApplicationConfiguration';
@@ -208,7 +209,7 @@ class LineMeasure extends AbstractTool {
   }
 
   removeSVG() {
-    d3.select('.' + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll('*').remove();
+    d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).remove();
   }
 
   begin() {
@@ -244,7 +245,7 @@ class LineMeasure extends AbstractTool {
 
   reset() {
     this.removeMouseMoveListener();
-    this.removeSVG();
+    // this.removeSVG();
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
     }, 10);
@@ -360,7 +361,7 @@ class LineMeasure extends AbstractTool {
 
     data.payload.length = Math.sqrt(Math.pow(Math.abs(d.y2) - Math.abs(d.y1), 2) + Math.pow(Math.abs(d.x2) - Math.abs(d.x1), 2));
 
-    this.props.toolstore.sendData(data, ViewActions.updateMetadata.bind(null, d.image));
+    this.props.toolstore.sendData(data, MetadataActions.updateLabBenchFrom.bind(null, d.link));
 
     // LineMeasure.stopEvent(d);
   }

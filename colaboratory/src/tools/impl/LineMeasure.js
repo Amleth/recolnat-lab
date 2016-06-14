@@ -253,7 +253,10 @@ class LineMeasure extends AbstractTool {
   }
 
   finish() {
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).style('cursor', 'default');
+    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'default')
+      .on('click', null)
+      .on('contextmenu', null);
     // TODO remove all measures
     this.removeSVG();
 
@@ -336,6 +339,9 @@ class LineMeasure extends AbstractTool {
   }
 
   save(d) {
+    if(d3.event.defaultPrevented) return;
+    d3.event.preventDefault();
+    d3.event.stopPropagation();
     var name = prompt('Veuillez indiquer un nom pour cette mesure', '');
     if(name.length < 1) {
       alert('Le nom est obligatoire');
@@ -344,7 +350,7 @@ class LineMeasure extends AbstractTool {
 
     var data = {};
     data.parent = d.image;
-    data.serviceUrl = conf.actions.imageEditorServiceActions.createPath;
+    data.serviceUrl = conf.actions.imageServiceActions.createTrailOfInterest;
     data.payload = {};
     data.payload.path = [];
     data.payload.name = name;
@@ -356,7 +362,7 @@ class LineMeasure extends AbstractTool {
 
     this.props.toolstore.sendData(data, ViewActions.updateMetadata.bind(null, d.image));
 
-    LineMeasure.stopEvent(d);
+    // LineMeasure.stopEvent(d);
   }
 
   static updateLineDisplay(id) {

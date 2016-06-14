@@ -138,7 +138,7 @@ class SimpleImageDisplay extends React.Component {
     this.setState({imageUrl: url});
   }
 
-  loadParentSet(entityData) {
+  loadParentSet() {
     var sets = this.props.managerstore.getSets();
     var id = sets[sets.length-1].uid;
     if(id) {
@@ -203,7 +203,7 @@ class SimpleImageDisplay extends React.Component {
           return <div className={color + ' segment'}
                       key={'SIMPLE-IMAGE-' + image.uid}
                       style={self.compactBorderlessSegmentStyle}
-                      onDoubleClick={self.loadParentSet.bind(self, image)}
+                      onDoubleClick={self.loadParentSet.bind(self)}
                       onClick={self.showImage.bind(self, image.thumbnail)}>
             {image.name}
           </div>
@@ -212,6 +212,7 @@ class SimpleImageDisplay extends React.Component {
       <img className='ui centered bordered image'
            style={this.imageStyle}
            src={this.state.imageUrl}
+           onDoubleClick={self.loadParentSet.bind(self)}
            alt="Aucune image sélectionnée">
       </img>
         </div>

@@ -373,7 +373,7 @@ public class ImageEditorResource {
         UpdateUtils.addCreator(vPath, vUser, g);
 
         // Link measure to trailOfInterest
-        UpdateUtils.link(vImage, vPath, DataModel.Links.hasMeasurement, userId, g);
+        UpdateUtils.link(vPath, mRefPx, DataModel.Links.hasMeasurement, userId, g);
 //        UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
 
         // Link trailOfInterest to parent entity

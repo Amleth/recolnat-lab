@@ -557,6 +557,9 @@ class D3FreeSpace {
   }
 
   contextMenu(self) {
+    if(d3.event.defaultPrevented) {
+      return;
+    }
     d3.event.preventDefault();
     var coords = d3.mouse(this);
     var objectsAtEvent = self.findObjectsAtCoords(coords);

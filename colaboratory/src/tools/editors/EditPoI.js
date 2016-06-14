@@ -37,16 +37,16 @@ class EditPoI {
       .call(EditPoI.drag());
 
     d3.select('.' + Classes.ROOT_CLASS)
-      .on('contextMenu', EditPoI.endEdit.bind(null, data));
+      .on('contextmenu', EditPoI.endEdit.bind(null, data));
   }
 
   static endEdit(data) {
-    d3.event.sourceEvent.stopPropagation();
-    d3.event.sourceEvent.preventDefault();
-      d3.select('#POI-EDIT-' + data.uid).remove();
+    d3.event.stopPropagation();
+    d3.event.preventDefault();
 
-      d3.select('.' + Classes.ROOT_CLASS)
-        .on('click', null);
+    d3.select('#POI-EDIT-' + data.uid).remove();
+    d3.select('.' + Classes.ROOT_CLASS)
+      .on('contextmenu', null);
   }
 
   static startDrag(d) {
@@ -55,28 +55,17 @@ class EditPoI {
     d3.select('svg')
       .style('cursor', '-webkit-grabbing')
       .style('cursor', 'grabbing');
-
-    d.tx = 0;
-    d.ty = 0;
   }
 
   static moveLocal(d) {
     d3.event.sourceEvent.stopPropagation();
     d3.event.sourceEvent.preventDefault();
 
-    d.tx = d.tx + d3.event.dx;
-    d.ty = d.ty + d3.event.dy;
-    console.log('tX=' + d.tx);
-    console.log('tY=' + d.ty);
-
-    var newX = Number.parseFloat(d.x) + d.tx;
-    var newY = Number.parseFloat(d.y) + d.ty;
-
-    console.log('newX=' + newX);
-    console.log('newY=' + newY);
+    // Get coordinates of point in image
+    var coords = d3.mouse(this.parentNode.parentNode);
 
     d3.select('#POI-' + d.uid)
-      .attr('transform', 'translate(' + newX + ',' + newY + ')');
+      .attr('transform', 'translate(' + coords[0] + ',' + coords[1] + ')');
   }
 
   static fixPosition(d) {
@@ -86,22 +75,23 @@ class EditPoI {
       .style('cursor', '-webkit-auto')
       .style('cursor', 'auto');
 
+      var coords = d3.mouse(this.parentNode.parentNode);
+
     var properties = [
-      { key: 'x', value: Number.parseFloat(d.x) + d.tx },
-      { key: 'y', value: Number.parseFloat(d.y) + d.ty }
+      { key: 'x', value: coords[0] },
+      { key: 'y', value: coords[1] }
     ];
 
-    d.tx = 0;
-    d.ty = 0;
+    REST.changeEntityProperties(d.uid, properties, MetadataActions.updateLabBenchFrom.bind(null, d.uid), EditPoI.moveAbortedByServer);
 
-    //REST.changeEntityProperties(d.uid, properties, MetadataActions.updateLabBenchFrom.bind(null, d.uid), EditPoI.moveAbortedByServer);
-
-    EditPoI.endEdit(d);
+    d3.select('#POI-EDIT-' + data.uid).remove();
+    d3.select('.' + Classes.ROOT_CLASS)
+      .on('contextmenu', null);
   }
 
-  static moveAbortedByServer(response) {
+  static moveAbortedByServer() {
     alert('Le déplacement a été refusé par le serveur');
-    window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, response.id), 10);
+    window.setTimeout(MetadataActions.updateLabBenchFrom, 10);
   }
 }
 

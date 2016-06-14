@@ -10,6 +10,7 @@ import ModeConstants from '../constants/ModeConstants';
 import ModeActions from '../actions/ModeActions';
 import ManagerActions from '../actions/ManagerActions';
 import MetadataActions from '../actions/MetadataActions';
+import ToolActions from '../actions/ToolActions';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -152,6 +153,9 @@ class GlobalFunctions {
   static setMode(mode) {
     window.setTimeout(
       ModeActions.changeMode.bind(null, mode), 10
+    );
+    window.setTimeout(
+      ToolActions.setTool.bind(null, null), 10
     );
     switch(mode) {
       case ModeConstants.Modes.OBSERVATION:

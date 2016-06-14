@@ -419,13 +419,13 @@ class OrbalContextMenu extends React.Component {
         this.southWestIcon = 'info';
         this.orbNEStyle.visibility = 'hidden';
         this.orbSWStyle.visibility = 'hidden';
+        this.orbSEStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
         }
         else {
           this.orbSStyle.visibility = 'hidden';
-          this.orbSEStyle.visibility = 'hidden';
         }
 
         break;
@@ -453,13 +453,13 @@ class OrbalContextMenu extends React.Component {
         this.southWestIcon = 'info';
         this.orbNEStyle.visibility = 'hidden';
         this.orbSWStyle.visibility = 'hidden';
+        this.orbSEStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
         }
         else {
           this.orbSStyle.visibility = 'hidden';
-          this.orbSEStyle.visibility = 'hidden';
         }
         break;
       case TypeConstants.region:
@@ -487,13 +487,13 @@ class OrbalContextMenu extends React.Component {
         this.southWestIcon = 'info';
         this.orbNEStyle.visibility = 'hidden';
         this.orbSWStyle.visibility = 'hidden';
+        this.orbSEStyle.visibility = 'hidden';
         if(metadata.deletable) {
           this.southIcon = 'trash';
           this.southEastIcon = 'setting';
         }
         else {
           this.orbSStyle.visibility = 'hidden';
-          this.orbSEStyle.visibility = 'hidden';
         }
         break;
       case TypeConstants.image:
@@ -521,6 +521,7 @@ class OrbalContextMenu extends React.Component {
         this.orbNEStyle.visibility = 'hidden';
         this.orbNWStyle.visibility = 'hidden';
         this.orbSWStyle.visibility = 'hidden';
+        this.orbSEStyle.visibility = 'hidden';
         //this.southWestIcon = 'info';
         if(metadata.deletable) {
           this.southIcon = 'trash';
@@ -528,7 +529,6 @@ class OrbalContextMenu extends React.Component {
         }
         else {
           this.orbSStyle.visibility = 'hidden';
-          this.orbSEStyle.visibility = 'hidden';
         }
 
         this.orbSWStyle.visibility = 'hidden';

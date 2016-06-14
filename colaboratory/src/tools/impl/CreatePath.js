@@ -165,11 +165,16 @@ class CreatePath extends AbstractTool {
     var edges = this.state.edges;
     while(edges.length > 0) {
       var edge = Globals.getNextEdge(x, y, edges, 5);
+
+      // Check if this vertex is not already part of the previous edge
+      if(edge.start.x !== x && edge.start.y !== y) {
+        data.payload.path.push([edge.start.x, edge.start.y]);
+      }
+      data.payload.path.push([edge.end.x, edge.end.y]);
+
       x = edge.end.x;
       y = edge.end.y;
 
-      data.payload.path.push([edge.start.x, edge.start.y]);
-      data.payload.path.push([edge.end.x, edge.end.y]);
       data.payload.length += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
     }
 
@@ -231,15 +236,15 @@ class CreatePath extends AbstractTool {
 
   finish() {
     this.clearSVG();
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData("");
-    }, 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ""), 10);
+    
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', null)
       .on('mouseleave', null);
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('contextmenu', null)
       .on('click', null);
 
     this.props.viewstore.removeViewportListener(this._onViewChange);

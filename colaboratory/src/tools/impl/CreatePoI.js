@@ -133,6 +133,7 @@ class CreatePoI extends AbstractTool {
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
       .on('click', null)
+      .on('contextmenu', null)
       .style('cursor', 'default');
 
     this.setState(this.initialState());

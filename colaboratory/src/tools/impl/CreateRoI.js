@@ -230,6 +230,7 @@ class CreateRoI extends AbstractTool {
     }, 10);
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .on('contextmenu', null)
       .on('click', null);
 
     this.props.viewstore.removeViewportListener(this._onViewChange);

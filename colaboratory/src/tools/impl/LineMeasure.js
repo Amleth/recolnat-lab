@@ -40,6 +40,11 @@ class LineMeasure extends AbstractTool {
       margin: '8px 10px 0px 0px'
     };
 
+    this._onZoom = () => {
+      const adaptDisplay = () => this.adaptMeasureDisplaysToZoom(this.props.viewstore.getView());
+      return adaptDisplay.apply(this);
+    };
+
     this.popup = null;
 
     this.state = this.initialState();
@@ -61,6 +66,7 @@ class LineMeasure extends AbstractTool {
   static classes() {
     return {
       selfSvgClass: "LINE_MEASURE_TOOL_CLASS",
+      selfDashSvgClass: "LINE_MEASURE_LINE_DASH_CLASS",
       selfGroupSvgClass: "LINE_MEASURE_GROUP_CLASS",
       selfDataContainerClass: "LINE_MEASURE_GROUP_DATA_CONTAINER_CLASS",
       selfRectSvgClass: "LINE_MEASURE_RECT_TOOL_CLASS",
@@ -72,7 +78,31 @@ class LineMeasure extends AbstractTool {
   }
 
   adaptMeasureDisplaysToZoom(view) {
+    d3.selectAll('.' + LineMeasure.classes().selfSvgClass)
+      .attr('stroke-width', 2/view.scale);
 
+    d3.selectAll('.' + LineMeasure.classes().selfDashSvgClass)
+      .attr('stroke-width', 2/view.scale)
+      .attr('stroke-dasharray', 5/view.scale + ',' + 5/view.scale);
+
+    d3.selectAll('.' + LineMeasure.classes().selfTextSvgClass)
+      .attr('stroke-width', 1/(4*view.scale) + 'px')
+      //.attr('dy', 0.35/view.scale + 'em')
+      .attr('font-size', 20/view.scale + 'px');
+
+    d3.selectAll('.' + LineMeasure.classes().selfStartVertexClass)
+      .attr('stroke-width', 3/view.scale)
+      .attr('r', 6/view.scale);
+
+    d3.selectAll('.' + LineMeasure.classes().selfEndVertexClass)
+      .attr('stroke-width', 3/view.scale)
+      .attr('r', 6/view.scale);
+
+    d3.selectAll('.' + LineMeasure.classes().selfSaveClass)
+      .attr('height', 30/view.scale)
+      .attr('width', 30/view.scale)
+      .attr('x', d => (d.x2 + d.x1) / 2 - 20/view.scale)
+      .attr('y', d => (d.y2 + d.y1) / 2 + 10/view.scale);
   }
 
   createActiveMeasure(x, y, uuid, data) {
@@ -114,6 +144,8 @@ class LineMeasure extends AbstractTool {
       }
     }
 
+    var view = this.props.viewstore.getView();
+
     var newMeasure = activeToolGroup.append('g')
       .datum(lineData)
       .attr('id', d => 'MEASURE-' + d.id)
@@ -123,15 +155,15 @@ class LineMeasure extends AbstractTool {
       .append('line')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfSvgClass)
-      .attr('stroke-width', 2)
+      .attr('stroke-width', 2/view.scale)
       .attr('stroke', '#AAAAAA');
 
     newMeasure
       .append('line')
       .datum(lineData)
-      .attr('class', LineMeasure.classes().selfSvgClass)
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '5,5')
+      .attr('class', LineMeasure.classes().selfDashSvgClass)
+      .attr('stroke-width', 2/view.scale)
+      .attr('stroke-dasharray', 5/view.scale + ',' + 5/view.scale)
       .attr('stroke', 'black');
 
     var group = newMeasure.append('g')
@@ -139,23 +171,17 @@ class LineMeasure extends AbstractTool {
       .attr('class', LineMeasure.classes().selfDataContainerClass);
 
     group
-      .append('rect')
-      .datum(lineData)
-      .attr('class', LineMeasure.classes().selfRectSvgClass)
-      .attr('width', 30)
-      .attr('height', 15)
-      .attr('stroke-width', 2)
-      .attr('stroke', '#AAAAAA')
-      .attr('fill', '#000000');
-
-    group
       .append('text')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfTextSvgClass)
-      .attr('dy', '.35em')
+      //.attr('dy', 0.35/view.scale + 'em')
+      //.attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
-      .attr('font-size', '14px')
-      .attr('fill', '#FFFFFF');
+      .attr('stroke-width', 1/(4*view.scale) + 'px')
+      .attr('font-size', 20/view.scale + 'px')
+      .attr('stroke', 'black')
+      .attr('fill', 'white')
+      .style('filter', 'url(#drop-shadow)');
 
     LineMeasure.updateLineDisplay(lineData.id);
 
@@ -167,6 +193,7 @@ class LineMeasure extends AbstractTool {
   }
 
   makeActiveMeasurePassive(x, y, data) {
+    var view = this.props.viewstore.getView();
     // Grab active measure
     var activeToolGroup = d3.select('#MEASURE-' + this.state.uuid);
     var self = this;
@@ -175,24 +202,26 @@ class LineMeasure extends AbstractTool {
     d3.select('#GROUP' + this.state.imageLinkUri)
       .on("mousemove", null);
     // Create point (rect) at both ends with drag listeners
-    activeToolGroup.append('rect')
+    activeToolGroup.append('circle')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfStartVertexClass)
-      .attr('height', 10)
-      .attr('width', 10)
+      .attr('r', 6/view.scale)
+      .attr('stroke-width', 3/view.scale)
       .attr('fill', 'black')
+      .attr('stroke', 'white')
       .style('cursor', '-webkit-grab')
       .style('cursor', 'grab')
       .on('click', LineMeasure.stopEvent)
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragStartVertex);
 
-    activeToolGroup.append('rect')
+    activeToolGroup.append('circle')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfEndVertexClass)
-      .attr('height', 10)
-      .attr('width', 10)
+      .attr('r', 6/view.scale)
+      .attr('stroke-width', 3/view.scale)
       .attr('fill', 'black')
+      .attr('stroke', 'white')
       .style('cursor', '-webkit-grab')
       .style('cursor', 'drag')
       .on('click', LineMeasure.stopEvent)
@@ -203,8 +232,10 @@ class LineMeasure extends AbstractTool {
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfSaveClass)
       .attr('xlink:href', saveIcon)
-      .attr('height', 30)
-      .attr('width', 30)
+      .attr('height', 30/view.scale)
+      .attr('width', 30/view.scale)
+      .attr('x', d => (d.x2 + d.x1) / 2 - 20/view.scale)
+      .attr('y', d => (d.y2 + d.y1) / 2 + 10/view.scale)
       .style('cursor', 'default')
       .on('click', function(d) { return self.save.call(self, d); });
 
@@ -359,6 +390,12 @@ class LineMeasure extends AbstractTool {
       .attr('x2', d => d.x2)
       .attr('y2', d => d.y2);
 
+    measure.selectAll('.' + LineMeasure.classes().selfDashSvgClass)
+      .attr('x1', d => d.x1)
+      .attr('y1', d => d.y1)
+      .attr('x2', d => d.x2)
+      .attr('y2', d => d.y2);
+
     var text = measure.select('.' + LineMeasure.classes().selfTextSvgClass)
       .attr('x', d => (d.x2 + d.x1) / 2)
       .attr('y', d => (d.y2 + d.y1) / 2)
@@ -367,23 +404,17 @@ class LineMeasure extends AbstractTool {
     var width = text.node().getBBox().width;
     var height = text.node().getBBox().height;
 
-    measure.select('.' + LineMeasure.classes().selfRectSvgClass)
-      .attr('x', d => (d.x2 + d.x1 - width - 10) / 2)
-      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2)
-      .attr('width', width + 10)
-      .attr('height', height + 10);
-
     measure.select('.' + LineMeasure.classes().selfStartVertexClass)
-      .attr('x', d => d.x1-5)
-      .attr('y', d => d.y1-5);
+      .attr('cx', d => d.x1)
+      .attr('cy', d => d.y1);
 
     measure.select('.' + LineMeasure.classes().selfEndVertexClass)
-      .attr('x', d => d.x2-5)
-      .attr('y', d => d.y2-5);
+      .attr('cx', d => d.x2)
+      .attr('cy', d => d.y2);
 
-    measure.select('.' + LineMeasure.classes().selfSaveClass)
-      .attr('x', d => (d.x2 + d.x1 - width + 10) / 2 + width)
-      .attr('y', d => (d.y2 + d.y1 - height - 10) / 2);
+    //measure.select('.' + LineMeasure.classes().selfSaveClass)
+    //  .attr('x', d => (d.x2 + d.x1) / 2)
+    //  .attr('y', d => (d.y2 + d.y1) / 2 - 10);
   }
 
   static stopEvent(d) {
@@ -487,8 +518,9 @@ class LineMeasure extends AbstractTool {
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
+    this.props.viewstore.addViewportListener(this._onZoom);
     $(this.refs.button.getDOMNode()).popup();
+    ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -501,6 +533,7 @@ class LineMeasure extends AbstractTool {
   }
 
   componentWillUnmount() {
+    this.props.viewstore.removeViewportListener(this._onZoom);
     ToolActions.activeToolPopupUpdate(null);
   }
 

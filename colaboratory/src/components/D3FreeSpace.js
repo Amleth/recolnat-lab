@@ -90,6 +90,26 @@ class D3FreeSpace {
       .call(this.zoom)
       .style('cursor', 'default');
 
+    var defs = svg.append('defs');
+    var dropShadowFilter = defs.append('filter')
+      .attr('id', 'drop-shadow')
+      .attr('height', '130%');
+    dropShadowFilter.append("feGaussianBlur")
+      .attr("in", "SourceAlpha")
+      .attr("stdDeviation", 5)
+      .attr("result", "blur");
+    dropShadowFilter.append("feOffset")
+      .attr("in", "blur")
+      .attr("dx", 5)
+      .attr("dy", 5)
+      .attr("result", "offsetBlur");
+    var feMerge = dropShadowFilter.append("feMerge");
+    feMerge.append("feMergeNode")
+      .attr("in", "offsetBlur");
+    feMerge.append("feMergeNode")
+      .attr("in", "SourceGraphic");
+
+
     var root = svg.append('g').attr('class', Classes.ROOT_CLASS);
     root.append('g').attr('class', Classes.OBJECTS_CONTAINER_CLASS);
     root.append('g').attr('class', Classes.ACTIVE_TOOL_DISPLAY_CLASS);

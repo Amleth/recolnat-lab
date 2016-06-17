@@ -6,11 +6,15 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 
 import java.lang.reflect.Field;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 23/03/15.
  */
 public class StructureBuilder {
+  private static final Logger log = LoggerFactory.getLogger(StructureBuilder.class);
+  
   public static void createRecolnatDataModel(OrientGraphNoTx graph) throws IllegalAccessException {
 
     Field[] fields = DataModel.Classes.class.getDeclaredFields();
@@ -53,6 +57,9 @@ public class StructureBuilder {
   private static void addFieldsAsChildrenOfClass(OrientVertexType parent, Field[] children, OrientGraphNoTx graph) throws IllegalAccessException {
     for (Field field : children){
       try {
+        if(log.isInfoEnabled()) {
+          log.info("Adding vertex type " + field.get(null));
+        }
         if(parent != null) {
           graph.createVertexType(field.get(null).toString(), parent);
         }
@@ -62,6 +69,9 @@ public class StructureBuilder {
       }
       catch (OSchemaException e) {
         // Happens when already exists, no error here
+        if(log.isErrorEnabled()) {
+          log.error("Error while adding vertex type " + field.get(null), e);
+        }
       }
     }
   }

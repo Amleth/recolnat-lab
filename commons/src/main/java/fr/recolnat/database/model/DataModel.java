@@ -6,7 +6,7 @@ package fr.recolnat.database.model;
 public class DataModel {
   public static class Classes {
     // Links to stuff that was imported from the outside world (i.e. ReColNat)
-    public static final String originalSource = "OriginalSource";
+      public static final String originalSource = "OriginalSource";
     
 //      public static final String abstractEntity = "Entity";
       

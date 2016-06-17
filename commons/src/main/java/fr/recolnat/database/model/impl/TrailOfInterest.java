@@ -42,7 +42,7 @@ public class TrailOfInterest extends AbstractObject {
       }
     }
     
-    Iterator<Vertex> itParents = vPath.getVertices(Direction.IN, DataModel.Links.roi).iterator();
+    Iterator<Vertex> itParents = vPath.getVertices(Direction.IN, DataModel.Links.toi).iterator();
     while(itParents.hasNext()) {
       OrientVertex vParent = (OrientVertex) itParents.next();
       if(AccessUtils.isLatestVersion(vParent)) {

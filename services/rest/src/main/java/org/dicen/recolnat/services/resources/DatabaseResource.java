@@ -63,7 +63,7 @@ public class DatabaseResource {
   @Timed
   public String createStructure(final String input) throws JSONException {
 //    OrientGraphNoTx gntx = DatabaseAccess.databaseConnector.getNonTransactionalGraph();
-OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
+    OrientGraphNoTx gntx = DatabaseAccess.factory.getNoTx();
     try {
       StructureBuilder.createRecolnatDataModel(gntx);
       StructureBuilder.createDefaultNodes(gntx);

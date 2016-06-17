@@ -1,5 +1,6 @@
 package fr.recolnat.database.utils;
 
+import com.drew.lang.annotations.NotNull;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -97,7 +98,10 @@ public class AccessUtils {
     return AccessUtils.findLatestVersion(itWb, graph);
   }
   
-  public static OrientVertex getOriginalSource(String recolnatUUID, OrientGraph g) {
+  public static OrientVertex getOriginalSource(@NotNull String recolnatUUID, @NotNull OrientGraph g) {
+    if(log.isTraceEnabled()) {
+      log.trace("getOriginalSource(" + recolnatUUID + ", g)");
+    }
     Iterable<Vertex> it = g.getVertices(DataModel.Classes.originalSource, 
         new String[] {DataModel.Properties.idInOriginSource, DataModel.Properties.branch}, 
         new Object[] {recolnatUUID, DataModel.Globals.BRANCH_MAIN});

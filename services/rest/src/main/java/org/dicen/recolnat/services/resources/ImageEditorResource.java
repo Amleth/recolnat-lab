@@ -369,8 +369,9 @@ public class ImageEditorResource {
         // Create measure
         OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
 
-        // Link user to trailOfInterest as creator
+        // Link user to trailOfInterest & measure as creator
         UpdateUtils.addCreator(vPath, vUser, g);
+        UpdateUtils.addCreator(mRefPx, vUser, g);
 
         // Link measure to trailOfInterest
         UpdateUtils.link(vPath, mRefPx, DataModel.Links.hasMeasurement, userId, g);

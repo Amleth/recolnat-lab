@@ -85,15 +85,9 @@ class CreatePathPopup extends React.Component {
       <div style={this.componentStyle}>
         <div style={this.barContainerStyle}>
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
-            <textarea placeholder="Nom"
+            <textarea placeholder="Intitulé"
                       onChange={this.onNameChange.bind(this)}
                       value={this.state.name} autofocus="true" wrap="hard"/>
-          </div>
-          <div style={this.horizontalContainerStyle} className='ui left corner labeled input'>
-            <div className='ui left corner label'>
-              <i className='ui tags icon' />
-            </div>
-            <input placeholder="Tags (facultatif)" autofocus="true" wrap="hard"/>
           </div>
         </div>
         <div style={this.buttonContainerStyle} className='ui buttons'>

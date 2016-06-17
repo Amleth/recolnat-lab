@@ -68,7 +68,8 @@ var Actions = {
   databaseActions: {
     getData: Endpoints.dataAccessService + '/get-data',
     remove: Endpoints.dataAccessService + '/remove',
-    getLog: Endpoints.dataAccessService + '/get-change-log'
+    getLog: Endpoints.dataAccessService + '/get-change-log',
+    addAnnotation: Endpoints.dataAccessService + '/add-annotation'
   }
 };
 

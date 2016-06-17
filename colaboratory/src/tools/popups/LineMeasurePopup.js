@@ -34,34 +34,6 @@ class LineMeasurePopup extends React.Component {
     this.setState({scale: event.target.value});
   }
 
-  //addExifScale(scales, store) {
-  //  //console.log(JSON.stringify(store.getSelectedImage()));
-  //  if(store.getSelectedMetadata()) {
-  //    if(store.getSelectedMetadata().metadata) {
-  //      if (store.getSelectedMetadata().metadata["X Resolution"]) {
-  //        var xResolution = store.getSelectedMetadata().metadata["X Resolution"].split(" ");
-  //        var dotsPerUnit = _.parseInt(xResolution[0]);
-  //        var mmPerPixel = null;
-  //        var unit = store.getSelectedMetadata().metadata["Resolution Units"];
-  //        if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
-  //          mmPerPixel = 25.4/dotsPerUnit;
-  //        }
-  //          else if(unit.toUpperCase() == "CM") {
-  //          mmPerPixel = 10/dotsPerUnit;
-  //        }
-  //        else if(unit.toUpperCase() == "MM") {
-  //          mmPerPixel = 1/dotsPerUnit;
-  //        }
-  //        else {
-  //          console.error("Unprocessed unit " + unit);
-  //        }
-  //        if(mmPerPixel) {
-  //          scales.push({id: 'exif', name: 'Données EXIF', mmPerPixel: mmPerPixel});
-  //        }
-  //      }
-  //    }
-  //  }
-  //}
   getScales() {
     var scales = {};
     d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).each(function(d) {
@@ -85,7 +57,13 @@ class LineMeasurePopup extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    nextState.scales = this.getScales();
+    var newScales = this.getScales();
+    if(_.difference(newScales, this.state.scales).length != 0 || _.difference(this.state.scales, newScales).length != 0) {
+      nextState.scales = newScales;
+      if(_.findIndex(newScales, function(item) {return item.uid === 'exif'}) > -1) {
+        nextState.scale = 'exif';
+      }
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -94,13 +72,7 @@ class LineMeasurePopup extends React.Component {
         this.props.setScaleCallback(null);
       }
       else {
-        //for(var i = 0; i < this.state.scales.length; ++i) {
-        //  if(this.state.scales[i].uid == this.state.scale)
-        //  {
             this.props.setScaleCallback(this.state.scale);
-            //break;
-          //}
-        //}
       }
     }
   }

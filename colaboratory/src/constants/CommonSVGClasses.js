@@ -19,10 +19,14 @@ export default {
   OVER_CHILD_CLASS: 'overChild',
   // Class for the border (a rect)
   BORDER_CLASS: 'border',
-  // Class for the name plate (the black box drawn under the name of the image)
-  NAMEPLATE_CLASS: 'namePlate',
+  // Class of the bar appearing above an image
+  TOP_BAR_CLASS: 'topBar',
+  // The textPath along which the name is drawn (for overflow reasons)
+  NAME_PATH_CLASS: 'namePath',
   // The actual <text> element containing the name for the image
   NAME_CLASS: 'nameText',
+  // Class of the bar appearing above an image
+  BOTTOM_BAR_CLASS: 'bottomBar',
   // <rect> which when dragged resizes an image
   RESIZE_CLASS: 'imageGroupResize',
   // <rect> which, when dragged, moves an image

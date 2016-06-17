@@ -46,6 +46,7 @@ class D3FreeSpace {
     this.metadatastore = null;
     this.benchstore = null;
     this.viewstore = null;
+    this.modestore = null;
     this.imageSourceLevel = ViewConstants.imageQuality.Low;
     this.loadData = {
       imagesToLoad: 0,
@@ -133,6 +134,10 @@ class D3FreeSpace {
 
   setViewStore(store) {
     this.viewstore = store;
+  }
+
+  setModeStore(store) {
+    this.modestore = store;
   }
 
   newLabBench() {
@@ -345,9 +350,10 @@ class D3FreeSpace {
         .transition()
         .duration(1000)
         .ease('linear')
-        .attr('width', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
+        .attr('x', d => d.width - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => d.height)
+        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
 
       d3.selectAll('.' + Classes.MOVE_CLASS)
         .transition()
@@ -358,15 +364,41 @@ class D3FreeSpace {
         .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
         .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
+
+      d3.selectAll('.' + Classes.TOP_BAR_CLASS)
+        .transition()
+        .duration(1000)
+        .attr('y', -20/this.view.scale)
+        .attr('rx', 5/this.view.scale)
+        .attr('ry', 5/this.view.scale)
+        .attr('height', 40/this.view.scale);
+
+      d3.selectAll('.' + Classes.NAME_PATH_CLASS)
+        .transition()
+        .duration(1000)
+        .attr('d', d => 'M 0 ' + -5/this.view.scale + ' L ' + d.width + ' ' + -5/this.view.scale);
+
+      d3.selectAll('.' + Classes.NAME_CLASS)
+        .transition()
+        .duration(1000)
+        //.attr('y', -104/this.view.scale)
+        .attr('font-size', 14/this.view.scale + 'px');
+
+      d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
+        .transition()
+        .duration(1000)
+        .attr('y', d => d.height-10/this.view.scale)
+        .attr('height', 20/this.view.scale);
     }
     else {
       d3.select('.' + Classes.ROOT_CLASS)
         .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
 
       d3.selectAll('.' + Classes.RESIZE_CLASS)
-        .attr('width', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
+        .attr('x', d => d.width - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => d.height)
+        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
 
       d3.selectAll('.' + Classes.MOVE_CLASS)
         .attr('x', d => d.width/2 - 10/this.view.scale * d.height/ d.displayHeight)
@@ -374,6 +406,22 @@ class D3FreeSpace {
         .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
         .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
+
+      d3.selectAll('.' + Classes.TOP_BAR_CLASS)
+        .attr('y', -20/this.view.scale)
+        .attr('rx', 5/this.view.scale)
+        .attr('ry', 5/this.view.scale)
+        .attr('height', 40/this.view.scale);
+
+      d3.selectAll('.' + Classes.NAME_PATH_CLASS)
+        .attr('d', d => 'M 0 ' + -5/this.view.scale + ' L ' + d.width + ' ' + -5/this.view.scale);
+
+      d3.selectAll('.' + Classes.NAME_CLASS)
+        .attr('font-size', 14/this.view.scale + 'px');
+
+      d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
+        .attr('y', d => d.height-10/this.view.scale)
+        .attr('height', 20/this.view.scale);
     }
   }
 

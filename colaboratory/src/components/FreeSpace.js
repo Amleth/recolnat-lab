@@ -134,6 +134,7 @@ class FreeSpace extends React.Component {
     d3Component.setMetadataStore(this.props.metastore);
     d3Component.setLabBenchStore(this.props.benchstore);
     d3Component.setViewStore(this.props.viewstore);
+    d3Component.setModeStore(this.props.modestore);
     this.props.viewstore.addFitViewListener(this._onFitView);
     this.props.viewstore.addViewportListener(this._onViewportUpdate);
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);

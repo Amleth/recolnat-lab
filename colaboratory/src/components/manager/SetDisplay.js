@@ -39,13 +39,27 @@ class SetDisplay extends React.Component {
       margin: 0
     };
 
-    this.titleStyle = {
+    this.topBarStyle = {
+      display: 'flex',
+      flexDirection: 'row',
       height: '30px',
       padding: '4px 0px',
-      width: '100%',
+      width: '100%'
+    };
+
+    this.titleStyle = {
+      height: '100%',
+      padding: 0,
+      width: '120px',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis'
+    };
+
+    this.addItemStyle = {
+      height: '100%',
+      padding: 0,
+      width: '30px'
     };
 
     this.listContainerStyle = {
@@ -90,8 +104,6 @@ class SetDisplay extends React.Component {
     };
 
     //console.log(JSON.stringify(props.set));
-
-
   }
 
   setActive(idx, node) {
@@ -232,10 +244,10 @@ class SetDisplay extends React.Component {
         }
         this.setState({validEntityDraggedOverSelf: true});
         event.preventDefault();
-      break;
+        break;
       default:
         this.setState({validEntityDraggedOverSelf: false});
-      break;
+        break;
     }
   }
 
@@ -314,15 +326,15 @@ class SetDisplay extends React.Component {
     // Content received but set is empty at the moment.
     if(this.props.set.subsets.length == 0 && this.props.set.items.length == 0) {
       return <div className='ui segments' style={this.containerStyle}
-      onDragEnter={this.displayDraggedEntity.bind(this)}
-      onDragOver={this.preventDefault.bind(this)}
-      onDragLeave={this.removeDraggedEntity.bind(this)}
-      onDrop={this.addDraggedEntity.bind(this)}>
-        <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.set.name}</div>
-        <div
-        style={this.noMarginPaddingStyle}
-        className='ui center aligned basic segment'>
-          <i className='large add circle green icon'
+                  onDragEnter={this.displayDraggedEntity.bind(this)}
+                  onDragOver={this.preventDefault.bind(this)}
+                  onDragLeave={this.removeDraggedEntity.bind(this)}
+                  onDrop={this.addDraggedEntity.bind(this)}>
+        <div className='ui tertiary center aligned segment' style={this.topBarStyle}>
+          <div className='ui center aligned container' style={this.titleStyle}>
+            {this.props.set.name}
+          </div>
+          <i className='large add circle green icon' style={this.addItemStyle}
              onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
         </div>
       </div>;
@@ -330,15 +342,21 @@ class SetDisplay extends React.Component {
 
     // Display children. List has attached style to prevent that stupid label from padding
     return <div style={this.containerStyle}
-     className='ui segments'>
-      <div className='ui tertiary center aligned segment' style={this.titleStyle}>{this.props.set.name}</div>
+                className='ui segments'>
+      <div className='ui tertiary center aligned segment' style={this.topBarStyle}>
+        <div className='ui center aligned container' style={this.titleStyle}>
+          {this.props.set.name}
+        </div>
+        <i className='large add circle green icon' style={this.addItemStyle}
+           onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+      </div>
       <div
-      className='ui segment'
-      onDragEnter={this.displayDraggedEntity.bind(this)}
-      onDragOver={this.preventDefault.bind(this)}
-      onDragLeave={this.removeDraggedEntity.bind(this)}
-      onDrop={this.addDraggedEntity.bind(this)}
-      style={this.listContainerStyle}>
+        className='ui segment'
+        onDragEnter={this.displayDraggedEntity.bind(this)}
+        onDragOver={this.preventDefault.bind(this)}
+        onDragLeave={this.removeDraggedEntity.bind(this)}
+        onDrop={this.addDraggedEntity.bind(this)}
+        style={this.listContainerStyle}>
         <div className='ui selection list' style={this.noMarginPaddingStyle}>
           {this.state.subSets.map(function(s, idx) {
             var icon = 'ui icon help';
@@ -417,12 +435,18 @@ class SetDisplay extends React.Component {
           }
         </div>
         <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
-          <i className='large add circle green icon'
-             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+
         </div>
       </div>
     </div>
   }
 }
+
+//<div
+//  style={this.noMarginPaddingStyle}
+//  className='ui center aligned basic segment'>
+//  <i className='large add circle green icon'
+//     onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+//</div>
 
 export default SetDisplay;

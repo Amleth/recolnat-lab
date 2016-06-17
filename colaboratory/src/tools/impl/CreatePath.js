@@ -182,10 +182,9 @@ class CreatePath extends AbstractTool {
   }
 
   begin() {
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
-    }, 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPath.tooltip), 10);
+
     var self = this;
 
     // Mount listener for validation of path
@@ -193,14 +192,12 @@ class CreatePath extends AbstractTool {
       .on('mouseenter', this.activateEnter.bind(self))
       .on('mouseleave', this.deactivateEnter);
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)}
-    />;
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(popup);},
-      100);
+    var popup = <Popup setDataCallback={this.setData.bind(this)} />;
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     // Mount listeners on all image groups
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
         d3.event.preventDefault();
@@ -244,13 +241,13 @@ class CreatePath extends AbstractTool {
       .on('mouseleave', null);
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'default')
       .on('contextmenu', null)
       .on('click', null);
 
     this.props.viewstore.removeViewportListener(this._onViewChange);
 
     this.setState(this.initialState());
-
   }
 
   setMode(){
@@ -266,10 +263,12 @@ class CreatePath extends AbstractTool {
     tool.selectAll('.blackLine')
       .attr('stroke-width', 4/scale);
     tool.selectAll('.whiteLine')
-      .attr('stroke-width', 1/scale);
+      .attr('stroke-width', 4/scale)
+      .attr('stroke-dasharray', 8/scale + ',' + 8/scale);
     tool.selectAll('.currentLine')
       .attr('stroke-width', 2/scale);
     tool.selectAll('circle')
+      .attr('stroke-width', 3/scale)
       .attr("r", 6/scale);
   }
 
@@ -292,22 +291,37 @@ class CreatePath extends AbstractTool {
   }
 
   rightClick(self, d) {
+    if(self.state.interactionState == 0) {
+      self.setState({interactionState: 1});
+    }
     // If creation mode, remove last vertex
     // If confirm mode, confirm and save (if box full)
   }
 
   activateEnter() {
     var self = this;
-    d3.select("body").on('keyup', function(d, i) {self.nextInteractionState.call(this, self)});
+    d3.select("body").on('keyup', function(d, i) {
+      if(d3.event.which == 13) {
+        // 'Enter' key
+        d3.event.stopPropagation();
+        d3.event.preventDefault();
+        self.nextInteractionState.call(this, self);
+      }
+    });
+
+    //d3.select("." + Classes.ROOT_CLASS).on('contextmenu', function(d, i) {
+    //  d3.event.stopPropagation();
+    //  d3.event.preventDefault();
+    //  self.nextInteractionState.call(this, self)
+    //});
   }
 
   deactivateEnter() {
     d3.select("body").on('keyup', null);
+    //d3.select("." + Classes.ROOT_CLASS).on('contextmenu', null);
   }
 
   nextInteractionState(self) {
-    if(d3.event.which == 13) {
-      // 'Enter' is pressed
       if(self.state.interactionState == 0) {
         self.setState({interactionState: 1});
       }
@@ -315,7 +329,6 @@ class CreatePath extends AbstractTool {
         window.setTimeout(
           ToolActions.save, 10);
       }
-    }
   }
 
   dataToSVG() {
@@ -350,8 +363,19 @@ class CreatePath extends AbstractTool {
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 1/view.scale)
+        .attr('stroke-width', 4/view.scale)
+        .attr('stroke-dasharray', 8/view.scale + ',' + 8/view.scale)
         .attr('stroke', 'white');
+
+      //var edge = this.state.edges[i];
+      var circle = toolDisplayGroup.append('circle');
+      circle
+        .attr("cx", edge.start.x)
+        .attr("cy", edge.start.y)
+        .attr("r", 6/view.scale)
+        .attr('stroke-width', 3/view.scale)
+        .attr('stroke', 'white')
+        .attr("fill", "black");
 
       if(this.state.interactionState == 1) {
         bLine.
@@ -363,18 +387,7 @@ class CreatePath extends AbstractTool {
         on('dblclick', (function (idx) {
           return function() {self.splitEdge(idx, self)};
         })(i));
-      }
-    }
 
-    for(var i = 0 ; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
-      var circle = toolDisplayGroup.append('circle');
-      circle
-        .attr("cx", edge.start.x)
-        .attr("cy", edge.start.y)
-        .attr("r", 6/view.scale)
-        .style("fill", "black");
-      if(this.state.interactionState == 1) {
         circle.datum({x: edge.start.x, y: edge.start.y})
           .attr("x", function(d) {return d.x;})
           .attr("y", function(d) {return d.y;})
@@ -382,6 +395,46 @@ class CreatePath extends AbstractTool {
           .style('cursor', 'grab')
           .call(this.drag);
       }
+    }
+
+    //for(var i = 0 ; i < this.state.edges.length; ++i) {
+    //  var edge = this.state.edges[i];
+    //  var circle = toolDisplayGroup.append('circle');
+    //  circle
+    //    .attr("cx", edge.start.x)
+    //    .attr("cy", edge.start.y)
+    //    .attr("r", 6/view.scale)
+    //    .attr('stroke-width', 3/view.scale)
+    //    .attr('stroke', 'white')
+    //    .attr("fill", "black");
+    //  if(this.state.interactionState == 1) {
+    //    circle.datum({x: edge.start.x, y: edge.start.y})
+    //      .attr("x", function(d) {return d.x;})
+    //      .attr("y", function(d) {return d.y;})
+    //      .style('cursor', '-webkit-grab')
+    //      .style('cursor', 'grab')
+    //      .call(this.drag);
+    //  }
+    //}
+
+
+    if(this.state.interactionState == 1) {
+      // Append the last circle, which marks the end of the trail
+      var edge = this.state.edges[this.state.edges.length-1];
+      var circle = toolDisplayGroup.append('circle');
+      circle
+        .datum({x: edge.end.x, y: edge.end.y})
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r", 6/view.scale)
+        .attr('stroke-width', 3/view.scale)
+        .attr('stroke', 'white')
+        .attr("fill", "black")
+        .attr("x", function(d) {return d.x;})
+        .attr("y", function(d) {return d.y;})
+        .style('cursor', '-webkit-grab')
+        .style('cursor', 'grab')
+        .call(this.drag);
     }
 
     if(this.state.start && this.state.interactionState == 0) {
@@ -404,7 +457,9 @@ class CreatePath extends AbstractTool {
         .attr("cx", this.state.start.x)
         .attr("cy", this.state.start.y)
         .attr("r", 6/view.scale)
-        .style("fill", "black");
+        .attr('stroke-width', 3/view.scale)
+        .attr('stroke', 'white')
+        .attr("fill", "black");
     }
   }
 

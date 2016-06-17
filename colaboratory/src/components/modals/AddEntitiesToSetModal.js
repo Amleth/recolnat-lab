@@ -239,7 +239,7 @@ class AddEntitiesToSetModal extends AbstractModal {
             </div>
           </div>
         </div>
-        <div className="ui bottom attached tab segment" data-tab="web">
+        <div className="ui bottom attached tab segment disabled" data-tab="web">
           <div className='content'>
             <div className='description'>
               <div className='header'>Pour chaque image que vous voulez ajouter, entrez les informations demandées et cliquez sur Valider</div>

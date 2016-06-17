@@ -177,18 +177,13 @@ class CreateRoI extends AbstractTool {
   }
 
   begin() {
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
-    }, 50);
-
     var popup = <Popup setDataCallback={this.setData.bind(this)}/>;
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(popup);},
-      100);
+    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     var self = this;
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
         d3.event.preventDefault();
@@ -211,9 +206,7 @@ class CreateRoI extends AbstractTool {
 
   reset() {
     this.clearSVG();
-    window.setTimeout(function() {
-      ToolActions.updateTooltipData(ToolConf.newRegionOfInterest.tooltip);
-    }, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newRegionOfInterest.tooltip), 10);
     this.setState({
       imageUri: null,
       imageLinkUri: null,
@@ -224,19 +217,17 @@ class CreateRoI extends AbstractTool {
   }
 
   finish() {
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData("");
-    }, 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ""), 10);
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'default')
       .on('contextmenu', null)
       .on('click', null);
 
     this.props.viewstore.removeViewportListener(this._onViewChange);
 
     this.clearSVG();
-
     this.setState(this.initialState());
   }
 

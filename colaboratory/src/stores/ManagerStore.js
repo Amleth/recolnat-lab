@@ -99,6 +99,9 @@ class ManagerStore extends EventEmitter {
           break;
         case ManagerConstants.ActionTypes.SET_BASKET:
           this.basket = action.basket;
+          for(var i = 0; i < this.basket.length; ++i) {
+            this.updateBasketSelection(this.basket[i].id, true);
+          }
           this.emit(ManagerEvents.BASKET_UPDATE);
           break;
         case ManagerConstants.ActionTypes.BASKET_REMOVE_ITEM:

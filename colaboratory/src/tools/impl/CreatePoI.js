@@ -77,18 +77,11 @@ class CreatePoI extends AbstractTool {
   }
 
   begin() {
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(null);
-        ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
-      50);
-
     var popup = <Popup vertexClass={this.vertexClass}
                        setNameCallback={this.setName.bind(this)}
     />;
-
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(popup);},
-      100);
+    window.setTimeout(ToolActions.updateTooltipData(null, ToolConf.newPointOfInterest.tooltip), 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     var self = this;
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
@@ -114,19 +107,14 @@ class CreatePoI extends AbstractTool {
   }
 
   reset() {
-    window.setTimeout(function() {
-        //ToolActions.activeToolPopupUpdate(null);
-        ToolActions.updateTooltipData(ToolConf.newPointOfInterest.tooltip);},
-      10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
     this.clearSVG();
     this.setState({x: null, y: null, displayX: null, displayY: null, imageUri: null, imageLinkUri: null, name: ''});
   }
 
   finish() {
-    window.setTimeout(function() {
-        ToolActions.activeToolPopupUpdate(null);
-        ToolActions.updateTooltipData("");},
-      10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ""), 10);
     this.clearSVG();
 
     this.props.viewstore.removeViewportListener(this._onViewChange);

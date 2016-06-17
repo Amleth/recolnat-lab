@@ -187,35 +187,35 @@ class SimpleImageDisplay extends React.Component {
       <div className='ui small header centered segment'
            style={this.compactBorderlessSegmentStyle}>
         <div className='ui item'>
-        {this.state.selectionTitle}
-        <i className='small yellow warning sign icon'
-           ref='warning'
-           data-content="Les images affichées ici peuvent être déformées pour rentrer dans l'espace limité prévu à cet effet" />
-          </div>
+          {this.state.selectionTitle}<i>{' ' + this.state.imagesOfSelection.length + ' images'}</i>
+          <i className='small yellow warning sign icon'
+             ref='warning'
+             data-content="Les images affichées ici peuvent être déformées pour rentrer dans l'espace limité prévu à cet effet" />
+        </div>
       </div>
       <div className='ui container' style={this.twoColumnContainerStyle}>
-      <div className='ui compact segments' style={this.segmentsContainerStyle}>
-        {this.state.imagesOfSelection.map(function(image, index) {
-          var color = 'ui';
-          if(image.thumbnail == self.state.imageUrl) {
-            color = 'ui blue inverted';
-          }
-          return <div className={color + ' segment'}
-                      key={'SIMPLE-IMAGE-' + image.uid}
-                      style={self.compactBorderlessSegmentStyle}
-                      onDoubleClick={self.loadParentSet.bind(self)}
-                      onClick={self.showImage.bind(self, image.thumbnail)}>
-            {image.name}
-          </div>
-        })}
-      </div>
-      <img className='ui centered bordered image'
-           style={this.imageStyle}
-           src={this.state.imageUrl}
-           onDoubleClick={self.loadParentSet.bind(self)}
-           alt="Aucune image sélectionnée">
-      </img>
+        <div className='ui compact segments' style={this.segmentsContainerStyle}>
+          {this.state.imagesOfSelection.map(function(image, index) {
+            var color = 'ui';
+            if(image.thumbnail == self.state.imageUrl) {
+              color = 'ui blue inverted';
+            }
+            return <div className={color + ' segment'}
+                        key={'SIMPLE-IMAGE-' + image.uid}
+                        style={self.compactBorderlessSegmentStyle}
+                        onDoubleClick={self.loadParentSet.bind(self)}
+                        onClick={self.showImage.bind(self, image.thumbnail)}>
+              {image.name}
+            </div>
+          })}
         </div>
+        <img className='ui centered bordered image'
+             style={this.imageStyle}
+             src={this.state.imageUrl}
+             onDoubleClick={self.loadParentSet.bind(self)}
+             alt="Aucune image sélectionnée">
+        </img>
+      </div>
     </div>
   }
 }

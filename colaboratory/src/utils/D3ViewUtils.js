@@ -12,6 +12,7 @@ import ViewConstants from '../constants/ViewConstants';
 
 import markerSVG from '../images/marker.svg';
 import resizeIcon from '../images/resize_nw.svg';
+import resizeHandleIcon from '../images/resize-handle.svg';
 import moveIcon from '../images/hand_hex.svg';
 
 export default class D3ViewUtils {
@@ -40,51 +41,79 @@ export default class D3ViewUtils {
     under.exit().remove();
     under.attr('id', d => 'UNDER-' + d.link);
 
-    var border = under.selectAll('.' + Classes.BORDER_CLASS).data(d => [d], d => d.link);
-    border.enter()
-      .append("rect")
-      .attr('class', Classes.BORDER_CLASS)
-      .attr('id', d => 'BORDER-' + d.link)
-      .attr('x', -4)
-      .attr('y', -104)
-      .attr('rx', 15)
-      .attr('ry', 15)
-      .attr('width', d => d.width + 8)
-      .attr('height', d => d.height + 148)
+    var topBar = under.selectAll('.' + Classes.TOP_BAR_CLASS).data(d => [d], d => d.link);
+    topBar.enter()
+      .append('rect')
+      .attr('class', Classes.TOP_BAR_CLASS)
+      .attr('id', d => 'TOP-BAR-' + d.link)
+      .attr('x', 0)
+      .attr('y', -20/self.view.scale)
+      .attr('rx', 5/self.view.scale)
+      .attr('ry', 5/self.view.scale)
+      .attr('width', d => d.width)
+      .attr('height', 40/self.view.scale)
       .style('fill', '#AAAAAA');
-    border.exit().remove();
-    border.attr('width', d => d.width + 8)
-      .attr('height', d => d.height + 148);
+    topBar.exit().remove();
+    topBar.attr('width', d => d.width);
+
+    var namePath = under.selectAll('.' + Classes.NAME_PATH_CLASS).data(d => [d], d => d.link);
+    namePath.enter()
+      .append('path')
+      .attr('id', d => 'NAME-PATH-' + d.link)
+      .attr('class', Classes.NAME_PATH_CLASS)
+      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale);
+    namePath.exit().remove();
+    namePath
+      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale);
+      //.attr('d', d => 'M 0 -15 L ' + d.width + ' -15');
 
     var name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
     name.enter().append('text')
       .attr('class', Classes.NAME_CLASS)
       .attr('id', d => 'NAME-' + d.link)
       .attr('x', 10)
-      .attr('y', -40)
-      .attr('width', d => d.width + 8)
-      .attr('height', d => d.height + 148)
-      .attr('dy', '.20em')
       .attr('font-family', 'Verdana')
-      .attr('font-size', '80px')
+      .attr('font-size', 14/self.view.scale + 'px')
       .attr('fill', 'white')
+      .append('textPath')
+      .attr('xlink:href', d => '#NAME-PATH-' + d.link)
       .text(d => d.name);
     name.exit().remove();
-    name.attr('width', d => d.width + 8)
-      .attr('height', d => d.height + 148)
+    name.attr('font-size', 18/self.view.scale + 'px')
+      //.attr('width', d => d.width + 8)
+      //.attr('height', d => d.height + 148)
+      .select('textPath')
       .text(d => d.name);
+
+    var bottomBar = under.selectAll('.' + Classes.BOTTOM_BAR_CLASS).data(d => [d], d => d.link);
+    bottomBar.enter()
+      .append('rect')
+      .attr('class', Classes.BOTTOM_BAR_CLASS)
+      .attr('id', d => 'BOTTOM-BAR-' + d.link)
+      .attr('x', 0)
+      .attr('y', d => d.height-10/self.view.scale)
+      //.attr('rx', 5/self.view.scale)
+      //.attr('ry', 5/self.view.scale)
+      .attr('width', d => d.width)
+      .attr('height', 20/self.view.scale)
+      .style('fill', '#AAAAAA');
+    bottomBar.exit().remove();
+    bottomBar
+      .attr('y', d => d.height-10/self.view.scale)
+      .attr('width', d => d.width)
+      .attr('height', 20/self.view.scale);
 
     var resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
     resizer.enter()
     // .append("rect")
       .append('svg:image')
-      .attr('xlink:href', resizeIcon)
+      .attr('xlink:href', resizeHandleIcon)
       .attr('class', Classes.RESIZE_CLASS)
       .attr('id', d => 'RESIZE-' + d.link)
-      .attr('x', d => d.width)
+      .attr('x', d => d.width - 10/self.view.scale * d.height/ d.displayHeight)
       .attr('y', d => d.height)
-      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight)
+      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight)
       .call(D3EventHandlers.dragResize())
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
       // .style('stroke', 'rgb(0,0,0)')
@@ -92,38 +121,42 @@ export default class D3ViewUtils {
       .style('cursor', '-webkit-nwse-resize')
       .style('cursor', 'nwse-resize');
     resizer.exit().remove();
-    resizer.attr('x', d => d.width)
+    resizer
+      .attr('x', d => d.width - 10/self.view.scale * d.height/ d.displayHeight)
       .attr('y', d => d.height)
-      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight);
+      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight);
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
 
-    var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
-    mover.enter()
-    // .append("rect")
-      .append('svg:image')
-      .attr('xlink:href', moveIcon)
-      .attr('class', Classes.MOVE_CLASS)
-      .attr('id', d => 'MOVE-' + d.link)
-      .attr('x', d => d.width/2 - 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight)
-      .call(D3EventHandlers.dragMove())
-      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-      // .style('stroke', 'rgb(0,0,0)')
-      // .style('fill-opacity', '0.0')
-      .style('cursor', '-webkit-grab')
-      .style('cursor', 'grab')
-      .append('svg:title')
-      .text('Drag mouse to move this sheet');
-    mover.exit().remove();
-    mover.attr('x', d => d.width/2 - 10)
-      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => 20/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale* d.height/ d.displayHeight);
+    if(self.modestore.isInObservationMode()) {
+      var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
+      mover.enter()
+        // .append("rect")
+        .append('svg:image')
+        .attr('xlink:href', moveIcon)
+        .attr('class', Classes.MOVE_CLASS)
+        .attr('id', d => 'MOVE-' + d.link)
+        .attr('x', d => d.width / 2 - 10 / self.view.scale * d.height / d.displayHeight)
+        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight)
+        .call(D3EventHandlers.dragMove())
+        // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
+        // .style('stroke', 'rgb(0,0,0)')
+        // .style('fill-opacity', '0.0')
+        .style('cursor', '-webkit-grab')
+        .style('cursor', 'grab')
+        .append('svg:title')
+        .text('Drag mouse to move this sheet');
+      mover.exit().remove();
+      mover.attr('x', d => d.width / 2 - 10)
+        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+        .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight);
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
+    }
     // END under image update
+
 
     var image = children.selectAll('.' + Classes.IMAGE_CLASS).data(d => [d], d => d.link);
     image.enter().append('svg:image')

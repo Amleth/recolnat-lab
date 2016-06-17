@@ -175,7 +175,7 @@ class ElementInspector extends React.Component {
       annotationIds: [],
       annotationsMetadata: {},
       creatorIds: [],
-      creatorsMetadata: {},
+      creatorsMetadata: {}
     });
     this.props.metastore.addMetadataUpdateListener([this.state.entityIds[index]], this._onEntityMetadataChange);
     window.setTimeout(MetadataActions.updateMetadata.bind(null, [this.state.entityIds[index]]), 10);
@@ -307,11 +307,15 @@ class ElementInspector extends React.Component {
               var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
               if(mmPerPixel) {
                 switch(measureMetadata.measureType) {
-                  case 101: // Length or perimeter
-                    item.value = (mmPerPixel * measureMetadata.valueInPx) + ' mm';
+                  case 101: // Perimeter
+                    item.value = 'Périmètre : ' + (mmPerPixel * measureMetadata.valueInPx) + ' mm';
                     break;
                   case 100: // Area
-                    item.value = (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
+                    item.value = 'Aire : ' + (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
+                    break;
+                  case 102:
+                    // Length
+                    item.value = 'Longueur : ' + (mmPerPixel * measureMetadata.valueInPx) + ' mm';
                     break;
                   default:
                     console.warn('Unknown measure type ' + measureMetadata.measureType);

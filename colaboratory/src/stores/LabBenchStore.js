@@ -236,7 +236,6 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
     this.labBench.id = setId;
     //window.setTimeout(
     //  MetadataActions.updateMetadata.bind(null, setId), 10);
-    console.log('load bench');
     this.loaded = 0;
     this.toLoad = 0;
     var self = this;
@@ -340,7 +339,7 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load item ' + id + ': ' + err);
+          console.error('Could not load items ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
@@ -418,7 +417,7 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
 
   loadPoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
-Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.allElementIds, ids);
 
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
@@ -450,7 +449,7 @@ Array.prototype.push.apply(this.allElementIds, ids);
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load RoI ' + id + ': ' + err);
+          console.error('Could not load ToIs ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
@@ -478,7 +477,7 @@ Array.prototype.push.apply(this.allElementIds, ids);
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load RoI ' + id + ': ' + err);
+          console.error('Could not load standards ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {
@@ -502,7 +501,7 @@ Array.prototype.push.apply(this.allElementIds, ids);
       .withCredentials()
       .end((err, res) => {
         if(err) {
-          console.error('Could not load RoI ' + id + ': ' + err);
+          console.error('Could not load measurements  ' + ids + ': ' + err);
           alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
         }
         else {

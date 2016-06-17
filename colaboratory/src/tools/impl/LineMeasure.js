@@ -223,7 +223,7 @@ class LineMeasure extends AbstractTool {
       .attr('fill', 'black')
       .attr('stroke', 'white')
       .style('cursor', '-webkit-grab')
-      .style('cursor', 'drag')
+      .style('cursor', 'grab')
       .on('click', LineMeasure.stopEvent)
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragEndVertex);
@@ -258,6 +258,7 @@ class LineMeasure extends AbstractTool {
 
     var self = this;
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+      .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
         d3.event.preventDefault();
@@ -273,17 +274,13 @@ class LineMeasure extends AbstractTool {
         self.rightClick.call(this, self, d);
       });
 
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).style('cursor', 'crosshair');
-
     this.setState({active: true});
   }
 
   reset() {
     this.removeMouseMoveListener();
     // this.removeSVG();
-    window.setTimeout(function() {
-      ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
-    }, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.lineMeasure.tooltip), 10);
     this.setState({start: null, end: null,
       imageUri: null, imageLinkUri: null, uuid: null});
   }
@@ -297,10 +294,8 @@ class LineMeasure extends AbstractTool {
     this.removeSVG();
 
     this.removeMouseMoveListener();
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(null);
-      ToolActions.updateTooltipData("");
-    }, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ''), 10);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
     this.setState(this.initialState());
   }
 

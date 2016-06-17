@@ -134,22 +134,22 @@ gulp.task('deploy-demo', ['build-demo'], function() {
 //
 // PROD
 //
-gulp.task('build-prod', ['conf-prod', 'html'], shell.task([
+gulp.task('build-prod-vm', ['conf-prod-vm', 'html'], shell.task([
   'webpack -p --config webpack.production.config.js --progress --colors'
 ]));
 
-gulp.task('conf-prod', function() {
-  gulp.src('./conf/ApplicationConfiguration-prod.js')
+gulp.task('conf-prod-vm', function() {
+  gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
     .pipe(rename('ApplicationConfiguration.js'))
     .pipe(gulp.dest('./src/conf'));
 });
 
-gulp.task('deploy-prod', ['build-prod'], function() {
+gulp.task('deploy-prod-vm', ['build-prod-vm'], function() {
   gulp.src(distSrc)
     .pipe(sftp({
-      host: 'wp5prod.mnhn.fr',
-      remotePath: '/home/cnam/www/labo',
-      user: 'cnam',
+      host: 'wp5test.mnhn.fr',
+      remotePath: '/apps/recolnat/lab/vm/www',
+      user: 'cnamuser',
       pass: ""
     }));
 });

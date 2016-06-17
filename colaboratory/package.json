@@ -9,7 +9,7 @@
     "test": "gulp deploy-test",
     "test-demo": "gulp deploy-demo-test",
     "demo": "gulp deploy-demo",
-    "prod": "gulp deploy-prod"
+    "prod-vm": "gulp deploy-prod-vm"
   },
   "author": "DICEN",
   "license": "ISC",

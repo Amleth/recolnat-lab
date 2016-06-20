@@ -61,10 +61,12 @@ export default class D3ViewUtils {
       .append('path')
       .attr('id', d => 'NAME-PATH-' + d.link)
       .attr('class', Classes.NAME_PATH_CLASS)
-      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale);
+      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale)
+      .style('pointer-events', 'none');
     namePath.exit().remove();
     namePath
-      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale);
+      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale)
+      .style('pointer-events', 'none');
       //.attr('d', d => 'M 0 -15 L ' + d.width + ' -15');
 
     var name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
@@ -77,12 +79,14 @@ export default class D3ViewUtils {
       .attr('fill', 'white')
       .append('textPath')
       .attr('xlink:href', d => '#NAME-PATH-' + d.link)
+      .style('pointer-events', 'none')
       .text(d => d.name);
     name.exit().remove();
-    name.attr('font-size', 18/self.view.scale + 'px')
+    name.attr('font-size', 14/self.view.scale + 'px')
       //.attr('width', d => d.width + 8)
       //.attr('height', d => d.height + 148)
       .select('textPath')
+      .style('pointer-events', 'none')
       .text(d => d.name);
 
     var bottomBar = under.selectAll('.' + Classes.BOTTOM_BAR_CLASS).data(d => [d], d => d.link);
@@ -129,30 +133,33 @@ export default class D3ViewUtils {
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
 
     if(self.modestore.isInObservationMode()) {
-      var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
-      mover.enter()
-        // .append("rect")
-        .append('svg:image')
-        .attr('xlink:href', moveIcon)
-        .attr('class', Classes.MOVE_CLASS)
-        .attr('id', d => 'MOVE-' + d.link)
-        .attr('x', d => d.width / 2 - 10 / self.view.scale * d.height / d.displayHeight)
-        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight)
-        .call(D3EventHandlers.dragMove())
-        // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-        // .style('stroke', 'rgb(0,0,0)')
-        // .style('fill-opacity', '0.0')
-        .style('cursor', '-webkit-grab')
+      topBar.style('cursor', '-webkit-grab')
         .style('cursor', 'grab')
-        .append('svg:title')
-        .text('Drag mouse to move this sheet');
-      mover.exit().remove();
-      mover.attr('x', d => d.width / 2 - 10)
-        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
-        .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight);
+        .call(D3EventHandlers.dragMove());
+      //var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
+      //mover.enter()
+      //  // .append("rect")
+      //  .append('svg:image')
+      //  .attr('xlink:href', moveIcon)
+      //  .attr('class', Classes.MOVE_CLASS)
+      //  .attr('id', d => 'MOVE-' + d.link)
+      //  .attr('x', d => d.width / 2 - 10 / self.view.scale * d.height / d.displayHeight)
+      //  .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+      //  .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
+      //  .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight)
+      //  .call(D3EventHandlers.dragMove())
+      //  // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
+      //  // .style('stroke', 'rgb(0,0,0)')
+      //  // .style('fill-opacity', '0.0')
+      //  .style('cursor', '-webkit-grab')
+      //  .style('cursor', 'grab')
+      //  .append('svg:title')
+      //  .text('Drag mouse to move this sheet');
+      //mover.exit().remove();
+      //mover.attr('x', d => d.width / 2 - 10)
+      //  .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+      //  .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
+      //  .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight);
       // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
     }
     // END under image update

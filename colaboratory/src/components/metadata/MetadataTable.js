@@ -10,7 +10,15 @@ class MetadataTable extends React.Component {
     super(props);
 
     this.textStyle = {
-      wordBreak: 'break-all'
+      wordBreak: 'break-all',
+      fontSize: 10,
+      padding: '1px 1px 1px 3px'
+    };
+
+    this.labelStyle = {
+      //wordBreak: 'break-all',
+      fontSize: 10,
+      padding: '1px 3px 1px 1px'
     };
 
     this.accordionTitleStyle = {
@@ -71,7 +79,10 @@ class MetadataTable extends React.Component {
     }
 
     return <div className='ui container'>
-      <p className='ui title' style={this.accordionTitleStyle}>{this.props.title}</p>
+      <p className='ui title' style={this.accordionTitleStyle}>
+        <i className="dropdown icon"></i>
+        {this.props.title}
+      </p>
       <div className='ui content' style={this.contentStyle}>
         <table className='ui basic striped very compact table'>
           <thead style={this.headerStyle}>

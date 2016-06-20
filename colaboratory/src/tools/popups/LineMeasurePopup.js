@@ -80,9 +80,10 @@ class LineMeasurePopup extends React.Component {
   render() {
     var self = this;
     return(
-      <div style={this.containerStyle}>
+      <div style={this.containerStyle} className='ui segment'>
+        <div className='title'>Etalon</div>
         <select className='ui compact inline scrolling dropdown' value={this.state.scale} style={this.optionStyle} onChange={this.setScale.bind(this)}>
-          <option value="null">Valeur en pixels</option>
+          <option value="null">Aucun</option>
           {this.state.scales.map(function(scale) {
             return <option value={scale.uid} key={scale.uid}>{scale.name}</option>;
           })}

@@ -17,6 +17,8 @@ import D3EventHandlers from '../utils/D3EventHandlers';
 import D3ViewUtils from '../utils/D3ViewUtils';
 import Globals from '../utils/Globals';
 
+import OrbOptions from './context-menu/options/OrbOptions';
+
 import LineMeasure from '../tools/impl/LineMeasure';
 
 import ShapesConf from "../conf/shapes";
@@ -42,7 +44,7 @@ class D3FreeSpace {
     this.view = {};
     this.view.x = 0;
     this.view.y = 0;
-    this.view.scale = 1.0;
+    this.view.scale = 0.01;
     this.metadatastore = null;
     this.benchstore = null;
     this.viewstore = null;
@@ -112,6 +114,7 @@ class D3FreeSpace {
 
 
     var root = svg.append('g').attr('class', Classes.ROOT_CLASS);
+    root.attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
     root.append('g').attr('class', Classes.OBJECTS_CONTAINER_CLASS);
     root.append('g').attr('class', Classes.ACTIVE_TOOL_DISPLAY_CLASS);
 
@@ -165,47 +168,55 @@ class D3FreeSpace {
   }
 
   fitViewportToData() {
-    var scale = 1.0;
-    if(this.displayData.xMin == Number.POSITIVE_INFINITY ||
-      this.displayData.xMax == Number.NEGATIVE_INFINITY ||
-      this.displayData.yMin == Number.POSITIVE_INFINITY ||
-      this.displayData.yMax == Number.NEGATIVE_INFINITY ) {
-      console.log("Not enough data to calculate fitness");
-      return;
-    }
-
+    //var scale = 1.0;
+    //if(this.displayData.xMin == Number.POSITIVE_INFINITY ||
+    //  this.displayData.xMax == Number.NEGATIVE_INFINITY ||
+    //  this.displayData.yMin == Number.POSITIVE_INFINITY ||
+    //  this.displayData.yMax == Number.NEGATIVE_INFINITY ) {
+    //  console.log("Not enough data to calculate fitness");
+    //  return;
+    //}
+    //
     var view = this.viewstore.getView();
-    // Add 100px offset from borders
-    var xLen = this.displayData.xMax - this.displayData.xMin;
-    var yLen = this.displayData.yMax - this.displayData.yMin;
-    var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
-    var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
-    if (scaleX > scaleY) {
-      scale = scaleY;
-    }
-    else {
-      scale = scaleX;
-    }
 
-    var x = -(this.displayData.xMin)*scale;
-    var y = -(this.displayData.yMin)*scale;
-
-    window.setTimeout(function() {
-        ViewActions.updateViewport(
-          x,
-          y,
-          d3.select('svg').node().parentNode.offsetWidth,
-          d3.select('svg').node().parentNode.offsetHeight,
-          scale,
-        true);
-      },
-      10);
+    OrbOptions.zoomToObject('.' + Classes.ROOT_CLASS, view);
+    //// Add 100px offset from borders
+    //var xLen = this.displayData.xMax - this.displayData.xMin;
+    //var yLen = this.displayData.yMax - this.displayData.yMin;
+    //var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
+    //var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
+    //if (scaleX > scaleY) {
+    //  scale = scaleY;
+    //}
+    //else {
+    //  scale = scaleX;
+    //}
+    //
+    //var x = -(this.displayData.xMin)*scale;
+    //var y = -(this.displayData.yMin)*scale;
+    //
+    //window.setTimeout(function() {
+    //    ViewActions.updateViewport(
+    //      x,
+    //      y,
+    //      d3.select('svg').node().parentNode.offsetWidth,
+    //      d3.select('svg').node().parentNode.offsetHeight,
+    //      scale,
+    //    true);
+    //  },
+    //  10);
   }
 
   updateViewport(x, y, scale, animate) {
+    if(x && Number.isFinite(x)) {
       this.view.x = x;
+    }
+    if(y && Number.isFinite(y)) {
       this.view.y = y;
+    }
+    if(scale && Number.isFinite(scale)) {
       this.view.scale = scale;
+    }
 
       this.viewportTransition(animate);
   }

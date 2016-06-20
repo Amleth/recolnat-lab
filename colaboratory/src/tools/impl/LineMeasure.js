@@ -462,10 +462,10 @@ class LineMeasure extends AbstractTool {
     var popup = <Popup
       toolstore={self.props.toolstore}
       setScaleCallback={self.setScale.bind(self)}/>;
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(popup);
-      ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
-    }, 50);
+    //window.setTimeout(function() {
+    //  ToolActions.activeToolPopupUpdate(popup);
+    //  ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
+    //}, 50);
   }
 
   removeMouseMoveListener() {

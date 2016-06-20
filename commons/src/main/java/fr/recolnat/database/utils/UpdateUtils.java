@@ -156,8 +156,8 @@ public class UpdateUtils {
   }
 
   /**
-   * Adds provided image signature to provided specimen if it does not exist
-   * yet. This method operates on the main branch only.
+   * Adds provided image signature to provided specimen. Does not check if image is already linked to specimen (this check must be made beforehand). 
+   * This method operates on the main branch only.
    *
    * @param vSpecimen Latest version of a specimen on its main branch.
    * @param imageUrl
@@ -191,8 +191,11 @@ public class UpdateUtils {
 
     // If not, create it and grant read rights to the general public
     String name = vSpecimen.getProperty(DataModel.Properties.name);
+    if(name == null) {
+      name = "Intitulé inconnu";
+    }
 //    OrientVertex vPublic = AccessUtils.getPublic(g);
-    OrientVertex vImage = CreatorUtils.createImage("Image de " + name, imageUrl, width, height, thumbUrl, g);
+    OrientVertex vImage = CreatorUtils.createImage(name, imageUrl, width, height, thumbUrl, g);
     UpdateUtils.link(vSpecimen, vImage, DataModel.Links.hasImage, DataModel.Globals.PUBLIC_GROUP_ID, g);
 //    AccessRights.grantAccessRights(vPublic, vImage, DataModel.Enums.AccessRights.WRITE, g);
     AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);

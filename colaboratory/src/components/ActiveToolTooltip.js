@@ -37,18 +37,12 @@ class ActiveToolTooltip extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
+    this.componentStyle.display = "none";
     if(nextState.text) {
       if (nextState.text.length > 0) {
         this.componentStyle.display = "block";
       }
-      else {
-        this.componentStyle.display = "none";
-      }
     }
-      else {
-        this.componentStyle.display = "none";
-      }
-
   }
 
   componentWillUnmount() {

@@ -82,7 +82,7 @@ class CreateRoIPopup extends React.Component {
 
   render() {
     return (
-      <div style={this.componentStyle}>
+      <div style={this.componentStyle} className='ui segment'>
         <div style={this.barContainerStyle}>
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
             <textarea placeholder="Intitulé"

@@ -219,11 +219,11 @@ class ToolStore extends EventEmitter {
   }
 
   addTooltipChangeListener(callback) {
-    this.on(ToolEvents.CHANGE_TOOL_EVENT, callback);
+    this.on(ToolEvents.TOOLTIP_CONTENT_UPDATE, callback);
   }
 
   removeTooltipChangeListener(callback) {
-    this.removeListener(ToolEvents.CHANGE_TOOL_EVENT, callback);
+    this.removeListener(ToolEvents.TOOLTIP_CONTENT_UPDATE, callback);
   }
 }
 

@@ -16,6 +16,8 @@ import ImagesLoadingStatus from './ImagesLoadingStatus';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
+import Popup from "../components/PopupToolComponent";
+
 import ViewActions from "../actions/ViewActions";
 import ToolActions from '../actions/ToolActions';
 import MetadataActions from '../actions/MetadataActions';
@@ -106,6 +108,7 @@ class VirtualBenchLab extends React.Component {
           drag={drag}
         />
         <ImagesLoadingStatus imagestore={this.props.imagestore}/>
+        <Popup toolstore={this.props.toolstore}/>
         <div style={this.importSheetButtonStyle}
         data-content='Importer des images' ref='import' className='ui container'>
           <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: this.props.benchstore.getActiveSetId()})}

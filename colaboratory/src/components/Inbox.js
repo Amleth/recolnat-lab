@@ -48,7 +48,7 @@ class Inbox extends React.Component {
     var viewData = this.props.benchstore.getActiveViewData();
     var displayedImageIds = viewData.displays.map(function(display) {
       return display.entity;
-    }) ;
+    });
     var undisplayedImageIds = _.difference(imageIds, displayedImageIds);
 
     this.setState({viewId: viewId, active: false, open: false, content: []});
@@ -113,7 +113,7 @@ class Inbox extends React.Component {
       x = x + this.state.content[i].width + 100;
     }
 
-    REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom.bind(null, viewId));
+    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
   }
 
   placeAllImagesInColumn() {
@@ -134,9 +134,12 @@ class Inbox extends React.Component {
       y = y + this.state.content[i].height + 200;
     }
 
-    REST.placeEntityInView(data,
-      MetadataActions.updateLabBenchFrom.bind(null, viewId)
-    );
+    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+  }
+
+  static updateLabBenchAndFitView(viewId) {
+    window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, viewId), 10);
+    window.setTimeout(ViewActions.fitView, 750);
   }
 
   componentDidMount() {

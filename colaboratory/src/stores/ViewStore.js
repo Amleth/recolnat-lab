@@ -91,19 +91,19 @@ class ViewStore extends EventEmitter {
   }
 
   setViewportData(x, y, width, height, scale, animate) {
-    if(x) {
+    if(x && Number.isFinite(x)) {
       this.viewport.left = x;
     }
-    if(y) {
+    if(y && Number.isFinite(y)) {
       this.viewport.top = y;
     }
-    if(width) {
+    if(width && Number.isFinite(width)) {
       this.viewport.width = width;
     }
-    if(height) {
+    if(height && Number.isFinite(height)) {
       this.viewport.height = height;
     }
-    if(scale) {
+    if(scale && Number.isFinite(scale)) {
       this.viewport.scale = scale;
     }
     this.viewport.animate = animate;

@@ -65,9 +65,9 @@ class OrbOptions {
     ViewActions.displayMetadataAboutEntity(data.uid);
   }
 
-  static zoomToObject(d3id, view) {
+  static zoomToObject(d3selector, view) {
     // Retrieve object coordinates and size in browser window
-    var object = d3.select(d3id);
+    var object = d3.select(d3selector);
     var winLoc = object.node().getBoundingClientRect();
     var oldHeight = winLoc.height;
     var oldWidth = winLoc.width;
@@ -88,14 +88,14 @@ class OrbOptions {
     var marginY = (view.height - oldHeight*scale/view.scale)/2;
 
     // Dispatch action
-    ViewActions.updateViewport(
+    window.setTimeout(ViewActions.updateViewport.bind(null,
       (view.left - winLoc.left + view.leftFromWindow)*scale/view.scale + marginX,
       (view.top - winLoc.top + view.topFromWindow)*scale/view.scale + marginY,
       null,
       null,
       scale,
       true
-    );
+    ), 10);
   }
 
   static blink(d3Node, startAttributeValue, endAttributeValue, attributeName) {

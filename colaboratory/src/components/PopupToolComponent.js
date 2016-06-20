@@ -10,9 +10,9 @@ class PopupToolComponent extends React.Component {
     super(props);
 
     this.componentStyle = {
-      //position: "absolute",
-      //bottom: "5",
-      //right: "45%",
+      position: "absolute",
+      top: "10%",
+      right: "10%",
       display: "none"
     };
 

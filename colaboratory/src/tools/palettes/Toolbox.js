@@ -12,8 +12,6 @@ import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
 import NoTool from '../impl/NoTool';
 
-import Popup from "../../components/PopupToolComponent";
-
 import ToolActions from "../../actions/ToolActions";
 
 import conf from '../../conf/ApplicationConfiguration';
@@ -106,9 +104,6 @@ class Toolbox extends React.Component {
           <CreateRoI
             viewstore={this.props.viewstore}
             toolstore={this.props.toolstore} />
-        </div>
-        <div>
-          <Popup toolstore={this.props.toolstore}/>
         </div>
       </div>
     );

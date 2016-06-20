@@ -170,15 +170,19 @@ class SimpleImageDisplay extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    $(this.refs.warning.getDOMNode()).popup({
-      position: 'bottom center'
-    });
+    //$(this.refs.warning.getDOMNode()).popup({
+    //  position: 'bottom center'
+    //});
   }
 
   componentWillUnmount() {
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
   }
+
+//<i className='small yellow warning sign icon'
+//ref='warning'
+//data-content="Les images affichées ici peuvent être déformées pour rentrer dans l'espace limité prévu à cet effet" />
 
   render() {
     var self = this;
@@ -187,10 +191,9 @@ class SimpleImageDisplay extends React.Component {
       <div className='ui small header centered segment'
            style={this.compactBorderlessSegmentStyle}>
         <div className='ui item'>
-          {this.state.selectionTitle}<i>{' ' + this.state.imagesOfSelection.length + ' images'}</i>
-          <i className='small yellow warning sign icon'
-             ref='warning'
-             data-content="Les images affichées ici peuvent être déformées pour rentrer dans l'espace limité prévu à cet effet" />
+          {this.state.selectionTitle}
+          <i>{' ' + this.state.imagesOfSelection.length + ' images'}</i>
+          (Aperçu)
         </div>
       </div>
       <div className='ui container' style={this.twoColumnContainerStyle}>

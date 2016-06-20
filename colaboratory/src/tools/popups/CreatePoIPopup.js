@@ -91,7 +91,7 @@ class CreatePoIPopup extends React.Component {
   render() {
     var self = this;
     return (
-      <div style={this.componentStyle}>
+      <div style={this.componentStyle} className='ui segment'>
         <div style={this.barContainerStyle}>
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
             <textarea placeholder="Intitulé"

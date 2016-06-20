@@ -393,14 +393,6 @@ class ElementInspector extends React.Component {
   render() {
     return <div className='ui segment container' style={this.containerStyle}>
       <div className='ui fluid borderless menu' style={this.menuStyle}>
-        <a className='fitted item'>
-          <div className='ui mini image'>
-            <img src={this.state.imageUrl}
-                 height='50px'
-                 width='50px'
-                 alt='Image'/>
-          </div>
-        </a>
         <a className='fitted item' ref='title' data-content={this.state.name} style={this.annotationTitleStyle}>
           {this.state.name}
         </a>

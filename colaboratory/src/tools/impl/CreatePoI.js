@@ -19,13 +19,12 @@ import Popup from "../popups/CreatePoIPopup";
 import conf from "../../conf/ApplicationConfiguration";
 import ToolConf from "../../conf/Tools-conf";
 
+import markerSvg from '../../images/poi.svg';
+
 class CreatePoI extends AbstractTool {
   constructor(props) {
     super(props);
     this.vertexClass = "CREATE_POI_VERTEX";
-
-    this.base64Images = {};
-    this.base64Images.flag = require("../../images/flag.png");
 
     this.state = this.initialState();
 
@@ -163,16 +162,16 @@ class CreatePoI extends AbstractTool {
 
       vertex.append("svg:title");
 
-      vertex.append('rect')
-        .attr('rx', 5)
-        .attr('ry', 5)
-        .attr('width', 50)
-        .attr('height', 30);
+      //vertex.append('rect')
+      //  .attr('rx', 5)
+      //  .attr('ry', 5)
+      //  .attr('width', 50)
+      //  .attr('height', 30);
 
       vertex.append('svg:image')
-        .attr("height", 60)
+        .attr("height", 100)
         .attr("width", 60)
-        .attr('xlink:href', require('../../images/marker.svg'));
+        .attr('xlink:href', markerSvg);
     }
 
     var view = this.props.viewstore.getView();
@@ -181,14 +180,14 @@ class CreatePoI extends AbstractTool {
     vertex
       .attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + viewProps.sizeOfTextAndObjects/view.scale + ')');
 
-    vertex
-      .select('rect')
-      .attr("x", -25)
-      .attr("y", -55);
+    //vertex
+    //  .select('rect')
+    //  .attr("x", -25)
+    //  .attr("y", -55);
 
     vertex.select('image')
       .attr("x", -30)
-      .attr("y", -60);
+      .attr("y", -100);
 
     vertex.select('title').text(this.state.name);
   }

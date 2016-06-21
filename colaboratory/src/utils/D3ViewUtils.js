@@ -10,7 +10,7 @@ import D3EventHandlers from './D3EventHandlers';
 import Classes from '../constants/CommonSVGClasses';
 import ViewConstants from '../constants/ViewConstants';
 
-import markerSVG from '../images/marker.svg';
+import markerSVG from '../images/poi.svg';
 import resizeIcon from '../images/resize_nw.svg';
 import resizeHandleIcon from '../images/resize-handle.svg';
 import moveIcon from '../images/hand_hex.svg';
@@ -222,20 +222,20 @@ var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => 
       .attr('class', Classes.POI_CLASS)
       .attr('id', d => 'POI-' + d.uid)
       .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
-    poi.append('rect')
-      .attr('rx', 5)
-      .attr('ry', 5)
-      .attr('width', 50)
-      .attr('height', 30)
-      .attr("x", -25)
-      .attr("y", -55)
-      .attr('fill', "white");
+    //poi.append('rect')
+    //  .attr('rx', 5)
+    //  .attr('ry', 5)
+    //  .attr('width', 50)
+    //  .attr('height', 30)
+    //  .attr("x", -25)
+    //  .attr("y", -55)
+    //  .attr('fill', "white");
     poi.append('svg:image')
-      .attr('height', 60)
+      .attr('height', 100)
       .attr('width', 60)
       .attr('xlink:href', markerSVG)
       .attr("x", -30)
-      .attr("y", -60);
+      .attr("y", -100);
     point.exit().remove();
     point.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
 

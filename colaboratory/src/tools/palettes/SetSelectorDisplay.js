@@ -97,10 +97,6 @@ class SetSelectorDisplay extends React.Component {
 
   render() {
     return <div style={this.containerStyle} className='ui container segments'>
-      <div className='ui blue tiny basic label'
-           style={this.labelStyle}>
-        Mes sets
-      </div>
       <div className='ui segment'
            style={this.listContainerStyle}>
         <div className='ui selection list'
@@ -109,7 +105,7 @@ class SetSelectorDisplay extends React.Component {
              onClick={this.loadRootSet.bind(this)}
           >
             <div>
-              <i className='ui icon lab' style={this.textStyle} />Tous mes sets
+              <i className='ui icon lab' style={this.textStyle} />Mes sets
             </div>
           </a>
         </div>
@@ -117,5 +113,10 @@ class SetSelectorDisplay extends React.Component {
     </div>
   }
 }
+
+//<div className='ui blue tiny basic label'
+//     style={this.labelStyle}>
+//  Mes sets
+//</div>
 
 export default SetSelectorDisplay;

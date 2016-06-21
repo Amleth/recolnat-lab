@@ -39,6 +39,14 @@ class SetDisplay extends React.Component {
       margin: 0
     };
 
+    this.newSetLabelStyle = {
+      position: 'fixed',
+      top: '35px',
+      left: '350px',
+      fontSize: '16px',
+      display: this.props.index > 0 ? 'none' : ''
+    };
+
     this.topBarStyle = {
       display: 'flex',
       flexDirection: 'row',
@@ -97,6 +105,7 @@ class SetDisplay extends React.Component {
     };
 
     this.state = {
+      displayName: this.props.index === 0 ? 'Mes sets' : this.props.set.name,
       subSets: [],
       items: [],
       validEntityDraggedOverSelf: false
@@ -285,12 +294,17 @@ class SetDisplay extends React.Component {
   componentWillReceiveProps(props) {
 
     if(props.set.loading) {
-      this.setState({subSets: [], items: []});
+      this.setState({displayName: 'Chargement...', subSets: [], items: []});
     }
     else if(props.set.hash != this.props.set.hash) {
       //this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
-
       this.getChildrenData(props);
+      if(props.index === 0) {
+        this.setState({displayName: 'Mes sets'});
+      }
+      else {
+        this.setState({displayName: props.set.name});
+      }
     }
   }
 
@@ -332,10 +346,11 @@ class SetDisplay extends React.Component {
                   onDrop={this.addDraggedEntity.bind(this)}>
         <div className='ui tertiary center aligned segment' style={this.topBarStyle}>
           <div className='ui center aligned container' style={this.titleStyle}>
-            {this.props.set.name}
+            {this.state.displayName}
           </div>
           <i className='large add circle green icon' style={this.addItemStyle}
              onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+          <div className='ui green left pointing label' style={this.newSetLabelStyle}>New set</div>
         </div>
       </div>;
     }
@@ -345,10 +360,12 @@ class SetDisplay extends React.Component {
                 className='ui segments'>
       <div className='ui tertiary center aligned segment' style={this.topBarStyle}>
         <div className='ui center aligned container' style={this.titleStyle}>
-          {this.props.set.name}
+          {this.state.displayName}
         </div>
         <i className='large add circle green icon' style={this.addItemStyle}
-           onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+           onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}
+        />
+        <div className='ui green left pointing label' style={this.newSetLabelStyle}>New set</div>
       </div>
       <div
         className='ui segment'

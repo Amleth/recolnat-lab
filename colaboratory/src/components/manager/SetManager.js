@@ -51,7 +51,7 @@ class SetManager extends React.Component {
     this.helpTextStyle = {
       display: 'none',
       position: 'absolute',
-      top: '0px',
+      top: '10px',
       right: '0px',
       zIndex: 100,
       width: '250px'
@@ -143,31 +143,33 @@ class SetManager extends React.Component {
   render() {
     var self = this;
     return <div style={this.containerStyle} >
-    <i className='ui large blue help circle icon' ref='helpIcon' style={this.helpIconStyle} onMouseEnter={this.showHelp.bind(this)} onMouseLeave={this.hideHelp.bind(this)}/>
-    <div className='ui text segment container' style={this.helpTextStyle}>
-    <div>
-    Cliquez sur un set <i className='ui icon folder' /> pour charger son contenu.
-    </div>
-    <div>
-     Double-cliquez sur un set <i className='ui icon folder' /> pour le charger dans la paillasse.
-     </div>
-     <div>
-      Le clic droit sur un set <i className='ui icon folder' /> permet d'afficher son menu contextuel.
+    <i className='ui big blue help circle icon' ref='helpIcon' style={this.helpIconStyle} onMouseEnter={this.showHelp.bind(this)} onMouseLeave={this.hideHelp.bind(this)}/>
+      <div className='ui text segment container' style={this.helpTextStyle}>
+        <div> Cliquez sur "Mes sets" pour voir le premier niveau de sets et notament le "set exemple". Ce dernier vous permet de découvrir le Collaboratoire et ses fonctions.
+        </div>
+        <div>
+          Cliquez sur un set <i className='ui icon folder' /> pour charger son contenu.
+        </div>
+        <div>
+          Double-cliquez sur un set <i className='ui icon folder' /> pour le charger dans la paillasse.
+        </div>
+        <div>
+          Le clic droit sur un set <i className='ui icon folder' /> permet d'afficher son menu contextuel.
+        </div>
+        <div>
+          Si le set choisi <i className='ui blue icon folder' /> contient des images, elles seront listées à droite.
+        </div>
       </div>
-     <div>
-     Si le set choisi <i className='ui blue icon folder' /> contient des images, elles seront listées à droite.
-     </div>
-    </div>
       <div style={this.optionBarStyle}></div>
       <div style={this.workbenchExplorerStyle} ref='sets'>
         {this.state.displayedSets.map(function(s, idx) {
-            return <SetDisplay key={'SET-NODE-' + idx + '-' + s.uid}
-                               set={s}
-                               index={idx}
-                               managerstore={self.props.managerstore}
-                               dragstore={self.props.dragstore}
-                               metastore={self.props.metastore}
-            />;
+          return <SetDisplay key={'SET-NODE-' + idx + '-' + s.uid}
+                             set={s}
+                             index={idx}
+                             managerstore={self.props.managerstore}
+                             dragstore={self.props.dragstore}
+                             metastore={self.props.metastore}
+          />;
         })}
       </div>
     </div>

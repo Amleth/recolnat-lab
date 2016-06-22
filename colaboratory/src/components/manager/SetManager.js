@@ -7,7 +7,6 @@ import React from 'react';
 import request from 'superagent';
 
 import SetDisplay from './SetDisplay';
-import StudyDisplay from './../../tools/palettes/StudyDisplay';
 
 import ManagerActions from '../../actions/ManagerActions';
 

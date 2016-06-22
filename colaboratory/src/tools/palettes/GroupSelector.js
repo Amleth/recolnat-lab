@@ -166,6 +166,7 @@ class GroupSelector extends React.Component {
       this.compactSegmentStyle.display = 'none';
     }
     // Update name display, send minimap init
+
     if(nextState.selectedImageIdx != this.state.selectedImageIdx) {
       if(nextState.selectedImageIdx < 0) {
         nextState.selectedImageName = 'Choisissez une image';
@@ -188,7 +189,9 @@ class GroupSelector extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-
+    if(this.state.selectedImageIdx == -1 && this.state.listOfImages.length > 0) {
+      this.setActiveImage(Math.floor(this.state.listOfImages.length/2));
+    }
   }
 
   componentWillUnmount() {

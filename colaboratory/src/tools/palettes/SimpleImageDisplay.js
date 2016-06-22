@@ -144,7 +144,7 @@ class SimpleImageDisplay extends React.Component {
     if(id) {
       window.setTimeout(ViewActions.setActiveSet.bind(null, id), 10);
       // window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
-      window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.ORGANISATION),20);
+      window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),20);
     }
     else {
       console.warn('Last displayed set not obtained');

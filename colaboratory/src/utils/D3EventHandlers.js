@@ -45,8 +45,10 @@ class D3EventHandlers {
   static resizeImageBorders(d) {
     //console.log('resize(' + d.newHeight + ')');
     var oldHeight = d.newHeight;
-    d.newHeight = d.newHeight + d3.event.dy;
-    d.newWidth = d.newWidth*d.newHeight/oldHeight;
+    if(d.newHeight + d3.event.dy > 100) {
+      d.newHeight = d.newHeight + d3.event.dy;
+      d.newWidth = d.newWidth * d.newHeight / oldHeight;
+    }
 
     d3.select('#RESIZE_WINDOW')
       .attr('height', d.newHeight)

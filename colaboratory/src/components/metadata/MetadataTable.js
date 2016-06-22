@@ -12,12 +12,16 @@ class MetadataTable extends React.Component {
     this.textStyle = {
       wordBreak: 'break-all',
       fontSize: 10,
+      lineHeight: '10px',
+      margin: 0,
       padding: '1px 1px 1px 3px'
     };
 
     this.labelStyle = {
       //wordBreak: 'break-all',
       fontSize: 10,
+      lineHeight: '10px',
+      margin: 0,
       padding: '1px 3px 1px 1px'
     };
 
@@ -87,8 +91,8 @@ class MetadataTable extends React.Component {
         <table className='ui basic striped very compact table'>
           <thead style={this.headerStyle}>
             <tr style={this.headerRowStyle}>
-              <th className='four wide' style={this.headerCellStyle}></th>
-              <th className='twelve wide' style={this.headerCellStyle}></th>
+              <th className='six wide' style={this.headerCellStyle}></th>
+              <th className='ten wide' style={this.headerCellStyle}></th>
             </tr>
           </thead>
           {this.buildDisplayTableBody()}

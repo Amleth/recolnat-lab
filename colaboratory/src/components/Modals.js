@@ -62,6 +62,7 @@ class ManagerModals extends React.Component {
                              managerstore={this.props.managerstore}
                              viewstore={this.props.viewstore}
                              benchstore={this.props.benchstore}
+                             basketstore={this.props.basketstore}
                              modestore={this.props.modestore} />
       <ConfirmDeleteModal modalstore={this.props.modalstore}
                           metastore={this.props.metastore} />

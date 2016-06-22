@@ -26,6 +26,7 @@ import LabBenchStore from './stores/LabBenchStore';
 import ModeStore from './stores/ModeStore';
 import DragNDropStore from './stores/DragNDropStore';
 import InspectorStore from './stores/InspectorStore';
+import BasketStore from './stores/BasketStore';
 
 import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
 
@@ -48,6 +49,7 @@ const imagestore = new ImageStore();
 const metastore = new MetadataStore();
 const modalstore = new ModalStore();
 const benchstore = new LabBenchStore();
+const basketstore = new BasketStore();
 const modestore = new ModeStore();
 const inspecstore = new InspectorStore();
 const dragstore = new DragNDropStore();
@@ -400,6 +402,7 @@ class Window extends React.Component {
                 modestore={modestore}
                 inspecstore={inspecstore}
                 imagestore={imagestore}
+                basketstore={basketstore}
                 managerstore={managerstore} />
         <MainMenu top={this.menuHeight}
                   width={this.leftPaneWidth}

@@ -42,9 +42,6 @@ class ManagerStore extends EventEmitter {
       activeId: null
     };
 
-    this.basket = [];
-    this.basketSelection = {};
-
     AppDispatcher.register((action) => {
       switch(action.actionType) {
         case ManagerConstants.ActionTypes.TOGGLE_SET_MANAGER_VISIBILITY:
@@ -86,28 +83,6 @@ class ManagerStore extends EventEmitter {
         case ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS:
           this.reloadDisplayedSets();
           break;
-        case ManagerConstants.ActionTypes.BASKET_CHANGE_SELECTION:
-          if(action.id) {
-            this.updateBasketSelection(action.id, action.selected);
-          }
-          else {
-            for(var i = 0; i < this.basket.length; ++i) {
-              this.updateBasketSelection(this.basket[i].id, action.selected);
-            }
-          }
-          this.emit(ManagerEvents.BASKET_UPDATE);
-          break;
-        case ManagerConstants.ActionTypes.SET_BASKET:
-          this.basket = action.basket;
-          for(var i = 0; i < this.basket.length; ++i) {
-            this.updateBasketSelection(this.basket[i].id, true);
-          }
-          this.emit(ManagerEvents.BASKET_UPDATE);
-          break;
-        case ManagerConstants.ActionTypes.BASKET_REMOVE_ITEM:
-          this.removeItemFromBasket(action.item);
-          this.emit(ManagerEvents.BASKET_UPDATE);
-          break;
         case ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET:
           var setIdx = null;
           var itemId = null;
@@ -138,9 +113,6 @@ class ManagerStore extends EventEmitter {
           this.setSelected(setIdx, itemId);
           this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
           break;
-        case ManagerConstants.ActionTypes.ADD_BASKET_ITEMS_TO_SET:
-          this.addBasketItemsToSet(action.set, action.keepInBasket);
-          break;
         default:
           break;
       }
@@ -162,46 +134,6 @@ class ManagerStore extends EventEmitter {
 
   getStudies() {
     return JSON.parse(JSON.stringify(this.studyContainer));
-  }
-
-  updateBasketSelection(id, selected) {
-    if(selected) {
-      this.basketSelection[id] = {};
-    }
-    else {
-      delete this.basketSelection[id];
-    }
-  }
-
-  removeItemFromBasket(id) {
-    var index = null;
-    this.basket.forEach(function(item, idx) {
-      if(item.uid == id) {
-        index = idx;
-      }
-    });
-    this.basket.splice(index, 1);
-    xdLocalStorage.setItem('panier_erecolnat', JSON.stringify(this.basket));
-  }
-
-  isInBasketSelection(id) {
-    return !(this.basketSelection[id] == undefined);
-  }
-
-  getBasket() {
-    return JSON.parse(JSON.stringify(this.basket));
-  }
-
-  getBasketSelection() {
-    return Object.keys(this.basketSelection);
-  }
-
-  getBasketItem(id) {
-    for(var i = 0; i < this.basket.length; ++i) {
-      if(this.basket[i].id == id) {
-        return JSON.parse(JSON.stringify(this.basket[i]));
-      }
-    }
   }
 
   setSelected(setIdx, itemId) {
@@ -330,28 +262,6 @@ class ManagerStore extends EventEmitter {
       });
   }
 
-  addBasketItemsToSet(specimens, targetSetId, keepInBasket) {
-
-    var specimenImportSuccess = function(response) {
-      ManagerActions.reloadDisplayedSets();
-      ManagerActions.changeBasketSelectionState(null, false);
-      var items = this.getBasketSelection();
-      if(!keepInBasket) {
-        for (var j = 0; j < items.length; ++j) {
-          this.removeItemFromBasket(items[j]);
-        }
-      }
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
-      this.emit(ManagerEvents.BASKET_UPDATE);
-    }
-
-    var specimenImportFailure = function(error) {
-      alert("Problème lors de l'import. Veuillez réessayer plus tard.");
-    }
-
-    REST.importRecolnatSpecimensIntoSet(specimens, targetSetId, specimenImportSuccess.bind(this), specimenImportFailure);
-  }
-
   addManagerVisibilityListener(callback) {
     this.on(ManagerEvents.TOGGLE_SET_MANAGER_VISIBILITY, callback);
   }
@@ -374,14 +284,6 @@ class ManagerStore extends EventEmitter {
 
   removeManagerUpdateListener(callback) {
     this.removeListener(ManagerEvents.UPDATE_MANAGER_DISPLAY, callback);
-  }
-
-  addBasketUpdateListener(callback) {
-    this.on(ManagerEvents.BASKET_UPDATE, callback);
-  }
-
-  removeBasketUpdateListener(callback) {
-    this.removeListener(ManagerEvents.BASKET_UPDATE, callback);
   }
 }
 

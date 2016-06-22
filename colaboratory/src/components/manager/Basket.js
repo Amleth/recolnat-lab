@@ -7,7 +7,7 @@ import React from 'react';
 
 import BasketItem from './BasketItem';
 
-import ManagerActions from '../../actions/ManagerActions';
+import BasketActions from '../../actions/BasketActions';
 
 class Basket extends React.Component {
   constructor(props) {
@@ -31,32 +31,17 @@ class Basket extends React.Component {
     };
 
     this.state = {
-      basketItems: [],
-      basketReady: false
+      basketItems: []
     };
 
     this._onBasketUpdate = () => {
-      const setBasket = () => this.setState({basketItems: this.props.managerstore.getBasket()});
+      const setBasket = () => this.setState({basketItems: this.props.basketstore.getBasket()});
       setBasket.apply(this);
     }
   }
 
   reloadBasket() {
-    if(!this.state.basketReady) {
-      alert('Le panier est indisponible, réessayez dans quelques secondes');
-      return;
-    }
-
-    xdLocalStorage.getItem('panier_erecolnat', function(data) {
-      var basket;
-      if (data.value == null) {
-        basket = [];
-      }
-      else {
-        basket = JSON.parse(data.value);
-      }
-      ManagerActions.setBasket(basket);
-    })
+    window.setTimeout(BasketActions.reloadBasket, 10);
   }
 
   getBasketStateText() {
@@ -68,18 +53,14 @@ class Basket extends React.Component {
     }
   }
 
-  setOffset(offset) {
-    this.setState({offset: offset});
-  }
-
   toggleSelectionAll() {
-    if(this.props.managerstore.getBasketSelection().length == this.props.managerstore.getBasket().length) {
+    if(this.props.basketstore.getBasketSelection().length === this.props.basketstore.getBasket().length) {
       // Unselect all
-      ManagerActions.changeBasketSelectionState(null, false);
+      window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
     }
     else {
       // Select all
-      ManagerActions.changeBasketSelectionState(null, true);
+      window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, true), 10);
     }
   }
 
@@ -90,19 +71,11 @@ class Basket extends React.Component {
   }
 
   componentDidMount() {
-    var self = this;
-    xdLocalStorage.init({
-      iframeUrl:'https://wp5test.recolnat.org/basket',
-      initCallback: function() {
-        self.setState({basketReady: true});
-      }
-    });
-
-    this.props.managerstore.addBasketUpdateListener(this._onBasketUpdate);
+    this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(this.props.managerstore.getBasketSelection().length == this.props.managerstore.getBasket().length) {
+    if(this.props.basketstore.getBasketSelection().length == this.props.basketstore.getBasket().length) {
       nextState.checkbox = 'checkmark box';
     }
     else {
@@ -111,9 +84,6 @@ class Basket extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(!prevState.basketReady && this.state.basketReady) {
-      this.reloadBasket();
-    }
       if (this.state.basketItems.length > 0) {
         $('.basketItem .image', this.refs.cards.getDOMNode()).dimmer({
           on: 'hover',
@@ -124,11 +94,11 @@ class Basket extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.managerstore.removeBasketUpdateListener(this._onBasketUpdate);
+    this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
   }
 
   render() {
-    if(!this.state.basketReady) {
+    if(this.state.basketItems.length === 0) {
       return <div style={this.basketContainerStyle}>
         Connexion au panier
       </div>;
@@ -152,7 +122,7 @@ class Basket extends React.Component {
       </div>
       <div ref='cards' style={this.cardRowStyle} onWheel={this.scrollHorizontal.bind(this)}>
         {this.state.basketItems.map(function(item, idx) {
-          return <BasketItem content={item} key={'EXPLORE-BASKET-ITEM-' + item.id} managerstore={self.props.managerstore} />
+          return <BasketItem content={item} key={'EXPLORE-BASKET-ITEM-' + item.id} basketstore={self.props.basketstore} />
         })}
       </div>
     </div>

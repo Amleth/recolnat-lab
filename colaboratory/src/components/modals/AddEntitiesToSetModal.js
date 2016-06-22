@@ -16,6 +16,7 @@ import ManagerActions from '../../actions/ManagerActions';
 import MetadataActions from '../../actions/MetadataActions';
 import ModalActions from '../../actions/ModalActions';
 import ViewActions from '../../actions/ViewActions';
+import BasketActions from '../../actions/BasketActions';
 
 import REST from '../../utils/REST';
 
@@ -38,9 +39,7 @@ class AddEntitiesToSetModal extends AbstractModal {
   }
 
   clearState(state) {
-    //state.source = 'subset';
     state.parentId = null;
-    // state.parentIndex = null;
     state.displayName = '';
     state.nameInput = '';
     state.validatedItems = [];
@@ -93,7 +92,7 @@ class AddEntitiesToSetModal extends AbstractModal {
     }
     window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
 
-    var items = this.props.managerstore.getBasketSelection();
+    var items = this.props.basketstore.getBasketSelection();
     var specimens = [];
     for(var i = 0; i < items.length; ++i) {
       var itemId = items[i];
@@ -103,7 +102,7 @@ class AddEntitiesToSetModal extends AbstractModal {
         + itemId.slice(16, 20) + '-'
         + itemId.slice(20);
 
-      var itemData = this.props.managerstore.getBasketItem(itemId);
+      var itemData = this.props.basketstore.getBasketItem(itemId);
       //console.log('uuid=' + itemUuid);
       specimens.push({
         recolnatSpecimenUuid: itemUuid,
@@ -114,16 +113,29 @@ class AddEntitiesToSetModal extends AbstractModal {
 
     var onSuccess = null;
     var onError = null;
+    var keepInBasket = true;
     switch(this.props.modestore.getMode()) {
       case ModeConstants.Modes.SET:
-        this.props.managerstore.addBasketItemsToSet(specimens, this.state.parentId, true);
-        return;
+        onSuccess = function(response) {
+          window.setTimeout(ManagerActions.reloadDisplayedSets, 10);
+          window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
+              if(!keepInBasket) {
+                for (var j = 0; j < items.length; ++j) {
+                  window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[j]), 10);
+                }
+              }
+              window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+        };
+        onError = function(error) {
+          alert("Problème lors de l'import. Veuillez réessayer plus tard.");
+        };
+        break;
       case ModeConstants.Modes.ORGANISATION:
       case ModeConstants.Modes.OBSERVATION:
         onSuccess = function(response) {
           // Place specimens in middle of screen
           window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
-          window.setTimeout(ManagerActions.changeBasketSelectionState.bind(null, null, false), 10);
+          window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
           var viewId = this.props.benchstore.getActiveViewId();
 
           var data = [];
@@ -202,6 +214,7 @@ class AddEntitiesToSetModal extends AbstractModal {
       // nextState.parentIndex = this.props.modalstore.getTargetData().index;
       this.props.metastore.addMetadataUpdateListener(nextState.parentId, this._onMetadataAvailable);
       window.setTimeout(MetadataActions.updateMetadata.bind(null, [nextState.parentId]), 10);
+      window.setTimeout(BasketActions.reloadBasket, 10);
     }
     super.componentWillUpdate(nextProps, nextState);
   }
@@ -232,9 +245,9 @@ class AddEntitiesToSetModal extends AbstractModal {
         <div className="ui bottom attached tab segment" data-tab="recolnat">
           <div className='content'>
             <div className='description'>
-              <div className='header'>Ajouter les {this.props.managerstore.getBasketSelection().length} planches sélectionnées dans le panier au set {this.state.displayName}
+              <div className='header'>Ajouter les {this.props.basketstore.getBasketSelection().length} planches sélectionnées dans le panier au set {this.state.displayName}
               </div>
-              <Basket managerstore={this.props.managerstore}/>
+              <Basket basketstore={this.props.basketstore}/>
             </div>
           </div>
         </div>

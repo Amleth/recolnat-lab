@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import ManagerActions from '../../actions/ManagerActions';
+import BasketActions from '../../actions/BasketActions';
 import ViewActions from '../../actions/ViewActions';
 
 import notFound from '../../images/image-not-found.png';
@@ -55,7 +55,7 @@ class BasketItem extends React.Component {
     };
 
     this.state = {
-      isSelected: props.managerstore.isInBasketSelection(props.content.id),
+      isSelected: props.basketstore.isInBasketSelection(props.content.id),
       modalSrc: null
     };
   }
@@ -75,28 +75,24 @@ class BasketItem extends React.Component {
   }
 
   viewFullSizeModal() {
-    if(this.props.content && this.props.content.image.length > 0) {
-      this.setState({modalSrc: this.props.content.image[0].url});
-    }
-    else {
-      this.setState({modalSrc: notFound});
-    }
+    //if(this.props.content && this.props.content.image.length > 0) {
+    //  this.setState({modalSrc: this.props.content.image[0].url});
+    //}
+    //else {
+    //  this.setState({modalSrc: notFound});
+    //}
   }
 
   changeSelected() {
-    ManagerActions.changeBasketSelectionState(this.props.content.id, !this.state.isSelected);
+    BasketActions.changeBasketSelectionState(this.props.content.id, !this.state.isSelected);
   }
 
   removeSelfFromBasket() {
-    ManagerActions.removeItemFromBasket(this.props.content.id);
-  }
-
-  addSelfToSelectedWorkbench() {
-    ManagerActions.addBasketItemsToSet([this.props.content.id], this.props.managerstore.getSelected().id, true);
+    BasketActions.removeItemFromBasket(this.props.content.id);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    nextState.isSelected = nextProps.managerstore.isInBasketSelection(nextProps.content.id);
+    nextState.isSelected = nextProps.basketstore.isInBasketSelection(nextProps.content.id);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -130,8 +126,6 @@ class BasketItem extends React.Component {
       window.setTimeout(
         ViewActions.loadImage.bind(null, this.state.modalSrc, showImageCallback.bind(this)),
         10);
-
-
       //$(this.refs.loadingModal.getDOMNode()).modal({
       //  onHidden: function() {
       //    self.refs.image.getDOMNode().onload = null;
@@ -182,14 +176,6 @@ class BasketItem extends React.Component {
               {this.props.content.scientificname}
             </div>
 
-            <div className='ui green compact icon circular button'
-                 style={this.floatDownLeftStyle}
-                 onClick={this.addSelfToSelectedWorkbench.bind(this)}>
-              <i className='icons'>
-                <i className='folder icon' />
-                <i className='corner add icon' />
-              </i>
-            </div>
             <div className='ui blue compact icon circular button' style={this.floatDownMiddleStyle} onClick={this.viewFullSizeModal.bind(this)}>
               <i className='eye icon' />
             </div>

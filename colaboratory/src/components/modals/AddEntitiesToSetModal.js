@@ -82,7 +82,7 @@ class AddEntitiesToSetModal extends AbstractModal {
         window.setTimeout(ManagerActions.select.bind(null, newSetId, 'Set', name, parentId, linkId), 20);
 
         window.setTimeout(ManagerActions.reloadDisplayedSets.bind(null), 30);
-    });
+      });
   }
 
   createFromBasket() {
@@ -119,15 +119,16 @@ class AddEntitiesToSetModal extends AbstractModal {
         onSuccess = function(response) {
           window.setTimeout(ManagerActions.reloadDisplayedSets, 10);
           window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
-              if(!keepInBasket) {
-                for (var j = 0; j < items.length; ++j) {
-                  window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[j]), 10);
-                }
-              }
-              window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+          if(!keepInBasket) {
+            for (var j = 0; j < items.length; ++j) {
+              window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[j]), 10);
+            }
+          }
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
         };
         onError = function(error) {
           alert("Problème lors de l'import. Veuillez réessayer plus tard.");
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
         };
         break;
       case ModeConstants.Modes.ORGANISATION:
@@ -158,14 +159,14 @@ class AddEntitiesToSetModal extends AbstractModal {
 
           REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom);
         };
-        onError = function(err) {
+        onError = function(err, res) {
           alert("Problème lors de l'import. Veuillez réessayer plus tard.");
           window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
         };
-      break;
+        break;
       default:
-      log.error('Modal called from unsupported mode ' + this.props.modestore.getMode());
-      break;
+        log.error('Modal called from unsupported mode ' + this.props.modestore.getMode());
+        break;
     }
 
     REST.importRecolnatSpecimensIntoSet(specimens, this.state.parentId, onSuccess.bind(this), onError);

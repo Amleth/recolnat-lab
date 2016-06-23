@@ -131,27 +131,11 @@ public class AccessUtils {
    */
   public static OrientVertex getCoreSet(OrientVertex user, OrientGraph graph) {
     OrientVertex vCoreSet = AccessUtils.findLatestVersion(user.getVertices(Direction.OUT, DataModel.Links.hasCoreSet).iterator(), graph);
-    // Get user's direct-link workbench iterator
-//    Iterator<Edge> edgeIt = user.getEdges(Direction.IN, DataModel.Links.createdBy).iterator();
-//    // Return the right workbench
-//    while(edgeIt.hasNext()) {
-//      Vertex vCreated = edgeIt.next().getVertex(Direction.OUT);
-//      if(DataModel.Globals.ROOT_SET_ROLE.equals(vCreated.getProperty(DataModel.Properties.role))) {
-//        if(vCreated.getEdges(Direction.OUT, DataModel.Links.hasNewerVersion).iterator().hasNext()) {
-//          continue;
-//        }
-//        return (OrientVertex) vCreated;
-//      }
-//    }
-if(vCoreSet != null) {
-  return vCoreSet;
-}
-    // Or create one if it does not exist
-//    OrientVertex rootWb = CreatorUtils.createWorkbenchContent("Mes Etudes", DataModel.Globals.ROOT_SET_ROLE, graph);
-//    UpdateUtils.addCreator(rootWb, (OrientVertex) user, graph);
-//    AccessRights.grantAccessRights(user, rootWb, DataModel.Enums.AccessRights.WRITE, graph);
+    
+    if(vCoreSet != null) {
+      return vCoreSet;
+    }
     throw new NotFoundException("No root set for user " + user.getProperty(DataModel.Properties.id));
-//    return null;
   }
   
   public static OrientVertex getView(String id, OrientGraph g) {

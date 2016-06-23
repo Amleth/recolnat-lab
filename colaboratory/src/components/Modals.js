@@ -12,6 +12,7 @@ import NewStudyModal from './modals/NewStudyModal';
 import LoginModal from './modals/LoginModal';
 import ConfirmDeleteModal from './modals/ConfirmDelete';
 import AddAnnotationToEntity from './modals/AddAnnotationToEntity';
+import CreateAndFillSet from './modals/CreateAndFillSet';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -56,6 +57,9 @@ class ManagerModals extends React.Component {
     return <div style={this.containerStyle}>
       <LoginModal userstore={this.props.userstore} />
       <NewStudyModal modalstore={this.props.modalstore}
+                     managerstore={this.props.managerstore} />
+      <CreateAndFillSet modalstore={this.props.modalstore}
+                        basketstore={this.props.basketstore}
                      managerstore={this.props.managerstore} />
       <AddEntitiesToSetModal modalstore={this.props.modalstore}
                              metastore={this.props.metastore}

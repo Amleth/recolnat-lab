@@ -12,6 +12,7 @@ export default {
   Modals: {
     createStudy: 'MODAL_createStudy',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
+    createAndFillSet: 'MODAL_createAndFillSet',
     login: 'MODAL_login',
     confirmDelete: 'MODAL_confirmDelete',
     addAnnotationToEntity: 'MODAL_addAnnotationToEntity'

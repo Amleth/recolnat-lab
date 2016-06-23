@@ -110,7 +110,7 @@ export default class REST {
         if (err) {
           console.error(err);
           if(onErrorCallback) {
-            onErrorCallback(err);
+            onErrorCallback(err, res);
           }
         }
         else {

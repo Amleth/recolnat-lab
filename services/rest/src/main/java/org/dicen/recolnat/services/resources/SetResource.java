@@ -115,8 +115,15 @@ public class SetResource {
     JSONObject params = new JSONObject(input);
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
-    String name = (String) params.get("name");
-    String parentSetId = (String) params.get("parent");
+    String name = params.getString("name");
+    String parentSetId = null;
+    try {
+      parentSetId = params.getString("parent");
+    }
+    catch(JSONException ex) {
+      // Create under root set
+      parentSetId = null;
+    }
 
     boolean retry = true;
     JSONObject ret = new JSONObject();
@@ -125,10 +132,16 @@ public class SetResource {
       OrientGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vParentSet = AccessUtils.getNodeById(parentSetId, g);
+        OrientVertex vParentSet = null;
+        try {
+          vParentSet = AccessUtils.getNodeById(parentSetId, g);
+        } catch(NullPointerException e) {
+          vParentSet = AccessUtils.getCoreSet(vUser, g);
+        }
+        
         // Check permissions
         if (!AccessRights.canWrite(vUser, vParentSet, g)) {
-          throw new WebApplicationException("User not authorized to write in workbench " + parentSetId, Response.Status.FORBIDDEN);
+          throw new WebApplicationException("User not authorized to write in set " + parentSetId, Response.Status.FORBIDDEN);
         }
 
         // Create new set & default view

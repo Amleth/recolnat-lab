@@ -118,7 +118,7 @@ class Inbox extends React.Component {
 
   placeAllImagesInColumn() {
     window.setTimeout(function() {
-      ViewActions.changeLoaderState("Placement en cours.")}, 1);
+      ViewActions.changeLoaderState("Placement en cours.")}, 10);
 
     var data = [];
     var x = this.props.viewstore.getView().left;
@@ -132,6 +132,31 @@ class Inbox extends React.Component {
         entity: this.state.content[i].uid
       });
       y = y + this.state.content[i].height + 200;
+    }
+
+    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+  }
+
+  placeAllImagesInGrid() {
+    window.setTimeout(
+      ViewActions.changeLoaderState.bind(null, "Placement en cours."), 10);
+
+    var data = [];
+    var x = this.props.viewstore.getView().left;
+    var y = this.props.viewstore.getView().top;
+    var viewId = this.state.viewId;
+    for(var i = 0; i < this.state.content.length; ++i) {
+      data.push({
+        x: x,
+        y: y,
+        view: viewId,
+        entity: this.state.content[i].uid
+      });
+      x = x + this.state.content[i].width + 200;
+      if((i+1) % 5 == 0) {
+        y = y + this.state.content[i].height + 200;
+        x = this.props.viewstore.getView().left;
+      }
     }
 
     REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
@@ -181,47 +206,55 @@ class Inbox extends React.Component {
       </div>
     }
     return <div className='ui segment' style={this.componentStyle} ref='tabs'>
-    <div className="ui top attached fitted tabular menu">
-      <div
-      className="active item"
-      data-tab="automatic">
-      Auto
+      <div className="ui top attached fitted tabular menu">
+        <div
+          className="active item"
+          data-tab="automatic">
+          Auto
+        </div>
+        <div className="item" data-tab="manual">
+          Manuel
+        </div>
       </div>
-      <div className="item" data-tab="manual">
-      Manuel
+      <div className="ui bottom attached active tab segment" data-tab="automatic">
+        <div className='ui button disabled'>{this.state.content.length} images</div>
+        <div className='ui tiny two buttons'
+             ref='buttons'
+        >
+          <div className='ui button'
+               onClick={this.placeAllImagesInLine.bind(this)}
+               data-content='Placer toutes les images non-affichées en ligne. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+            <i className='ui ellipsis horizontal icon' />
+          </div>
+          <div className='ui button'
+               onClick={this.placeAllImagesInColumn.bind(this)}
+               data-content='Placer toutes les images non-affichées en colonne. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+            <i className='ui ellipsis vertical icon' />
+          </div>
+        </div>
+        <div className='ui tiny two buttons'
+             ref='buttons'>
+          <div className='ui button'
+               onClick={this.placeAllImagesInGrid.bind(this)}
+               data-content='Placer toutes les images non-affichées en tableau de 5 colonnes. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+            <i className='ui grid layout icon' />
+          </div>
+        </div>
       </div>
-    </div>
-    <div className="ui bottom attached active tab segment" data-tab="automatic">
-    <div className='ui button disabled'>{this.state.content.length} images</div>
-      <div className='ui tiny two buttons'
-    ref='buttons'
-    >
-      <div className='ui button'
-           onClick={this.placeAllImagesInLine.bind(this)}
-           data-content='Placer toutes les images non-affichées en ligne à partir de la vue'>
-        <i className='ui ellipsis horizontal icon' />
+      <div className="ui bottom attached tab segment" data-tab="manual">
+        <img className='ui image'
+             ref='image'
+             data-content="Faites glisser l'image vers le bureau pour la placer"
+             src={this.state.content[this.state.selected].thumbnail}
+             alt='Chargement en cours'
+             draggable='true'
+             onDragStart={this.startDragImage.bind(this)}/>
+        <div className='ui mini three buttons'>
+          <div className='ui button' onClick={this.previous.bind(this)}><i className='ui left chevron icon' /></div>
+          <div className='ui button disabled'>{this.state.selected+1}/{this.state.content.length}</div>
+          <div className='ui button' onClick={this.next.bind(this)}><i className='ui right chevron icon' /></div>
+        </div>
       </div>
-      <div className='ui button'
-           onClick={this.placeAllImagesInColumn.bind(this)}
-           data-content='Placer toutes les images non-affichées en colonne à partir de la vue'>
-        <i className='ui ellipsis vertical icon' />
-      </div>
-    </div>
-</div>
-<div className="ui bottom attached tab segment" data-tab="manual">
-<img className='ui image'
-     ref='image'
-     data-content="Faites glisser l'image vers le bureau pour la placer"
-     src={this.state.content[this.state.selected].thumbnail}
-     alt='Chargement en cours'
-     draggable='true'
-     onDragStart={this.startDragImage.bind(this)}/>
-<div className='ui mini three buttons'>
-  <div className='ui button' onClick={this.previous.bind(this)}><i className='ui left chevron icon' /></div>
-  <div className='ui button disabled'>{this.state.selected+1}/{this.state.content.length}</div>
-  <div className='ui button' onClick={this.next.bind(this)}><i className='ui right chevron icon' /></div>
-</div>
-</div>
 
 
 

@@ -9,7 +9,6 @@ import CenterPane from './components/panes/CenterPane';
 import RightPane from './components/panes/RightPane';
 //import PopupToolContainer from './components/PopupToolComponent';
 //import Tooltip from './components/ActiveToolTooltip';
-import TopPane from './components/panes/TopPane';
 import MainMenu from './components/MainMenu';
 import Modals from './components/Modals';
 
@@ -80,19 +79,6 @@ class Window extends React.Component {
       height: '100vh',
       width: '100vw',
       backgroundColor: 'rgba(245,241,222, 1.0)'
-    };
-
-    this.topSliderStyle = {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      height: (window.innerHeight) + 'px',
-      width: '100%',
-      zIndex: ViewConstants.zIndices.topPane,
-      paddingTop: this.menuHeight + 'px',
-      backgroundColor: 'rgba(0,0,0,0.0)',
-      WebkitTransition: 'top 1s, width 1s',
-      transition: 'top 1s, width 1s'
     };
 
     this.columnLeftSideStyle = {
@@ -189,8 +175,6 @@ class Window extends React.Component {
       userLoggedIn: false,
       leftSidebar: true,
       rightSidebar: true,
-      //topSidebar: true,
-      topSidebar: false,
       leftSidebarIcon: 'left',
       rightSidebarIcon: 'right',
       activeSetName: "Pas d'étude chargée"
@@ -205,13 +189,6 @@ class Window extends React.Component {
       const userLogOut = () => this.logout();
       return userLogOut.apply(this);
     };
-
-    this._onManagerVisibilityToggle = () => {
-      //const toggle = () => this.toggleTopMenu(managerstore.getManagerVisibility());
-      //return toggle.apply(this);
-    };
-
-
   }
 
   login() {
@@ -249,20 +226,6 @@ class Window extends React.Component {
     window.location.href = 'https://cas.recolnat.org/logout';
   }
 
-
-
-  toggleTopMenu(visible = undefined) {
-    //if(visible === undefined) {
-    //  if(managerstore.getSelected().id) {
-    //    ViewActions.setActiveSet(managerstore.getSelected().id);
-    //  }
-    //  this.setState({topSidebar: !this.state.topSidebar});
-    //}
-    //else {
-    //  this.setState({topSidebar: visible});
-    //}
-  }
-
   toggleLeftMenu() {
     if(this.state.leftSidebar) {
       this.setState({leftSidebar: false, leftSidebarIcon: 'right'});
@@ -295,11 +258,8 @@ class Window extends React.Component {
   componentDidMount() {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
-    //managerstore.addManagerVisibilityListener(this._onManagerVisibilityToggle);
     window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null), 10);
     window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, this.leftPaneWidth), 10);
-    //viewstore.setViewportData(null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null);
-    //viewstore.setViewportLocationInWindow(this.menuHeight, this.leftPaneWidth);
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
     window.addEventListener("message", this.receiveMessage.bind(this));
@@ -335,22 +295,6 @@ class Window extends React.Component {
       this.rightButtonStyle.right = '0px';
     }
 
-    if(nextState.topSidebar) {
-      if(!this.state.topSidebar) {
-        window.setTimeout(
-        MetadataActions.loadLabBench.bind(null, managerstore.getSelected().id), 10
-        );
-      }
-      this.topSliderStyle.top = '0px';
-      this.topSliderStyle.height = height + 'px';
-      //this.topButtonStyle.top = (height -this.closeTopPaneButtonHeight) + 'px';
-    }
-    else {
-      this.topSliderStyle.height = height + 'px';
-      this.topSliderStyle.top = (-height) + 'px';
-      //this.topButtonStyle.top = this.menuHeight + 'px';
-    }
-
     this.columnMiddleStyle.left = left + 'px';
     this.columnMiddleStyle.width = width + 'px';
     this.columnLeftSideStyle.height = (window.innerHeight - this.menuHeight) + 'px';
@@ -359,9 +303,6 @@ class Window extends React.Component {
 
     window.setTimeout(ViewActions.updateViewport.bind(null, null, null, width, window.innerHeight-this.menuHeight, null), 10);
     window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, left), 10);
-
-    //viewstore.setViewportData(null, null, width, window.innerHeight -this.menuHeight, null);
-    //viewstore.setViewportLocationInWindow(this.menuHeight, left);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -375,7 +316,6 @@ class Window extends React.Component {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
     managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
-
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
@@ -423,22 +363,6 @@ class Window extends React.Component {
           viewstore={viewstore}
           toolstore={toolstore}
         />
-        <div style={this.topSliderStyle}>
-          <TopPane userstore={userstore}
-                   viewstore={viewstore}
-                   toolstore={toolstore}
-                   menustore={menustore}
-                   ministore={ministore}
-                   metastore={metastore}
-                   modestore={modestore}
-                   modalstore={modalstore}
-                   inspecstore={inspecstore}
-                   managerstore={managerstore}
-                   menuHeight={this.menuHeight}
-                   windowHeight={window.innerHeight}
-                   closeButtonHeight={this.closeTopPaneButtonHeight}
-          />
-        </div>
 
         <div>
           <div style={this.columnLeftSideStyle}>

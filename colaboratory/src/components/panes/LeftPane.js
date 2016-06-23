@@ -13,8 +13,8 @@ import ViewController from '../../tools/palettes/ViewController';
 import Organisation from '../../tools/palettes/Organisation';
 import ModeSwitcher from '../../tools/palettes/ModeSwitcher';
 import GroupSelector from '../../tools/palettes/GroupSelector';
-//import StudyDisplay from '../../tools/palettes/StudyDisplay';
 import SetSelectorDisplay from '../../tools/palettes/SetSelectorDisplay';
+import SetManagerMainButtons from '../../tools/palettes/SetManagerMainButtons';
 
 import ModeConstants from '../../constants/ModeConstants'
 
@@ -40,6 +40,7 @@ class LeftPane extends React.Component {
            className='ui container'>
         <div className='ui divider'></div>
         <ModeSwitcher modestore={this.props.modestore} />
+        <SetManagerMainButtons modestore={this.props.modestore} />
         <SetSelectorDisplay modestore={this.props.modestore}
                       managerstore={this.props.managerstore} />
         <GroupSelector

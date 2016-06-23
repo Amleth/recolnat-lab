@@ -5,6 +5,7 @@
  */
 package fr.recolnat.database.utils;
 
+import com.drew.lang.annotations.NotNull;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -95,7 +96,7 @@ public class AccessRights {
     return false;
   }
   
-  public static boolean canWrite(OrientVertex vUser, OrientVertex vNode, OrientGraph g) {
+  public static boolean canWrite(@NotNull OrientVertex vUser, @NotNull OrientVertex vNode, OrientGraph g) {
     if(AccessRights.getAccessRights(vUser, vNode, g).value() >= DataModel.Enums.AccessRights.WRITE.value()) {
       return true;
     }

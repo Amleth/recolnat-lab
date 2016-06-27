@@ -67,7 +67,8 @@ class SetDisplay extends React.Component {
     this.addItemStyle = {
       height: '100%',
       padding: 0,
-      width: '30px'
+      width: '30px',
+      cursor: 'pointer'
     };
 
     this.listContainerStyle = {

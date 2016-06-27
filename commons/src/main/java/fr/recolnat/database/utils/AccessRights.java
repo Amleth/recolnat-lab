@@ -26,7 +26,7 @@ public class AccessRights {
 
   private static final Logger log = LoggerFactory.getLogger(AccessRights.class);
 
-  public static DataModel.Enums.AccessRights getAccessRights(OrientVertex user, OrientVertex node, OrientGraph graph) {
+  public static DataModel.Enums.AccessRights getAccessRights(@NotNull OrientVertex user, @NotNull OrientVertex node, OrientGraph graph) {
     DataModel.Enums.AccessRights ret = DataModel.Enums.AccessRights.NONE;
 
     // If node and user are same, user HAS access rights to his own node

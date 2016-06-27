@@ -93,12 +93,12 @@ public class AuthenticationResource {
             CASAuthentication.getCASUserLogin(tgt);
           } catch (AccessDeniedException ex) {
             if(log.isInfoEnabled()) {
-            log.info("Authentication denied by CAS");
+              log.info("Authentication denied by CAS");
             }
             throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
           } catch (ConnectException ex) {
             if(log.isInfoEnabled()) {
-            log.info("No authentication provided.");
+              log.info("No authentication provided.");
             }
             throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
           } catch (IOException ex) {
@@ -140,12 +140,12 @@ public class AuthenticationResource {
       user = CASAuthentication.getCASUserLogin(tgt);
     } catch (AccessDeniedException ex) {
       if(log.isInfoEnabled()) {
-      log.info("Error while authenticating with CAS.");
+        log.info("Error while authenticating with CAS.");
       }
       throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
     } catch (ConnectException ex) {
       if(log.isInfoEnabled()) {
-      log.info("Error while authenticating with CAS.");
+        log.info("Error while authenticating with CAS.");
       }
       throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
     } catch (IOException ex) {

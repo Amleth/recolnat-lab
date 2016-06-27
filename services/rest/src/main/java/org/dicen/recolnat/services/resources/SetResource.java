@@ -124,6 +124,9 @@ public class SetResource {
       // Create under root set
       parentSetId = null;
     }
+    if(log.isDebugEnabled()) {
+      log.debug("Parent set id is " + parentSetId);
+    }
 
     boolean retry = true;
     JSONObject ret = new JSONObject();
@@ -136,6 +139,10 @@ public class SetResource {
         try {
           vParentSet = AccessUtils.getNodeById(parentSetId, g);
         } catch(NullPointerException e) {
+          // Do nothing
+        }
+        
+        if(vParentSet == null) {
           vParentSet = AccessUtils.getCoreSet(vUser, g);
         }
         

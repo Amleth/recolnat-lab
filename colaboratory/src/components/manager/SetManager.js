@@ -116,7 +116,13 @@ class SetManager extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.userLoggedIn && !prevState.userLoggedIn) {
-      ManagerActions.loadStudiesAndSets();
+      if(this.state.displayedSets.length > 0) {
+        ManagerActions.loadStudiesAndSets();
+      }
+      else {
+        window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, null, 'Set', 0, undefined, undefined, true)
+          , 10);
+      }
     }
     if(this.state.displayedSets.length != prevState.displayedSets.length) {
       var node = this.refs.sets.getDOMNode();

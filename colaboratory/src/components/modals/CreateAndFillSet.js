@@ -14,6 +14,7 @@ import ModalConstants from '../../constants/ModalConstants';
 import ViewActions from '../../actions/ViewActions';
 import ManagerActions from '../../actions/ManagerActions';
 import BasketActions from '../../actions/BasketActions';
+import InspectorActions from '../../actions/InspectorActions';
 
 import REST from '../../utils/REST';
 
@@ -51,6 +52,8 @@ class CreateAndFillSet extends AbstractModal {
       return;
     }
     window.setTimeout(ViewActions.changeLoaderState.bind(null, "Création du set... "), 10);
+
+    var name = this.state.nameInput;
 
     var keepInBasket = true;
     var items = this.props.basketstore.getBasketSelection();
@@ -91,6 +94,11 @@ class CreateAndFillSet extends AbstractModal {
     // On set creation success, import images
     var onSetCreationSuccess = function(parentId, newSetId, linkId) {
       window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
+
+      window.setTimeout(ManagerActions.select.bind(null,newSetId, 'Set', name, parentId, linkId),10);
+      window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
+      window.setTimeout(InspectorActions.setInspectorData.bind(null, [newSetId]), 10);
+
       REST.importRecolnatSpecimensIntoSet(specimens, newSetId, onImportSuccess, onImportError);
     };
 

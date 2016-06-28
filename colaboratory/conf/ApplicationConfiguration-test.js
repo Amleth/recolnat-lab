@@ -39,7 +39,7 @@ var Actions = {
     copy: Endpoints.setService + "/copy",
     cutPaste: Endpoints.setService + "/cutpaste",
     importRecolnatSpecimen: Endpoints.setService + "/import-recolnat-specimen",
-    importExternalImage: Endpoints.setService + "/import-external-image"
+    importExternalImages: Endpoints.setService + "/import-external-images"
   },
 
   viewServiceActions: {

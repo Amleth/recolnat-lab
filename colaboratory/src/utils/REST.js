@@ -121,6 +121,27 @@ export default class REST {
       });
   }
 
+  static importExternalImagesIntoSet(setId, images, onSuccessCallback = undefined, onErrorCallback = undefined) {
+    request.post(conf.setServiceActions.importExternalImages)
+    .set('Content-Type', "application/json")
+    .send({set: setId})
+    .send({images: images})
+    .withCredentials()
+    .end((err, res) => {
+      if (err) {
+        console.error(err);
+        if(onErrorCallback) {
+          onErrorCallback(err, res);
+        }
+      }
+      else {
+        if(onSuccessCallback) {
+          onSuccessCallback(JSON.parse(res.text));
+        }
+      }
+    });
+  }
+
   static moveEntityFromSetToSet(linkId, targetSetId, onSuccessCallback = undefined, onErrorCallback = undefined) {
     request.post(conf.actions.setServiceActions.cutPaste)
       .set('Content-Type', "application/json")

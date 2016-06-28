@@ -179,9 +179,20 @@ class Inbox extends React.Component {
     if(nextState.content.length > 0) {
       nextState.active = true;
     }
+    if(this.state.active && !this.state.open) {
+      if(nextState.open || !nextState.active) {
+        $(this.refs.component.getDOMNode())
+        .transition('remove looping');
+      }
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if(this.state.active && !this.state.open) {
+      $(this.refs.component.getDOMNode())
+      .transition('set looping')
+      .transition('pulse', '2000ms');
+    }
     if(this.state.active && this.state.open) {
       $('.menu .item', $(this.refs.tabs.getDOMNode())).tab();
       $(this.refs.image.getDOMNode()).popup();
@@ -201,8 +212,9 @@ class Inbox extends React.Component {
       return null;
     }
     if(!this.state.open) {
-      return <div style={this.componentStyle}>
-        <div className='ui button teal' onClick={this.open.bind(this)}>Vous avez {this.state.content.length} images à placer</div>
+      return <div ref='component' style={this.componentStyle}>
+        <div className='ui teal button'
+        onClick={this.open.bind(this)}>Il y a  {this.state.content.length} images dans ce set qui ne sont pas placées dans la vue actuelle. Cliquez ici si vous souhaitez les placer.</div>
       </div>
     }
     return <div className='ui segment' style={this.componentStyle} ref='tabs'>
@@ -255,9 +267,6 @@ class Inbox extends React.Component {
           <div className='ui button' onClick={this.next.bind(this)}><i className='ui right chevron icon' /></div>
         </div>
       </div>
-
-
-
     </div>
   }
 }

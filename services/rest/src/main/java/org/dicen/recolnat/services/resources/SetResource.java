@@ -500,13 +500,13 @@ public class SetResource {
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/import-external-image")
+  @Path("/import-external-images")
   @Timed
-  public Response importExternalImage(final String input, @Context HttpServletRequest request) throws JSONException {
+  public Response importExternalImages(final String input, @Context HttpServletRequest request) throws JSONException {
     JSONObject params = new JSONObject(input);
     String setId = params.getString("set");
-    String imageUrl = params.getString("url");
-    String imageName = params.getString("name");
+    JSONArray images = params.getJSONArray("images");
+    
     String session = SessionManager.getSessionId(request, true);
     String user = SessionManager.getUserLogin(session);
 
@@ -520,36 +520,46 @@ public class SetResource {
         if (!AccessRights.canWrite(vUser, vSet, g)) {
           throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
+        
+        for(int i = 0; i < images.length(); ++i) {
+          JSONObject jImage = images.getJSONObject(i);
+          String imageUrl = jImage.getString("url");
+          String imageName = jImage.getString("name");
+          
+          // If image exists on main branch, branch it, otherwise create it and then branch it
+          OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
+          if (vImage == null) {
+            // Get image height and width
+            BufferedImage img = ImageIO.read(new URL(imageUrl));
+            vImage = CreatorUtils.createImage(imageName, imageUrl, img.getWidth(), img.getHeight(), imageUrl, g);
+            AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
+            g.commit();
+          }
 
-        // If image exists on main branch, branch it, otherwise create it and then branch it
-        OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
-        if (vImage == null) {
-          // Get image height and width
-          BufferedImage img = ImageIO.read(new URL(imageUrl));
-          vImage = CreatorUtils.createImage(imageName, imageUrl, img.getWidth(), img.getHeight(), imageUrl, g);
-//          OrientVertex vPublic = AccessUtils.getPublic(g);
-          AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
+          vImage = BranchUtils.branchSubTree(vImage, vUser, g);
+          vImage.setProperty(DataModel.Properties.name, imageName);
+          
+          UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
+          AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
+
+          g.commit();
         }
-
-        vImage = BranchUtils.branchSubTree(vImage, vUser, g);
-        vImage.setProperty(DataModel.Properties.name, imageName);
-
-        UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
-
-        g.commit();
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
       } catch (IOException ex) {
-        log.warn("Unable to read image " + imageUrl);
+        log.warn("Unable to read image ");
         throw new WebApplicationException(Response.Status.BAD_REQUEST);
       } finally {
         g.rollback();
         g.shutdown();
       }
     }
+    
+    JSONObject response = new JSONObject();
+    response.put("set", setId);
 
-    return Response.ok().build();
+    return Response.ok(response.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
   private boolean deleteElementFromSet(@NotNull String linkId, @NotNull String user) throws AccessDeniedException {

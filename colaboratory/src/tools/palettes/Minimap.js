@@ -18,9 +18,17 @@ class Minimap extends React.Component {
     super(props);
 
     this.componentStyle = {
-//       display: "none",
-      display: 'flex',
-      flexDirection: "column"
+      display: "none",
+      // display: 'flex',
+      // flexDirection: "column",
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px'
     };
 
     this.imageContainerStyle = {
@@ -207,7 +215,7 @@ class Minimap extends React.Component {
 
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
-      this.componentStyle.display = 'flex';
+      this.componentStyle.display = '';
     }
     else {
       this.componentStyle.display = 'none';
@@ -242,8 +250,12 @@ class Minimap extends React.Component {
   render() {
     return(
       <div style={this.componentStyle}
-           className='ui container'
+           className='ui container segment'
            ref='component'>
+           <div className='ui blue tiny basic label'
+                style={this.labelStyle}>
+             Minivue
+           </div>
         <div style={this.imageContainerStyle}
              onClick={this.moveViewToClickLocation.bind(this)}
              onMouseDown={this.beginDragViewport.bind(this)}

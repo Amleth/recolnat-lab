@@ -21,7 +21,7 @@
     "blueimp-load-image-npm": "^0.1.7",
     "core-js": "*",
     "css-loader": "git://github.com/webpack/css-loader.git#master",
-    "d3": "^3.5.5",
+    "d3": "^3.5.17",
     "exif": "^0.4.0",
     "fast-csv": "^0.6.0",
     "file-loader": "*",
@@ -40,7 +40,7 @@
     "react": "0.13.3",
     "react-router": "0.13.4",
     "react-timeago": "^2.2.1",
-    "recolnat-style-guide": "git+ssh://dicen-dev@217.70.188.184:/home/dicen-dev/git/recolnat-style-guide#master",
+    
     "style-loader": "git://github.com/webpack/style-loader.git#master",
     "superagent": "^1.2.0",
     "tls": "0.0.1",

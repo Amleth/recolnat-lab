@@ -121,20 +121,9 @@ class CreateAndFillSet extends AbstractModal {
 
   componentWillUpdate(nextProps, nextState) {
     if(!this.state.active && nextState.active) {
-      this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
       window.setTimeout(BasketActions.reloadBasket, 10);
     }
-    if(this.state.active && !nextState.active) {
-      this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
-    }
     super.componentWillUpdate(nextProps, nextState);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    super.componentDidUpdate(prevProps, prevState);
-    if(this.state.active) {
-      $(this.refs.modal.getDOMNode()).modal('refresh');
-    }
   }
 
   render() {

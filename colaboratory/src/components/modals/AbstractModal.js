@@ -57,7 +57,8 @@ class AbstractModal extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     if(this.state.active && !prevState.active) {
       $(this.refs.modal.getDOMNode()).modal({
-        onHide: this.cancel
+        onHide: this.cancel,
+        observeChanges: true
       }).modal('show');
     }
   }

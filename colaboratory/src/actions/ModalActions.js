@@ -19,13 +19,13 @@ export default {
 
   runSuccess: () => {
     AppDispatcher.dispatch({
-      actionType: ModalConstants.ActionTypes.SUCCESS,
+      actionType: ModalConstants.ActionTypes.SUCCESS
     });
   },
 
   runError: () => {
     AppDispatcher.dispatch({
-      actionType: ModalConstants.ActionTypes.ERROR,
+      actionType: ModalConstants.ActionTypes.ERROR
     });
   }
 }

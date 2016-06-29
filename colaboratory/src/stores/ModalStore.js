@@ -19,6 +19,7 @@ class ModalStore extends EventEmitter {
     this.targetData = null;
     this.onSuccess = function() {};
     this.onError = function() {};
+    this.setMaxListeners(50);
 
     AppDispatcher.register((action) => {
       switch(action.actionType) {

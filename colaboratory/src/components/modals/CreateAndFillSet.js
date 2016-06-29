@@ -24,6 +24,11 @@ class CreateAndFillSet extends AbstractModal {
 
     this.modalName = ModalConstants.Modals.createAndFillSet;
 
+    this._onBasketUpdate = () => {
+      const refresh = () => this.setState({});
+      return refresh.apply(this);
+    };
+
     this.state.nameInput = '';
   }
 
@@ -116,13 +121,24 @@ class CreateAndFillSet extends AbstractModal {
 
   componentWillUpdate(nextProps, nextState) {
     if(!this.state.active && nextState.active) {
+      this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
       window.setTimeout(BasketActions.reloadBasket, 10);
+    }
+    if(this.state.active && !nextState.active) {
+      this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
     }
     super.componentWillUpdate(nextProps, nextState);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    super.componentDidUpdate(prevProps, prevState);
+    if(this.state.active) {
+      $(this.refs.modal.getDOMNode()).modal('refresh');
+    }
+  }
+
   render() {
-    return <div className='ui modal' ref='modal'>
+    return <div className='ui small modal' ref='modal'>
       <i className="close icon"></i>
       <div className="header">
         Nouveau set

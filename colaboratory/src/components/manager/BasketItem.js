@@ -176,9 +176,7 @@ class BasketItem extends React.Component {
               {this.props.content.scientificname}
             </div>
 
-            <div className='ui blue compact icon circular button' style={this.floatDownMiddleStyle} onClick={this.viewFullSizeModal.bind(this)}>
-              <i className='eye icon' />
-            </div>
+
             <div className='ui red compact icon circular button'
                  style={this.floatDownRightStyle}
                  onClick={this.removeSelfFromBasket.bind(this)}>
@@ -192,5 +190,9 @@ class BasketItem extends React.Component {
     </div>;
   }
 }
+
+//<div className='ui blue compact icon circular button' style={this.floatDownMiddleStyle} onClick={this.viewFullSizeModal.bind(this)}>
+//  <i className='eye icon' />
+//</div>
 
 export default BasketItem;

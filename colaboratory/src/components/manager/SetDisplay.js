@@ -39,14 +39,6 @@ class SetDisplay extends React.Component {
       margin: 0
     };
 
-    this.newSetLabelStyle = {
-      position: 'fixed',
-      top: '35px',
-      left: '350px',
-      fontSize: '16px',
-      display: this.props.index > 0 ? 'none' : ''
-    };
-
     this.topBarStyle = {
       display: 'flex',
       flexDirection: 'row',
@@ -351,7 +343,6 @@ class SetDisplay extends React.Component {
           </div>
           <i className='large add circle green icon' style={this.addItemStyle}
              onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
-          <div className='ui green left pointing label' style={this.newSetLabelStyle}>New set</div>
         </div>
       </div>;
     }
@@ -366,7 +357,6 @@ class SetDisplay extends React.Component {
         <i className='large add circle green icon' style={this.addItemStyle}
            onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}
         />
-        <div className='ui green left pointing label' style={this.newSetLabelStyle}>New set</div>
       </div>
       <div
         className='ui segment'
@@ -453,7 +443,6 @@ class SetDisplay extends React.Component {
           }
         </div>
         <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
-
         </div>
       </div>
     </div>

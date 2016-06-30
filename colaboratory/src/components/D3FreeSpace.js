@@ -69,7 +69,7 @@ class D3FreeSpace {
       yMax: Number.NEGATIVE_INFINITY};
 
 // Check visible images every second and reload if necessary
-      window.setInterval(this.updateVisibleImages.bind(this), 1500);
+    window.setInterval(this.updateVisibleImages.bind(this), 1500);
   }
 
   create(el, props) {
@@ -155,56 +155,10 @@ class D3FreeSpace {
     this.drawChildEntities();
   }
 
-  updateViewWithProperties(properties) {
-    //console.log('updateView');
-    d3.selectAll('.' + Classes.POI_CLASS)
-      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')scale(' + properties.sizeOfTextAndObjects + ')');
-
-    d3.selectAll('.' + LineMeasure.classes().selfDataContainerClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
-
-    //d3.selectAll('.' + LineMeasure.classes().selfRectSvgClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
-    //d3.selectAll('.' + LineMeasure.classes().selfTextSvgClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
-    //d3.selectAll('.' + LineMeasure.classes().selfSaveClass).attr('transform', d => 'translate(' + (d.x2 + d.x1 - 10) * (1-properties.sizeOfTextAndObjects) / 2 + ',' + (d.y2 + d.y1 +50) * (1-properties.sizeOfTextAndObjects) / 2 + ')scale(' + properties.sizeOfTextAndObjects + ')');
-  }
-
   fitViewportToData() {
-    //var scale = 1.0;
-    //if(this.displayData.xMin == Number.POSITIVE_INFINITY ||
-    //  this.displayData.xMax == Number.NEGATIVE_INFINITY ||
-    //  this.displayData.yMin == Number.POSITIVE_INFINITY ||
-    //  this.displayData.yMax == Number.NEGATIVE_INFINITY ) {
-    //  console.log("Not enough data to calculate fitness");
-    //  return;
-    //}
-    //
     var view = this.viewstore.getView();
 
     OrbOptions.zoomToObject('.' + Classes.ROOT_CLASS, view);
-    //// Add 100px offset from borders
-    //var xLen = this.displayData.xMax - this.displayData.xMin;
-    //var yLen = this.displayData.yMax - this.displayData.yMin;
-    //var scaleX = (d3.select('svg').node().parentNode.offsetWidth / xLen);
-    //var scaleY = (d3.select('svg').node().parentNode.offsetHeight / yLen);
-    //if (scaleX > scaleY) {
-    //  scale = scaleY;
-    //}
-    //else {
-    //  scale = scaleX;
-    //}
-    //
-    //var x = -(this.displayData.xMin)*scale;
-    //var y = -(this.displayData.yMin)*scale;
-    //
-    //window.setTimeout(function() {
-    //    ViewActions.updateViewport(
-    //      x,
-    //      y,
-    //      d3.select('svg').node().parentNode.offsetWidth,
-    //      d3.select('svg').node().parentNode.offsetHeight,
-    //      scale,
-    //    true);
-    //  },
-    //  10);
   }
 
   updateViewport(x, y, scale, animate) {
@@ -218,7 +172,7 @@ class D3FreeSpace {
       this.view.scale = scale;
     }
 
-      this.viewportTransition(animate);
+    this.viewportTransition(animate);
   }
 
   displayShadow(data) {
@@ -361,7 +315,7 @@ class D3FreeSpace {
         .transition()
         .duration(1000)
         .ease('linear')
-        .attr('x', d => d.width - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('x', d => d.width - 5/this.view.scale * d.height/ d.displayHeight)
         .attr('y', d => d.height)
         .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
         .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
@@ -376,13 +330,23 @@ class D3FreeSpace {
         .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
 
+      d3.selectAll('.' + Classes.BORDER_CLASS)
+        .transition()
+        .duration(1000)
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => d.height + 10/this.view.scale * d.height/ d.displayHeight);
+
       d3.selectAll('.' + Classes.TOP_BAR_CLASS)
         .transition()
         .duration(1000)
-        .attr('y', -20/this.view.scale)
-        .attr('rx', 5/this.view.scale)
-        .attr('ry', 5/this.view.scale)
-        .attr('height', 40/this.view.scale);
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -20/this.view.scale * d.height/ d.displayHeight)
+        .attr('rx', d => 5/this.view.scale * d.height/ d.displayHeight)
+        .attr('ry', d => 5/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 40/this.view.scale * d.height/ d.displayHeight);
 
       d3.selectAll('.' + Classes.NAME_PATH_CLASS)
         .transition()
@@ -393,20 +357,22 @@ class D3FreeSpace {
         .transition()
         .duration(1000)
         //.attr('y', -104/this.view.scale)
-        .attr('font-size', 14/this.view.scale + 'px');
+        .attr('font-size', d => 14/this.view.scale * d.height/ d.displayHeight + 'px');
 
       d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
         .transition()
         .duration(1000)
-        .attr('y', d => d.height-10/this.view.scale)
-        .attr('height', 20/this.view.scale);
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => d.height-10/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width+10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 20/this.view.scale * d.height/ d.displayHeight);
     }
     else {
       d3.select('.' + Classes.ROOT_CLASS)
         .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
 
       d3.selectAll('.' + Classes.RESIZE_CLASS)
-        .attr('x', d => d.width - 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('x', d => d.width - 5/this.view.scale * d.height/ d.displayHeight)
         .attr('y', d => d.height)
         .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
         .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
@@ -418,21 +384,31 @@ class D3FreeSpace {
         .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
         .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
 
+      d3.selectAll('.' + Classes.BORDER_CLASS)
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => d.height + 10/this.view.scale * d.height/ d.displayHeight);
+
       d3.selectAll('.' + Classes.TOP_BAR_CLASS)
-        .attr('y', -20/this.view.scale)
-        .attr('rx', 5/this.view.scale)
-        .attr('ry', 5/this.view.scale)
-        .attr('height', 40/this.view.scale);
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => -20/this.view.scale * d.height/ d.displayHeight)
+        .attr('rx', d => 5/this.view.scale * d.height/ d.displayHeight)
+        .attr('ry', d => 5/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 40/this.view.scale * d.height/ d.displayHeight);
 
       d3.selectAll('.' + Classes.NAME_PATH_CLASS)
         .attr('d', d => 'M 0 ' + -5/this.view.scale + ' L ' + d.width + ' ' + -5/this.view.scale);
 
       d3.selectAll('.' + Classes.NAME_CLASS)
-        .attr('font-size', 14/this.view.scale + 'px');
+        .attr('font-size', d => 14/this.view.scale * d.height/ d.displayHeight + 'px');
 
       d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
-        .attr('y', d => d.height-10/this.view.scale)
-        .attr('height', 20/this.view.scale);
+        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
+        .attr('y', d => d.height-10/this.view.scale * d.height/ d.displayHeight)
+        .attr('width', d => d.width+10/this.view.scale * d.height/ d.displayHeight)
+        .attr('height', d => 20/this.view.scale * d.height/ d.displayHeight);
     }
   }
 
@@ -497,11 +473,11 @@ class D3FreeSpace {
           });
 
           for(var i = 0; i < posEntity.tois.length; ++i) {
-              posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
+            posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
           }
 
           for(i = 0; i < posEntity.pois.length; ++i) {
-              posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
+            posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
 
           }
 
@@ -556,7 +532,7 @@ class D3FreeSpace {
     // }
 
     window.setTimeout(
-        ViewActions.loadImage.bind(null, source, D3ViewUtils.displayLoadedImage.bind(null, elt))
+      ViewActions.loadImage.bind(null, source, D3ViewUtils.displayLoadedImage.bind(null, elt))
       ,
       10);
   }
@@ -592,21 +568,21 @@ class D3FreeSpace {
           group.selectAll('.' + Classes.ROI_CLASS).each(function(d) {
             var roi = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, roi)) {
-                objects.rois.push(d);
+              objects.rois.push(d);
             }
           });
 
           group.selectAll('.' + Classes.PATH_CLASS).each(function(d) {
             var path = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, path)) {
-                objects.tois.push(d);
+              objects.tois.push(d);
             }
           });
 
           group.selectAll('.' + Classes.POI_CLASS).each(function(d) {
             var poi = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, poi)) {
-                objects.pois.push(d);
+              objects.pois.push(d);
             }
           });
         }

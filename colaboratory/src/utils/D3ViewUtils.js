@@ -41,20 +41,43 @@ export default class D3ViewUtils {
     under.exit().remove();
     under.attr('id', d => 'UNDER-' + d.link);
 
+    var borderAreas = under.selectAll('.' + Classes.BORDER_CLASS).data(d => [d], d => d.link);
+    borderAreas.enter()
+      .append('rect')
+      .attr('class', Classes.BORDER_CLASS)
+      .attr('id', d => 'BORDER-' + d.link)
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => d.height + 10/self.view.scale * d.height/ d.displayHeight)
+      .style('fill', '#AAAAAA');
+    borderAreas.exit().remove();
+    borderAreas
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => d.height + 10/self.view.scale * d.height/ d.displayHeight);
+
     var topBar = under.selectAll('.' + Classes.TOP_BAR_CLASS).data(d => [d], d => d.link);
     topBar.enter()
       .append('rect')
       .attr('class', Classes.TOP_BAR_CLASS)
       .attr('id', d => 'TOP-BAR-' + d.link)
-      .attr('x', 0)
-      .attr('y', -20/self.view.scale)
-      .attr('rx', 5/self.view.scale)
-      .attr('ry', 5/self.view.scale)
-      .attr('width', d => d.width)
-      .attr('height', 40/self.view.scale)
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
+      .attr('rx', d => 5/self.view.scale * d.height/ d.displayHeight)
+      .attr('ry', d => 5/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 40/self.view.scale * d.height/ d.displayHeight)
       .style('fill', '#AAAAAA');
     topBar.exit().remove();
-    topBar.attr('width', d => d.width);
+    topBar
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
+      .attr('rx', d => 5/self.view.scale * d.height/ d.displayHeight)
+      .attr('ry', d => 5/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 40/self.view.scale * d.height/ d.displayHeight);
 
     var namePath = under.selectAll('.' + Classes.NAME_PATH_CLASS).data(d => [d], d => d.link);
     namePath.enter()
@@ -67,7 +90,7 @@ export default class D3ViewUtils {
     namePath
       .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale)
       .style('pointer-events', 'none');
-      //.attr('d', d => 'M 0 -15 L ' + d.width + ' -15');
+    //.attr('d', d => 'M 0 -15 L ' + d.width + ' -15');
 
     var name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
     name.enter().append('text')
@@ -75,14 +98,14 @@ export default class D3ViewUtils {
       .attr('id', d => 'NAME-' + d.link)
       .attr('x', 10)
       .attr('font-family', 'Verdana')
-      .attr('font-size', 14/self.view.scale + 'px')
+      .attr('font-size', d => 14/self.view.scale * d.height/ d.displayHeight + 'px')
       .attr('fill', 'white')
       .append('textPath')
       .attr('xlink:href', d => '#NAME-PATH-' + d.link)
       .style('pointer-events', 'none')
       .text(d => d.name);
     name.exit().remove();
-    name.attr('font-size', 14/self.view.scale + 'px')
+    name.attr('font-size', d => 14/self.view.scale * d.height/ d.displayHeight + 'px')
       //.attr('width', d => d.width + 8)
       //.attr('height', d => d.height + 148)
       .select('textPath')
@@ -94,27 +117,28 @@ export default class D3ViewUtils {
       .append('rect')
       .attr('class', Classes.BOTTOM_BAR_CLASS)
       .attr('id', d => 'BOTTOM-BAR-' + d.link)
-      .attr('x', 0)
-      .attr('y', d => d.height-10/self.view.scale)
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => d.height-10/self.view.scale * d.height/ d.displayHeight)
       //.attr('rx', 5/self.view.scale)
       //.attr('ry', 5/self.view.scale)
-      .attr('width', d => d.width)
-      .attr('height', 20/self.view.scale)
+      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale * d.height/ d.displayHeight)
       .style('fill', '#AAAAAA');
     bottomBar.exit().remove();
     bottomBar
-      .attr('y', d => d.height-10/self.view.scale)
-      .attr('width', d => d.width)
-      .attr('height', 20/self.view.scale);
+      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
+      .attr('y', d => d.height-10/self.view.scale * d.height/ d.displayHeight)
+      .attr('width', d => d.width+10/self.view.scale * d.height/ d.displayHeight)
+      .attr('height', d => 20/self.view.scale * d.height/ d.displayHeight);
 
     var resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
     resizer.enter()
-    // .append("rect")
+      // .append("rect")
       .append('svg:image')
       .attr('xlink:href', resizeHandleIcon)
       .attr('class', Classes.RESIZE_CLASS)
       .attr('id', d => 'RESIZE-' + d.link)
-      .attr('x', d => d.width - 10/self.view.scale * d.height/ d.displayHeight)
+      .attr('x', d => d.width - 5/self.view.scale * d.height/ d.displayHeight)
       .attr('y', d => d.height)
       .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
       .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight)
@@ -130,37 +154,12 @@ export default class D3ViewUtils {
       .attr('y', d => d.height)
       .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
       .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight);
-      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
+    // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
 
     if(self.modestore.isInObservationMode()) {
       topBar.style('cursor', '-webkit-grab')
         .style('cursor', 'grab')
         .call(D3EventHandlers.dragMove());
-      //var mover = under.selectAll('.' + Classes.MOVE_CLASS).data(d => [d], d => d.link);
-      //mover.enter()
-      //  // .append("rect")
-      //  .append('svg:image')
-      //  .attr('xlink:href', moveIcon)
-      //  .attr('class', Classes.MOVE_CLASS)
-      //  .attr('id', d => 'MOVE-' + d.link)
-      //  .attr('x', d => d.width / 2 - 10 / self.view.scale * d.height / d.displayHeight)
-      //  .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
-      //  .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
-      //  .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight)
-      //  .call(D3EventHandlers.dragMove())
-      //  // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-      //  // .style('stroke', 'rgb(0,0,0)')
-      //  // .style('fill-opacity', '0.0')
-      //  .style('cursor', '-webkit-grab')
-      //  .style('cursor', 'grab')
-      //  .append('svg:title')
-      //  .text('Drag mouse to move this sheet');
-      //mover.exit().remove();
-      //mover.attr('x', d => d.width / 2 - 10)
-      //  .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
-      //  .attr('width', d => 20 / self.view.scale * d.height / d.displayHeight)
-      //  .attr('height', d => 20 / self.view.scale * d.height / d.displayHeight);
-      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
     }
     // END under image update
 
@@ -194,7 +193,7 @@ export default class D3ViewUtils {
 
     annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS);
 
-var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => [d], d => d.link);
+    var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => [d], d => d.link);
     paths.enter().append('g')
       .attr('class', Classes.PATH_CONTAINER_CLASS)
       .attr('id', d => 'PATHS-' + d.link);
@@ -278,14 +277,14 @@ var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => 
   static getImageUrlFromQuality(data, quality) {
     switch(quality) {
       case ViewConstants.imageQuality.Low:
-      return data.thumbnail;
+        return data.thumbnail;
       case ViewConstants.imageQuality.High:
-      // http://imager.mnhn.fr/imager2/w400/2012/11/20/6/P00048663.jpg
-      return data.thumbnail.replace('v25', 'w400');
+        // http://imager.mnhn.fr/imager2/w400/2012/11/20/6/P00048663.jpg
+        return data.thumbnail.replace('v25', 'w400');
       case ViewConstants.imageQuality.Original:
-      return data.url;
+        return data.url;
       default:
-      return data.thumbnail;
+        return data.thumbnail;
     }
   }
 }

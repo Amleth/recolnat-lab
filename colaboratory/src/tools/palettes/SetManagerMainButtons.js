@@ -116,7 +116,7 @@ class SetManagerMainButtons extends React.Component {
               Ouvrir
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
-              le set sélectionné sur la paillasse
+              set sélectionné sur paillasse
             </div>
           </div>
         </div>

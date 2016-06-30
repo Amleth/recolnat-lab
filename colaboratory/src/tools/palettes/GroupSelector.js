@@ -207,28 +207,6 @@ class GroupSelector extends React.Component {
            style={this.labelStyle}>
         Groupes & Images
       </div>
-      <div>
-        <div className='ui fluid button'
-             onClick={this.displayList.bind(this, !this.state.isListOpen)}>
-          {this.state.selectedImageName}
-        </div>
-        <div style={this.openListStyle} className='ui divided link list'>
-            {this.state.listOfImages.map(function(image, index) {
-              var style = {};
-              if(index == self.state.selectedImageIdx) {
-                style = self.selectedOptionStyle;
-              }
-              return <a
-                key={index}
-                style={style}
-                className='item'
-                data-value={index}
-                onClick={self.setActiveImage.bind(self, index)}>
-                {image.name}
-              </a>;
-            })}
-        </div>
-      </div>
       <div className='ui tiny fluid buttons'>
         <div className='ui icon button'
              style={this.buttonStyle}
@@ -252,6 +230,28 @@ class GroupSelector extends React.Component {
              style={this.buttonStyle}
              onClick={this.setActiveImage.bind(this, this.state.listOfImages.length-1)}>
           <i className='angle double right icon'/>
+        </div>
+      </div>
+      <div>
+        <div className='ui fluid button'
+             onClick={this.displayList.bind(this, !this.state.isListOpen)}>
+          {this.state.selectedImageName}
+        </div>
+        <div style={this.openListStyle} className='ui divided link list'>
+          {this.state.listOfImages.map(function(image, index) {
+            var style = {};
+            if(index == self.state.selectedImageIdx) {
+              style = self.selectedOptionStyle;
+            }
+            return <a
+              key={index}
+              style={style}
+              className='item'
+              data-value={index}
+              onClick={self.setActiveImage.bind(self, index)}>
+              {image.name}
+            </a>;
+          })}
         </div>
       </div>
     </div>

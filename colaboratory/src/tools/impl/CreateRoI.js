@@ -177,7 +177,7 @@ class CreateRoI extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup setDataCallback={this.setData.bind(this)}/>;
+    var popup = <Popup setDataCallback={this.setData.bind(this)}  toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 

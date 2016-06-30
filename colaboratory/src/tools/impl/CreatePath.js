@@ -192,7 +192,7 @@ class CreatePath extends AbstractTool {
       .on('mouseenter', this.activateEnter.bind(self))
       .on('mouseleave', this.deactivateEnter);
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)} />;
+    var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     // Mount listeners on all image groups

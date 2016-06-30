@@ -7,16 +7,55 @@ import d3 from 'd3';
 
 import LineMeasure from '../impl/LineMeasure';
 
+import Tooltip from '../../components/ActiveToolTooltip';
+
+import Globals from '../../utils/Globals';
+
 class LineMeasurePopup extends React.Component {
   constructor(props) {
     super(props);
 
     this.containerStyle = {
+      width: '200px',
+      display: "flex",
+      flexDirection: "column",
+      borderStyle: "solid",
+      borderWidth: "1px",
+      borderColor: "black",
+      padding: "5px",
+      color: 'black',
+      marginTop: '5px'
+    };
+
+    this.titleBarStyle = {
       display: 'flex',
-      flexDirection: "row",
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: "5px"
+      width: '198px',
+      flexDirection: 'row',
+      backgroundColor: 'whitesmoke',
+      borderStyle: "solid",
+      borderWidth: "0 0 1px 0",
+      borderColor: "black",
+      padding: 0,
+      margin: 0,
+      position: 'relative',
+      top: '-5px',
+      left: '-5px'
+    };
+
+    this.titleStyle = {
+      marginLeft: '5px',
+      WebkitUserSelect: 'none',
+      MozUserSelect: 'none',
+      MsUserSelect: 'none',
+      userSelect: 'none',
+      cursor: 'default'
+    };
+
+    this.closeIconStyle = {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      cursor: 'pointer'
     };
 
     this.optionStyle = {
@@ -78,9 +117,13 @@ class LineMeasurePopup extends React.Component {
   }
 
   render() {
-    var self = this;
     return(
       <div style={this.containerStyle} className='ui segment'>
+        <div className='ui segment' style={this.titleBarStyle} >
+          <div style={this.titleStyle}>Règle</div>
+          <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
+        </div>
+        <Tooltip toolstore={this.props.toolstore} />
         <div className='title'>Etalon</div>
         <select className='ui compact inline scrolling dropdown' value={this.state.scale} style={this.optionStyle} onChange={this.setScale.bind(this)}>
           <option value="null">Aucun</option>

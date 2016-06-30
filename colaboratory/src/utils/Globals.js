@@ -159,24 +159,24 @@ class GlobalFunctions {
     );
     switch(mode) {
       case ModeConstants.Modes.OBSERVATION:
-      window.setTimeout(
-        MetadataActions.updateLabBenchFrom, 10
-      );
-      break;
+        window.setTimeout(
+          MetadataActions.updateLabBenchFrom, 10
+        );
+        break;
       case ModeConstants.Modes.ORGANISATION:
-      window.setTimeout(
-        MetadataActions.updateLabBenchFrom, 10
-      );
-      break;
+        window.setTimeout(
+          MetadataActions.updateLabBenchFrom, 10
+        );
+        break;
       case ModeConstants.Modes.SET:
-      window.setTimeout(
-        ManagerActions.reloadDisplayedSets, 10
-      );
-      break;
+        window.setTimeout(
+          ManagerActions.reloadDisplayedSets, 10
+        );
+        break;
       case ModeConstants.Modes.TABULAR:
-      break;
+        break;
       default:
-      break;
+        break;
     }
   }
 
@@ -199,16 +199,20 @@ class GlobalFunctions {
 
   static isElementInViewport(boundingClientRect) {
     if(boundingClientRect.bottom <= 0 ||
-    boundingClientRect.top >= window.innerHeight ||
-  boundingClientRect.right <= 0 ||
-boundingClientRect.left >= window.innerWidth) {
+      boundingClientRect.top >= window.innerHeight ||
+      boundingClientRect.right <= 0 ||
+      boundingClientRect.left >= window.innerWidth) {
       return false;
     }
-  return true;
+    return true;
     // return boundingClientRect.top >= 0 &&
     // boundingClientRect.left >= 0 &&
     // boundingClientRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
     // boundingClientRect.right <= (window.innerWidth || document.documentElement.clientWidth);
+  }
+
+  static noActiveTool() {
+    window.setTimeout(ToolActions.setTool.bind(null, null), 10);
   }
 
 }

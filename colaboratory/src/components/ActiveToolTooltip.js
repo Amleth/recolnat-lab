@@ -5,31 +5,35 @@ import React from 'react';
 class ActiveToolTooltip extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {text: ""};
+
     this.componentStyle = {
-      position: "absolute",
-      backgroundColor: "rgba(0,0,0,0.5)",
-      borderStyle: "solid",
-      borderWidth: "1px",
-      borderColor: "green",
-      padding: "5px",
-      left: "17vw",
-      bottom: "5",
-      display: "none",
-      maxWidth: "200px"
+      //position: "absolute",
+      //backgroundColor: "rgba(0,0,0,0.5)",
+      //borderStyle: "solid",
+      //borderWidth: "1px",
+      //borderColor: "green",
+      //padding: "5px",
+      //left: "17vw",
+      //bottom: "5",
+      //display: "none",
+      //maxWidth: "200px"
     };
 
     this.textStyle = {
-      color: "white",
+      //color: "white",
       cursor: "default",
-      fontSize: "14px",
+      fontSize: "12px",
       charSet: "utf8"
     };
 
     this._onTooltipContentUpdate = () => {
       const setTooltipContent = () => this.setState({text: this.props.toolstore.getTooltipContent()});
       return setTooltipContent.apply(this);
-    }
+    };
+
+    this.state = {
+      text: this.props.toolstore.getTooltipContent()
+    };
   }
 
   componentDidMount() {
@@ -37,12 +41,7 @@ class ActiveToolTooltip extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    this.componentStyle.display = "none";
-    if(nextState.text) {
-      if (nextState.text.length > 0) {
-        this.componentStyle.display = "block";
-      }
-    }
+
   }
 
   componentWillUnmount() {

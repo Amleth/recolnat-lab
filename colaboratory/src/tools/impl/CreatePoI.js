@@ -77,6 +77,7 @@ class CreatePoI extends AbstractTool {
 
   begin() {
     var popup = <Popup vertexClass={this.vertexClass}
+                       toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
     />;
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);

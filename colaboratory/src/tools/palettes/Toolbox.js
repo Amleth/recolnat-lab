@@ -96,6 +96,7 @@ class Toolbox extends React.Component {
             benchstore={this.props.benchstore}
             viewstore={this.props.viewstore} />
           <CreatePointOfInterest
+            toolstore={this.props.toolstore}
             viewstore={this.props.viewstore} />
           <CreatePath
             viewstore={this.props.viewstore}

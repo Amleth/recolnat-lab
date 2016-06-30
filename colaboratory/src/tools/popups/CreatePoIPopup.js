@@ -6,20 +6,19 @@
 import React from "react";
 import d3 from "d3";
 
-import Color from "./../libs/Color";
-import Shape from "./../libs/Shape";
-
-import ShapesConf from "../../conf/shapes";
-import ColorsConf from "../../conf/colors";
+import Tooltip from '../../components/ActiveToolTooltip';
 
 import EditorActions from "../../actions/ManagerActions";
 import ToolActions from "../../actions/ToolActions";
+
+import Globals from '../../utils/Globals';
 
 class CreatePoIPopup extends React.Component {
   constructor(props) {
     super(props);
 
     this.componentStyle = {
+      width: '200px',
       display: "flex",
       flexDirection: "column",
       borderStyle: "solid",
@@ -28,6 +27,37 @@ class CreatePoIPopup extends React.Component {
       padding: "5px",
       color: 'black',
       marginTop: '5px'
+    };
+
+    this.titleBarStyle = {
+      display: 'flex',
+      width: '198px',
+      flexDirection: 'row',
+      backgroundColor: 'whitesmoke',
+      borderStyle: "solid",
+      borderWidth: "0 0 1px 0",
+      borderColor: "black",
+      padding: 0,
+      margin: 0,
+      position: 'relative',
+      top: '-5px',
+      left: '-5px'
+    };
+
+    this.titleStyle = {
+      marginLeft: '5px',
+      WebkitUserSelect: 'none',
+      MozUserSelect: 'none',
+      MsUserSelect: 'none',
+      userSelect: 'none',
+      cursor: 'default'
+    };
+
+    this.closeIconStyle = {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      cursor: 'pointer'
     };
 
     this.buttonContainerStyle = {
@@ -92,7 +122,12 @@ class CreatePoIPopup extends React.Component {
     var self = this;
     return (
       <div style={this.componentStyle} className='ui segment'>
+        <div className='ui segment' style={this.titleBarStyle} >
+          <div style={this.titleStyle}>Nouveau point</div>
+          <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
+        </div>
         <div style={this.barContainerStyle}>
+          <Tooltip toolstore={this.props.toolstore} />
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
             <textarea placeholder="Intitulé"
                       onChange={this.onNameChange.bind(this)}
@@ -100,7 +135,6 @@ class CreatePoIPopup extends React.Component {
           </div>
         </div>
         <div style={this.buttonContainerStyle} className='ui buttons'>
-          <button className='ui red button' style={this.textStyle} onClick={this.cancel.bind(this)}>Annuler</button>
           <button className='ui green button' style={this.textStyle} onClick={this.save.bind(this)}>Valider</button>
         </div>
       </div>

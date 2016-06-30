@@ -64,7 +64,6 @@ class CenterPane extends React.Component {
           <div className='ui large header'>Chargement en cours</div>
           <div className="ui large text loader">{this.state.loader}</div>
         </div>
-        <Tooltip toolstore={this.props.toolstore}  />
         <VirtualBenchLab
           imagestore={this.props.imagestore}
           userstore={this.props.userstore}
@@ -88,81 +87,6 @@ class CenterPane extends React.Component {
           managerstore={this.props.managerstore} />
       </div>
     );
-    //switch(this.state.mode) {
-    //  case ModeConstants.Modes.OBSERVATION :
-    //    return (
-    //      <div style={this.componentContainerStyle}>
-    //        <div className={"ui " + this.state.loading + " dimmer"}>
-    //          <div className='ui large header'>Chargement en cours</div>
-    //          <div className="ui large text loader">{this.state.loader}</div>
-    //        </div>
-    //        <Tooltip toolstore={this.props.toolstore}  />
-    //        <OrbalContextMenu
-    //          menustore={this.props.menustore}
-    //          ministore={this.props.ministore}
-    //          metastore={this.props.metastore}
-    //          benchstore={this.props.benchstore}
-    //          viewstore={this.props.viewstore}
-    //          toolstore={this.props.toolstore}
-    //        />
-    //        <VirtualBenchLab
-    //          userstore={this.props.userstore}
-    //          viewstore={this.props.viewstore}
-    //          toolstore={this.props.toolstore}
-    //          menustore={this.props.menustore}
-    //          metastore={this.props.metastore}
-    //          modalstore={this.props.modalstore}
-    //          modestore={this.props.modestore}
-    //          ministore={this.props.ministore}
-    //          benchstore={this.props.benchstore}
-    //          managerstore={this.props.managerstore}
-    //          dragstore={this.props.dragstore}
-    //        />
-    //      </div>
-    //    );
-    //  case ModeConstants.Modes.SET:
-    //    return (
-    //    <div style={this.componentContainerStyle}>
-    //    <StudyManager
-    //      userstore={this.props.userstore}
-    //      metastore={this.props.metastore}
-    //      managerstore={this.props.managerstore} />
-    //      </div>);
-    //  case ModeConstants.Modes.ORGANISATION:
-    //    return (
-    //      <div style={this.componentContainerStyle}>
-    //        <div className={"ui " + this.state.loading + " dimmer"}>
-    //          <div className='ui large header'>Chargement en cours</div>
-    //          <div className="ui large text loader">{this.state.loader}</div>
-    //        </div>
-    //        <Tooltip toolstore={this.props.toolstore} />
-    //        <OrbalContextMenu
-    //          menustore={this.props.menustore}
-    //          ministore={this.props.ministore}
-    //          metastore={this.props.metastore}
-    //          benchstore={this.props.benchstore}
-    //          viewstore={this.props.viewstore}
-    //          toolstore={this.props.toolstore}
-    //        />
-    //        <VirtualBenchLab
-    //          userstore={this.props.userstore}
-    //          viewstore={this.props.viewstore}
-    //          toolstore={this.props.toolstore}
-    //          menustore={this.props.menustore}
-    //          metastore={this.props.metastore}
-    //          modalstore={this.props.modalstore}
-    //          modestore={this.props.modestore}
-    //          ministore={this.props.ministore}
-    //          benchstore={this.props.benchstore}
-    //          managerstore={this.props.managerstore}
-    //          dragstore={this.props.dragstore}
-    //        />
-    //      </div>
-    //    );
-    //  case ModeConstants.Modes.TABULAR:
-    //    console.error('Tabular mode not implemented');
-    //    return null;
-    //}
   }
 }
 

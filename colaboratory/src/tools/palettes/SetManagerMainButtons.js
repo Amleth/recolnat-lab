@@ -113,10 +113,10 @@ class SetManagerMainButtons extends React.Component {
           </div>
           <div className={'ui compact button ' + this.state.openButton} onClick={this.loadActiveSet.bind(this)}>
             <div className='ui text'>
-              Ouvrir le set
+              Ouvrir
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
-              sélectionné sur la paillasse
+              le set sélectionné sur la paillasse
             </div>
           </div>
         </div>

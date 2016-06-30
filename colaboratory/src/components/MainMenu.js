@@ -28,12 +28,19 @@ class MainMenu extends React.Component {
       //padding: 0
     };
 
+    this.headerStyle = {
+      padding: '5px 5px 5px 5px',
+      margin: 0,
+      textAlign: 'center'
+    };
+
     this.enableEventsStyle = {
       pointerEvents: 'auto'
     };
 
     this.optionStyle = {
-      width: this.props.width + 'px'
+      width: this.props.width + 'px',
+      padding: '2px 5px 2px 5px !important'
     };
 
     this.textStyle = {
@@ -51,44 +58,15 @@ class MainMenu extends React.Component {
   }
 
   render() {
-    return <div ref='dropdown' style={this.componentStyle} className='ui dropdown disabled'>
+    return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
       <i className='circular inverted blue sidebar icon' style={this.enableEventsStyle}/>
       <div className='menu'  style={this.enableEventsStyle}>
-        <div className='header'>Le Collaboratoire</div>
+        <div className='header' style={this.headerStyle}>Le Collaboratoire</div>
         <div className='item' style={this.optionStyle}>
-          <span className='text'>Vue</span>
-          <div className='right menu'>
-            <div className='item'>Voir toutes les images</div>
-            <div className='item'>1:1</div>
-          </div>
+          <span className='text'>Version 0.9.1</span>
         </div>
         <div className='item' style={this.optionStyle}>
-          <span className='text'>Outils</span>
-          <div className='right menu'>
-            <div className='item'>Règle</div>
-            <div className='item'>Marquer un point d'intérêt</div>
-            <div className='item'>Tracer un chemin</div>
-            <div className='item'>Créer un polygone</div>
-          </div>
-        </div>
-        <div className='item' style={this.optionStyle}>
-          <span className='text'>Modes</span>
-          <div className='right menu'>
-            <div className='item'>Gestionnaire de sets</div>
-            <div className='item'>Agencement</div>
-            <div className='item'>Observation/Annotation</div>
-          </div>
-        </div>
-        <div className='item' style={this.optionStyle}>
-          <span className='text'>Actions</span>
-          <div className='right menu'>
-            <div className='item'>Charger set</div>
-            <div className='item'>Importer des images</div>
-            <div className='item'>Copier</div>
-            <div className='item'>Couper</div>
-            <div className='item'>Coller</div>
-            <div className='item'>Supprimer</div>
-          </div>
+          <span className='text'>A propos</span>
         </div>
       </div>
     </div>

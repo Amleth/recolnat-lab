@@ -17,9 +17,6 @@ import moveIcon from '../images/hand_hex.svg';
 
 export default class D3ViewUtils {
   static drawBenchData(data, self) {
-    //console.log('drawing ' + JSON.stringify(data.map(function(d) {
-    //    return {url: d.url, thumb: d.thumbnail};
-    //  })));
     var root = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
     var children = root.selectAll('.' + Classes.CHILD_GROUP_CLASS)
       .data(data, d => d.link);
@@ -257,21 +254,10 @@ export default class D3ViewUtils {
   }
 
   static displayLoadedImage(data, image) {
-    // console.log('image=' + image.src);
-    // console.log('data=' + data.link);
-    //console.log('loaded ' + image.src);
     var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
 
     group.select("#IMAGE-" + data.link)
       .attr("xlink:href", image.src);
-
-    // this.loadData.imagesLoaded += 1;
-    // window.setTimeout(function() {
-    //   ViewActions.changeLoaderState('Chargement des images en cours... ' + self.loadData.imagesLoaded + '/' + self.loadData.imagesToLoad )},10);
-    //
-    // if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
-    //   D3FreeSpace.endLoad();
-    // }
   }
 
   static getImageUrlFromQuality(data, quality) {

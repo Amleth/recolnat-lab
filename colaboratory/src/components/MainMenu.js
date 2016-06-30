@@ -47,7 +47,7 @@ class MainMenu extends React.Component {
       color: '#0C0400',
       fontVariant: 'small-caps',
       fontSize: '16pt'
-    }
+    };
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -66,7 +66,7 @@ class MainMenu extends React.Component {
           <span className='text'>Version 0.9.1</span>
         </div>
         <div className='item' style={this.optionStyle}>
-          <span className='text'>A propos</span>
+          <span className='text'>À propos</span>
         </div>
       </div>
     </div>

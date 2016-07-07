@@ -274,6 +274,27 @@ class SetDisplay extends React.Component {
     this.props.dragstore.setAction(null, null);
   }
 
+  showAddToSetModal() {
+    if(this.props.index === 0) {
+      window.setTimeout(
+        ModalActions.showModal.bind(null, ModalConstants.Modals.createAndFillSet, {
+          parent: this.props.set.uid,
+          index: this.props.index
+        })
+        , 10
+      );
+    }
+    else {
+      window.setTimeout(
+        ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {
+          parent: this.props.set.uid,
+          index: this.props.index
+        })
+        , 10
+      );
+    }
+  }
+
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
     this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
@@ -282,10 +303,12 @@ class SetDisplay extends React.Component {
 
       this.getChildrenData(this.props);
     }
+    //if(this.props.index === 0) {
+    //  this.addItemStyle.display = 'none';
+    //}
   }
 
   componentWillReceiveProps(props) {
-
     if(props.set.loading) {
       this.setState({displayName: 'Chargement...', subSets: [], items: []});
     }
@@ -342,7 +365,7 @@ class SetDisplay extends React.Component {
             {this.state.displayName}
           </div>
           <i className='large add circle green icon' style={this.addItemStyle}
-             onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
+             onClick={this.showAddToSetModal.bind(this)}/>
         </div>
       </div>;
     }
@@ -355,7 +378,7 @@ class SetDisplay extends React.Component {
           {this.state.displayName}
         </div>
         <i className='large add circle green icon' style={this.addItemStyle}
-           onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}
+           onClick={this.showAddToSetModal.bind(this)}
         />
       </div>
       <div
@@ -423,7 +446,6 @@ class SetDisplay extends React.Component {
                 icon = 'ui icon file image outline';
                 break;
               default:
-
             }
 
             return <a className={'item '}

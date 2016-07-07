@@ -56,8 +56,6 @@ class ManagerModals extends React.Component {
   render() {
     return <div style={this.containerStyle}>
       <LoginModal userstore={this.props.userstore} />
-      <NewStudyModal modalstore={this.props.modalstore}
-                     managerstore={this.props.managerstore} />
       <CreateAndFillSet modalstore={this.props.modalstore}
                         basketstore={this.props.basketstore}
                      managerstore={this.props.managerstore} />

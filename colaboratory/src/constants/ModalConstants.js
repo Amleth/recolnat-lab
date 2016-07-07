@@ -10,7 +10,7 @@ export default {
     ERROR: 'MODAL_ERROR'
   },
   Modals: {
-    createStudy: 'MODAL_createStudy',
+    createSet: 'MODAL_createSet',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
     createAndFillSet: 'MODAL_createAndFillSet',
     login: 'MODAL_login',

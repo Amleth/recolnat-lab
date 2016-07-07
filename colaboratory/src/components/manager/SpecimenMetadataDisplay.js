@@ -12,13 +12,26 @@ import MetadataActions from '../../actions/MetadataActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
-class SheetMetadataDisplay extends React.Component {
+class SpecimenMetadataDisplay extends React.Component {
   constructor(props) {
     super(props);
 
     this.containerStyle = {
-      overflowY: 'auto',
-      height: this.props.height
+      //overflowY: 'auto',
+      height: this.props.height,
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px'
+    };
+
+    this.scrollerStyle = {
+      height: this.props.height-35,
+      overflowY: 'auto'
     };
 
     this.textStyle = {
@@ -306,10 +319,16 @@ class SheetMetadataDisplay extends React.Component {
   }
 
   render() {
-    return (<div style={this.containerStyle} className='ui container'>
+    return (<div style={this.containerStyle} className='ui segment container'>
+      <div className='ui blue tiny basic label'
+           style={this.labelStyle}>
+        Specimen
+      </div>
+      <div style={this.scrollerStyle}>
       {this.createMetadataTable()}
+        </div>
     </div>)
   }
 }
 
-export default SheetMetadataDisplay;
+export default SpecimenMetadataDisplay;

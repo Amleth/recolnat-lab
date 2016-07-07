@@ -23,7 +23,8 @@ class RightPane extends React.Component {
     this.containerStyle = {
       backgroundColor: '#F2F2F2',
       height: '100%',
-      width: '100%'
+      width: '100%',
+      marginTop: '10px'
       //overflow: 'auto'
     };
 
@@ -48,7 +49,7 @@ class RightPane extends React.Component {
     return(
       <div style={this.containerStyle}>
         <SimpleImageDisplay
-          height='32%'
+          height={200}
           metastore={this.props.metastore}
           modestore={this.props.modestore}
           managerstore={this.props.managerstore}
@@ -59,7 +60,7 @@ class RightPane extends React.Component {
           modestore={this.props.modestore}
           managerstore={this.props.managerstore}/>
         <MetadataViewer
-          height='32%'
+          height={200}
           toolstore={this.props.toolstore}
           metastore={this.props.metastore}
           viewstore={this.props.viewstore}
@@ -67,7 +68,7 @@ class RightPane extends React.Component {
           benchstore={this.props.benchstore}
         />
         <SpecimenMetadataDisplay
-          height='32%'
+          height={200}
           metastore={this.props.metastore}
           toolstore={this.props.toolstore}
           modestore={this.props.modestore}
@@ -78,7 +79,7 @@ class RightPane extends React.Component {
           metastore={this.props.metastore}
           inspecstore={this.props.inspecstore}
           benchstore={this.props.benchstore}
-          height='32%'
+          height={200}
         />
       </div>
     );

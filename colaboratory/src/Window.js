@@ -108,6 +108,8 @@ class Window extends React.Component {
       backgroundColor: '#F2F2F2',
       WebkitTransition: 'right 1s',
       transition: 'right 1s',
+      overflowX: 'hidden',
+      overflowY: 'scroll',
       //overflow: 'auto',
       WebkitBoxShadow: '-3px 0px 10px -3px rgba(0,0,0,0.75)',
       MozBoxShadow: '-3px 0px 10px -3px rgba(0,0,0,0.75)',

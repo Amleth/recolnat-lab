@@ -19,11 +19,19 @@ class SimpleImageDisplay extends React.Component {
 
     this.componentStyle = {
       height: this.props.height,
-      maxHeight: this.props.height,
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px'
+    };
+
+    this.scrollerStyle = {
+      height: this.props.height-35,
       overflowY: 'auto'
-      //display: "flex",
-      //flexDirection: 'column',
-      //padding: '5px 5px 5px 5px'
     };
 
     this.compactBorderlessSegmentStyle = {
@@ -187,7 +195,12 @@ class SimpleImageDisplay extends React.Component {
   render() {
     var self = this;
 
-    return <div className='ui container' style={this.componentStyle}>
+    return <div className='ui segment container' style={this.componentStyle}>
+      <div className='ui blue tiny basic label'
+           style={this.labelStyle}>
+        Aperçu
+      </div>
+      <div style={this.scrollerStyle}>
       <div className='ui small header centered segment'
            style={this.compactBorderlessSegmentStyle}>
         <div className='ui item'>
@@ -219,6 +232,7 @@ class SimpleImageDisplay extends React.Component {
              alt="Aucune image sélectionnée">
         </img>
       </div>
+        </div>
     </div>
   }
 }

@@ -16,11 +16,29 @@ class ElementInspector extends React.Component {
   constructor(props) {
     super(props);
 
+    //this.containerStyle = {
+    //  height: this.props.height,
+    //  padding: '5px 5px 5px 5px',
+    //  margin: '1%',
+    //  overflow: 'hidden'
+    //};
+
     this.containerStyle = {
-      height: this.props.height,
       padding: '5px 5px 5px 5px',
-      margin: '1%',
-      overflow: 'hidden'
+      borderColor: '#2185d0!important',
+      height: this.props.height
+      //overflow: 'hidden'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px'
+    };
+
+    this.scrollerStyle = {
+      height: this.props.height-35,
+      overflowY: 'auto'
     };
 
     this.fixedHeightStyle = {
@@ -32,8 +50,8 @@ class ElementInspector extends React.Component {
     };
 
     this.metadataStyle = {
-      overflowY: 'auto',
-      height: '80%',
+      //overflowY: 'auto',
+      //height: '80%',
       margin: 0,
       padding: 0
     };
@@ -81,274 +99,185 @@ class ElementInspector extends React.Component {
 
     this.state = {
       isVisibleInCurrentMode: true,
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/8/89/Construction_Icon_small.png',
-      name: "Inspecteur d'élements",
-      currentIndex: -1,
-      entityIds: [],
-      selectedEntityMetadata: null,
-      annotationIds: [],
-      annotationsMetadata: {},
-      creatorIds: [],
-      creatorsMetadata: {},
-      metadata: [
-
-      ],
-      tags: [
-
-      ]
+      entitiesIds: [],
+      annotationsIds: [],
+      tagsIds: [],
+      creatorsIds: [],
+      entities: {},
+      annotations: {},
+      tags: {},
+      creators: {}
     };
   }
 
   setInspectorContent() {
-    if(this.state.currentIndex > -1) {
-      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
-    }
-    else {
-      this.clearListeners(null, true, true);
-    }
+    this.clearMetadataListeners(this.state.entitiesIds);
+    this.clearMetadataListeners(this.state.annotationsIds);
+    this.clearMetadataListeners(this.state.tagsIds);
     var elements = this.props.inspecstore.getInspectorContent();
     this.setState({
-      entityIds: elements,
-      selectedEntityMetadata: null,
-      annotationIds: [],
-      annotationsMetadata: {},
-      creatorIds: [],
-      creatorsMetadata: {}
+      entitiesIds: elements,
+      annotationsIds: [],
+      tagsIds: [],
+      creatorsIds: [],
+      entities: {},
+      annotations: {},
+      tags: {}
     });
 
-    if(elements.length > 0) {
-      this.setState({currentIndex: 0});
-      this.props.metastore.addMetadataUpdateListener(elements[0], this._onEntityMetadataChange);
-      window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
-    }
-    else {
-      this.setState({currentIndex: -1});
+    this.addMetadataListeners(elements);
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
+  }
+
+  addMetadataListeners(ids) {
+    for(var i = 0; i < ids.length; ++i) {
+      this.props.metastore.addMetadataUpdateListener(ids[i], this._onEntityMetadataChange);
     }
   }
 
-  previousItem() {
-    var index = this.state.currentIndex;
-    if(index == 0) {
-      this.setActiveElement(this.state.entityIds.length-1);
+  clearMetadataListeners(ids) {
+    for(var k = 0; k < ids.length; ++k) {
+      this.props.metastore.removeMetadataUpdateListener(ids[k], this._onEntityMetadataChange);
     }
-    else {
-      this.setActiveElement(index-1);
-    }
-  }
-
-  nextItem() {
-    var index = this.state.currentIndex;
-    if(index == this.state.entityIds.length-1) {
-      this.setActiveElement(0);
-    }
-    else {
-      this.setActiveElement(index+1);
-    }
-  }
-
-  clearListeners(entity, removeAnnotations, removeCreators) {
-    if(entity) {
-      this.props.metastore.removeMetadataUpdateListener(entity, this._onEntityMetadataChange);
-    }
-
-    if(removeAnnotations) {
-      for(var i = 0; i < this.state.annotationIds.length; ++i) {
-        this.props.metastore.removeMetadataUpdateListener(this.state.annotationIds[i], this._onAnnotationMetadataChange);
-      }
-    }
-
-    if(removeCreators) {
-      for(var j = 0; j < this.state.creatorIds.length; ++j) {
-        this.props.metastore.removeMetadataUpdateListener(this.state.creatorIds[j], this._onCreatorMetadataChange);
-      }
-    }
-  }
-
-  setActiveElement(index) {
-    if(this.state.currentIndex > -1) {
-      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
-    }
-
-    this.setState({
-      currentIndex: index,
-      selectedEntityMetadata: null,
-      annotationIds: [],
-      annotationsMetadata: {},
-      creatorIds: [],
-      creatorsMetadata: {}
-    });
-    this.props.metastore.addMetadataUpdateListener([this.state.entityIds[index]], this._onEntityMetadataChange);
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, [this.state.entityIds[index]]), 10);
   }
 
   processEntityMetadata() {
-    if(this.state.currentIndex < 0) {
-      return;
-    }
+    var metadatas = {};
+    var annotationsIds = [];
 
-    var metadata = this.props.metastore.getMetadataAbout(this.state.entityIds[this.state.currentIndex]);
-
-    if(!metadata) {
-      console.error('No metadata for ' + this.state.entityIds[this.state.currentIndex]);
-      return;
-    }
-
-    var metadataIds = [];
-    if(metadata.annotations) {
-      for(var i = 0; i < metadata.annotations.length; ++i) {
-        this.props.metastore.addMetadataUpdateListener(metadata.annotations[i], this._onAnnotationMetadataChange);
-        metadataIds.push(metadata.annotations[i]);
+    for(var i = 0; i < this.state.entitiesIds.length; ++i) {
+      var metadata = this.props.metastore.getMetadataAbout(this.state.entitiesIds[i]);
+      if(metadata) {
+        metadatas[this.state.entitiesIds[i]] = metadata;
+        if(metadata.annotations) {
+          Array.prototype.push.apply(annotationsIds, metadata.annotations);
+        }
+        if(metadata.measurements) {
+          Array.prototype.push.apply(annotationsIds, metadata.annotations);
+        }
+      }
+      else {
+        metadatas[this.state.entitiesIds[i]] = null;
       }
     }
 
-    if(metadata.measurements) {
-      for(var j = 0; j < metadata.measurements.length; ++j) {
-        this.props.metastore.addMetadataUpdateListener(metadata.measurements[j], this._onAnnotationMetadataChange);
-        metadataIds.push(metadata.measurements[j]);
-      }
-    }
+    annotationsIds = _.uniq(annotationsIds);
+    var newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
+    var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
 
+    this.clearMetadataListeners(removedAnnotationIds);
+    this.addMetadataListeners(newAnnotationIds);
 
     this.setState({
-      selectedEntityMetadata: metadata,
-      annotationIds: metadataIds,
-      annotationsMetadata: {},
-      name: metadata.name
+      entities: metadatas,
+      annotationsIds: annotationsIds
     });
 
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, metadataIds), 10);
+    window.setTimeout(MetadataActions.updateMetadata.bind(null, newAnnotationIds), 10);
   }
 
   processAnnotationMetadata() {
     var annotations = {};
     var creatorIds = [];
-    for(var i = 0; i < this.state.annotationIds.length; ++i) {
-      var metadata = this.props.metastore.getMetadataAbout(this.state.annotationIds[i]);
+    for(var i = 0; i < this.state.annotationsIds.length; ++i) {
+      var metadata = this.props.metastore.getMetadataAbout(this.state.annotationsIds[i]);
       if(metadata) {
         annotations[metadata.uid] = metadata;
         if(metadata.creator) {
           creatorIds.push(metadata.creator);
         }
       }
+      else {
+        annotations[this.state.annotationsIds[i]] = null;
+      }
     }
 
     creatorIds = _.uniq(creatorIds);
-    var newCreatorIds = _.difference(creatorIds, this.state.creatorIds);
-    var removedCreatorIds = _.difference(this.state.creatorIds, creatorIds);
+    var newCreatorIds = _.difference(creatorIds, this.state.creatorsIds);
+    var removedCreatorIds = _.difference(this.state.creatorsIds, creatorIds);
 
-    for(var k = 0; k < newCreatorIds.length; ++k) {
-      this.props.metastore.addMetadataUpdateListener(newCreatorIds[k], this._onCreatorMetadataChange);
-    }
-    for(k = 0; k < removedCreatorIds.length; ++k) {
-      this.props.metastore.removeMetadataUpdateListener(newCreatorIds[k], this._onCreatorMetadataChange);
-    }
+    this.clearMetadataListeners(removedCreatorIds);
+    this.addMetadataListeners(newCreatorIds);
+
     this.setState({
-      annotationsMetadata: annotations,
-      creatorIds: creatorIds
+      annotations: annotations,
+      creatorsIds: creatorIds
     });
     window.setTimeout(MetadataActions.updateMetadata.bind(null, newCreatorIds), 10);
   }
 
   processCreatorMetadata() {
     var creators = {};
-    for(var i = 0; i < this.state.creatorIds.length; ++i) {
-      var metadata = this.props.metastore.getMetadataAbout(this.state.creatorIds[i]);
+    for(var i = 0; i < this.state.creatorsIds.length; ++i) {
+      var metadata = this.props.metastore.getMetadataAbout(this.state.creatorsIds[i]);
       if(metadata) {
         creators[metadata.uid] = metadata;
       }
+      else {
+        creators[this.state.creatorsIds[i]] = null;
+      }
     }
+
     this.setState({
-      creatorsMetadata: creators
+      creators: creators
     });
   }
 
-  buildDisplay(state) {
-    var metadatas = [];
-    if(state.currentIndex >= 0) {
-      var displayedEntityId = state.entityIds[state.currentIndex];
-      if(state.selectedEntityMetadata) {
-        if(state.selectedEntityMetadata.annotations) {
-          for(var i = 0; i < state.selectedEntityMetadata.annotations.length; ++i) {
-            var annotationMetadata = state.annotationsMetadata[state.selectedEntityMetadata.annotations[i]];
-            if(annotationMetadata) {
-              var item = {
-                date: new Date(),
-                value: annotationMetadata.content
-              };
-              item.date.setTime(annotationMetadata.creationDate);
-              item.date = item.date.toLocaleDateString();
-              if(!annotationMetadata.creator) {
-                item.author = 'Système ReColNat';
-              }
-              else {
-                var authorMetadata = state.creatorsMetadata[annotationMetadata.creator];
-                if(authorMetadata) {
-                  item.author = authorMetadata.name;
-                }
-              }
-
-              metadatas.push(item);
-            }
-          }
-        }
-
-        if(state.selectedEntityMetadata.measurements) {
-          for(i = 0; i < state.selectedEntityMetadata.measurements.length; ++i) {
-            var measureMetadata = state.annotationsMetadata[state.selectedEntityMetadata.measurements[i]];
-            if(measureMetadata) {
-              var item = {
-                date: new Date()
-              };
-              item.date.setTime(measureMetadata.creationDate);
-              item.date = item.date.toLocaleDateString();
-              // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
-              var imageId = state.selectedEntityMetadata.parents[0];
-              var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
-              var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
-              if(mmPerPixel) {
-                switch(measureMetadata.measureType) {
-                  case 101: // Perimeter
-                    item.value = 'Périmètre : ' + (mmPerPixel * measureMetadata.valueInPx) + ' mm';
-                    break;
-                  case 100: // Area
-                    item.value = 'Aire : ' + (mmPerPixel * mmPerPixel) * measureMetadata.valueInPx + ' mm²';
-                    break;
-                  case 102:
-                    // Length
-                    item.value = 'Longueur : ' + (mmPerPixel * measureMetadata.valueInPx) + ' mm';
-                    break;
-                  default:
-                    console.warn('Unknown measure type ' + measureMetadata.measureType);
-                }
-              }
-              else {
-                item.value = measureMetadata.valueInPx + ' px';
-                item.warning = 'Aucun étalon disponible pour la conversion';
-              }
-              if(!measureMetadata.creator) {
-                item.author = 'Système ReColNat';
-              }
-              else {
-                var authorMetadata = state.creatorsMetadata[measureMetadata.creator];
-                if(authorMetadata) {
-                  item.author = authorMetadata.name;
-                }
-              }
-              metadatas.push(item);
-            }
-          }
-        }
+  measurementToMetaDisplay(metadata) {
+    var item = {
+      date: new Date()
+    };
+    item.date.setTime(metadata.creationDate);
+    item.date = item.date.toLocaleDateString();
+    // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
+    var entityId = metadata.parents[0];
+    if(!entityId) {
+      return null;
+    }
+    var imageId = this.state.entities[entityId].parents[0];
+    if(!imageId) {
+      return null;
+    }
+    var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
+    var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+    if(mmPerPixel) {
+      switch(metadata.measureType) {
+        case 101: // Perimeter
+          item.value = 'Périmètre : ' + (mmPerPixel * metadata.valueInPx) + ' mm';
+          break;
+        case 100: // Area
+          item.value = 'Aire : ' + (mmPerPixel * mmPerPixel) * metadata.valueInPx + ' mm²';
+          break;
+        case 102:
+          // Length
+          item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx) + ' mm';
+          break;
+        default:
+          console.warn('Unknown measure type ' + metadata.measureType);
       }
     }
-    return metadatas;
+    else {
+      item.value = metadata.valueInPx + ' px';
+      item.warning = 'Aucun étalon disponible pour la conversion';
+    }
+    if(!metadata.creator) {
+      item.author = 'Système ReColNat';
+    }
+    else {
+      var authorMetadata = this.state.creators[metadata.creator];
+      if(authorMetadata) {
+        item.author = authorMetadata.name;
+      }
+    }
+
+    return item;
   }
 
-  addAnnotation() {
-    if(!this.state.selectedEntityMetadata) {
+  addAnnotation(id) {
+    if(!id) {
       alert('Aucune entité sélectionnée');
       return;
     }
-    var id = this.state.selectedEntityMetadata.uid;
     window.setTimeout(
       ModalActions.showModal.bind(
         null,
@@ -356,6 +285,105 @@ class ElementInspector extends React.Component {
         {entity: id},
         function(data) {  window.setTimeout(MetadataActions.updateMetadata.bind(null, [id]), 10);}),
       10);
+  }
+
+  buildEntityDisplay(entityId) {
+    var displayName = null;
+    var entityMetadata = this.state.entities[entityId];
+    if (entityMetadata) {
+      displayName = entityMetadata.name;
+    }
+    else {
+      return null;
+    }
+    var measurements = entityMetadata.measurements;
+    if(!measurements) {
+      measurements = [];
+    }
+    var annotations = entityMetadata.annotations;
+    if(!annotations) {
+      annotations = [];
+    }
+    return (
+      <div className='ui comments' style={this.metadataStyle} key={'ENTITY-' + entityId}>
+        <h3>
+          {displayName}
+          <i className='green small add square icon'
+             ref='addIcon'
+             data-content='Ajouter une annotation'
+             onClick={this.addAnnotation.bind(this, entityId)}/>
+        </h3>
+        {measurements.map(this.buildMeasurementDisplay.bind(this))}
+        {annotations.map(this.buildAnnotationDisplay.bind(this))}
+      </div>
+    );
+  }
+
+  buildMeasurementDisplay(measurementId) {
+    var measurementMetadata = this.state.annotations[measurementId];
+    if(!measurementMetadata) {
+      return null;
+    }
+    var meta = this.measurementToMetaDisplay(measurementMetadata);
+    if(!meta) {
+      return null;
+    }
+    var icon = '';
+    if(meta.warning) {
+      icon = 'yellow warning icon';
+    }
+    return (
+      <div className='comment' key={'MEASURE-' + measurementId}>
+        <div className="content">
+          <a className="author">{meta.author}</a>
+          <div className="metadata">
+            <span className="date">{meta.date}</span>
+          </div>
+          <div className="text">
+            <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  buildAnnotationDisplay(annotationId) {
+    var annotationMetadata = this.state.annotations[annotationId];
+    if(!annotationMetadata) {
+      return null;
+    }
+    var meta = this.measurementToMetaDisplay(measurementMetadata);
+    if(!meta) {
+      return null;
+    }
+
+    var date = new Date();
+    date.setTime(annotationMetadata.creationDate);
+
+    var author = '';
+    if(!annotationMetadata.creator) {
+      author = 'Système ReColNat';
+    }
+    else {
+      var authorMetadata = this.state.creators[annotationMetadata.creator];
+      if(authorMetadata) {
+        author = authorMetadata.name;
+      }
+    }
+
+    return (
+      <div className='comment' key={'MEASURE-' + annotationId}>
+        <div className="content">
+          <a className="author">{author}</a>
+          <div className="metadata">
+            <span className="date">{date.toLocaleDateString()}</span>
+          </div>
+          <div className="text">
+            <i>{annotationMetadata.content}</i>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   componentDidMount() {
@@ -366,7 +394,6 @@ class ElementInspector extends React.Component {
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.containerStyle.display = '';
-      nextState.metadata = this.buildDisplay(nextState);
     }
     else {
       this.containerStyle.display = 'none';
@@ -374,77 +401,31 @@ class ElementInspector extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    $('.yellow.warning.icon', $(this.refs.annotations.getDOMNode())).popup();
-    $(this.refs.addIcon.getDOMNode()).popup();
-    $(this.refs.title.getDOMNode()).popup();
+    $('.yellow.warning.icon', $(this.refs.component.getDOMNode())).popup();
+    $('.green.small.add.square.icon', $(this.refs.component.getDOMNode())).popup();
   }
 
   componentWillUnmount() {
-    if(this.state.currentIndex > -1) {
-      this.clearListeners(this.state.entityIds[this.state.currentIndex], true, true);
-    }
-    else {
-      this.clearListeners(null, true, true);
-    }
+    this.clearMetadataListeners(this.state.entitiesIds);
+    this.clearMetadataListeners(this.state.annotationsIds);
+    this.clearMetadataListeners(this.state.creatorsIds);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
   }
 
   render() {
-    return <div className='ui segment container' style={this.containerStyle}>
-      <div className='ui fluid borderless menu' style={this.menuStyle}>
-        <a className='fitted item' ref='title' data-content={this.state.name} style={this.annotationTitleStyle}>
-          {this.state.name}
-        </a>
-        <div className='ui icon right menu'>
-          <a className='fitted item'>
-            <i className='left arrow icon' onClick={this.previousItem.bind(this)}/>
-          </a>
-          <a className='fitted item'>
-            <i className='right arrow icon' onClick={this.nextItem.bind(this)}/>
-          </a>
+    var self = this;
+    return <div className='ui segment container' ref='component' style={this.containerStyle}>
+      <div className='ui blue tiny basic label'
+           style={this.labelStyle}>
+        Inspecteur
+      </div>
+      <div style={this.scrollerStyle}>
+      {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}
         </div>
-      </div>
-
-      <div ref='annotations' className='ui comments' style={this.metadataStyle}>
-        <h3>
-          Mesures & Annotations
-          <i className='green small add square icon'
-             ref='addIcon'
-             data-content='Ajouter une annotation'
-             onClick={this.addAnnotation.bind(this)}/>
-        </h3>
-        {
-          this.state.metadata.map(function(meta, index) {
-            var icon = '';
-            if(meta.warning) {
-              icon = 'yellow warning icon';
-            }
-            return <div className='comment' key={index}>
-              <div className="content">
-                <a className="author">{meta.author}</a>
-                <div className="metadata">
-                  <span className="date">{meta.date}</span>
-                </div>
-                <div className="text">
-                  <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
-                </div>
-              </div>
-            </div>
-          })
-        }
-
-      </div>
-      <div className='extra' style={this.tagsStyle}>
-        <div className='ui tag labels'>
-          {this.state.tags.map(function(tag, index) {
-            return <a key={index}
-                      className='ui label'>{tag.name}</a>
-          })}
-        </div>
-      </div>
     </div>
   }
 }
 
 export default ElementInspector;
+

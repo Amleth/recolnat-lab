@@ -109,42 +109,6 @@ class ContextMenu extends React.Component {
   //  }
   //}
 
-  fitViewToImage() {
-    var image = this.props.ministore.getImage();
-    var viewport = this.props.viewstore.getView();
-    var scale = 1.0;
-
-    if(image.height > image.width) {
-      scale = (viewport.height) / image.height;
-    }
-    else {
-      scale = viewport.width / image.width;
-    }
-
-    ViewActions.updateViewport(
-      -((image.xZero)*scale),
-      -((image.yZero)*scale),
-      null,
-      null,
-      scale,
-      true
-    );
-  }
-
-  resetZoom() {
-    var view = this.props.viewstore.getView();
-    if(view.scale == 1.0) {
-      return;
-    }
-    ViewActions.updateViewport(
-      (view.left-view.width/2)/view.scale,
-      (view.top-view.height/2)/view.scale,
-      null,
-      null,
-      1.0,
-      true
-    );
-  }
 
   componentDidMount() {
     //this.props.menustore.addContextMenuListener(this._onContextMenuChange);
@@ -195,43 +159,7 @@ class ContextMenu extends React.Component {
              style={this.menuStyle}>
           <div className='vertically fitted item'>
             <div className='menu'>
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.moveView}
-                               displayText='Déplacer la vue' />
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.moveObject}
-                               displayText='Déplacer une planche' />
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.selectObject}
-                               displayText='Sélectionner une planche' />
-            </div>
-          </div>
-          <div className='vertically fitted item'>
-            <div className='menu'>
-              <a className='item' onClick={ViewActions.fitView}>Tout</a>
-              <a className='item' onClick={this.fitViewToImage.bind(this)}>Planche</a>
-              <a className='item' onClick={this.resetZoom.bind(this)}>1:1</a>
-            </div>
-          </div>
-          <div className='vertically fitted item'>
-            <div className='menu'>
-              <a className='down item'>Exporter la planche</a>
-            </div>
-          </div>
-          <div className='vertically fitted item'>
-            <div className='menu'>
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.newPointOfInterest}
-                               displayText='Créer un point' />
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.newPath}
-                               displayText='Créer un chemin' />
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.newRegionOfInterest}
-                               displayText='Créer une zone' />
-              <ContextMenuTool toolstore={this.props.toolstore}
-                               tool={ToolConf.lineMeasure}
-                               displayText='Règle' />
+              <a className='down item'>Version 0.9.1</a>
             </div>
           </div>
         </div>

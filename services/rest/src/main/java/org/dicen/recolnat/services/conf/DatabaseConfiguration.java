@@ -22,6 +22,12 @@ public class DatabaseConfiguration extends Configuration {
 
   @NotEmpty
   private String password;
+  
+  @NotEmpty 
+  private Integer minConnectorPoolSize;
+  
+  @NotEmpty
+  private Integer maxConnectorPoolSize;
 
   @JsonProperty
   public String getHost() {
@@ -71,5 +77,25 @@ public class DatabaseConfiguration extends Configuration {
   @JsonProperty
   public void setPassword(String password) {
     this.password = password;
+  }
+  
+  @JsonProperty
+  public Integer getMinConnectorPoolSize() {
+    return minConnectorPoolSize;
+  }
+  
+  @JsonProperty
+  public Integer setMinConnectorPoolSize() {
+    return minConnectorPoolSize;
+  }
+  
+  @JsonProperty
+  public Integer getMaxConnectorPoolSize() {
+    return maxConnectorPoolSize;
+  }
+  
+  @JsonProperty
+  public Integer setMaxConnectorPoolSize() {
+    return maxConnectorPoolSize;
   }
 }

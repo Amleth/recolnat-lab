@@ -24,7 +24,7 @@ public class DatabaseAccess {
 
   public static void configure(DatabaseConfiguration conf) {
 //    DatabaseAccess.databaseConnector = new RemoteDatabaseConnector(conf.getHost(), conf.getPort(), conf.getDbName(), conf.getDbUser(), conf.getPassword());
-    DatabaseAccess.factory = new OrientGraphFactory("remote:" + conf.getHost() + ":" + conf.getPort() + "/" + conf.getDbName(), conf.getDbUser(), conf.getPassword()).setupPool(100, 2000);
+    DatabaseAccess.factory = new OrientGraphFactory("remote:" + conf.getHost() + ":" + conf.getPort() + "/" + conf.getDbName(), conf.getDbUser(), conf.getPassword()).setupPool(conf.getMinConnectorPoolSize(), conf.getMaxConnectorPoolSize());
 //    DatabaseAccess.factory = new OrientGraphFactory("plocal:/home/cnamuser/databases/" + conf.getDbName()).setupPool(100, 2000);
     DatabaseAccess.configuration = conf;
   }
@@ -48,7 +48,7 @@ public class DatabaseAccess {
     }
     catch(ODatabaseException e) {
       log.error("Database exception getting new transactional graph", e);
-      DatabaseAccess.factory = new OrientGraphFactory("remote:" + configuration.getHost() + ":" + configuration.getPort() + "/" + configuration.getDbName(), configuration.getDbUser(), configuration.getPassword()).setupPool(100, 2000);
+      DatabaseAccess.factory = new OrientGraphFactory("remote:" + configuration.getHost() + ":" + configuration.getPort() + "/" + configuration.getDbName(), configuration.getDbUser(), configuration.getPassword()).setupPool(configuration.getMinConnectorPoolSize(), configuration.getMaxConnectorPoolSize());
 //      DatabaseAccess.databaseConnector = new RemoteDatabaseConnector(configuration.getHost(), configuration.getPort(), configuration
 //              .getDbName(), configuration.getDbUser(), configuration.getPassword());
 //      return DatabaseAccess.databaseConnector.getTransactionalGraph();

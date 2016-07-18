@@ -242,6 +242,10 @@ public class UpdateUtils {
   public static OrientEdge linkTrailOfInterestToImage(OrientVertex image, OrientVertex path, String user, OrientGraph g) {
     return UpdateUtils.link(image, path, DataModel.Links.toi, user, g);
   }
+  
+  public static OrientEdge linkAngleOfInterestToImage(OrientVertex image, OrientVertex angle, String user, OrientGraph g) {
+    return UpdateUtils.link(image, angle, DataModel.Links.aoi, user, g);
+  }
 
 //  public static OrientEdge linkAnnotationToEntity(String entityId, OrientVertex annotation, OrientGraph g) {
 //    OrientVertex vEntity = (OrientVertex) AccessUtils.getNodeById(entityId, g);

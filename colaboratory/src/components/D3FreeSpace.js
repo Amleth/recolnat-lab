@@ -484,6 +484,9 @@ class D3FreeSpace {
           for(i = 0; i < posEntity.rois.length; ++i) {
             posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
           }
+          for(i = 0; i < posEntity.aois.length; ++i) {
+            posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
+          }
         }
       }
       //console.log(JSON.stringify(viewData));
@@ -540,6 +543,7 @@ class D3FreeSpace {
   findObjectsAtCoords(coordinatesFromD3Origin) {
     var objects = {
       images: [],
+      aois: [],
       pois: [],
       rois: [],
       tois: []
@@ -585,6 +589,13 @@ class D3FreeSpace {
               objects.pois.push(d);
             }
           });
+
+          group.selectAll('.' + Classes.AOI_CLASS).each(function(d) {
+            var aoi = d3.select(this).node().getBoundingClientRect();
+            if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, aoi)) {
+              objects.aois.push(d);
+            }
+          });
         }
       }
     );
@@ -598,6 +609,7 @@ class D3FreeSpace {
     var inspectorObjects = [];
     var getIds = function(data) {return data.uid};
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois.map(getIds));
+    Array.prototype.push.apply(inspectorObjects, objectsAtEvent.aois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
     Array.prototype.push.apply(
@@ -622,6 +634,7 @@ class D3FreeSpace {
     var objectsAtEvent = self.findObjectsAtCoords(coords);
     var contextMenuObjects = {
       images: [],
+      aois: [],
       rois: [],
       tois: [],
       pois: []
@@ -638,6 +651,7 @@ class D3FreeSpace {
     Array.prototype.push.apply(contextMenuObjects.images, objectsAtEvent.images.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.pois, objectsAtEvent.pois.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.rois, objectsAtEvent.rois.map(buildContextMenuElement));
+    Array.prototype.push.apply(contextMenuObjects.aois, objectsAtEvent.aois.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.tois, objectsAtEvent.tois.map(buildContextMenuElement));
     //console.log(JSON.stringify(objectsAtEvent));
     MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, contextMenuObjects);

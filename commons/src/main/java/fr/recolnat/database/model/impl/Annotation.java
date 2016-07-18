@@ -42,10 +42,10 @@ public class Annotation extends AbstractObject{
           this.parents.add((String) vParent.getProperty(DataModel.Properties.id));
         }
       }
-    }
-    
+    } 
   }
 
+  @Override
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
     ret.put("creator", this.creator);

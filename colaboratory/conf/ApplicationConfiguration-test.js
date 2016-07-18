@@ -28,6 +28,7 @@ var Actions = {
     createRegionOfInterest: Endpoints.imageService + "/create-roi",
     createPointOfInterest: Endpoints.imageService + "/create-poi",
     createTrailOfInterest: Endpoints.imageService + "/create-toi",
+    createAngleOfInterest: Endpoints.imageService + "/create-aoi",
     addMeasureStandard: Endpoints.imageService + "/add-measure-standard"
   },
 
@@ -69,7 +70,8 @@ var Actions = {
     getData: Endpoints.dataAccessService + '/get-data',
     remove: Endpoints.dataAccessService + '/remove',
     getLog: Endpoints.dataAccessService + '/get-change-log',
-    addAnnotation: Endpoints.dataAccessService + '/add-annotation'
+    addAnnotation: Endpoints.dataAccessService + '/add-annotation',
+    editProperties: Endpoints.dataAccessService + '/edit-properties'
   }
 };
 

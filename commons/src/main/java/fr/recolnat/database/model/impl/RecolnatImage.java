@@ -36,6 +36,7 @@ import java.util.logging.Level;
 public class RecolnatImage extends AbstractObject {
   
   private Set<String> specimensReferencingThisImage = new HashSet<>();
+  private Set<String> anglesOfInterest = new HashSet<>();
   private Set<String> regionsOfInterest = new HashSet<>();
   private Set<String> pointsOfInterest = new HashSet<>();
   private Set<String> trailsOfInterest = new HashSet<>();
@@ -74,6 +75,16 @@ public class RecolnatImage extends AbstractObject {
       if (AccessUtils.isLatestVersion(vRoi)) {
         if (AccessRights.canRead(user, vRoi, g)) {
           this.regionsOfInterest.add((String) vRoi.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
+    
+    Iterator<Vertex> itAois = image.getVertices(Direction.OUT, DataModel.Links.aoi).iterator();
+    while (itAois.hasNext()) {
+      OrientVertex vAoi = (OrientVertex) itAois.next();
+      if (AccessUtils.isLatestVersion(vAoi)) {
+        if (AccessRights.canRead(user, vAoi, g)) {
+          this.anglesOfInterest.add((String) vAoi.getProperty(DataModel.Properties.id));
         }
       }
     }
@@ -155,6 +166,13 @@ public class RecolnatImage extends AbstractObject {
       jRois.put(itRois.next());
     }
     ret.put("rois", jRois);
+    
+    JSONArray jAois = new JSONArray();
+    Iterator<String> itAois = this.anglesOfInterest.iterator();
+    while (itAois.hasNext()) {
+      jAois.put(itAois.next());
+    }
+    ret.put("aois", jAois);
     
     JSONArray jPois = new JSONArray();
     Iterator<String> itPois = this.pointsOfInterest.iterator();

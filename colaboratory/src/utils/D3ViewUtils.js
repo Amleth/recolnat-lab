@@ -190,6 +190,23 @@ export default class D3ViewUtils {
 
     annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS);
 
+    var angles = annotations.selectAll('.' + Classes.AOI_CONTAINER_CLASS).data(d => [d], d => d.link);
+    angles.enter().append('g')
+      .attr('class', Classes.AOI_CONTAINER_CLASS)
+      .attr('id', d => 'AOIS-' + d.link);
+    angles.exit().remove();
+
+    var angle = angles.selectAll('.' + Classes.AOI_CLASS).data(d => d.aois, d => d.uid);
+    angle.enter().append('polyline')
+      .attr('class', Classes.AOI_CLASS)
+      .attr('id', d => 'AOI-' + d.uid)
+      .attr('fill', 'none')
+      .attr('stroke', 'red')
+      .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
+      .attr('stroke-width', 4);
+    angle.exit().remove();
+    angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+
     var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => [d], d => d.link);
     paths.enter().append('g')
       .attr('class', Classes.PATH_CONTAINER_CLASS)

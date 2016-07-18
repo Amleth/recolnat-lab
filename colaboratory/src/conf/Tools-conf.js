@@ -6,11 +6,11 @@
 var ToolConfiguration = {
   lineMeasure: {
     id: "measure",
-    tooltip: "Cliquez sur l'image pour commencer la mesure"
+    tooltip: "Cliquez sur l'image pour commencer une nouvelle mesure"
   },
   newRegionOfInterest: {
     id: "newRoI",
-    tooltip: "Cliquez sur l'image pour créer un nouveau point. Cliquez sur le premier point pour fermer le polygone."
+    tooltip: "Cliquez sur l'image pour placer le premier point du polygone."
   },
   newPointOfInterest: {
     id: "newPoI",
@@ -18,7 +18,7 @@ var ToolConfiguration = {
   },
   newPath: {
     id: "createPath",
-    tooltip: "Cliquez sur l'image pour créer un nouveau point."
+    tooltip: "Cliquez sur l'image pour placer le premier point du tracé."
   },
   annotation: {
     id: "createAnnotation",
@@ -39,6 +39,10 @@ var ToolConfiguration = {
   selectObject: {
     id: 'selectObject',
     tooltip: 'Cliquez sur une image pour la sélectionner'
+  },
+  newAngle: {
+    id: 'createNewAngleMeasure',
+    tooltip: "Cliquez sur une image pour placer le sommet de l'angle à mesurer"
   },
   nothing: {
     id: "null",

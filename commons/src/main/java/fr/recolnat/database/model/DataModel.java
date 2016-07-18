@@ -34,6 +34,7 @@ public class DataModel {
       public static final String regionOfInterest = "RegionOfInterest";
       public static final String pointOfInterest = "PointOfInterest";
       public static final String trailOfInterest = "TrailOfInterest";
+      public static final String angleOfInterest = "AngleOfInterest";
       public static final String measurement = "Measurement";
       public static final String measureStandard = "MeasureStandard";
       public static final String image = "Image";
@@ -92,6 +93,7 @@ public class DataModel {
     public static final String roi = "hasRegionOfInterest";
     public static final String poi = "hasPointOfInterest";
     public static final String toi = "hasTrailOfInterest";
+    public static final String aoi = "hasAngleOfInterest";
     public static final String hasAnnotation = "hasAnnotation";
     public static final String hasMeasurement = "hasMeasurement";
     // measurement -> definedAsMeasureStandard -> measure standard
@@ -227,7 +229,8 @@ public class DataModel {
     public static enum Measurement {
       AREA (100),
       PERIMETER (101),
-      LENGTH (102);
+      LENGTH (102),
+      ANGLE (103);
 
       private final int value;
 
@@ -242,6 +245,7 @@ public class DataModel {
           case 100: return "Aire";
           case 101: return "Perimetre";
           case 102: return "Longueur";
+          case 103: return "Angle";
           default: return "Inconnu";
         }
       }

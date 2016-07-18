@@ -28,6 +28,7 @@ var Actions = {
     createRegionOfInterest: Endpoints.imageService + "/create-roi",
     createPointOfInterest: Endpoints.imageService + "/create-poi",
     createTrailOfInterest: Endpoints.imageService + "/create-toi",
+    createAngleOfInterest: Endpoints.imageService + "/create-aoi",
     addMeasureStandard: Endpoints.imageService + "/add-measure-standard"
   },
 

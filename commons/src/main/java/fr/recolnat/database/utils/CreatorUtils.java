@@ -330,18 +330,6 @@ public class CreatorUtils {
     return study;
   }
 
-  public static OrientVertex createRegionOfInterest(String name, List<List<Integer>> coords, OrientGraph g) {
-    OrientVertex polygon = g.addVertex("class:" + DataModel.Classes.regionOfInterest);
-
-    polygon.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
-    polygon.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
-    polygon.setProperty(DataModel.Properties.name, name);
-    polygon.setProperty(DataModel.Properties.vertices, coords);
-    polygon.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
-
-    return polygon;
-  }
-  
   public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientGraph g) {
     Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.originalSource, 
         new String[] {
@@ -370,6 +358,30 @@ public class CreatorUtils {
     entity.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
     return entity;
+  }
+  
+  public static OrientVertex createRegionOfInterest(String name, List<List<Integer>> coords, OrientGraph g) {
+    OrientVertex polygon = g.addVertex("class:" + DataModel.Classes.regionOfInterest);
+
+    polygon.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
+    polygon.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    polygon.setProperty(DataModel.Properties.name, name);
+    polygon.setProperty(DataModel.Properties.vertices, coords);
+    polygon.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
+
+    return polygon;
+  }
+  
+  public static OrientVertex createAngleOfInterest(String name, List<List<Integer>> coords, OrientGraph g) {
+    OrientVertex angle = g.addVertex("class:" + DataModel.Classes.angleOfInterest);
+
+    angle.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
+    angle.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+    angle.setProperty(DataModel.Properties.name, name);
+    angle.setProperty(DataModel.Properties.vertices, coords);
+    angle.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
+
+    return angle;
   }
 
   public static OrientVertex createTrailOfInterest(List<List<Integer>> coords, String name, OrientGraph g) {

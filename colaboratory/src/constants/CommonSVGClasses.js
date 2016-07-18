@@ -46,6 +46,9 @@ export default {
   ROI_CONTAINER_CLASS: 'regionOfInterestContainer',
   ROI_CLASS: 'regionOfInterest',
 
+  AOI_CONTAINER_CLASS: 'angleOfInterestContainer',
+  AOI_CLASS: 'angleOfInterest',
+
   // TODO check the following stuff to see if it useful
 
   IMAGE_CONTAINER_CLASS: 'imageContainer'

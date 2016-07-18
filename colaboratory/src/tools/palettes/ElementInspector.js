@@ -111,9 +111,9 @@ class ElementInspector extends React.Component {
   }
 
   setInspectorContent() {
-    this.clearMetadataListeners(this.state.entitiesIds);
-    this.clearMetadataListeners(this.state.annotationsIds);
-    this.clearMetadataListeners(this.state.tagsIds);
+    this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
+    this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
+    this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
     var elements = this.props.inspecstore.getInspectorContent();
     this.setState({
       entitiesIds: elements,
@@ -125,19 +125,19 @@ class ElementInspector extends React.Component {
       tags: {}
     });
 
-    this.addMetadataListeners(elements);
+    this.addMetadataListeners(elements, this._onEntityMetadataChange);
     window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
   }
 
-  addMetadataListeners(ids) {
+  addMetadataListeners(ids, callback) {
     for(var i = 0; i < ids.length; ++i) {
-      this.props.metastore.addMetadataUpdateListener(ids[i], this._onEntityMetadataChange);
+      this.props.metastore.addMetadataUpdateListener(ids[i], callback);
     }
   }
 
-  clearMetadataListeners(ids) {
+  clearMetadataListeners(ids, callback) {
     for(var k = 0; k < ids.length; ++k) {
-      this.props.metastore.removeMetadataUpdateListener(ids[k], this._onEntityMetadataChange);
+      this.props.metastore.removeMetadataUpdateListener(ids[k], callback);
     }
   }
 
@@ -153,7 +153,7 @@ class ElementInspector extends React.Component {
           Array.prototype.push.apply(annotationsIds, metadata.annotations);
         }
         if(metadata.measurements) {
-          Array.prototype.push.apply(annotationsIds, metadata.annotations);
+          Array.prototype.push.apply(annotationsIds, metadata.measurements);
         }
       }
       else {
@@ -163,10 +163,11 @@ class ElementInspector extends React.Component {
 
     annotationsIds = _.uniq(annotationsIds);
     var newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
-    var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
+    //var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
+    console.log('New annotations ids: ' + JSON.stringify(newAnnotationIds));
 
-    this.clearMetadataListeners(removedAnnotationIds);
-    this.addMetadataListeners(newAnnotationIds);
+    //this.clearMetadataListeners(removedAnnotationIds);
+    this.addMetadataListeners(newAnnotationIds, this._onAnnotationMetadataChange);
 
     this.setState({
       entities: metadatas,
@@ -194,10 +195,10 @@ class ElementInspector extends React.Component {
 
     creatorIds = _.uniq(creatorIds);
     var newCreatorIds = _.difference(creatorIds, this.state.creatorsIds);
-    var removedCreatorIds = _.difference(this.state.creatorsIds, creatorIds);
+    //var removedCreatorIds = _.difference(this.state.creatorsIds, creatorIds);
 
-    this.clearMetadataListeners(removedCreatorIds);
-    this.addMetadataListeners(newCreatorIds);
+    //this.clearMetadataListeners(removedCreatorIds);
+    this.addMetadataListeners(newCreatorIds, this._onCreatorMetadataChange);
 
     this.setState({
       annotations: annotations,
@@ -251,6 +252,9 @@ class ElementInspector extends React.Component {
         case 102:
           // Length
           item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx) + ' mm';
+          break;
+        case 103:
+          item.value = 'Angle : ' + metadata.valueInPx + '°';
           break;
         default:
           console.warn('Unknown measure type ' + metadata.measureType);
@@ -406,9 +410,9 @@ class ElementInspector extends React.Component {
   }
 
   componentWillUnmount() {
-    this.clearMetadataListeners(this.state.entitiesIds);
-    this.clearMetadataListeners(this.state.annotationsIds);
-    this.clearMetadataListeners(this.state.creatorsIds);
+    this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
+    this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
+    this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
   }

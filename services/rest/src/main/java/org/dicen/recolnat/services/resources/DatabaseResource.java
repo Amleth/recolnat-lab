@@ -12,6 +12,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.StructureBuilder;
 import fr.recolnat.database.model.impl.AbstractObject;
+import fr.recolnat.database.model.impl.AngleOfInterest;
 import fr.recolnat.database.model.impl.Annotation;
 import fr.recolnat.database.model.impl.MeasureStandard;
 import fr.recolnat.database.model.impl.OriginalSource;
@@ -346,6 +347,8 @@ public class DatabaseResource {
         return new StudySet(v, vUser, g);
       case DataModel.Classes.originalSource:
         return new OriginalSource(v, vUser, g);
+      case DataModel.Classes.angleOfInterest:
+        return new AngleOfInterest(v, vUser, g);
       case DataModel.Classes.pointOfInterest:
         return new PointOfInterest(v, vUser, g);
       case DataModel.Classes.regionOfInterest:

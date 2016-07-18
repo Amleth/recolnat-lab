@@ -10,6 +10,7 @@ import SelectObject from '../impl/SelectObject.js';
 import MoveView from '../impl/MoveView';
 import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
+import CreateAngle from '../impl/CreateAngle';
 import NoTool from '../impl/NoTool';
 
 import ToolActions from "../../actions/ToolActions";
@@ -103,6 +104,9 @@ class Toolbox extends React.Component {
             benchstore={this.props.benchstore}
             toolstore={this.props.toolstore} />
           <CreateRoI
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore} />
+          <CreateAngle
             viewstore={this.props.viewstore}
             toolstore={this.props.toolstore} />
         </div>

@@ -401,5 +401,91 @@ public class ImageEditorResource {
     // Return OK
     return Globals.OK;
   }
+  
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/create-aoi")
+  @Timed
+  public String createAngleOfInterest(final String input, @Context HttpServletRequest request) throws JSONException {
+    if (log.isTraceEnabled()) {
+      log.trace("Entering /create-aoi");
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug("Input received " + input);
+    }
+    // Retrieve params
+    JSONObject params = new JSONObject(input);
+    String session = SessionManager.getSessionId(request, true);
+    String user = SessionManager.getUserLogin(session);
+    String parent = params.getString("parent");
+    JSONObject message = params.getJSONObject("payload");
+    String name = message.getString("name");
+    Double length = message.getDouble("measure");
+    List<List<Integer>> vertices = new ArrayList<>();
+    JSONArray angleVertices = message.getJSONArray("vertices");
+    for (int i = 0; i < angleVertices.length(); ++i) {
+      JSONArray angleVertex = angleVertices.getJSONArray(i);
+      List<Integer> coords = new ArrayList<>();
+      coords.add(angleVertex.getInt(0));
+      coords.add(angleVertex.getInt(1));
+      vertices.add(coords);
+    }
+    boolean retry;
+
+    // Store trailOfInterest
+    retry = true;
+    while (retry) {
+      retry = false;
+      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      try {
+
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vImage = AccessUtils.getNodeById(parent, g);
+        // Check write rights on image
+        if (!AccessRights.canWrite(vUser, vImage, g)) {
+          throw new WebApplicationException("User does not have edit rights on entity " + parent, Status.FORBIDDEN);
+        }
+
+        String userId = vUser.getProperty(DataModel.Properties.id);
+
+        // Create angleOfInterest
+        OrientVertex vAngle = CreatorUtils.createAngleOfInterest(name, vertices, g);
+
+        // Create measure
+        OrientVertex mRefDeg = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.ANGLE, g);
+
+        // Link user to angleOfInterest & measure as creator
+        UpdateUtils.addCreator(vAngle, vUser, g);
+        UpdateUtils.addCreator(mRefDeg, vUser, g);
+
+        // Link measure to angleOfInterest
+        UpdateUtils.link(vAngle, mRefDeg, DataModel.Links.hasMeasurement, userId, g);
+//        UpdateUtils.linkAnnotationToEntity(vPath, mRefPx, g);
+
+        // Link angleOfInterest to parent entity
+        UpdateUtils.linkAngleOfInterestToImage(vImage, vAngle, userId, g);
+
+        // Grant creator rights on angleOfInterest
+        AccessRights.grantAccessRights(vUser, vAngle, DataModel.Enums.AccessRights.WRITE, g);
+
+        // Grant creator rights on measure
+        AccessRights.grantAccessRights(vUser, mRefDeg, DataModel.Enums.AccessRights.WRITE, g);
+
+        g.commit();
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        if (!g.isClosed()) {
+          g.rollback();
+          g.shutdown();
+        }
+      }
+    }
+
+    // Return OK
+    return Globals.OK;
+  }
 
 }

@@ -444,6 +444,29 @@ public class DeleteUtils {
         return true;
       case DataModel.Classes.message:
         return true;
+        case DataModel.Classes.angleOfInterest:
+        // Annotation, Measurement, Comment
+        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
+        while (itLinks.hasNext()) {
+          OrientVertex vAnnotation = (OrientVertex) itLinks.next();
+          if (AccessUtils.isLatestVersion(vAnnotation)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g)) {
+              return false;
+            }
+          }
+        }
+        // Discussion
+        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasDiscussion).iterator();
+        while (itLinks.hasNext()) {
+          OrientVertex vDiscussion = (OrientVertex) itLinks.next();
+          if (AccessUtils.isLatestVersion(vDiscussion)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
+              return false;
+            }
+          }
+        }
+        // TagAssociation... do not care, just delete
+        return true;
       case DataModel.Classes.trailOfInterest:
         // Annotation, Measurement, Comment
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();

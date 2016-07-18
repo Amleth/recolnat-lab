@@ -34,9 +34,9 @@ class LabBenchStore extends EventEmitter {
         case MetadataConstants.ActionTypes.LOAD_LAB_BENCH:
           if(action.id) {
             console.log('loading bench ' + action.id);
-              this.labBench = {};
-              this.allElementIds = [];
-              this.loadBench(action.id);
+            this.labBench = {};
+            this.allElementIds = [];
+            this.loadBench(action.id);
           }
           else {
             console.log('unloading bench');
@@ -61,15 +61,15 @@ class LabBenchStore extends EventEmitter {
           }
           break;
         case MetadataConstants.ActionTypes.UPDATE_LAB_BENCH:
-        if(this.labBench.id) {
-          this.allElementIds = [];
-          if(action.id) {
-          this.reloadBenchFrom(action.id);
-        }
-        else {
-          this.reloadBenchFrom(this.labBench.id);
-        }
-        }
+          if(this.labBench.id) {
+            this.allElementIds = [];
+            if(action.id) {
+              this.reloadBenchFrom(action.id);
+            }
+            else {
+              this.reloadBenchFrom(this.labBench.id);
+            }
+          }
           break;
         default:
           //console.log('selected=' + JSON.stringify(this.selection));
@@ -97,6 +97,9 @@ class LabBenchStore extends EventEmitter {
     }
     if(this.labBench.rois[id]) {
       return JSON.parse(JSON.stringify(this.labBench.rois[id]));
+    }
+    if(this.labBench.aois[id]) {
+      return JSON.parse(JSON.stringify(this.labBench.aois[id]));
     }
     if(this.labBench.pois[id]) {
       return JSON.parse(JSON.stringify(this.labBench.pois[id]));
@@ -152,16 +155,19 @@ class LabBenchStore extends EventEmitter {
   }
 
   getMeasureStandardForMeasure(measureId) {
-    // Get RoI or ToI corresponding to measure.
+    // Get RoI or ToI or AoI corresponding to measure.
     if(this.labBench.measurements[measureId]) {
       var thingOfInterestId = this.labBench.measurements[measureId].parents[0];
 
-var imageId = null;
+      var imageId = null;
+      if(this.labBench.aois[thingOfInterestId]) {
+        imageId = this.labBench.aois[thingOfInterestId].parents[0];
+      }
       if(this.labBench.rois[thingOfInterestId]) {
         imageId = this.labBench.rois[thingOfInterestId].parents[0];
       }
       else if(this.labBench.tois[thingOfInterestId]) {
-imageId = this.labBench.tois[thingOfInterestId].parents[0];
+        imageId = this.labBench.tois[thingOfInterestId].parents[0];
       }
       else {
         console.warn('No thing of interest corresponding to id ' + thingOfInterestId);
@@ -198,6 +204,11 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
       this.toLoad = 1;
       this.loaded = 0;
       this.loadView(id);
+    }
+    else if(this.labBench.aois[id]) {
+      this.toLoad = 1;
+      this.loaded = 0;
+      this.loadAoIs([id]);
     }
     else if(this.labBench.rois[id]) {
       this.toLoad = 1;
@@ -255,6 +266,7 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
           this.labBench.images = {};
           this.labBench.specimens = {};
           this.labBench.views = {};
+          this.labBench.aois = {};
           this.labBench.rois = {};
           this.labBench.pois = {};
           this.labBench.tois = {};
@@ -350,6 +362,10 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
               case 'Image':
                 this.labBench.images[item.uid] = item;
 
+                if(item.aois.length > 0) {
+                  this.loadAoIs(item.aois);
+                  this.toLoad++;
+                }
                 if(item.rois.length > 0) {
                   this.loadRoIs(item.rois);
                   this.toLoad++;
@@ -385,6 +401,36 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
       });
   }
 
+  loadAoIs(ids) {
+    //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+    Array.prototype.push.apply(this.allElementIds, ids);
+    var self = this;
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
+      .withCredentials()
+      .end((err, res) => {
+        if(err) {
+          console.error('Could not load AoI ' + ids + ': ' + err);
+          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+        }
+        else {
+          var aois = JSON.parse(res.text);
+          //console.log(res.text);
+          for(var i = 0; i < aois.length; ++i) {
+            var aoi = aois[i];
+            this.labBench.aois[aoi.uid] = aoi;
+            if(aoi.measurements.length > 0) {
+              this.toLoad++;
+              this.loadMeasurements(aoi.measurements);
+            }
+          }
+
+        }
+        this.loaded++;
+        this.onLoadingDone();
+      });
+  }
+
   loadRoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
     Array.prototype.push.apply(this.allElementIds, ids);
@@ -399,7 +445,7 @@ imageId = this.labBench.tois[thingOfInterestId].parents[0];
         }
         else {
           var rois = JSON.parse(res.text);
-          console.log(res.text);
+          //console.log(res.text);
           for(var i = 0; i < rois.length; ++i) {
             var roi = rois[i];
             this.labBench.rois[roi.uid] = roi;

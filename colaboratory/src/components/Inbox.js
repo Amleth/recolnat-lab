@@ -144,6 +144,20 @@ class Inbox extends React.Component {
     var data = [];
     var x = this.props.viewstore.getView().left;
     var y = this.props.viewstore.getView().top;
+    var maxHeight = Math.max(
+      this.state.content[0]? this.state.content[0].height : 0,
+      this.state.content[1]? this.state.content[1].height : 0,
+      this.state.content[2]? this.state.content[2].height : 0,
+      this.state.content[3]? this.state.content[3].height : 0,
+      this.state.content[4]? this.state.content[4].height : 0
+    );
+    var maxWidth = Math.max(
+      this.state.content[0]? this.state.content[0].width : 0,
+      this.state.content[1]? this.state.content[1].width : 0,
+      this.state.content[2]? this.state.content[2].width : 0,
+      this.state.content[3]? this.state.content[3].width : 0,
+      this.state.content[4]? this.state.content[4].width : 0
+    );
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
       data.push({
@@ -152,10 +166,24 @@ class Inbox extends React.Component {
         view: viewId,
         entity: this.state.content[i].uid
       });
-      x = x + this.state.content[i].width + 200;
+      x = x + maxWidth + 200;
       if((i+1) % 5 == 0) {
-        y = y + this.state.content[i].height + 200;
+        y = y + maxHeight + 200;
         x = this.props.viewstore.getView().left;
+        maxHeight = Math.max(
+          this.state.content[i+1]? this.state.content[i+1].height : 0,
+          this.state.content[i+2]? this.state.content[i+2].height : 0,
+          this.state.content[i+3]? this.state.content[i+3].height : 0,
+          this.state.content[i+4]? this.state.content[i+4].height : 0,
+          this.state.content[i+5]? this.state.content[i+5].height : 0
+        );
+        maxWidth = Math.max(
+          this.state.content[i+1]? this.state.content[i+1].width : 0,
+          this.state.content[i+2]? this.state.content[i+2].width : 0,
+          this.state.content[i+3]? this.state.content[i+3].width : 0,
+          this.state.content[i+4]? this.state.content[i+4].width : 0,
+          this.state.content[i+5]? this.state.content[i+5].width : 0
+        );
       }
     }
 

@@ -15,6 +15,7 @@ export default {
     createAndFillSet: 'MODAL_createAndFillSet',
     login: 'MODAL_login',
     confirmDelete: 'MODAL_confirmDelete',
-    addAnnotationToEntity: 'MODAL_addAnnotationToEntity'
+    addAnnotationToEntity: 'MODAL_addAnnotationToEntity',
+    testRunnerModal: 'MODAL_testRunnerModal'
   }
 };

@@ -31,8 +31,10 @@ import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
 
 import ViewActions from './actions/ViewActions';
 import MetadataActions from './actions/MetadataActions';
+import ModalActions from './actions/ModalActions';
 
 import ViewConstants from './constants/ViewConstants';
+import ModalConstants from './constants/ModalConstants';
 
 import InterStoreCommunicationsController from './utils/InterStoreCommunicationsController';
 
@@ -265,6 +267,16 @@ class Window extends React.Component {
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
     window.addEventListener("message", this.receiveMessage.bind(this));
+    window.addEventListener('keyup', this.displayTestModal.bind(this));
+  }
+
+  displayTestModal(event) {
+    //console.log('key pressed ' + event.keyCode);
+    if(event.ctrlKey && event.altKey && event.keyCode === 84) {
+      event.preventDefault();
+      event.stopPropagation();
+      ModalActions.showModal(ModalConstants.Modals.testRunnerModal);
+    }
   }
 
   signalIframeReady() {

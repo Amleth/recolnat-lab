@@ -244,24 +244,24 @@ class ElementInspector extends React.Component {
     if(mmPerPixel) {
       switch(metadata.measureType) {
         case 101: // Perimeter
-          item.value = 'Périmètre : ' + (mmPerPixel * metadata.valueInPx) + ' mm';
+          item.value = 'Périmètre : ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 100: // Area
-          item.value = 'Aire : ' + (mmPerPixel * mmPerPixel) * metadata.valueInPx + ' mm²';
+          item.value = 'Aire : ' + ((mmPerPixel * mmPerPixel) * metadata.valueInPx).toFixed(2) + ' mm²';
           break;
         case 102:
           // Length
-          item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx) + ' mm';
+          item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 103:
-          item.value = 'Angle : ' + metadata.valueInPx + '°';
+          item.value = 'Angle : ' + metadata.valueInPx.toFixed(2) + '°';
           break;
         default:
           console.warn('Unknown measure type ' + metadata.measureType);
       }
     }
     else {
-      item.value = metadata.valueInPx + ' px';
+      item.value = metadata.valueInPx.toFixed(2) + ' px';
       item.warning = 'Aucun étalon disponible pour la conversion';
     }
     if(!metadata.creator) {
@@ -432,4 +432,3 @@ class ElementInspector extends React.Component {
 }
 
 export default ElementInspector;
-

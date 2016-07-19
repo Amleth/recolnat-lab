@@ -3,6 +3,8 @@
  */
 "use strict";
 
+import React from 'react';
+
 var ToolConfiguration = {
   lineMeasure: {
     id: "measure",
@@ -42,7 +44,7 @@ var ToolConfiguration = {
   },
   newAngle: {
     id: 'createNewAngleMeasure',
-    tooltip: "Cliquez sur une image pour placer le sommet de l'angle à mesurer"
+    tooltip: <p>Étape 1/4<br />Cliquez sur une image pour placer le sommet de l'angle à mesurer.</p>
   },
   nothing: {
     id: "null",

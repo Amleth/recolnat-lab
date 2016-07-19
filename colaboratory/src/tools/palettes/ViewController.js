@@ -96,8 +96,8 @@ class ViewController extends React.Component {
     }
     //console.log(JSON.stringify(view));
     ViewActions.updateViewport(
-      (view.left-view.width/2)/view.scale,
-      (view.top-view.height/2)/view.scale,
+      (view.left-view.width)/(2*view.scale),
+      (view.top-view.height)/(2*view.scale),
       null,
       null,
       1.0,

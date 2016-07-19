@@ -96,7 +96,7 @@ class CreatePathPopup extends React.Component {
 
   clear() {
     window.setTimeout(ToolActions.reset, 10);
-    this.setState({name: '', letters: ''});
+    this.setState({name: ''});
   }
 
   save() {
@@ -105,6 +105,10 @@ class CreatePathPopup extends React.Component {
 
   onNameChange(event) {
     this.setState({name: event.target.value});
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({name: ''});
   }
 
   componentDidUpdate(prevProps, prevState) {

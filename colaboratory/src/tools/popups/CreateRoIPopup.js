@@ -93,7 +93,7 @@ class CreateRoIPopup extends React.Component {
 
   cancel() {
     window.setTimeout(ToolActions.reset, 100);
-    this.setState({name: '', letters: ''});
+    this.setState({name: ''});
   }
 
   save() {
@@ -102,6 +102,10 @@ class CreateRoIPopup extends React.Component {
 
   onNameChange(event) {
     this.setState({name: event.target.value});
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({name: ''});
   }
 
   componentDidUpdate(prevProps, prevState) {

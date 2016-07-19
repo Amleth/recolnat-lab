@@ -109,6 +109,10 @@ class CreatePoIPopup extends React.Component {
     this.setState({name: name});
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({name: ''});
+  }
+
   componentWillUpdate(nextProps, nextState) {
     //console.log(JSON.stringify(nextProps));
   }

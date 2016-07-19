@@ -156,7 +156,8 @@ class LineMeasure extends AbstractTool {
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfSvgClass)
       .attr('stroke-width', 2/view.scale)
-      .attr('stroke', '#AAAAAA');
+      .attr('stroke', '#AAAAAA')
+      .style('pointer-events', 'none');
 
     newMeasure
       .append('line')
@@ -164,7 +165,8 @@ class LineMeasure extends AbstractTool {
       .attr('class', LineMeasure.classes().selfDashSvgClass)
       .attr('stroke-width', 2/view.scale)
       .attr('stroke-dasharray', 5/view.scale + ',' + 5/view.scale)
-      .attr('stroke', 'black');
+      .attr('stroke', 'black')
+      .style('pointer-events', 'none');
 
     var group = newMeasure.append('g')
       .datum(lineData)
@@ -181,7 +183,8 @@ class LineMeasure extends AbstractTool {
       .attr('font-size', 20/view.scale + 'px')
       .attr('stroke', 'black')
       .attr('fill', 'white')
-      .style('filter', 'url(#drop-shadow)');
+      .style('filter', 'url(#drop-shadow)')
+      .style('pointer-events', 'none');
 
     LineMeasure.updateLineDisplay(lineData.id);
 
@@ -251,10 +254,9 @@ class LineMeasure extends AbstractTool {
     var popup = <Popup
       toolstore={this.props.toolstore}
       setScaleCallback={this.setScale.bind(this)}/>;
-    window.setTimeout(function() {
-      ToolActions.activeToolPopupUpdate(popup);
-      ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
-    }, 50);
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.lineMeasure.tooltip), 10);
 
     var self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)

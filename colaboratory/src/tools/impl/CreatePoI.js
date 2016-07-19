@@ -80,8 +80,10 @@ class CreatePoI extends AbstractTool {
                        toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
     />;
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
+
 
     var self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
@@ -107,7 +109,14 @@ class CreatePoI extends AbstractTool {
   }
 
   reset() {
+    var popup = <Popup vertexClass={this.vertexClass}
+                       toolstore={this.props.toolstore}
+                       setNameCallback={this.setName.bind(this)}
+    />;
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
+
     this.clearSVG();
     this.setState({x: null, y: null, displayX: null, displayY: null, imageUri: null, imageLinkUri: null, name: ''});
   }
@@ -159,7 +168,8 @@ class CreatePoI extends AbstractTool {
 
       vertex = toolDisplayGroup
         .append('g')
-        .attr("class", this.vertexClass);
+        .attr("class", this.vertexClass)
+        .style('pointer-events', 'none');
 
       vertex.append("svg:title");
 

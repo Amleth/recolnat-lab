@@ -77,7 +77,8 @@ class CreateRoI extends AbstractTool {
     var view = this.props.viewstore.getView();
     var overImageGroup = d3.select('#OVER-' + this.state.imageLinkUri);
     var toolDisplayGroup = overImageGroup.append('g')
-      .attr('class', CreateRoI.classes().selfSvgClass);
+      .attr('class', CreateRoI.classes().selfSvgClass)
+      .style('pointer-events', 'none');
 
     var self = this;
     for(var i = 0 ; i < this.state.edges.length; ++i) {
@@ -178,7 +179,6 @@ class CreateRoI extends AbstractTool {
 
   begin() {
     var popup = <Popup setDataCallback={this.setData.bind(this)}  toolstore={this.props.toolstore}/>;
-    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     var self = this;
@@ -205,8 +205,12 @@ class CreateRoI extends AbstractTool {
   }
 
   reset() {
+    var popup = <Popup setDataCallback={this.setData.bind(this)}  toolstore={this.props.toolstore}/>;
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
     this.clearSVG();
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newRegionOfInterest.tooltip), 10);
+
     this.setState({
       imageUri: null,
       imageLinkUri: null,
@@ -585,6 +589,9 @@ class CreateRoI extends AbstractTool {
       d3.select('.' + Classes.ROOT_CLASS)
         .on('mouseenter', CreateRoI.activateEnter)
         .on('mouseleave', CreateRoI.deactivateEnter);
+
+        d3.select('.' + CreateRoI.classes().selfSvgClass)
+          .style('pointer-events', 'auto');
 
       window.setTimeout(function() {
         ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour créer un nouveau point en son milieu.");}, 50);

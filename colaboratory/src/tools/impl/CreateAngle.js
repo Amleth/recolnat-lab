@@ -169,6 +169,9 @@ class CreateAngle extends AbstractTool {
       imageId: null
     });
 
+    var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newAngle.tooltip), 10);
   }
 
@@ -422,15 +425,6 @@ class CreateAngle extends AbstractTool {
     if(d3.event.sourceEvent.which == 1) {
       d3.event.sourceEvent.preventDefault();
       d3.event.sourceEvent.stopPropagation();
-
-      //var circle = d3.select(this);
-      //circle
-      //  .classed('dragging', true);
-      //.datum({tx: 0, ty: 0, origX: circle.cx, origY: circle.cy})
-      //.attr('origX', function(d) {return d.origX;})
-      //.attr('origY', function(d) {return d.origY;})
-      //.attr('tx', function(d) {return d.tx;})
-      //.attr('ty', function(d) {return d.ty;});
     }
   }
 

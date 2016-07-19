@@ -226,6 +226,10 @@ class CreatePath extends AbstractTool {
       start: null,
       imageLinkId: null,
       interactionState: 0});
+
+    var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore}/>;
+    window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+
     window.setTimeout(function() {
       ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
     }, 10);
@@ -341,7 +345,8 @@ class CreatePath extends AbstractTool {
     var overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
     var toolDisplayGroup = overSheetGroup
       .append('g')
-      .attr('class', this.toolContainerSVGClass);
+      .attr('class', this.toolContainerSVGClass)
+      .style('pointer-events', 'none');
 
     var self = this;
     for(var i = 0 ; i < this.state.edges.length; ++i) {
@@ -578,13 +583,18 @@ class CreatePath extends AbstractTool {
       this.clearSVG();
       this.dataToSVG();
     }
-    if(this.state.interactionState == 1 && prevState.interactionState != 1) {
-      window.setTimeout(function() {
-        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour la scinder en deux.");}, 50);
+    if(this.state.interactionState == 1) {
+      d3.select('.' + this.toolContainerSVGClass)
+      .style('pointer-events', 'auto');
+
+      if(prevState.interactionState != 1) {
+        window.setTimeout(function() {
+          ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour la scinder en deux.");}, 10);
+      }
     }
     else if(this.state.interactionState == 0 && this.state.start && !prevState.start) {
       window.setTimeout(function() {
-        ToolActions.updateTooltipData("Cliquez sur l'image active pour créer un nouveau point et le relier au point précédent. Appuyez sur ENTREE pour terminer l'ajout de points ou cliquez sur le premier point pour terminer le tracé");}, 50);
+        ToolActions.updateTooltipData("Cliquez sur l'image active pour créer un nouveau point et le relier au point précédent. Clic droit ou ENTREE pour terminer l'ajout de points ou cliquez sur le premier point pour fermer le tracé");}, 50);
     }
   }
 

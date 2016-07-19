@@ -116,6 +116,10 @@ class CreateAnglePopup extends React.Component {
     this.setState({saveButtonActive: 'disabled'});
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({name: ''});
+  }
+
   componentWillUpdate(nextProps, nextState) {
     //if(nextProps.enableSave) {
     //  nextState.saveButtonActive = '';

@@ -91,11 +91,16 @@ class Toolbox extends React.Component {
           <MoveObject viewstore={this.props.viewstore}/>
           <SelectObject />
         </div>
-        <div className='ui four buttons' style={this.buttonRowsStyle}>
+        <div className='ui three buttons' style={this.buttonRowsStyle}>
           <LineMeasure
             toolstore={this.props.toolstore}
             benchstore={this.props.benchstore}
             viewstore={this.props.viewstore} />
+          <CreateAngle
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore} />
+        </div>
+        <div className='ui three buttons' style={this.buttonRowsStyle}>
           <CreatePointOfInterest
             toolstore={this.props.toolstore}
             viewstore={this.props.viewstore} />
@@ -104,9 +109,6 @@ class Toolbox extends React.Component {
             benchstore={this.props.benchstore}
             toolstore={this.props.toolstore} />
           <CreateRoI
-            viewstore={this.props.viewstore}
-            toolstore={this.props.toolstore} />
-          <CreateAngle
             viewstore={this.props.viewstore}
             toolstore={this.props.toolstore} />
         </div>

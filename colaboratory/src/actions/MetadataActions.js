@@ -14,6 +14,13 @@ export default {
     });
   },
 
+  setLabBenchId: (id = null) => {
+    AppDispatcher.dispatch({
+      actionType: MetadataConstants.ActionTypes.SET_LAB_BENCH,
+      id: id
+    })
+  },
+
   loadLabBench: (id) => {
     AppDispatcher.dispatch({
       actionType: MetadataConstants.ActionTypes.LOAD_LAB_BENCH,

@@ -64,7 +64,9 @@ class FreeSpace extends React.Component {
   clearLabBench() {
     d3Component.clearDisplay();
     d3Component.newLabBench();
-    var id = this.props.managerstore.getSelected().id;
+    // var id = this.props.managerstore.getSelected().id;
+    var sets = this.props.managerstore.getSets();
+    var id = sets[sets.length-1].uid;
     window.setTimeout(MetadataActions.loadLabBench.bind(null, id), 10);
     window.setTimeout(MinimapActions.unsetMinimap, 10);
   }

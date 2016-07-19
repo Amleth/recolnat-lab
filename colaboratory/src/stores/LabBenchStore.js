@@ -31,12 +31,20 @@ class LabBenchStore extends EventEmitter {
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
       switch (action.actionType) {
+        case MetadataConstants.ActionTypes.SET_LAB_BENCH:
+        this.labBench = {};
+        this.labBench.id = action.id;
+        break;
         case MetadataConstants.ActionTypes.LOAD_LAB_BENCH:
           if(action.id) {
             console.log('loading bench ' + action.id);
             this.labBench = {};
             this.allElementIds = [];
             this.loadBench(action.id);
+          }
+          else if(this.labBench.id) {
+            this.allElementIds = [];
+            this.loadBench(this.labBench.id);
           }
           else {
             console.log('unloading bench');

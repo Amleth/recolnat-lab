@@ -113,6 +113,9 @@ class SetDisplay extends React.Component {
     window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.set.uid, node.linkToParent),10);
     window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, node.uid), 10);
     window.setTimeout(InspectorActions.setInspectorData.bind(null, [node.uid]), 10);
+    if(node.type === 'Set') {
+      window.setTimeout(MetadataActions.setLabBenchId.bind(null, node.uid));
+    }
   }
 
   selectAndLoadSet(idx, item) {

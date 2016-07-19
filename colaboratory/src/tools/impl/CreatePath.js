@@ -196,7 +196,7 @@ class CreatePath extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     // Mount listeners on all image groups
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
@@ -235,12 +235,12 @@ class CreatePath extends AbstractTool {
     this.clearSVG();
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ""), 10);
-    
+
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', null)
       .on('mouseleave', null);
 
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'default')
       .on('contextmenu', null)
       .on('click', null);

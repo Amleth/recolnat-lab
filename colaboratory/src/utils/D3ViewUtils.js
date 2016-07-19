@@ -203,7 +203,8 @@ export default class D3ViewUtils {
       .attr('fill', 'none')
       .attr('stroke', 'red')
       .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-      .attr('stroke-width', 4);
+      .attr('stroke-width', 4)
+      .style('pointer-events', 'none');
     angle.exit().remove();
     angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
 
@@ -220,7 +221,8 @@ export default class D3ViewUtils {
       .attr('fill', 'none')
       .attr('stroke', 'red')
       .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-      .attr('stroke-width', 4);
+      .attr('stroke-width', 4)
+      .style('pointer-events', 'none');
     path.exit().remove();
     path.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
 
@@ -234,7 +236,8 @@ export default class D3ViewUtils {
     var poi = point.enter().append('g')
       .attr('class', Classes.POI_CLASS)
       .attr('id', d => 'POI-' + d.uid)
-      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
+      .style('pointer-events', 'none');
     //poi.append('rect')
     //  .attr('rx', 5)
     //  .attr('ry', 5)
@@ -264,7 +267,8 @@ export default class D3ViewUtils {
       .attr('id', d => 'ROI-' + d.uid)
       .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
       .attr('fill', 'blue')
-      .attr('fill-opacity', 0.3);
+      .attr('fill-opacity', 0.3)
+      .style('pointer-events', 'none');
     region.exit().remove();
     region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
     // END over image update

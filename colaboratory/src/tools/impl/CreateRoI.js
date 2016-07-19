@@ -182,7 +182,7 @@ class CreateRoI extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     var self = this;
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
@@ -220,7 +220,7 @@ class CreateRoI extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ""), 10);
 
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'default')
       .on('contextmenu', null)
       .on('click', null);

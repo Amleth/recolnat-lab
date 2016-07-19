@@ -257,7 +257,7 @@ class LineMeasure extends AbstractTool {
     }, 50);
 
     var self = this;
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
@@ -286,7 +286,7 @@ class LineMeasure extends AbstractTool {
   }
 
   finish() {
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'default')
       .on('click', null)
       .on('contextmenu', null);

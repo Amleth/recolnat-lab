@@ -84,7 +84,7 @@ class CreatePoI extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     var self = this;
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
         if(d3.event.button == 0) {
@@ -119,7 +119,7 @@ class CreatePoI extends AbstractTool {
 
     this.props.viewstore.removeViewportListener(this._onViewChange);
 
-    d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    d3.selectAll('.' + Classes.IMAGE_CLASS)
       .on('click', null)
       .on('contextmenu', null)
       .style('cursor', 'default');

@@ -60,7 +60,7 @@ class CreateAndFillSet extends AbstractModal {
 
     var name = this.state.nameInput;
 
-    var keepInBasket = true;
+    var keepInBasket = false;
     var items = this.props.basketstore.getBasketSelection();
     var specimens = [];
     for(var i = 0; i < items.length; ++i) {
@@ -119,11 +119,21 @@ class CreateAndFillSet extends AbstractModal {
       onSetCreationError);
   }
 
+  componentDidMount() {
+    super.componentDidMount();
+    this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(!this.state.active && nextState.active) {
       window.setTimeout(BasketActions.reloadBasket, 10);
     }
     super.componentWillUpdate(nextProps, nextState);
+  }
+
+  componentWillUnmount() {
+    super.componentWillUnmount();
+    this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
   }
 
   render() {

@@ -29,6 +29,11 @@ class AddEntitiesToSetModal extends AbstractModal {
       return updateDisplayedName.apply(this);
     };
 
+    this._onBasketUpdate = () => {
+      const refresh = () => this.setState({});
+      return refresh.apply(this);
+    };
+
     this.state.source = 'subset';
     this.state.parentId = null;
     // this.state.parentIndex = null;
@@ -113,7 +118,7 @@ class AddEntitiesToSetModal extends AbstractModal {
 
     var onSuccess = null;
     var onError = null;
-    var keepInBasket = true;
+    var keepInBasket = false;
     switch(this.props.modestore.getMode()) {
       case ModeConstants.Modes.SET:
         onSuccess = function(response) {
@@ -136,7 +141,12 @@ class AddEntitiesToSetModal extends AbstractModal {
         onSuccess = function(response) {
           // Place specimens in middle of screen
           window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
-          window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
+
+          if(!keepInBasket) {
+            for (var k = 0; k < items.length; ++k) {
+              window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[k]), 10);
+            }
+          }
           var viewId = this.props.benchstore.getActiveViewId();
 
           var data = [];
@@ -207,6 +217,7 @@ class AddEntitiesToSetModal extends AbstractModal {
         window.setTimeout(self.setState.bind(self, {source: path}), 10);
       }
     });
+    this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -218,6 +229,11 @@ class AddEntitiesToSetModal extends AbstractModal {
       window.setTimeout(BasketActions.reloadBasket, 10);
     }
     super.componentWillUpdate(nextProps, nextState);
+  }
+
+  componentWillUnmount() {
+    super.componentWillUnmount();
+    this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
   }
 
   render() {

@@ -98,11 +98,11 @@ class Basket extends React.Component {
   }
 
   render() {
-    if(this.state.basketItems.length === 0) {
-      return <div style={this.basketContainerStyle}>
-        Connexion au panier
-      </div>;
-    }
+    // if(this.state.basketItems.length === 0) {
+    //   return <div style={this.basketContainerStyle}>
+    //     Connexion au panier
+    //   </div>;
+    // }
     var self = this;
     return <div style={this.basketContainerStyle}>
       <div className='ui buttons' ref='buttons'>

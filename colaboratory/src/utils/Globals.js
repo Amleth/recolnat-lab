@@ -150,35 +150,35 @@ class GlobalFunctions {
     return entity.name;
   }
 
-  static setMode(mode) {
-    window.setTimeout(
-      ModeActions.changeMode.bind(null, mode), 10
-    );
-    window.setTimeout(
-      ToolActions.setTool.bind(null, null), 10
-    );
-    switch(mode) {
-      case ModeConstants.Modes.OBSERVATION:
-        window.setTimeout(
-          MetadataActions.updateLabBenchFrom, 10
-        );
-        break;
-      case ModeConstants.Modes.ORGANISATION:
-        window.setTimeout(
-          MetadataActions.updateLabBenchFrom, 10
-        );
-        break;
-      case ModeConstants.Modes.SET:
-        window.setTimeout(
-          ManagerActions.reloadDisplayedSets, 10
-        );
-        break;
-      case ModeConstants.Modes.TABULAR:
-        break;
-      default:
-        break;
-    }
-  }
+  // static setMode(mode) {
+  //   window.setTimeout(
+  //     ModeActions.changeMode.bind(null, mode), 10
+  //   );
+  //   window.setTimeout(
+  //     ToolActions.setTool.bind(null, null), 10
+  //   );
+  //   switch(mode) {
+  //     case ModeConstants.Modes.OBSERVATION:
+  //       window.setTimeout(
+  //         MetadataActions.updateLabBenchFrom, 10
+  //       );
+  //       break;
+  //     case ModeConstants.Modes.ORGANISATION:
+  //       window.setTimeout(
+  //         MetadataActions.updateLabBenchFrom, 10
+  //       );
+  //       break;
+  //     case ModeConstants.Modes.SET:
+  //       window.setTimeout(
+  //         ManagerActions.reloadDisplayedSets, 10
+  //       );
+  //       break;
+  //     case ModeConstants.Modes.TABULAR:
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 
   static isCoordsInBoundingBox(coordinates, box) {
     return coordinates[0] >= box.left &&

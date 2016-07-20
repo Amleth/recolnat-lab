@@ -114,14 +114,13 @@ class SetDisplay extends React.Component {
     window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, node.uid), 10);
     window.setTimeout(InspectorActions.setInspectorData.bind(null, [node.uid]), 10);
     if(node.type === 'Set') {
-      window.setTimeout(MetadataActions.setLabBenchId.bind(null, node.uid));
+      window.setTimeout(MetadataActions.setLabBenchId.bind(null, node.uid), 10);
     }
   }
 
   selectAndLoadSet(idx, item) {
-    window.setTimeout(ViewActions.setActiveSet.bind(null, item.uid), 10);
+    window.setTimeout(MetadataActions.setLabBenchId.bind(null, item.uid), 10);
     window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, item.uid), 10);
-    // window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
     window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
   }
 

@@ -14,6 +14,7 @@ import ModeConstants from '../../constants/ModeConstants';
 
 import ViewActions from '../../actions/ViewActions.js';
 import ToolActions from '../../actions/ToolActions.js';
+import ModeActions from '../../actions/ModeActions.js';
 
 import OrbOptions from '../../components/context-menu/options/OrbOptions';
 
@@ -153,7 +154,8 @@ class MoveObject extends AbstractTool {
   switchToSheetInObservationMode(d) {
     OrbOptions.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());
 
-    window.setTimeout(Globals.setMode.bind(null, ModeConstants.Modes.OBSERVATION), 1010);
+    // window.setTimeout(Globals.setMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
+    window.setTimeout(ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
   }
 
   componentDidMount() {

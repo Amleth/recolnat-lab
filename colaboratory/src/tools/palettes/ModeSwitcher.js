@@ -51,17 +51,17 @@ class ModeSwitcher extends React.Component {
     return <div className='ui icon menu' ref='component'>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.SET)}
          data-content='Sets'
-         onClick={Globals.setMode.bind(null, ModeConstants.Modes.SET)}>
+         onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.SET)}>
         <i className='sitemap icon' />
       </a>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.OBSERVATION)}
          data-content='Observation'
-         onClick={Globals.setMode.bind(null, ModeConstants.Modes.OBSERVATION)}>
+         onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION)}>
         <i className='eye icon' />
       </a>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.ORGANISATION)}
          data-content='Agencement'
-         onClick={Globals.setMode.bind(null, ModeConstants.Modes.ORGANISATION)}>
+         onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.ORGANISATION)}>
         <i className='cubes icon' />
       </a>
       <a className={'blue item disabled ' + this.isActive(ModeConstants.Modes.TABULAR)}

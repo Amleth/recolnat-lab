@@ -356,7 +356,7 @@ class ElementInspector extends React.Component {
     if(!annotationMetadata) {
       return null;
     }
-    var meta = this.measurementToMetaDisplay(measurementMetadata);
+    var meta = this.annotationToMetaDisplay(annotationMetadata);
     if(!meta) {
       return null;
     }

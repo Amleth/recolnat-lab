@@ -32,12 +32,14 @@ class LabBenchStore extends EventEmitter {
     AppDispatcher.register((action) => {
       switch (action.actionType) {
         case MetadataConstants.ActionTypes.SET_LAB_BENCH:
+        delete this.labBench;
         this.labBench = {};
         this.labBench.id = action.id;
         break;
         case MetadataConstants.ActionTypes.LOAD_LAB_BENCH:
           if(action.id) {
             console.log('loading bench ' + action.id);
+            delete this.labBench;
             this.labBench = {};
             this.allElementIds = [];
             this.loadBench(action.id);
@@ -48,20 +50,21 @@ class LabBenchStore extends EventEmitter {
           }
           else {
             console.log('unloading bench');
+            delete this.labBench;
             this.labBench = {};
             this.allElementIds = [];
             this.emit(MetadataEvents.LAB_BENCH_READY);
           }
           break;
-        case ViewConstants.ActionTypes.Server.VIEW_SET_DISPLAYED_SET:
-          if(action.id != this.labBench.id) {
-            window.setTimeout(function() {
-              ViewActions.changeLoaderState("Chargement en cours.")}, 1);
-            this.labBench.id = action.id;
-            this.emit(ViewEvents.ACTIVE_SET_CHANGE);
-          }
-
-          break;
+        // case ViewConstants.ActionTypes.Server.VIEW_SET_DISPLAYED_SET:
+        //   if(action.id != this.labBench.id) {
+        //     window.setTimeout(function() {
+        //       ViewActions.changeLoaderState("Chargement en cours.")}, 1);
+        //     this.labBench.id = action.id;
+        //     this.emit(ViewEvents.ACTIVE_SET_CHANGE);
+        //   }
+        //
+        //   break;
         case ViewConstants.ActionTypes.Local.SET_ACTIVE_VIEW:
           if(this.activeView != action.id) {
             this.activeView = action.id;

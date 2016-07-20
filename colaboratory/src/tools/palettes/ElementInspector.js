@@ -224,6 +224,27 @@ class ElementInspector extends React.Component {
     });
   }
 
+  annotationToMetaDisplay(metadata) {
+    var item = {
+      date: new Date(),
+      value: metadata.content
+    };
+    item.date.setTime(metadata.creationDate);
+    item.date = item.date.toLocaleDateString();
+
+    if(!metadata.creator) {
+      item.author = 'Système ReColNat';
+    }
+    else {
+      var authorMetadata = this.state.creators[metadata.creator];
+      if(authorMetadata) {
+        item.author = authorMetadata.name;
+      }
+    }
+
+    return item;
+  }
+
   measurementToMetaDisplay(metadata) {
     var item = {
       date: new Date()

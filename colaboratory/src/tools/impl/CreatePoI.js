@@ -161,9 +161,8 @@ class CreatePoI extends AbstractTool {
   }
 
   drawPointInSVG() {
-    var vertex = d3.select("." + this.vertexClass);
-    if(vertex.empty()) {
-
+    var vertex = d3.select("." + this.vertexClass).remove();
+    // if(vertex.empty()) {
       var toolDisplayGroup = d3.select('#OVER-' + this.state.imageLinkUri);
 
       vertex = toolDisplayGroup
@@ -173,17 +172,11 @@ class CreatePoI extends AbstractTool {
 
       vertex.append("svg:title");
 
-      //vertex.append('rect')
-      //  .attr('rx', 5)
-      //  .attr('ry', 5)
-      //  .attr('width', 50)
-      //  .attr('height', 30);
-
       vertex.append('svg:image')
         .attr("height", 100)
         .attr("width", 60)
         .attr('xlink:href', markerSvg);
-    }
+    // }
 
     var view = this.props.viewstore.getView();
     var viewProps = this.props.viewstore.getViewProperties();

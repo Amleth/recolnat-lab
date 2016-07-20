@@ -275,7 +275,7 @@ class ElementInspector extends React.Component {
           item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 103:
-          item.value = 'Angle : ' + metadata.valueInPx.toFixed(2) + '°';
+          item.value = 'Angle : ' + this.convertToDMS(metadata.valueInPx);
           break;
         default:
           console.warn('Unknown measure type ' + metadata.measureType);
@@ -296,6 +296,10 @@ class ElementInspector extends React.Component {
     }
 
     return item;
+  }
+
+  convertToDMS(angle) {
+    return [0|angle, '° ', 0|(angle<0?angle=-angle:angle)%1*60, "' ", 0|angle*60%1*60, '"'].join('');
   }
 
   addAnnotation(id) {

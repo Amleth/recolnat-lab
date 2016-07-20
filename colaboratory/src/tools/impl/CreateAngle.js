@@ -460,6 +460,10 @@ class CreateAngle extends AbstractTool {
     return Math.acos((cv2*cv2+v1c*v1c-v1v2*v1v2) / (2*cv2*v1c));
   }
 
+  convertToDMS(angle) {
+    return [0|angle, '° ', 0|(angle<0?angle=-angle:angle)%1*60, "' ", 0|angle*60%1*60, '"'].join('');
+  }
+
   componentDidMount() {
     ToolActions.registerTool(ToolConf.newAngle.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
@@ -489,10 +493,10 @@ class CreateAngle extends AbstractTool {
           window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 2/4<br />Cliquez sur la même image pour figer la première droite de l'angle.</p>), 10);
           break;
         case 2:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 3/4<br />Cliquez sur la même image pour figer la deuxième droite de l'angle.<br />Angle : {this.getAngleInDegrees().toFixed(2)}°</p>), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 3/4<br />Cliquez sur la même image pour figer la deuxième droite de l'angle.<br />Angle : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
           break;
         case 3:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 4/4<br />Tirez n'importe quel point de l'angle pour changer sa définition. Cliquez sur Enregistrer pour terminer l'angle et le sauvegarder.<br />Angle : {this.getAngleInDegrees().toFixed(2)}°</p>), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 4/4<br />Tirez n'importe quel point de l'angle pour changer sa définition. Cliquez sur Enregistrer pour terminer l'angle et le sauvegarder.<br />Angle : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
           break;
         default:
           break;

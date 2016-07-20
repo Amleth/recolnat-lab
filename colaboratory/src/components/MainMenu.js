@@ -65,9 +65,6 @@ class MainMenu extends React.Component {
         <div className='item' style={this.optionStyle}>
           <span className='text'>Version 0.9.1</span>
         </div>
-        <div className='item' style={this.optionStyle}>
-          <span className='text'>À propos</span>
-        </div>
       </div>
     </div>
   }

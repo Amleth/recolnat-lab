@@ -95,15 +95,18 @@ public class AuthenticationResource {
             if(log.isInfoEnabled()) {
               log.info("Authentication denied by CAS");
             }
-            throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
+            return Response.status(Response.Status.FORBIDDEN).build();
+//            throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
           } catch (ConnectException ex) {
             if(log.isInfoEnabled()) {
               log.info("No authentication provided.");
             }
-            throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+//            throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
           } catch (IOException ex) {
             log.error("I/O Error while reading CAS response.", ex);
-            throw new WebApplicationException("Server error while reading CAS I/O.", Response.Status.INTERNAL_SERVER_ERROR);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+//            throw new WebApplicationException("Server error while reading CAS I/O.", Response.Status.INTERNAL_SERVER_ERROR);
           }
           userId = SessionManager.getUserId(session);
 
@@ -113,14 +116,16 @@ public class AuthenticationResource {
             response.put("userId", userId);
           } catch (JSONException ex) {
             log.error("Unable to create JSON for some reason", ex);
-            throw new WebApplicationException("Server error while preparing response", Response.Status.INTERNAL_SERVER_ERROR);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+//            throw new WebApplicationException("Server error while preparing response", Response.Status.INTERNAL_SERVER_ERROR);
           }
 
           return Response.ok(response.toString(), MediaType.APPLICATION_JSON_TYPE).build();
         }
         SessionManager.expireSession(session);
         log.info("CAS session expired.");
-        throw new WebApplicationException("Session has expired with CAS. New login required.", Response.Status.UNAUTHORIZED);
+        return Response.status(Response.Status.UNAUTHORIZED).build();
+//        throw new WebApplicationException("Session has expired with CAS. New login required.", Response.Status.UNAUTHORIZED);
       }
     }
 
@@ -132,7 +137,8 @@ public class AuthenticationResource {
     // Check CASTGC and call CAS to verify authenticity
     if (tgt == null) {
       log.info("No CAS cookie found");
-      throw new WebApplicationException("Not logged with CAS.", Response.Status.UNAUTHORIZED);
+      return Response.status(Response.Status.UNAUTHORIZED).build();
+//      throw new WebApplicationException("Not logged with CAS.", Response.Status.UNAUTHORIZED);
     }
 
     String user = null;
@@ -142,15 +148,18 @@ public class AuthenticationResource {
       if(log.isInfoEnabled()) {
         log.info("Error while authenticating with CAS.");
       }
-      throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
+      return Response.status(Response.Status.FORBIDDEN).build();
+//      throw new WebApplicationException("Authentication denied by CAS.", Response.Status.FORBIDDEN);
     } catch (ConnectException ex) {
       if(log.isInfoEnabled()) {
         log.info("Error while authenticating with CAS.");
       }
-      throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
+      return Response.status(Response.Status.FORBIDDEN).build();
+//      throw new WebApplicationException("Server error while authenticating with CAS.", Response.Status.INTERNAL_SERVER_ERROR);
     } catch (IOException ex) {
       log.error("I/O Error while reading CAS response.", ex);
-      throw new WebApplicationException("Server error while reading CAS I/O.", Response.Status.INTERNAL_SERVER_ERROR);
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+//      throw new WebApplicationException("Server error while reading CAS I/O.", Response.Status.INTERNAL_SERVER_ERROR);
     }
 
     log.trace("User is " + user);

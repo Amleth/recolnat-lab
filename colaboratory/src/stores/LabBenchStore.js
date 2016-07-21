@@ -27,6 +27,10 @@ class LabBenchStore extends EventEmitter {
     this.toLoad = 0;
     this.loaded = 0;
     this.allElementIds = [];
+    this.callbacks = {};
+    this.idsToLoad = [];
+    // Indicates that the object is waiting for a server response
+    this.loading = false;
 
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
@@ -88,6 +92,7 @@ class LabBenchStore extends EventEmitter {
       }
     });
 
+    window.setInterval(this.checkLoadingStatus.bind(this), 100);
   }
 
   getData(id) {
@@ -285,292 +290,400 @@ class LabBenchStore extends EventEmitter {
           this.labBench.measurements = {};
           this.labBench.metadata = studySet;
 
-          this.toLoad = 3;
+          this.toLoad = 1 + studySet.subsets.length + studySet.items.length;
           this.loadSubSets(studySet.subsets);
           this.loadItems(studySet.items.map(function (item) {return item.uid}));
-          //studySet.subsets.forEach(function(subsetId) {
-          //  self.loadSubSet(subsetId);
-          //});
-          //studySet.items.forEach(function(itemId) {
-          //  self.loadItem(itemId);
-          //});
           this.loadView(studySet.view);
         }
       });
   }
 
   loadSubSets(linksAndIds) {
-    //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
-
-
     var ids = [];
     for(var i = 0; i < linksAndIds.length; ++i) {
       ids.push(linksAndIds[i].uid);
+      this.callbacks[linksAndIds[i].uid] = this.subSetLoaded.bind(this);
     }
     Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
 
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load set ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var metadatas = JSON.parse(res.text);
-          for(var i =0; i < metadatas.length; ++i) {
-            var metadata = metadatas[i];
-            this.labBench.subSets[metadata.uid] = metadata;
-          }
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load set ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var metadatas = JSON.parse(res.text);
+    //      for(var i =0; i < metadatas.length; ++i) {
+    //        var metadata = metadatas[i];
+    //        this.labBench.subSets[metadata.uid] = metadata;
+    //      }
+    //
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
 
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+  subSetLoaded(metadata) {
+    this.labBench.subSets[metadata.uid] = metadata;
   }
 
   loadView(id) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    this.callbacks[id] = this.viewLoaded.bind(this);
     Array.prototype.push.apply(this.allElementIds, [id]);
+    Array.prototype.push.apply(this.idsToLoad, [id]);
 
-    request.post(conf.actions.databaseActions.getData)
-      .send([id])
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load set ' + id + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          //console.log(res.text);
-          this.labBench.views[id] = JSON.parse(res.text)[0];
-          this.activeView = id;
-          this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send([id])
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load set ' + id + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      //console.log(res.text);
+    //      this.labBench.views[id] = JSON.parse(res.text)[0];
+    //      this.activeView = id;
+    //      this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  viewLoaded(view) {
+    this.labBench.views[view.uid] = view;
+    this.activeView = view.uid;
+    this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
   }
 
   loadItems(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
     Array.prototype.push.apply(this.allElementIds, ids);
     var self = this;
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load items ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var items = JSON.parse(res.text);
-          for(var i = 0;  i < items.length; ++i) {
-            var item = items[i];
-            switch(item.type) {
-              case 'Image':
-                this.labBench.images[item.uid] = item;
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.itemLoaded.bind(this);
+    }
+    Array.prototype.push.apply(this.idsToLoad, ids);
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load items ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var items = JSON.parse(res.text);
+    //      for(var i = 0;  i < items.length; ++i) {
+    //        var item = items[i];
+    //        switch(item.type) {
+    //          case 'Image':
+    //            this.labBench.images[item.uid] = item;
+    //
+    //            if(item.aois.length > 0) {
+    //              this.loadAoIs(item.aois);
+    //              this.toLoad++;
+    //            }
+    //            if(item.rois.length > 0) {
+    //              this.loadRoIs(item.rois);
+    //              this.toLoad++;
+    //            }
+    //            if(item.pois.length > 0) {
+    //              this.loadPoIs(item.pois);
+    //              this.toLoad++;
+    //            }
+    //            if(item.tois.length > 0) {
+    //              this.loadToIs(item.tois);
+    //              this.toLoad++;
+    //            }
+    //            if(item.scales.length > 0) {
+    //              this.loadMeasureStandards(item.scales);
+    //              this.toLoad++;
+    //            }
+    //            window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
+    //            break;
+    //          case 'Specimen':
+    //            this.labBench.specimens[item.uid] = item;
+    //            if(item.images.length > 0) {
+    //              this.toLoad++;
+    //              this.loadItems(item.images);
+    //            }
+    //            break;
+    //          default:
+    //            break;
+    //        }
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
 
-                if(item.aois.length > 0) {
-                  this.loadAoIs(item.aois);
-                  this.toLoad++;
-                }
-                if(item.rois.length > 0) {
-                  this.loadRoIs(item.rois);
-                  this.toLoad++;
-                }
-                if(item.pois.length > 0) {
-                  this.loadPoIs(item.pois);
-                  this.toLoad++;
-                }
-                if(item.tois.length > 0) {
-                  this.loadToIs(item.tois);
-                  this.toLoad++;
-                }
-                if(item.scales.length > 0) {
-                  this.loadMeasureStandards(item.scales);
-                  this.toLoad++;
-                }
-                window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
-                break;
-              case 'Specimen':
-                this.labBench.specimens[item.uid] = item;
-                if(item.images.length > 0) {
-                  this.toLoad++;
-                  this.loadItems(item.images);
-                }
-                break;
-              default:
-                break;
-            }
-          }
+  itemLoaded(item) {
+    switch(item.type) {
+      case 'Image':
+        this.labBench.images[item.uid] = item;
+
+        if(item.aois.length > 0) {
+          this.loadAoIs(item.aois);
+          this.toLoad++;
         }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+        if(item.rois.length > 0) {
+          this.loadRoIs(item.rois);
+          this.toLoad++;
+        }
+        if(item.pois.length > 0) {
+          this.loadPoIs(item.pois);
+          this.toLoad++;
+        }
+        if(item.tois.length > 0) {
+          this.loadToIs(item.tois);
+          this.toLoad++;
+        }
+        if(item.scales.length > 0) {
+          this.loadMeasureStandards(item.scales);
+          this.toLoad++;
+        }
+        window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
+        break;
+      case 'Specimen':
+        this.labBench.specimens[item.uid] = item;
+        if(item.images.length > 0) {
+          this.toLoad += item.images.length;
+          this.loadItems(item.images);
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   loadAoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.aoiLoaded.bind(this);
+    }
     Array.prototype.push.apply(this.allElementIds, ids);
-    var self = this;
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load AoI ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var aois = JSON.parse(res.text);
-          //console.log(res.text);
-          for(var i = 0; i < aois.length; ++i) {
-            var aoi = aois[i];
-            this.labBench.aois[aoi.uid] = aoi;
-            if(aoi.measurements.length > 0) {
-              this.toLoad++;
-              this.loadMeasurements(aoi.measurements);
-            }
-          }
+    Array.prototype.push.apply(this.idsToLoad, ids);
 
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load AoI ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var aois = JSON.parse(res.text);
+    //      //console.log(res.text);
+    //      for(var i = 0; i < aois.length; ++i) {
+    //        var aoi = aois[i];
+    //        this.labBench.aois[aoi.uid] = aoi;
+    //        if(aoi.measurements.length > 0) {
+    //          this.toLoad++;
+    //          this.loadMeasurements(aoi.measurements);
+    //        }
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  aoiLoaded(aoi) {
+    this.labBench.aois[aoi.uid] = aoi;
+    if(aoi.measurements.length > 0) {
+      this.toLoad+= aoi.measurements.length;
+      this.loadMeasurements(aoi.measurements);
+    }
   }
 
   loadRoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.roiLoaded.bind(this);
+    }
     Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
     var self = this;
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load RoI ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var rois = JSON.parse(res.text);
-          //console.log(res.text);
-          for(var i = 0; i < rois.length; ++i) {
-            var roi = rois[i];
-            this.labBench.rois[roi.uid] = roi;
-            if(roi.measurements.length > 0) {
-              this.toLoad++;
-              this.loadMeasurements(roi.measurements);
-            }
-          }
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load RoI ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var rois = JSON.parse(res.text);
+    //      //console.log(res.text);
+    //      for(var i = 0; i < rois.length; ++i) {
+    //        var roi = rois[i];
+    //        this.labBench.rois[roi.uid] = roi;
+    //        if(roi.measurements.length > 0) {
+    //          this.toLoad++;
+    //          this.loadMeasurements(roi.measurements);
+    //        }
+    //      }
+    //
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
 
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+  roiLoaded(roi) {
+    this.labBench.rois[roi.uid] = roi;
+    if(roi.measurements.length > 0) {
+      this.toLoad+= roi.measurements.length;
+      this.loadMeasurements(roi.measurements);
+    }
   }
 
   loadPoIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(id), 10);
-    Array.prototype.push.apply(this.allElementIds, ids);
 
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load PoIs ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var pois = JSON.parse(res.text);
-          for(var i = 0; i < pois.length; ++i) {
-            var poi = pois[i];
-            this.labBench.pois[poi.uid] = poi;
-          }
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.poiLoaded.bind(this);
+    }
+    Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
+
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load PoIs ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var pois = JSON.parse(res.text);
+    //      for(var i = 0; i < pois.length; ++i) {
+    //        var poi = pois[i];
+    //        this.labBench.pois[poi.uid] = poi;
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  poiLoaded(poi) {
+    this.labBench.pois[poi.uid] = poi;
   }
 
   loadToIs(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.toiLoaded.bind(this);
+    }
     Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
 
-    var self = this;
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load ToIs ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var tois = JSON.parse(res.text);
-          for(var i = 0; i < tois.length; ++i) {
-            var toi = tois[i];
-            this.labBench.tois[toi.uid] = toi;
-            if(toi.measurements.length> 0) {
-              this.toLoad++;
-              this.loadMeasurements(toi.measurements);
-            }
-          }
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    //var self = this;
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load ToIs ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var tois = JSON.parse(res.text);
+    //      for(var i = 0; i < tois.length; ++i) {
+    //        var toi = tois[i];
+    //        this.labBench.tois[toi.uid] = toi;
+    //        if(toi.measurements.length> 0) {
+    //          this.toLoad++;
+    //          this.loadMeasurements(toi.measurements);
+    //        }
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  toiLoaded(toi) {
+    this.labBench.tois[toi.uid] = toi;
+    if(toi.measurements.length> 0) {
+      this.toLoad+= toi.measurements.length;
+      this.loadMeasurements(toi.measurements);
+    }
   }
 
   loadMeasureStandards(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.standardLoaded.bind(this);
+    }
     Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
 
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load standards ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var standards = JSON.parse(res.text);
-          for(var i = 0; i < standards.length; ++i) {
-            var standard = standards[i];
-            this.labBench.measureStandards[standard.uid] = standard;
-          }
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load standards ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var standards = JSON.parse(res.text);
+    //      for(var i = 0; i < standards.length; ++i) {
+    //        var standard = standards[i];
+    //        this.labBench.measureStandards[standard.uid] = standard;
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  standardLoaded(standard) {
+    this.labBench.measureStandards[standard.uid] = standard;
   }
 
   loadMeasurements(ids) {
     //window.setTimeout(MetadataActions.updateMetadata.bind(null, id), 10);
+    for(var i = 0; i < ids.length; ++i) {
+      this.callbacks[ids[i]] = this.measurementLoaded.bind(this);
+    }
     Array.prototype.push.apply(this.allElementIds, ids);
+    Array.prototype.push.apply(this.idsToLoad, ids);
 
-    request.post(conf.actions.databaseActions.getData)
-      .send(ids)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not load measurements  ' + ids + ': ' + err);
-          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
-        }
-        else {
-          var measurements = JSON.parse(res.text);
-          for(var i = 0; i < measurements.length; ++i) {
-            var measurement = measurements[i];
-            this.labBench.measurements[measurement.uid] = measurement;
-          }
-        }
-        this.loaded++;
-        this.onLoadingDone();
-      });
+    //request.post(conf.actions.databaseActions.getData)
+    //  .send(ids)
+    //  .withCredentials()
+    //  .end((err, res) => {
+    //    if(err) {
+    //      console.error('Could not load measurements  ' + ids + ': ' + err);
+    //      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+    //    }
+    //    else {
+    //      var measurements = JSON.parse(res.text);
+    //      for(var i = 0; i < measurements.length; ++i) {
+    //        var measurement = measurements[i];
+    //        this.labBench.measurements[measurement.uid] = measurement;
+    //      }
+    //    }
+    //    this.loaded++;
+    //    this.onLoadingDone();
+    //  });
+  }
+
+  measurementLoaded(measurement) {
+    this.labBench.measurements[measurement.uid] = measurement;
   }
 
   onLoadingDone() {
@@ -585,6 +698,45 @@ class LabBenchStore extends EventEmitter {
 
   isLoaded() {
     return this.toLoad <= this.loaded;
+  }
+
+  checkLoadingStatus() {
+    if(this.loading) {
+      return;
+    }
+    if(this.idsToLoad.length > 0) {
+      this.sendDataRequest(this.idsToLoad);
+      this.idsToLoad = [];
+      this.loading = true;
+    }
+  }
+
+  sendDataRequest(ids) {
+    request.post(conf.actions.databaseActions.getData)
+      .send(ids)
+      .withCredentials()
+      .end((err, res) => {
+        this.loading = false;
+        if(err) {
+          console.error('Could not load data about ' + ids + ': ' + err);
+          alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+        }
+        else {
+          var datas = JSON.parse(res.text);
+          for(var i = 0; i < datas.length; ++i) {
+            var callback = this.callbacks[datas[i].uid];
+            if(callback) {
+              callback(datas[i]);
+            }
+            else {
+              console.warn('No callback for ' + datas[i].uid);
+            }
+          }
+        }
+        this.loaded+= ids.length;
+        this.loading = false;
+        this.onLoadingDone();
+      })
   }
 
   addLabBenchLoadListener(callback) {

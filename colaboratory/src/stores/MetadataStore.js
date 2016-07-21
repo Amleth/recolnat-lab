@@ -34,7 +34,7 @@ class MetadataStore extends EventEmitter {
                 // this.emitUpdateEvent(action.entities[i]);
               }
               if(_.contains(this.metadataToLoad, action.entities[i])) {
-                //console.log('waiting to loead ' + action.entities[i]);
+                //console.log('already enqueued ' + action.entities[i]);
                 continue;
               }
               if(_.contains(this.metadataLoading, action.entities[i])) {
@@ -50,7 +50,7 @@ class MetadataStore extends EventEmitter {
             Array.prototype.push.apply(this.metadataToLoad, keys);
             //this.downloadAllMetadataFromServer();
           }
-          this.checkDownloadStatus();
+          //this.checkDownloadStatus();
           break;
         default:
           break;
@@ -72,15 +72,19 @@ class MetadataStore extends EventEmitter {
   }
 
   checkDownloadStatus() {
+    //console.log('------ checkDownloadStatus');
     if(this.metadataLoading.length > 0) {
+      //console.log('waiting for ' + this.metadataLoading.length + " elements");
       return;
     }
     //this.metadataLoading = JSON.parse(JSON.stringify(this.metadataToLoad));
+    //console.log('queue empty, adding ' + this.metadataToLoad.length + " elements");
     Array.prototype.push.apply(this.metadataLoading, this.metadataToLoad);
     this.metadataToLoad = [];
     if(this.metadataLoading.length > 0) {
       this.downloadMetadata(this.metadataLoading);
     }
+    //console.log('----------');
   }
 
   downloadMetadata(ids) {

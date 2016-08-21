@@ -30,8 +30,13 @@ public class AccessRights {
     DataModel.Enums.AccessRights ret = DataModel.Enums.AccessRights.NONE;
 
     // If node and user are same, user HAS access rights to his own node
+    try {
     if (user.getProperty(DataModel.Properties.id).equals(node.getProperty(DataModel.Properties.id))) {
       return DataModel.Enums.AccessRights.WRITE;
+    }
+    }
+    catch(NullPointerException ex) {
+      log.error("Caught NPE with user=" + user + " node=" + node);
     }
 
     // Check personal access rights

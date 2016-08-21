@@ -79,8 +79,16 @@ class MetadataStore extends EventEmitter {
     }
     //this.metadataLoading = JSON.parse(JSON.stringify(this.metadataToLoad));
     //console.log('queue empty, adding ' + this.metadataToLoad.length + " elements");
-    Array.prototype.push.apply(this.metadataLoading, this.metadataToLoad);
-    this.metadataToLoad = [];
+    this.metadataLoading = [];
+    // for(var i = 0; i < 50; ++i) {
+    //   if(i >= this.metadataToLoad.length) {
+    //     break;
+    //   }
+    //   this.metadataLoading.push(this.metadataToLoad[i]);
+    // }
+    this.metadataLoading = this.metadataToLoad.splice(0, 50);
+    // Array.prototype.push.apply(this.metadataLoading, this.metadataToLoad);
+    // this.metadataToLoad = [];
     if(this.metadataLoading.length > 0) {
       this.downloadMetadata(this.metadataLoading);
     }
@@ -92,6 +100,7 @@ class MetadataStore extends EventEmitter {
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
       .withCredentials()
+      .timeout(120000)
       .end((err, res) => {
         if(err) {
           console.log(err);

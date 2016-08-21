@@ -705,8 +705,9 @@ class LabBenchStore extends EventEmitter {
       return;
     }
     if(this.idsToLoad.length > 0) {
-      this.sendDataRequest(this.idsToLoad);
-      this.idsToLoad = [];
+      var idsLoading = this.idsToLoad.splice(0,50);
+      this.sendDataRequest(idsLoading);
+      // this.idsToLoad = [];
       this.loading = true;
     }
   }
@@ -714,6 +715,7 @@ class LabBenchStore extends EventEmitter {
   sendDataRequest(ids) {
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
+      .timeout(120000)
       .withCredentials()
       .end((err, res) => {
         this.loading = false;

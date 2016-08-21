@@ -9,6 +9,7 @@ export default class REST {
   static createStudy(name, callback = undefined) {
     request.post(conf.actions.studyServiceActions.createStudy)
       .send({name: name})
+      .timeout(120000)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -29,6 +30,7 @@ export default class REST {
         parent: parentId
       })
       .withCredentials()
+      .timeout(120000)
       .end((err, res) => {
         if(err) {
           console.error(err);
@@ -59,6 +61,7 @@ export default class REST {
   static placeEntityInView(data, onSuccessCallback = undefined, onErrorCallback = undefined) {
     request.post(conf.actions.viewServiceActions.place)
       .send(data)
+      .timeout(120000)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -81,6 +84,7 @@ export default class REST {
         entity: entity,
         text: annotationText
       })
+      .timeout(120000)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -105,10 +109,16 @@ export default class REST {
       .set('Content-Type', "application/json")
       .send({set: setId})
       .send({specimens: specimens})
+      .timeout(30000)
       .withCredentials()
       .end((err, res) => {
         if (err) {
-          console.error(err);
+          if(err.timeout) {
+            alert("L'import va se dérouler en tâche de fond et prendre quelques minutes. Continuer votre travail et/ou fermer votre navigateur n'aura pas d'effet sur l'import.");
+          }
+          else {
+            console.error(err);
+          }
           if(onErrorCallback) {
             onErrorCallback(err, res);
           }
@@ -126,10 +136,16 @@ export default class REST {
     .set('Content-Type', "application/json")
     .send({set: setId})
     .send({images: images})
+    .timeout(30000)
     .withCredentials()
     .end((err, res) => {
       if (err) {
-        console.error(err);
+        if(err.timeout) {
+          alert("L'import va se dérouler en tâche de fond et prendre quelques minutes. Continuer votre travail et/ou fermer votre navigateur n'aura pas d'effet sur l'import.");
+        }
+        else {
+          console.error(err);
+        }
         if(onErrorCallback) {
           onErrorCallback(err, res);
         }

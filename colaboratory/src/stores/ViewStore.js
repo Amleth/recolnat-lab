@@ -154,6 +154,18 @@ class ViewStore extends EventEmitter {
   }
 
   sendMoveRequest(viewId, entityId, linkId, x, y) {
+    if(!viewId) {
+      alert("Aucun identifiant de vue. Veuillez recommencer l'opération.");
+      return;
+    }
+    if(!entityId) {
+      alert("Aucun identifiant d'entité. Veuillez recommencer l'opération.");
+      return;
+    }
+    if(!linkId) {
+      alert("Aucun identifiant de lien. Veuillez recommencer l'opération.");
+      return;
+    }
     request.post(conf.actions.viewServiceActions.move)
       .send({view: viewId})
       .send({entity: entityId})

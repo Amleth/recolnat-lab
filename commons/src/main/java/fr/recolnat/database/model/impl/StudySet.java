@@ -11,6 +11,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -39,10 +40,10 @@ public class StudySet extends AbstractObject {
 //  private String linkId = null;
 //  private final String type = "bag";
 //  private String name;
-  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vSet, vUser, g);
     if (!AccessRights.canRead(vUser, vSet, g)) {
-      throw new AccessDeniedException((String) vSet.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSet.getProperty(DataModel.Properties.id));
     }
 
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vSet, vUser, g);

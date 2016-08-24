@@ -9,7 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * Loads a workbench. On first connection only.
  */
-public class Load extends WorkbenchAction{
+public class Load extends Action{
   public Load(String set) {
     this.setId = set;
   }
@@ -25,7 +25,7 @@ public class Load extends WorkbenchAction{
   }
 
   @Override
-  public WorkbenchAction runActionOverDatabase(OrientGraph graph) {
+  public Action runActionOverDatabase(OrientGraph graph) {
     return null;
   }
 

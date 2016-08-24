@@ -452,10 +452,10 @@ class D3FreeSpace {
   }
 
   buildDisplayDataElement() {
-    var viewData = JSON.parse(JSON.stringify(this.benchstore.getActiveViewData()));
+    var viewData = this.benchstore.getActiveViewData();
     //console.log(JSON.stringify(viewData));
     if(viewData) {
-      for(var j = 0; j < viewData.displays.length; ++j) {
+      for(var j = viewData.displays.length-1; j >= 0; --j) {
         var posEntity = viewData.displays[j];
         //console.log('posEntity =' +JSON.stringify(posEntity));
         if (posEntity.x != null && posEntity.y != null) {
@@ -487,6 +487,10 @@ class D3FreeSpace {
           for(i = 0; i < posEntity.aois.length; ++i) {
             posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
           }
+        }
+        else {
+          // No image data available for this, might mean the image was deleted from set but not from view
+          viewData.displays.splice(j, 1);
         }
       }
       //console.log(JSON.stringify(viewData));

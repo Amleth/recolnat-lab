@@ -3,15 +3,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.dicen.recolnat.services</groupId>
-  <artifactId>virtual-workbench-service</artifactId>
+  <artifactId>colaboratory-socket</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>virtual-workbench-service</name>
+  <name>colaboratory-socket</name>
   <url>http://maven.apache.org</url>
 
   <properties>
     <jetty.version>9.3.0.M2</jetty.version>
     <jersey.version>1.19</jersey.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <dependencies>

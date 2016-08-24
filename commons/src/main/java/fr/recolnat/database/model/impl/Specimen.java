@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -32,10 +33,10 @@ public class Specimen extends AbstractObject {
   private final Set<String> images = new HashSet<>();
   private final Set<String> containedInSets = new HashSet<>();
 
-  public Specimen(OrientVertex vSpecimen, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public Specimen(OrientVertex vSpecimen, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vSpecimen, vUser, g);
     if (!AccessRights.canRead(vUser, vSpecimen, g)) {
-      throw new AccessDeniedException(vSpecimen.toString(), vUser.toString(), "User not allowed to READ specimen");
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSpecimen.getProperty(DataModel.Properties.id));
     }
 
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vSpecimen, vUser, g);

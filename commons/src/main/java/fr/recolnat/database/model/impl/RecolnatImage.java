@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.DataModel.Enums;
 import fr.recolnat.database.utils.AccessRights;
@@ -46,11 +47,11 @@ public class RecolnatImage extends AbstractObject {
   
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
   
-  public RecolnatImage(OrientVertex image, OrientVertex user, OrientGraph g) throws AccessDeniedException {
+  public RecolnatImage(OrientVertex image, OrientVertex user, OrientGraph g) throws AccessForbiddenException {
     super(image, user, g);
     
     if (!AccessRights.canRead(user, image, g)) {
-      throw new AccessDeniedException("Access denied " + image.toString());
+      throw new AccessForbiddenException((String) user.getProperty(DataModel.Properties.id), (String) image.getProperty(DataModel.Properties.id));
     }
     
     Iterator<Vertex> itOriginalSource = image.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();

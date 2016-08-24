@@ -7,6 +7,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -29,18 +30,21 @@ import org.slf4j.LoggerFactory;
  * @author dmitri
  */
 public class AbstractObject {
+
+  protected String uuid = null;
   protected final Map<String, Object> properties = new HashMap<>();
   protected final Set<String> parents = new HashSet<>();
   protected boolean userCanDelete = false;
+  protected boolean deleted = false;
   protected final Set<String> annotations = new HashSet<>();
   private String type = null;
-  
+
   private final Logger log = LoggerFactory.getLogger(AbstractObject.class);
-  
+
   private AbstractObject() {
-    
+
   }
-  
+
   public AbstractObject(OrientElement e, OrientVertex vUser, OrientGraph g) {
     if (log.isTraceEnabled()) {
       log.trace("----- BEGIN OBJECT PROPERTIES -----");
@@ -53,53 +57,73 @@ public class AbstractObject {
         log.trace("{" + key + ":" + value.toString() + "}");
       }
       properties.put(key, value);
+
+      if (key.equals(DataModel.Properties.id)) {
+        this.uuid = (String) value;
+      }
     }
     if (log.isTraceEnabled()) {
       log.trace("----- END OBJECT PROPERTIES -----");
     }
     this.type = e.getProperty("@class");
-    
+
     // Get annotations
-    if(e.getElementType().equals("Vertex")) {
-        OrientVertex v = (OrientVertex) e;
-        Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
-        while(itAnnots.hasNext()) {
-            OrientVertex vAnnotation = (OrientVertex) itAnnots.next();
-            if(AccessUtils.isLatestVersion(vAnnotation)) {
-              if(AccessRights.canRead(vUser, vAnnotation, g)) {
-                this.annotations.add((String) vAnnotation.getProperty(DataModel.Properties.id));
-              }
-            }
+    if (e.getElementType().equals("Vertex")) {
+      OrientVertex v = (OrientVertex) e;
+      if(v.countEdges(Direction.OUT) == 0 && v.countEdges(Direction.IN) == 1) {
+        this.deleted = true;
+      }
+      Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
+      while (itAnnots.hasNext()) {
+        OrientVertex vAnnotation = (OrientVertex) itAnnots.next();
+        if (AccessUtils.isLatestVersion(vAnnotation)) {
+          if (AccessRights.canRead(vUser, vAnnotation, g)) {
+            this.annotations.add((String) vAnnotation.getProperty(DataModel.Properties.id));
+          }
         }
+      }
+    }
+    else if(e.getElementType().equals("Edge")) {
+      if(e.getProperty(DataModel.Properties.nextVersionId) != null) {
+        OrientEdge eNext = AccessUtils.getEdgeById((String) e.getProperty(DataModel.Properties.nextVersionId), g);
+        if(eNext == null) {
+          this.deleted = true;
+        }
+      }
     }
   }
-  
+
+  public String getUUID() {
+    return this.uuid;
+  }
+
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = new JSONObject();
     Iterator<String> itProps = properties.keySet().iterator();
-    while(itProps.hasNext()) {
+    while (itProps.hasNext()) {
       String key = itProps.next();
       Object value = properties.get(key);
       ret.put(key, value);
     }
     ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
-    
+    ret.put("deleted", this.deleted);
+
     JSONArray jAnnots = new JSONArray();
     Iterator<String> itAnnots = annotations.iterator();
-    while(itAnnots.hasNext()) {
+    while (itAnnots.hasNext()) {
       jAnnots.put(itAnnots.next());
     }
     ret.put("annotations", jAnnots);
-    
+
     JSONArray jParents = new JSONArray();
     Iterator<String> itParents = parents.iterator();
-    while(itParents.hasNext()) {
+    while (itParents.hasNext()) {
       jParents.put(itParents.next());
     }
     ret.put("parents", jParents);
-    
+
     return ret;
   }
-      
+
 }

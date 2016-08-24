@@ -25,9 +25,15 @@ export default class D3ViewUtils {
       .append('g')
       .attr('class', Classes.CHILD_GROUP_CLASS)
       .attr('id', d => 'GROUP-' + d.link)
-      .attr('transform', d => d.x == null ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')');
+      .attr('transform', function(d) {
+        console.log('data=' + JSON.stringify(d));
+        console.log('d.dHeight=' + d.displayHeight);
+        console.log('d.height=' + d.height);
+        console.log('scale=' + d.displayHeight / d.height);
+        return d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')'});
+      //.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
     children.exit().remove();
-    children.attr('transform', d => d.x == null ? null : 'translate(' + d.x + ',' + d.y + ')scale(' + d.displayHeight/d.height + ')');
+    children.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
 
     // BEGIN under image update
     var under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);

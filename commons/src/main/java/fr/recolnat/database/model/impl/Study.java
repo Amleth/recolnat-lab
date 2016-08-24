@@ -8,6 +8,7 @@ package fr.recolnat.database.model.impl;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -23,10 +24,10 @@ import org.codehaus.jettison.json.JSONObject;
 public class Study extends AbstractObject {
   private StudySet coreSet;
   
-  public Study(OrientVertex vStudy, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public Study(OrientVertex vStudy, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vStudy, vUser, g);
     if(!AccessRights.canRead(vUser, vStudy, g)) {
-      throw new AccessDeniedException((String) vStudy.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vStudy.getProperty(DataModel.Properties.id));
     }
     
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vStudy, vUser, g);

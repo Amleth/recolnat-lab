@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -23,11 +24,11 @@ import java.util.List;
 public class TrailOfInterest extends AbstractObject {
   private final List<String> measurements = new ArrayList<>();
 
-  public TrailOfInterest(OrientVertex vPath, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public TrailOfInterest(OrientVertex vPath, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vPath, vUser, g);
     
     if(!AccessRights.canRead(vUser, vPath, g)) {
-      throw new AccessDeniedException((String) vPath.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vPath.getProperty(DataModel.Properties.id));
     }
     
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vPath, vUser, g);

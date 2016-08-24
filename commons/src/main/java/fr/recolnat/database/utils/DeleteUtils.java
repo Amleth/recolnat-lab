@@ -7,10 +7,16 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
+import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.model.DataModel;
+import fr.recolnat.database.model.impl.AbstractObject;
+import fr.recolnat.database.model.impl.SetView;
 import java.util.Date;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang.NotImplementedException;
@@ -37,49 +43,49 @@ public class DeleteUtils {
    * @param graph
    * @return
    */
-  public static boolean unlinkItemFromSet(String linkId, OrientVertex vUser, OrientGraph graph) {
+  public static List<AbstractObject> unlinkItemFromSet(String linkId, OrientVertex vUser, OrientGraph graph) throws AccessForbiddenException, ObsoleteDataException {
+    List<AbstractObject> modified = new LinkedList<>();
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
     if (eLink == null) {
-      // Link already removed, nothing to do
-      return true;
+      throw new ObsoleteDataException(linkId);
     }
     OrientVertex vParentSet = eLink.getVertex(Direction.OUT);
     OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
 
     if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph)) {
-      return false;
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vParentSet.getProperty(DataModel.Properties.id));
     }
     // Create new version of the parent
     String userId = (String) vUser.getProperty(DataModel.Properties.id);
     OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vParentSet, userId, graph);
 
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("New vertex version created");
     }
     // Get the updated version of the link from parent using nextVerionId and remove it
     eLink = AccessUtils.getEdgeById(linkId, graph);
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug(eLink.toString());
     }
     eLink.remove();
-    
+
     // Remove item from all associated views
     Iterator<Vertex> itViews = vNewParent.getVertices(Direction.OUT, DataModel.Links.hasView).iterator();
-    while(itViews.hasNext()) {
+    while (itViews.hasNext()) {
       OrientVertex vView = (OrientVertex) itViews.next();
-      if(AccessUtils.isLatestVersion(vView)) {
+      if (AccessUtils.isLatestVersion(vView)) {
         // No need to check for rights. If the user was able to remove entity from set, it must be removed from view
         // Check if view displays the child (which can be a Set, a Specimen, or an Image). Specimens are not displayed, but their images are.
         boolean noProcessor = true;
         String type = (String) vChildItemOrSet.getProperty("@class");
-        switch(type) {
+        switch (type) {
           case DataModel.Classes.specimen:
             // If vChildItemOrSet is a Specimen we need to process every Image associated with it
             Iterator<Vertex> itImages = vChildItemOrSet.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
-            while(itImages.hasNext()) {
+            while (itImages.hasNext()) {
               OrientVertex vImage = (OrientVertex) itImages.next();
-              if(AccessUtils.isLatestVersion(vImage)) {
-                DeleteUtils.removeEntityFromView(vImage, vView, userId, graph);
+              if (AccessUtils.isLatestVersion(vImage)) {
+                modified.addAll(DeleteUtils.removeEntityFromView(vImage, vView, vUser, graph));
               }
             }
             break;
@@ -88,34 +94,38 @@ public class DeleteUtils {
           case DataModel.Classes.image:
             noProcessor = false;
           default:
-            if(noProcessor) {
+            if (noProcessor) {
               log.info("No specific processor for view containing element of type " + type);
             }
-            DeleteUtils.removeEntityFromView(vChildItemOrSet, vView, userId, graph);
+            modified.addAll(DeleteUtils.removeEntityFromView(vChildItemOrSet, vView, vUser, graph));
             break;
         }
       }
     }
-    return true;
+    return modified;
   }
-  
+
   /**
    * Does not check user rights or versioning.
+   *
    * @param vEntity
    * @param vView
    * @param userId
-   * @param g 
+   * @param g
    */
-  private static void removeEntityFromView(OrientVertex vEntity, OrientVertex vView, String userId, OrientGraph g) {
+  private static List<AbstractObject> removeEntityFromView(OrientVertex vEntity, OrientVertex vView, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+    List<AbstractObject> modified = new LinkedList<>();
     Iterator<Edge> itDisplays = vView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
-            if(itDisplays.hasNext()) {
-              // Fork view.
-              OrientVertex vNewView = UpdateUtils.createNewVertexVersion(vView, userId, g);
-              itDisplays = vNewView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
-              while(itDisplays.hasNext()) {
-                itDisplays.next().remove();
-              }
-            }
+    if (itDisplays.hasNext()) {
+      // Fork view.
+      OrientVertex vNewView = UpdateUtils.createNewVertexVersion(vView, (String) vUser.getProperty(DataModel.Properties.id), g);
+      itDisplays = vNewView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
+      while (itDisplays.hasNext()) {
+        itDisplays.next().remove();
+      }
+      modified.add(new SetView(vNewView, vUser, g));
+    }
+    return modified;
   }
 
   /**
@@ -127,7 +137,7 @@ public class DeleteUtils {
    * @param g
    */
   private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientGraph g) {
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("unlinkItemFromSet(" + eLink.toString() + "," + vChildItemOrSet.toString() + ", " + vParentSet.toString() + ", " + vUser.toString() + ")");
     }
     eLink.remove();
@@ -396,15 +406,15 @@ public class DeleteUtils {
 //        return false;
       case DataModel.Classes.specimen:
         // Main branch not deletable, side branch deletable with the usual restrictions
-        if(!BranchUtils.isMainBranch(vObject, g)) {
-            return true;
+        if (!BranchUtils.isMainBranch(vObject, g)) {
+          return true;
         }
         return false;
       case DataModel.Classes.image:
-          if(!BranchUtils.isMainBranch(vObject, g)) {
-            return true;
-            }
-          return false;
+        if (!BranchUtils.isMainBranch(vObject, g)) {
+          return true;
+        }
+        return false;
       case DataModel.Classes.user:
         // Not deletable
         return false;
@@ -444,7 +454,7 @@ public class DeleteUtils {
         return true;
       case DataModel.Classes.message:
         return true;
-        case DataModel.Classes.angleOfInterest:
+      case DataModel.Classes.angleOfInterest:
         // Annotation, Measurement, Comment
         itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
         while (itLinks.hasNext()) {
@@ -575,9 +585,9 @@ public class DeleteUtils {
       // User requires WRITE permission to delete
       return false;
     }
-    
+
     // Does the public have access to the vertex?
-    if(AccessRights.canPublicRead(vObject, g)) {
+    if (AccessRights.canPublicRead(vObject, g)) {
       return false;
     }
 

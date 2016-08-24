@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -13,7 +14,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Iterator;
 
 /**
@@ -24,11 +24,11 @@ public class Annotation extends AbstractObject{
 
   private final static Logger log = LoggerFactory.getLogger(Annotation.class);
 
-  public Annotation(OrientVertex v, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public Annotation(OrientVertex v, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(v, vUser, g);
     
     if(!AccessRights.canRead(vUser, v, g)) {
-      throw new AccessDeniedException((String) v.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) v.getProperty(DataModel.Properties.id));
     }
     
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(v, vUser, g);

@@ -20,7 +20,7 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * User moves an item inside the workbench. Links cannot be moved, only removed and added to something else..
  */
-public class Move extends WorkbenchAction {
+public class Move extends Action {
   private  TargetType targetType;
   private  int destinationX;
   private  int destinationY;

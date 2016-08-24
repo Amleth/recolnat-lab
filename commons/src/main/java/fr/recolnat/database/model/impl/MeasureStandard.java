@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -20,10 +21,10 @@ import java.util.Iterator;
 public class MeasureStandard extends AbstractObject {
   private Double mmPerPixel;
 
-  public MeasureStandard(OrientVertex scale, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public MeasureStandard(OrientVertex scale, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(scale, vUser, g);
     if (!AccessRights.canRead(vUser, scale, g)) {
-      throw new AccessDeniedException((String) scale.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) scale.getProperty(DataModel.Properties.id));
     }
 
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(scale, vUser, g);

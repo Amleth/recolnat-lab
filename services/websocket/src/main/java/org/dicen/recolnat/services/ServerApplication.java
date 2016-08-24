@@ -5,7 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.util.Map;
-import org.dicen.recolnat.services.resources.VirtualWorkbenchSocket;
+import org.dicen.recolnat.services.core.data.DatabaseAccess;
+import org.dicen.recolnat.services.resources.ColaboratorySocket;
 import org.glassfish.tyrus.server.Server;
 import org.yaml.snakeyaml.Yaml;
 
@@ -26,12 +27,14 @@ public class ServerApplication {
     String dbName = (String) dbConf.get("dbName");
     String dbUser = (String) dbConf.get("dbUser");
     String dbPass = (String) dbConf.get("password");
-    VirtualWorkbenchSocket.initDatabase(host, dbPort, dbName, dbUser, dbPass);
+    Integer minPool = (Integer) dbConf.get("minConnectorPoolSize");
+    Integer maxPool = (Integer) dbConf.get("maxConnectorPoolSize");
+    DatabaseAccess.configure(host, dbPort, dbName, dbUser, dbPass, minPool, maxPool);
     
     Map serverConf = (Map) conf.get("server");
     Integer srvPort = (Integer) serverConf.get("port");
     
-    final Server server = new Server("localhost", srvPort, "/websockets", null, VirtualWorkbenchSocket.class);
+    final Server server = new Server("localhost", srvPort, "/websockets", null, ColaboratorySocket.class);
 
     server.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {

@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -32,11 +33,11 @@ public class SetView extends AbstractObject {
   
   private final Logger log = LoggerFactory.getLogger(SetView.class);
 
-  public SetView(OrientVertex vView, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public SetView(OrientVertex vView, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vView, vUser, g);
 
     if (!AccessRights.canRead(vUser, vView, g)) {
-      throw new AccessDeniedException((String) vView.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vView.getProperty(DataModel.Properties.id));
     }
 
     Iterator<Edge> itDisplays = vView.getEdges(Direction.OUT, DataModel.Links.displays).iterator();

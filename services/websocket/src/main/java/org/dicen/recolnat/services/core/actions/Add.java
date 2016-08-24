@@ -9,7 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * User adds an item to the currently displayed set
  */
-public class Add extends WorkbenchAction {
+public class Add extends Action {
   private  TargetType targetType;
   //private  String workbench;
   private  String targetId;

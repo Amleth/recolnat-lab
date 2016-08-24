@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
  * @author dmitri
  */
 @WebFilter("/virtual-workbench")
-public class VirtualWorkbenchSocketFilter implements Filter {
+public class ColaboratorySocketFilter implements Filter {
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

@@ -9,7 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * User deletes an item or link from the currently displayed workbench.
  */
-public class Delete extends WorkbenchAction {
+public class Delete extends Action {
   private  TargetType targetType;
   //private  String workbench;
   private  String targetId;
@@ -31,7 +31,7 @@ public class Delete extends WorkbenchAction {
   }
 
   @Override
-  public WorkbenchAction runActionOverDatabase(OrientGraph graph) {
+  public Action runActionOverDatabase(OrientGraph graph) {
     System.err.println("Not implemented");
     return null;
   }

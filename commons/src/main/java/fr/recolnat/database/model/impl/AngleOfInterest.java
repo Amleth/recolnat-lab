@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -24,11 +25,11 @@ public class AngleOfInterest extends AbstractObject {
   private final Set<String> measurements = new HashSet<>();
   
 
-  public AngleOfInterest(OrientVertex vAoi, OrientVertex vUser, OrientGraph g) throws AccessDeniedException {
+  public AngleOfInterest(OrientVertex vAoi, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
     super(vAoi, vUser, g);
     
     if (!AccessRights.canRead(vUser, vAoi, g)) {
-      throw new AccessDeniedException((String) vAoi.getProperty(DataModel.Properties.id));
+      throw new AccessForbiddenException((String) vUser.getProperty((DataModel.Properties.id)), (String) vAoi.getProperty(DataModel.Properties.id));
     }
 
     this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vAoi, vUser, g);

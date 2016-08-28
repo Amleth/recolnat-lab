@@ -4,6 +4,7 @@
 'use strict';
 
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 import d3 from 'd3';
 
 import ViewActions from '../../../actions/ViewActions';
@@ -22,6 +23,7 @@ class OrbOptions {
 
     request.post(conf.actions.databaseActions.remove)
       .set('Content-Type', "application/json")
+      .use(request_no_cache)
       .send({id: data.uid})
       .withCredentials()
       .end((err, res) => {

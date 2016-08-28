@@ -64,6 +64,12 @@ class CreatePoI extends AbstractTool {
   }
 
   save() {
+    if(!this.state.x || !this.state.y) {
+      alert("Les coordonnées ne sont pas valides : x=" + this.state.x + " y=" + this.state.y);
+      return;
+    }
+    alert("Enregistrement du point aux coordonnées " + this.state.x + "," + this.state.y + " en cours");
+
     var data = {};
     data.serviceUrl = conf.actions.imageServiceActions.createPointOfInterest;
     data.parent = this.state.imageUri;

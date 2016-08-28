@@ -5,6 +5,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
 
@@ -99,6 +100,7 @@ class MetadataStore extends EventEmitter {
     //console.log('downloadMetadata(' + ids + ')');
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
+      .use(request_no_cache)
       .withCredentials()
       .timeout(120000)
       .end((err, res) => {

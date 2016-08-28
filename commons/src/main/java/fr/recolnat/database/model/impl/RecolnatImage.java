@@ -14,6 +14,7 @@ import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.DataModel.Enums;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
+import fr.recolnat.database.utils.DeleteUtils;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -47,73 +48,73 @@ public class RecolnatImage extends AbstractObject {
   
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
   
-  public RecolnatImage(OrientVertex image, OrientVertex user, OrientGraph g) throws AccessForbiddenException {
-    super(image, user, g);
+  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+    super(vImage, vUser, g);
     
-    if (!AccessRights.canRead(user, image, g)) {
-      throw new AccessForbiddenException((String) user.getProperty(DataModel.Properties.id), (String) image.getProperty(DataModel.Properties.id));
+    if (!AccessRights.canRead(vUser, vImage, g)) {
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vImage.getProperty(DataModel.Properties.id));
     }
     
-    Iterator<Vertex> itOriginalSource = image.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
+    Iterator<Vertex> itOriginalSource = vImage.getVertices(Direction.OUT, DataModel.Links.hasOriginalSource).iterator();
     OrientVertex vOriginalSource = AccessUtils.findLatestVersion(itOriginalSource, g);
     if (vOriginalSource != null) {
       this.source = vOriginalSource.getProperty(DataModel.Properties.id);
     }
     
-    Iterator<Vertex> itSpecimens = image.getVertices(Direction.IN, DataModel.Links.hasImage).iterator();
+    Iterator<Vertex> itSpecimens = vImage.getVertices(Direction.IN, DataModel.Links.hasImage).iterator();
     while (itSpecimens.hasNext()) {
       OrientVertex vSpecimen = (OrientVertex) itSpecimens.next();
       if (AccessUtils.isLatestVersion(vSpecimen)) {
-        if (AccessRights.canRead(user, vSpecimen, g)) {
+        if (AccessRights.canRead(vUser, vSpecimen, g)) {
           this.specimensReferencingThisImage.add((String) vSpecimen.getProperty(DataModel.Properties.id));
         }
       }
     }
     
-    Iterator<Vertex> itRois = image.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
+    Iterator<Vertex> itRois = vImage.getVertices(Direction.OUT, DataModel.Links.roi).iterator();
     while (itRois.hasNext()) {
       OrientVertex vRoi = (OrientVertex) itRois.next();
       if (AccessUtils.isLatestVersion(vRoi)) {
-        if (AccessRights.canRead(user, vRoi, g)) {
+        if (AccessRights.canRead(vUser, vRoi, g)) {
           this.regionsOfInterest.add((String) vRoi.getProperty(DataModel.Properties.id));
         }
       }
     }
     
-    Iterator<Vertex> itAois = image.getVertices(Direction.OUT, DataModel.Links.aoi).iterator();
+    Iterator<Vertex> itAois = vImage.getVertices(Direction.OUT, DataModel.Links.aoi).iterator();
     while (itAois.hasNext()) {
       OrientVertex vAoi = (OrientVertex) itAois.next();
       if (AccessUtils.isLatestVersion(vAoi)) {
-        if (AccessRights.canRead(user, vAoi, g)) {
+        if (AccessRights.canRead(vUser, vAoi, g)) {
           this.anglesOfInterest.add((String) vAoi.getProperty(DataModel.Properties.id));
         }
       }
     }
     
-    Iterator<Vertex> itPois = image.getVertices(Direction.OUT, DataModel.Links.poi).iterator();
+    Iterator<Vertex> itPois = vImage.getVertices(Direction.OUT, DataModel.Links.poi).iterator();
     while (itPois.hasNext()) {
       OrientVertex vPoi = (OrientVertex) itPois.next();
       if (AccessUtils.isLatestVersion(vPoi)) {
-        if (AccessRights.canRead(user, vPoi, g)) {
+        if (AccessRights.canRead(vUser, vPoi, g)) {
           this.pointsOfInterest.add((String) vPoi.getProperty(DataModel.Properties.id));
         }
       }
     }
 
     // Manage trails and associated measure standards, which are technically image-wide properties
-    Iterator<Vertex> itTois = image.getVertices(Direction.OUT, DataModel.Links.toi).iterator();
+    Iterator<Vertex> itTois = vImage.getVertices(Direction.OUT, DataModel.Links.toi).iterator();
     while (itTois.hasNext()) {
       OrientVertex vTrail = (OrientVertex) itTois.next();
-      if (AccessRights.isLatestVersionAndHasRights(user, vTrail, Enums.AccessRights.READ, g)) {
+      if (AccessRights.isLatestVersionAndHasRights(vUser, vTrail, Enums.AccessRights.READ, g)) {
         this.trailsOfInterest.add((String) vTrail.getProperty(DataModel.Properties.id));
         Iterator<Vertex> itTrailMeasurements = vTrail.getVertices(Direction.OUT, DataModel.Links.hasMeasurement).iterator();
         while (itTrailMeasurements.hasNext()) {
           OrientVertex trailMeasurement = (OrientVertex) itTrailMeasurements.next();
-          if (AccessRights.isLatestVersionAndHasRights(user, trailMeasurement, Enums.AccessRights.READ, g)) {
+          if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g)) {
             Iterator<Vertex> itStandards = trailMeasurement.getVertices(Direction.OUT, DataModel.Links.definedAsMeasureStandard).iterator();
             while (itStandards.hasNext()) {
               OrientVertex vStandard = (OrientVertex) itStandards.next();
-              if (AccessRights.isLatestVersionAndHasRights(user, trailMeasurement, Enums.AccessRights.READ, g)) {
+              if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g)) {
                 this.measureStandards.add((String) vStandard.getProperty(DataModel.Properties.id));
               }
             }
@@ -144,6 +145,8 @@ public class RecolnatImage extends AbstractObject {
         }
       }
     }
+    
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vImage, vUser, g);
   }
   
   @Override

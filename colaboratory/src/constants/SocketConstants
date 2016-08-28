@@ -1,0 +1,11 @@
+/**
+ * Created by dmitri on 26/08/16.
+ */
+'use strict';
+
+export default {
+  ActionTypes: {
+    REGISTER_CALLBACK: 'SOCKET_REGISTER_CALLBACK',
+    REMOVE_CALLBACK: 'SOCKET_REMOVE_CALLBACK'
+  }
+};

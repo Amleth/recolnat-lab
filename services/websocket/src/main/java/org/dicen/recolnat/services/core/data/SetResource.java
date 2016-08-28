@@ -38,7 +38,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
-import org.dicen.recolnat.services.core.exceptions.ResourceNotExistsException;
+import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +77,7 @@ public class SetResource {
     }
   }
 
-  public static List<AbstractObject> createSet(String parentSetId, String name, String user) throws JSONException, AccessForbiddenException {
+  public static List<String> createSet(String parentSetId, String name, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createSet");
     }
@@ -86,7 +86,7 @@ public class SetResource {
       log.debug("Parent set id is " + parentSetId);
     }
 
-    List<AbstractObject> changes = new LinkedList<>();
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -123,9 +123,9 @@ public class SetResource {
         g.commit();
 
         // Build return object
-        changes.add(new StudySet(vParentSet, vUser, g));
-        changes.add(new StudySet(vSet, vUser, g));
-        changes.add(new SetView(vView, vUser, g));
+        changes.add(vParentSet.getProperty(DataModel.Properties.id));
+        changes.add(vSet.getProperty(DataModel.Properties.id));
+        changes.add(vView.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -138,8 +138,8 @@ public class SetResource {
     return changes;
   }
 
-  public static List<AbstractObject> deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
-    List<AbstractObject> changes = new LinkedList<>();
+  public static List<String> deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
+    List<String> changes = new LinkedList<>();
 
     boolean retry = true;
     while (retry) {
@@ -149,7 +149,7 @@ public class SetResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         // Permissions checked internally
 
-        List<AbstractObject> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g);
+        List<String> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g);
         g.commit();
         
         changes.addAll(deleted);
@@ -165,8 +165,8 @@ public class SetResource {
     return changes;
   }
 
-  public static List<AbstractObject> link(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
-    List<AbstractObject> changes = new LinkedList<>();
+  public static List<String> link(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -193,8 +193,8 @@ public class SetResource {
         }
         g.commit();
 
-        changes.add(new StudySet(vSet, vUser, g));
-        changes.add(new StudySet(vTarget, vUser, g));
+        changes.add(vSet.getProperty(DataModel.Properties.id));
+        changes.add(vTarget.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -206,8 +206,8 @@ public class SetResource {
     return changes;
   }
 
-  public List<String> copy(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
-    List<String> changes = new ArrayList<>();
+  public static List<String> copy(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -236,8 +236,8 @@ public class SetResource {
 
         g.commit();
 
-        changes.add((String) vNewTarget.getProperty(DataModel.Properties.id));
-        changes.add(futureParentId);
+        // Do not include newly created item : we don't know what that item type is and no-one has subscribed to it anyway
+        changes.add(vDestination.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -251,8 +251,8 @@ public class SetResource {
     return changes;
   }
 
-  public List<String> cutPaste(String currentParentToElementLinkId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
-    List<String> changes = new ArrayList<>();
+  public static List<String> cutPaste(String currentParentToElementLinkId, String futureParentId, String user) throws JSONException, AccessForbiddenException, ObsoleteDataException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -277,10 +277,7 @@ public class SetResource {
           throw new AccessForbiddenException(user, (String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
         }
 
-        if (!DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g)) {
-          // Removal failed
-          throw new AccessForbiddenException(user, (String) vCurrentParentSet.getProperty(DataModel.Properties.id));
-        }
+        changes = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g);
 
         vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
 
@@ -311,7 +308,7 @@ public class SetResource {
     return changes;
   }
 
-  public List<String> importRecolnatSpecimen(String setId, JSONArray specimens, String user) throws JSONException, InterruptedException, AccessForbiddenException, ResourceNotExistsException {
+  public static List<String> importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException,  InterruptedException, ResourceNotExistsException {
     String imageUrl = null;
     List<String> changes = new ArrayList<>();
 
@@ -326,25 +323,21 @@ public class SetResource {
         if (!AccessRights.canWrite(vUser, vSet, g)) {
           throw new AccessForbiddenException(user, setId);
         }
-        for (int j = 0; j < specimens.length(); ++j) {
-          String name = specimens.getJSONObject(j).getString("name");
-          String recolnatSpecimenUuid = specimens.getJSONObject(j).getString("recolnatSpecimenUuid");
-          JSONArray images = specimens.getJSONObject(j).getJSONArray("images");
 
           OrientVertex vSpecimen = null;
           OrientVertex vOriginalSource = AccessUtils.getOriginalSource(recolnatSpecimenUuid, g);
           if (vOriginalSource == null) {
             // Create source, specimen, link both
             vOriginalSource = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenUuid, DataModel.Globals.Sources.RECOLNAT, DataModel.Globals.SourceDataTypes.SPECIMEN, g);
-            vSpecimen = CreatorUtils.createSpecimen(name, g);
+            vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
             UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
             AccessRights.grantPublicAccessRights(vOriginalSource, DataModel.Enums.AccessRights.READ, g);
             AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
-            g.commit();
+            g.commit(); 
           } else {
             vSpecimen = AccessUtils.getSpecimenFromOriginalSource(vOriginalSource, g);
             if (vSpecimen == null) {
-              vSpecimen = CreatorUtils.createSpecimen(name, g);
+              vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
               UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
               AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
               g.commit();
@@ -370,14 +363,14 @@ public class SetResource {
           }
           // Make branch of specimen tree
           vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
-          vSpecimen.setProperties(DataModel.Properties.name, name);
+          vSpecimen.setProperties(DataModel.Properties.name, specimenName);
 
           // Link specimen to set
           OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
           g.commit();
           
           changes.add((String) vSpecimen.getProperty(DataModel.Properties.id));
-        }
+        
         changes.add((String) vSet.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -397,8 +390,8 @@ public class SetResource {
     return changes;
   }
 
-  public List<String> importExternalImages(String setId, JSONArray images, String user) throws JSONException, AccessForbiddenException, BadHttpRequest {
-    List<String> changes = new ArrayList<>();
+  public static List<String> importExternalImage(String setId, String imageUrl, String imageName, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -409,11 +402,6 @@ public class SetResource {
         if (!AccessRights.canWrite(vUser, vSet, g)) {
           throw new AccessForbiddenException(user, setId);
         }
-
-        for (int i = 0; i < images.length(); ++i) {
-          JSONObject jImage = images.getJSONObject(i);
-          String imageUrl = jImage.getString("url");
-          String imageName = jImage.getString("name");
 
           // If image exists on main branch, branch it, otherwise create it and then branch it
           OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
@@ -435,14 +423,13 @@ public class SetResource {
 
           g.commit();
           changes.add((String) vImage.getProperty(DataModel.Properties.id));
-          changes.add((String) vSet.getProperty(DataModel.Properties.id));
-        }
+          changes.add((String) vSet.getProperty(DataModel.Properties.id));        
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
       } catch (IOException ex) {
         log.warn("Unable to read image ");
-        throw new BadHttpRequest();
+        throw new ResourceNotExistsException(imageUrl);
       } finally {
         g.rollback();
         g.shutdown();

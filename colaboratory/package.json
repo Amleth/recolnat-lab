@@ -31,6 +31,7 @@
     "gulp-rename": "^1.2.0",
     "gulp-sftp": "^0.1.4",
     "gulp-shell": "^0.4.0",
+    "ie": "^0.1.0",
     "jquery": "^2.1.4",
     "jsx-loader": "git://github.com/petehunt/jsx-loader.git#master",
     "lodash": "^3.2.0",
@@ -40,9 +41,9 @@
     "react": "0.13.3",
     "react-router": "0.13.4",
     "react-timeago": "^2.2.1",
-    
     "style-loader": "git://github.com/webpack/style-loader.git#master",
     "superagent": "^1.2.0",
+    "superagent-no-cache": "^0.1.0",
     "tls": "0.0.1",
     "url-loader": "git://github.com/webpack/url-loader.git#master",
     "websocket": "^1.0.22"

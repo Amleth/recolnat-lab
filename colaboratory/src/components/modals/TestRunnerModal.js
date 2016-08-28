@@ -5,6 +5,7 @@
 
 import React from 'react';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import AbstractModal from './AbstractModal';
 
@@ -21,6 +22,7 @@ class TestRunnerModal extends AbstractModal {
   runReadLoadTest() {
     for(var i = 0; i < 100; ++i) {
       request
+        .use(request_no_cache)
         .get(conf.actions.setServiceActions.getSet)
         .query({id: null})
         .set('Accept', 'application/json')

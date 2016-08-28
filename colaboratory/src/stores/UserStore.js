@@ -25,35 +25,20 @@ class UserStore extends EventEmitter {
     this.userLogin = null;
 
     // Perform initial check
-    this.checkAuthStatus();
-    // Check if user is still logged in every minute
-    this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this),
-      60000*10
-    );
+    SocketActions.registerListener('user', this.userConnected.bind(this));
   }
 
-  checkAuthStatus() {
-    request.get(conf.actions.authenticationServiceActions.isUserAuthenticated)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          this.userAuthorized = false;
-          this.userRplusId = null;
-          this.userLogin = null;
-          this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 2000);
-          this.emit(UserEvents.USER_LOG_OUT);
-        }
-        else {
-          if(!this.userAuthorized) {
-            var response = JSON.parse(res.text);
-            this.userAuthorized = true;
-            this.userRplusId = response.userId;
-            this.userLogin = response.userLogin;
-            this.loginCheck = window.setTimeout(this.checkAuthStatus.bind(this), 60000*10);
-            this.emit(UserEvents.USER_LOG_IN);
-          }
-        }
-      });
+  userConnected(user) {
+    if(user) {
+      this.userRplusId = user.uid;
+      this.userLogin = user.name;
+      this.userAuthorized = true;
+    }
+    else {
+      this.userAuthorized = false;
+      this.userRplusId = null;
+      this.userLogin = null;
+    }
   }
 
   getUser() {

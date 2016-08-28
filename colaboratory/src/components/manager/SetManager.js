@@ -5,6 +5,7 @@
 
 import React from 'react';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import SetDisplay from './SetDisplay';
 

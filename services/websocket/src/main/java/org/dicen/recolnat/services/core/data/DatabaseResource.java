@@ -5,6 +5,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
+import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.impl.AbstractObject;
 import fr.recolnat.database.model.impl.AngleOfInterest;
@@ -27,6 +28,7 @@ import fr.recolnat.database.utils.DeleteUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.codehaus.jettison.json.JSONException;
 
@@ -95,7 +97,8 @@ public class DatabaseResource {
    * @param user
    * @return
    */
-  public static JSONObject remove(final String entityId, final String user) throws JSONException {
+  public static List<String> remove(final String entityId, final String user) throws JSONException, ResourceNotExistsException, AccessForbiddenException {
+    List<String> modified = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -104,11 +107,7 @@ public class DatabaseResource {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
 
         // Checking deletability is relegated to the method
-        boolean isDeleted = DeleteUtils.delete(entityId, vUser, g);
-        if (!isDeleted) {
-          log.error("User " + user + " is not allowed to delete object " + entityId, Response.Status.FORBIDDEN);
-          return ResponseBuilder.error("User " + user + " is not allowed to delete object " + entityId, Response.Status.FORBIDDEN);
-        }
+        modified = DeleteUtils.delete(entityId, vUser, g);
         g.commit();
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -119,7 +118,7 @@ public class DatabaseResource {
       }
     }
 
-    return ResponseBuilder.ok();
+    return modified;
   }
 
   public static List<String> addAnnotation(final String parentObjectId, final String annotationText, final String user) throws JSONException, AccessForbiddenException {
@@ -162,7 +161,8 @@ public class DatabaseResource {
     return changes;
   }
 
-  public static String editProperties(String entityId, String user, JSONArray properties) throws JSONException, AccessForbiddenException {
+  public static List<String> editProperties(String entityId, JSONArray properties, String user) throws JSONException, AccessForbiddenException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -182,8 +182,7 @@ public class DatabaseResource {
         }
         g.commit();
         
-        JSONArray entities = new JSONArray();
-        entities.put(entityId);
+        changes.add(entityId);
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -195,7 +194,7 @@ public class DatabaseResource {
       }
     }
 
-    return entityId;
+    return changes;
   }
 
   private static AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException, AccessDeniedException, AccessForbiddenException {
@@ -225,6 +224,8 @@ public class DatabaseResource {
         return new Specimen(v, vUser, g);
       case DataModel.Classes.setView:
         return new SetView(v, vUser, g);
+      case DataModel.Classes.user:
+        return new ColaboratoryUser(vUser, vUser, g);
       default:
         log.warn("No specific handler for extracting metadata from vertex class " + cl);
         return new AbstractObject(v, vUser, g);

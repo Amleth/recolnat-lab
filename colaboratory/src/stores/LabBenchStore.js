@@ -5,6 +5,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
 
@@ -715,6 +716,7 @@ class LabBenchStore extends EventEmitter {
   sendDataRequest(ids) {
     request.post(conf.actions.databaseActions.getData)
       .send(ids)
+      .use(request_no_cache)
       .timeout(120000)
       .withCredentials()
       .end((err, res) => {

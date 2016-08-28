@@ -5,6 +5,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 import UUID from 'node-uuid';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
@@ -158,6 +159,7 @@ class ManagerStore extends EventEmitter {
   loadStudies() {
     request.get(conf.actions.studyServiceActions.listUserStudies)
       .set('Accept', 'application/json')
+      .use(request_no_cache)
       .withCredentials()
       .end((err, res)=> {
         if(err) {
@@ -186,6 +188,7 @@ class ManagerStore extends EventEmitter {
   reloadSet(id, index) {
     request.get(conf.actions.setServiceActions.getSet)
       .query({id: id})
+      .use(request_no_cache)
       .withCredentials()
       .end((err, res) => {
         if (err) {

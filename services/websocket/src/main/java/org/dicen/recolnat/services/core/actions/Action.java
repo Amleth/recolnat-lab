@@ -8,7 +8,7 @@ import org.codehaus.jettison.json.JSONObject;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  */
-public abstract class Action {
+public class Action {
 
   public static class ClientActionType {
     // Client calls to establish connection
@@ -19,6 +19,10 @@ public abstract class Action {
     public static final int UNSUBSCRIBE = 11;
     // Client calls to change properties of a specific resource. Modify and broadcast new values. Provide answer to client with DONE or DENIED.
     public static final int UPDATE = 12;
+    // Clients calls to subsrcibe to the logs (activity) of a specific resource.
+    public static final int SUBSCRIBE_LOG = 13;
+    // Client calls to unsubscribe from the logs (activity) of a specific resource.
+    public static final int UNSUBSCRIBE_LOG = 14;
     
   }
   
@@ -30,8 +34,4 @@ public abstract class Action {
     // Client request denied (for any reason). Include reason with response.
     public static final int DENIED = 23;
   }
-
-  public abstract Action runActionOverDatabase(OrientGraph graph) throws NotFoundException;
-
-  public abstract JSONObject toJSON() throws JSONException;
 }

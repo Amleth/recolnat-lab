@@ -2,6 +2,7 @@
  * Created by dmitri on 17/05/16.
  */
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -9,6 +10,7 @@ export default class REST {
   static createStudy(name, callback = undefined) {
     request.post(conf.actions.studyServiceActions.createStudy)
       .send({name: name})
+      .use(request_no_cache)
       .timeout(120000)
       .withCredentials()
       .end((err, res) => {
@@ -30,6 +32,7 @@ export default class REST {
         parent: parentId
       })
       .withCredentials()
+      .use(request_no_cache)
       .timeout(120000)
       .end((err, res) => {
         if(err) {
@@ -61,6 +64,7 @@ export default class REST {
   static placeEntityInView(data, onSuccessCallback = undefined, onErrorCallback = undefined) {
     request.post(conf.actions.viewServiceActions.place)
       .send(data)
+      .use(request_no_cache)
       .timeout(120000)
       .withCredentials()
       .end((err, res) => {
@@ -84,6 +88,7 @@ export default class REST {
         entity: entity,
         text: annotationText
       })
+      .use(request_no_cache)
       .timeout(120000)
       .withCredentials()
       .end((err, res) => {
@@ -109,6 +114,7 @@ export default class REST {
       .set('Content-Type', "application/json")
       .send({set: setId})
       .send({specimens: specimens})
+      .use(request_no_cache)
       .timeout(30000)
       .withCredentials()
       .end((err, res) => {
@@ -136,6 +142,7 @@ export default class REST {
     .set('Content-Type', "application/json")
     .send({set: setId})
     .send({images: images})
+    .use(request_no_cache)
     .timeout(30000)
     .withCredentials()
     .end((err, res) => {
@@ -160,6 +167,7 @@ export default class REST {
 
   static moveEntityFromSetToSet(linkId, targetSetId, onSuccessCallback = undefined, onErrorCallback = undefined) {
     request.post(conf.actions.setServiceActions.cutPaste)
+      .use(request_no_cache)
       .set('Content-Type', "application/json")
       .send({linkId: linkId})
       .send({destination: targetSetId})
@@ -189,6 +197,7 @@ export default class REST {
   static changeEntityProperties(entityId, properties, onSuccessCallback = undefined, onErrorCallback = undefined) {
     request.post(conf.actions.databaseActions.editProperties)
       .set('Content-Type', "application/json")
+      .use(request_no_cache)
       .send({entity: entityId})
       .send({properties: properties})
       .withCredentials()

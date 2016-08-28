@@ -2,6 +2,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
@@ -171,6 +172,7 @@ class ToolStore extends EventEmitter {
     console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
     request.post(data.serviceUrl)
       .set("Content-Type", "application/json")
+      .use(request_no_cache)
       .send(data)
       .withCredentials()
       .end((err, res) => {

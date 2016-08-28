@@ -5,6 +5,7 @@
 
 import {EventEmitter} from 'events';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
@@ -140,6 +141,7 @@ class ViewStore extends EventEmitter {
         x: x,
         y: y
       }])
+      .use(request_no_cache)
       .withCredentials()
       .end((err, res) => {
         if(err) {
@@ -172,6 +174,7 @@ class ViewStore extends EventEmitter {
       .send({link: linkId})
       .send({x: x})
       .send({y: y})
+      .use(request_no_cache)
       .withCredentials()
       .end((err, res) => {
         if(err) {

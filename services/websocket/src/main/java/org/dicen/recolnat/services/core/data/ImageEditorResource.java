@@ -69,7 +69,7 @@ public class ImageEditorResource {
     }
   }
 
-  public static List<AbstractObject> createRegionOfInterest(String imageId, String name, Double area, Double perimeter, JSONArray polygonVertices, String user) throws JSONException, AccessForbiddenException {
+  public static List<String> createRegionOfInterest(String imageId, String name, Double area, Double perimeter, JSONArray polygonVertices, String user) throws JSONException, AccessForbiddenException {
     List<List<Integer>> polygon = new ArrayList<List<Integer>>();
     for (int i = 0; i < polygonVertices.length(); ++i) {
       JSONArray polygonVertex = polygonVertices.getJSONArray(i);
@@ -83,7 +83,7 @@ public class ImageEditorResource {
     }
 
     // Store ROI
-    List<AbstractObject> changes = new LinkedList<>();
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -119,10 +119,10 @@ public class ImageEditorResource {
 
         g.commit();
 
-        changes.add(new RecolnatImage(vImage, vUser, g));
-        changes.add(new RegionOfInterest(vROI, vUser, g));
-        changes.add(new Annotation(vArea, vUser, g));
-        changes.add(new Annotation(vPerim, vUser, g));
+        changes.add(vImage.getProperty(DataModel.Properties.id));
+        changes.add(vROI.getProperty(DataModel.Properties.id));
+        changes.add(vArea.getProperty(DataModel.Properties.id));
+        changes.add(vPerim.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -137,12 +137,12 @@ public class ImageEditorResource {
     return changes;
   }
 
-  public static List<AbstractObject> createPointOfInterest(String imageId, Integer x, Integer y, String name, String user) throws AccessForbiddenException {
+  public static List<String> createPointOfInterest(String imageId, Integer x, Integer y, String name, String user) throws AccessForbiddenException {
     if(name == null) {
       name = CreatorUtils.generateName("PoI ");
     }
     
-    List<AbstractObject> changes = new LinkedList<>();
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -164,8 +164,8 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(new RecolnatImage(vImage, vUser, g));
-        changes.add(new PointOfInterest(vPoI, vUser, g));
+        changes.add(vImage.getProperty(DataModel.Properties.id));
+        changes.add(vPoI.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -190,8 +190,8 @@ public class ImageEditorResource {
    * @return
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
-  public static List<AbstractObject> addMeasureStandard(String measurementId, Double value, String unit, String name, String user) throws AccessForbiddenException {
-    List<AbstractObject> changes = new LinkedList<>();
+  public static List<String> addMeasureStandard(String measurementId, Double value, String unit, String name, String user) throws AccessForbiddenException {
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -215,12 +215,12 @@ public class ImageEditorResource {
         AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, g);
         g.commit();
         
-        changes.add(new Annotation(vMeasurement, vUser, g));
-        changes.add(new MeasureStandard(vStandard, vUser, g));
+        changes.add(vMeasurement.getProperty(DataModel.Properties.id));
+        changes.add(vStandard.getProperty(DataModel.Properties.id));
         // In this case the grandparent image has changed as well
         OrientVertex vTrail = AccessUtils.findLatestVersion(vMeasurement.getVertices(Direction.IN, DataModel.Links.hasMeasurement).iterator(), g);
         OrientVertex vImage = AccessUtils.findLatestVersion(vTrail.getVertices(Direction.IN, DataModel.Links.toi).iterator(), g);
-        changes.add(new RecolnatImage(vImage, vUser, g));
+        changes.add(vImage.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -235,7 +235,7 @@ public class ImageEditorResource {
     return changes;
   }
 
-  public static List<AbstractObject> createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
+  public static List<String> createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createTrailOfInterest(" + parent + ", " + name +", " + length + ", " + pathVertices + ", " + user);
     }
@@ -253,7 +253,7 @@ public class ImageEditorResource {
       path.add(coords);
     }
 
-    List<AbstractObject> changes = new ArrayList<>();
+    List<String> changes = new ArrayList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -293,9 +293,9 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(new RecolnatImage(vImage, vUser, g));
-        changes.add(new TrailOfInterest(vPath, vUser, g));
-        changes.add(new Annotation(mRefPx, vUser, g));
+        changes.add(vImage.getProperty(DataModel.Properties.id));
+        changes.add(vPath.getProperty(DataModel.Properties.id));
+        changes.add(mRefPx.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -311,7 +311,7 @@ public class ImageEditorResource {
     return changes;
   }
 
-  public static List<AbstractObject> createAngleOfInterest(String parent, String name, Double length, JSONArray angleVertices, String user) throws JSONException, AccessForbiddenException {
+  public static List<String> createAngleOfInterest(String parent, String name, Double length, JSONArray angleVertices, String user) throws JSONException, AccessForbiddenException {
     // Retrieve params
     List<List<Integer>> vertices = new ArrayList<>();
     for (int i = 0; i < angleVertices.length(); ++i) {
@@ -326,7 +326,7 @@ public class ImageEditorResource {
       name = CreatorUtils.generateName("AoI ");
     }
     
-    List<AbstractObject> changes = new LinkedList<>();
+    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -367,9 +367,9 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(new RecolnatImage(vImage, vUser, g));
-        changes.add(new AngleOfInterest(vAngle, vUser, g));
-        changes.add(new Annotation(mRefDeg, vUser, g));
+        changes.add(vImage.getProperty(DataModel.Properties.id));
+        changes.add(vAngle.getProperty(DataModel.Properties.id));
+        changes.add(mRefDeg.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;

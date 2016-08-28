@@ -76,4 +76,4 @@ var Actions = {
 };
 
 
-export default {urls: Endpoints, actions: Actions, integration: Integration};
+export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration};

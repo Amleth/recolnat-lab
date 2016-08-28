@@ -5,6 +5,7 @@
 
 import React from 'react';
 import request from 'superagent';
+import request_no_cache from 'superagent-no-cache';
 
 import conf from '../../conf/ApplicationConfiguration';
 
@@ -51,6 +52,7 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
 
   downloadMetadata(id) {
     request.post(conf.actions.databaseActions.getData)
+      .use(request_no_cache)
       .send([id])
       .withCredentials()
       .end((err, res) => {

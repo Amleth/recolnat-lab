@@ -1,13 +1,9 @@
 package org.dicen.recolnat.services.resources;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.authentication.CASAuthentication;
-import fr.recolnat.database.RemoteDatabaseConnector;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.model.impl.AbstractObject;
-import fr.recolnat.database.utils.AccessUtils;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.collections.MultiMap;
 import org.codehaus.jettison.json.JSONException;
@@ -22,11 +18,12 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
-import javassist.NotFoundException;
 import org.codehaus.jettison.json.JSONArray;
 import org.dicen.recolnat.services.core.data.DatabaseResource;
 import org.dicen.recolnat.services.core.data.ImageEditorResource;
 import org.dicen.recolnat.services.core.data.SetResource;
+import org.dicen.recolnat.services.core.data.ViewResource;
+import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +48,7 @@ public class ColaboratorySocket {
   private static final Logger log = LoggerFactory.getLogger(ColaboratorySocket.class);
 
   @OnMessage
-  public void onMessage(String message, Session session) throws JSONException {
+  public void onMessage(String message, Session session) throws JSONException, InterruptedException {
     System.out.println("Message: " + message);
     if (message.equals("PING")) {
       session.getAsyncRemote().sendText("PONG");
@@ -88,12 +85,13 @@ public class ColaboratorySocket {
 
     try {
       int action = jsonIn.getInt("action");
-      List<AbstractObject> modified = null;
+      List<String> modified = null;
       // Shared variables that must be declared here otherwise compiler complains
-      String entityId;
-      String imageId;
+      String entityId, viewId, imageId;
       String name;
       JSONObject payload;
+      String elementToCopyId, futureParentId;
+      Integer x,y;
 
       switch (action) {
         case Action.ClientActionType.CONNECT:
@@ -135,8 +133,8 @@ public class ColaboratorySocket {
             case "create-poi":
               imageId = jsonIn.getString("parent");
               payload = jsonIn.getJSONObject("payload");
-              Integer x = payload.getInt("x");
-              Integer y = payload.getInt("y");
+              x = payload.getInt("x");
+              y = payload.getInt("y");
               try {
                 name = payload.getString("name");
               } catch (JSONException ex) {
@@ -193,36 +191,77 @@ public class ColaboratorySocket {
               modified = SetResource.deleteElementFromSet(linkId, userLogin);
               break;
             case "link":
-              String elementToCopyId = jsonIn.getString("target");
-              String futureParentId = jsonIn.getString("destination");
+              elementToCopyId = jsonIn.getString("target");
+              futureParentId = jsonIn.getString("destination");
               modified = SetResource.link(elementToCopyId, futureParentId, userLogin);
               break;
             case "copy":
+              elementToCopyId = jsonIn.getString("target");
+              futureParentId = jsonIn.getString("destination");
+              modified = SetResource.copy(elementToCopyId, futureParentId, userLogin);
               break;
             case "cutpaste":
+              String currentParentToElementLinkId = jsonIn.getString("linkId");
+              futureParentId = jsonIn.getString("destination");
+              modified = SetResource.cutPaste(currentParentToElementLinkId, futureParentId, userLogin);
               break;
             case "import-recolnat-specimen":
+              parentSetId = jsonIn.getString("set");
+              name = jsonIn.getString("name");
+              String recolnatSpecimenUuid = jsonIn.getString("recolnatSpecimenUuid");
+              JSONArray images = jsonIn.getJSONArray("images");
+              modified = SetResource.importRecolnatSpecimen(parentSetId, name, recolnatSpecimenUuid, images, userLogin);
               break;
-            case "import-external-images":
+            case "import-external-image":
+              parentSetId = jsonIn.getString("set");
+              String url = jsonIn.getString("url");
+              name = jsonIn.getString("name");
+              modified = SetResource.importExternalImage(parentSetId, url, name, userLogin);
               break;
             case "place":
+              viewId = jsonIn.getString("view");
+              entityId = jsonIn.getString("entity");
+              x = jsonIn.getInt("x");
+              y = jsonIn.getInt("y");
+              modified = ViewResource.placeEntityInView(viewId, entityId, x, y, userLogin);
               break;
             case "move":
+              viewId = jsonIn.getString("view");
+              linkId = jsonIn.getString("link");
+              entityId = jsonIn.getString("entity");
+              x = jsonIn.getInt("x");
+              y = jsonIn.getInt("y");
+              modified = ViewResource.moveEntityInView(viewId, linkId, entityId, x, y, userLogin);
               break;
             case "resize":
+              viewId = jsonIn.getString("view");
+              linkId = jsonIn.getString("link");
+              entityId = jsonIn.getString("entity");
+              Integer width = jsonIn.getInt("width");
+              Integer height = jsonIn.getInt("height");
+              modified = ViewResource.resizeEntityInView(viewId, linkId, entityId, width, height, userLogin);
               break;
             case "get-recent-activity":
+              log.error("Call to get-recent-activity occurred where it should not have");
               break;
             case "get-data":
               log.error("Call to get-data should no longer happen in WebSocket");
               break;
             case "remove":
+              entityId = jsonIn.getString("id");
+              modified = DatabaseResource.remove(entityId, userLogin);
               break;
             case "get-change-log":
               break;
             case "add-annotation":
+              entityId = jsonIn.getString("entity");
+              String annotationText = jsonIn.getString("text");
+              modified = DatabaseResource.addAnnotation(entityId, annotationText, userLogin);
               break;
             case "edit-properties":
+              entityId = jsonIn.getString("entity");
+              JSONArray properties = jsonIn.getJSONArray("properties");
+              modified = DatabaseResource.editProperties(entityId, properties, userLogin);
               break;
           }
           break;
@@ -230,9 +269,11 @@ public class ColaboratorySocket {
           log.error("Unhandled action type " + action);
           break;
       }
+      // If we are here, no errors occurred, therefore inform client of operation success.
       JSONObject done = new JSONObject();
       done.put("action", Action.ServerActionType.DONE);
       session.getAsyncRemote().sendText(done.toString());
+      // If the operation modified any resources, inform all listening clients.
       if (modified != null) {
         this.broadcastModifications(modified);
       }
@@ -249,7 +290,13 @@ public class ColaboratorySocket {
       obsolete.put("action", Action.ServerActionType.DENIED);
       obsolete.put("obsolete", ex.getObsoleteIdsAsJSON());
       session.getAsyncRemote().sendText(obsolete.toString());
+    } catch(ResourceNotExistsException ex) {
+      JSONObject inputError = new JSONObject();
+      inputError.put("action", Action.ServerActionType.DENIED);
+      inputError.put("input", ex.getMessage());
+      session.getAsyncRemote().sendText(inputError.toString());
     }
+    
   }
 
   @OnClose
@@ -335,14 +382,8 @@ public class ColaboratorySocket {
     session.getAsyncRemote().sendText(response.toString());
   }
 
-  private void broadcastModifications(Collection<AbstractObject> resourcesModified) throws IOException, JSONException {
-    for (AbstractObject resource : resourcesModified) {
-      String resourceId = resource.getUUID();
-      JSONObject message = new JSONObject();
-      message.put("action", Action.ServerActionType.RESOURCE);
-      message.put("resource", resource.toJSON());
-      message.put("timestamp", new Date().getTime());
-
+  private void broadcastModifications(Collection<String> resourcesModified) throws IOException, JSONException {
+    for (String resourceId : resourcesModified) {
       ColaboratorySocket.mapAccessLock.lock();
       try {
         Collection<String> listeners = (Collection<String>) ColaboratorySocket.resourceToSessions.get(resourceId);
@@ -350,11 +391,26 @@ public class ColaboratorySocket {
         while (itListeners.hasNext()) {
           String sessionId = itListeners.next();
           Session session = ColaboratorySocket.sessionIdToSession.get(sessionId);
-          if (session != null) {
-            session.getAsyncRemote().sendText(message.toString());
-          } else {
+          if(session == null) {
             log.error("Session " + sessionId + " is listed as listening to a resource but is not mapped to an existing session");
+            continue;
           }
+          
+          String userLogin = ColaboratorySocket.sessionIdToUser.get(sessionId);
+          JSONObject message = new JSONObject();
+          
+          try {
+            JSONObject metadata = DatabaseResource.getData(userLogin, resourceId);
+            
+            message.put("action", Action.ServerActionType.RESOURCE);
+            message.put("timestamp", new Date().getTime());
+            message.put("resource", metadata);
+          } catch (AccessForbiddenException ex) {
+            message.put("forbidden", resourceId);
+            message.put("action", Action.ServerActionType.RESOURCE);
+          }
+          
+          session.getAsyncRemote().sendText(message.toString());
         }
       } finally {
         mapAccessLock.unlock();

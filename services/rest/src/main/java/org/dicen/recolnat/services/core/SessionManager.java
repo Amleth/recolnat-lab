@@ -1,7 +1,5 @@
 package org.dicen.recolnat.services.core;
 
-import org.dicen.recolnat.services.conf.TestConfiguration;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +7,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import org.dicen.recolnat.services.resources.AuthenticationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

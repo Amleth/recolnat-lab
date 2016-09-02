@@ -145,7 +145,8 @@ class MetadataViewer extends React.Component {
         loadingHarvest: true,
         loadingLocation: true});
     }
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, [imageId]), 100);
+
+    window.setTimeout(this._onImageMetadataUpdated, 50);
   }
 
   displayImageMetadata() {
@@ -169,12 +170,13 @@ class MetadataViewer extends React.Component {
         }
         specimenId = metadata.specimens[0];
         this.props.metastore.addMetadataUpdateListener(specimenId, this._onSpecimenMetadataUpdated);
-        window.setTimeout(MetadataActions.updateMetadata.bind(null, metadata.specimens), 10);
       }
     }
 
 
     this.setState({coLabImageMetadata: metadata, specimenCoLabId: specimenId, loading: loading});
+
+    window.setTimeout(this._onSpecimenMetadataUpdated, 50);
   }
 
   displaySpecimenMetadata() {
@@ -189,8 +191,9 @@ class MetadataViewer extends React.Component {
     if(metadata.originalSource) {
       this.setState({originalSourceCoLabId: metadata.originalSource});
       this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onSourceMetadataUpdated);
-      window.setTimeout(MetadataActions.updateMetadata.bind(null, [metadata.originalSource]), 10);
     }
+
+    window.setTimeout(this._onSourceMetadataUpdated, 50);
   }
 
   displayOriginalSourceMetadata() {

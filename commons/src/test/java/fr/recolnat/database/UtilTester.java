@@ -1,6 +1,6 @@
 package fr.recolnat.database;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.StructureBuilder;
@@ -27,7 +27,7 @@ public class UtilTester {
 //  public static void main(String[] args) throws IllegalAccessException {
 //    StructureBuilder.createRecolnatDataModel();
 //
-//    OrientGraph g = DatabaseConnector.getTransactionalGraph();
+//    OrientBaseGraph g = DatabaseConnector.getTransactionalGraph();
 //    try {
 //      OrientVertex ficus77 = CreatorUtils.createRecolnatAbstractEntity("ficus77", DataModel.Enums.Modules.COLLABORATORY, new Date(), g);
 //  printVertexProperties(ficus77);

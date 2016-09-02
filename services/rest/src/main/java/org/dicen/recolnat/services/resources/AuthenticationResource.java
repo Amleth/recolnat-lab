@@ -2,7 +2,7 @@ package org.dicen.recolnat.services.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.authentication.CASAuthentication;
 import fr.recolnat.database.model.DataModel;
@@ -23,7 +23,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import org.codehaus.jettison.json.JSONObject;
-import org.dicen.recolnat.services.core.DatabaseAccess;
 import org.dicen.recolnat.services.core.SessionManager;
 
 /**
@@ -54,21 +53,6 @@ public class AuthenticationResource {
   @Timed
   public Response postProtected(final String input) throws JSONException {
     return Response.ok().build();
-  }
-
-  @GET
-  @Path("/set-test-cookie")
-  @Timed
-  public Response setTestCookie(@Context HttpServletRequest request) {
-    NewCookie sessionCookie
-        = new NewCookie("CASTGC",
-            DatabaseAccess.testTGT,
-            "/",
-            "",
-            "Collaboratory session Id",
-            NewCookie.DEFAULT_MAX_AGE, false, true);
-
-    return Response.ok().cookie(sessionCookie).build();
   }
 
   @GET
@@ -162,27 +146,6 @@ public class AuthenticationResource {
 //      throw new WebApplicationException("Server error while reading CAS I/O.", Response.Status.INTERNAL_SERVER_ERROR);
     }
 
-    log.trace("User is " + user);
-    // Check if user is in database
-    boolean retry = true;
-    while (retry) {
-      retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
-      try {
-        Vertex vUser = AccessUtils.getUserByLogin(user, g);
-        if (vUser == null) {
-          vUser = CreatorUtils.createNewUserAndUserData(user, g);
-          // Create sample data
-          DatabaseTester.createTestWorkbench((OrientVertex) vUser, g);
-          g.commit();
-        }
-        userId = vUser.getProperty(DataModel.Properties.id);
-      } finally {
-        g.rollback();
-        g.shutdown();
-      }
-    }
-
     // Add user session
     session = SessionManager.newSession(userId, user);
 
@@ -198,8 +161,7 @@ public class AuthenticationResource {
 
     JSONObject response = new JSONObject();
     try {
-      response.put("userLogin", user);
-      response.put("userId", userId);
+      response.put("authorized", true);
     } catch (JSONException ex) {
       log.error("Unable to create JSON for some reason", ex);
       throw new WebApplicationException("Server error while preparing response", Response.Status.INTERNAL_SERVER_ERROR);

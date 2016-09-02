@@ -7,7 +7,7 @@ package fr.recolnat.database.logbook;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -38,7 +38,7 @@ public class Log {
 
   }
 
-  public Log(String focus, Long begin, Long end, String user, OrientGraph g) throws AccessForbiddenException {
+  public Log(String focus, Long begin, Long end, String user, OrientBaseGraph g) throws AccessForbiddenException {
     OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
     OrientVertex vTarget = (OrientVertex) AccessUtils.getNodeById(focus, g);
     // @TODO find a check to see if 'actor' is a valid actor (perhaps SocialEntity ?)

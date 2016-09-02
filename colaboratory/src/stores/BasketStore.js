@@ -4,7 +4,6 @@
 'use strict';
 
 import {EventEmitter} from 'events';
-import request from 'superagent';
 import UUID from 'node-uuid';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
@@ -17,7 +16,6 @@ import ManagerActions from '../actions/ManagerActions';
 import ViewActions from '../actions/ViewActions';
 
 import Globals from '../utils/Globals';
-import REST from '../utils/REST';
 
 import conf from '../conf/ApplicationConfiguration';
 

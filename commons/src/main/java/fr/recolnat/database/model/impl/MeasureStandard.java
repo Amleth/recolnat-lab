@@ -2,7 +2,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -21,7 +21,7 @@ import java.util.Iterator;
 public class MeasureStandard extends AbstractObject {
   private Double mmPerPixel;
 
-  public MeasureStandard(OrientVertex scale, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public MeasureStandard(OrientVertex scale, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(scale, vUser, g);
     if (!AccessRights.canRead(vUser, scale, g)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) scale.getProperty(DataModel.Properties.id));

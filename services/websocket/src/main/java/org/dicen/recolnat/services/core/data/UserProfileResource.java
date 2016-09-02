@@ -5,7 +5,7 @@
  */
 package org.dicen.recolnat.services.core.data;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.logbook.Log;
 import org.codehaus.jettison.json.JSONException;
@@ -45,7 +45,7 @@ public class UserProfileResource {
       log.debug("begin=" + beginDate + " end=" + endDate);
     }
     
-    OrientGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
     try {
         Log l = new Log(requestedUser, beginDate, endDate, user, g);
         return l.toJSON().toString();

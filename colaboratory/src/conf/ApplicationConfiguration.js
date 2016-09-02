@@ -5,8 +5,8 @@ var Integration = {
 };
 
 var Services = {
-  laboratoryRESTService: 'https://wp5test.recolnat.org/services/test',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/services/test/websockets'
+  laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory'
 };
 
 var Endpoints = {
@@ -28,6 +28,7 @@ var Actions = {
     createRegionOfInterest: Endpoints.imageService + "/create-roi",
     createPointOfInterest: Endpoints.imageService + "/create-poi",
     createTrailOfInterest: Endpoints.imageService + "/create-toi",
+    createAngleOfInterest: Endpoints.imageService + "/create-aoi",
     addMeasureStandard: Endpoints.imageService + "/add-measure-standard"
   },
 
@@ -39,7 +40,7 @@ var Actions = {
     copy: Endpoints.setService + "/copy",
     cutPaste: Endpoints.setService + "/cutpaste",
     importRecolnatSpecimen: Endpoints.setService + "/import-recolnat-specimen",
-    importExternalImage: Endpoints.setService + "/import-external-image"
+    importExternalImages: Endpoints.setService + "/import-external-images"
   },
 
   viewServiceActions: {
@@ -69,9 +70,32 @@ var Actions = {
     getData: Endpoints.dataAccessService + '/get-data',
     remove: Endpoints.dataAccessService + '/remove',
     getLog: Endpoints.dataAccessService + '/get-change-log',
-    addAnnotation: Endpoints.dataAccessService + '/add-annotation'
+    addAnnotation: Endpoints.dataAccessService + '/add-annotation',
+    editProperties: Endpoints.dataAccessService + '/edit-properties'
   }
 };
 
+var SocketActions = {
+  createRegionOfInterest: "create-roi",
+  createPointOfInterest: "create-poi",
+  createTrailOfInterest: "create-toi",
+  createAngleOfInterest: "create-aoi",
+  addMeasureStandard: "add-measure-standard",
+  createSet: "create-set",
+  deleteFromSet: "delete-element-from-set",
+  link: "link",
+  copy: "copy",
+  cutPaste: "cutpaste",
+  importRecolnatSpecimen: "import-recolnat-specimen",
+  importExternalImage: "import-external-image",
+  place: 'place',
+  move: 'move',
+  resize: 'resize',
+  createStudy: "create-study",
+  remove: 'remove',
+  addAnnotation: 'add-annotation',
+  editProperties: 'edit-properties'
+};
 
-export default {urls: Endpoints, actions: Actions, integration: Integration};
+
+export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

@@ -17,6 +17,7 @@ import ToolConf from "../../conf/Tools-conf";
 import conf from '../../conf/ApplicationConfiguration';
 
 import Globals from '../../utils/Globals';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 import icon from '../../images/measure.svg';
 import saveIcon from '../../images/save.png';
@@ -360,21 +361,13 @@ class LineMeasure extends AbstractTool {
       return;
     }
 
-    var data = {};
-    data.parent = d.image;
-    data.serviceUrl = conf.actions.imageServiceActions.createTrailOfInterest;
-    data.payload = {};
-    data.payload.path = [];
-    data.payload.name = name;
+    var path = [];
+    path.push([d.x1, d.y1]);
+    path.push([d.x2, d.y2]);
 
-    data.payload.path.push([d.x1, d.y1]);
-    data.payload.path.push([d.x2, d.y2]);
+    var length = Math.sqrt(Math.pow(Math.abs(d.y2) - Math.abs(d.y1), 2) + Math.pow(Math.abs(d.x2) - Math.abs(d.x1), 2));
 
-    data.payload.length = Math.sqrt(Math.pow(Math.abs(d.y2) - Math.abs(d.y1), 2) + Math.pow(Math.abs(d.x2) - Math.abs(d.x1), 2));
-
-    this.props.toolstore.sendData(data, MetadataActions.updateLabBenchFrom.bind(null, d.link));
-
-    // LineMeasure.stopEvent(d);
+    ServiceMethods.createTrailOfInterest(d.image, length, path, name);
   }
 
   static updateLineDisplay(id) {

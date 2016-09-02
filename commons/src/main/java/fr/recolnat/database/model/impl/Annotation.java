@@ -2,7 +2,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -24,7 +24,7 @@ public class Annotation extends AbstractObject{
 
   private final static Logger log = LoggerFactory.getLogger(Annotation.class);
 
-  public Annotation(OrientVertex v, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public Annotation(OrientVertex v, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(v, vUser, g);
     
     if(!AccessRights.canRead(vUser, v, g)) {

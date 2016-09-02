@@ -13,6 +13,7 @@ import ToolActions from '../../actions/ToolActions';
 import Classes from "../../constants/CommonSVGClasses";
 
 import Globals from '../../utils/Globals';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 import Popup from '../popups/CreatePathPopup';
 
@@ -153,13 +154,9 @@ class CreatePath extends AbstractTool {
       return null;
     }
     // Create polyline representation of this path.
-    var data = {};
-    data.serviceUrl = conf.actions.imageServiceActions.createTrailOfInterest;
-    data.parent = this.state.imageUri;
-    data.payload = {};
-    data.payload.path = [];
-    data.payload.length = 0;
-    data.payload.name = this.state.name;
+    var path = [];
+    var length = 0;
+    var name = this.state.name;
     var x = null;
     var y = null;
     var edges = this.state.edges;
@@ -168,17 +165,17 @@ class CreatePath extends AbstractTool {
 
       // Check if this vertex is not already part of the previous edge
       if(edge.start.x !== x && edge.start.y !== y) {
-        data.payload.path.push([edge.start.x, edge.start.y]);
+        path.push([edge.start.x, edge.start.y]);
       }
-      data.payload.path.push([edge.end.x, edge.end.y]);
+      path.push([edge.end.x, edge.end.y]);
 
       x = edge.end.x;
       y = edge.end.y;
 
-      data.payload.length += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
+      length += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
     }
 
-    return data;
+    ServiceMethods.createTrailOfInterest(this.state.imageUri, length, path, name);
   }
 
   begin() {

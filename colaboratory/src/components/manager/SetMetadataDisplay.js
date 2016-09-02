@@ -4,7 +4,6 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
 
 import AbstractMetadataDisplay from './AbstractManagerMetadataDisplay';
 

@@ -8,7 +8,7 @@ package fr.recolnat.database.model.impl;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -33,7 +33,7 @@ public class SetView extends AbstractObject {
   
   private final Logger log = LoggerFactory.getLogger(SetView.class);
 
-  public SetView(OrientVertex vView, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public SetView(OrientVertex vView, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vView, vUser, g);
 
     if (!AccessRights.canRead(vUser, vView, g)) {

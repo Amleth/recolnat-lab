@@ -2,7 +2,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -24,7 +24,7 @@ import java.util.List;
 public class TrailOfInterest extends AbstractObject {
   private final List<String> measurements = new ArrayList<>();
 
-  public TrailOfInterest(OrientVertex vPath, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public TrailOfInterest(OrientVertex vPath, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vPath, vUser, g);
     
     if(!AccessRights.canRead(vUser, vPath, g)) {

@@ -22,14 +22,12 @@ public class ServerApplication {
     InputStream input = new FileInputStream(new File(configurationFileName));
     Map conf = (Map) yaml.load(input);
     Map dbConf = (Map) conf.get("database");
-    String host = (String) dbConf.get("host");
-    Integer dbPort = (Integer) dbConf.get("port");
-    String dbName = (String) dbConf.get("dbName");
+    String dbPath = (String) dbConf.get("dbPath");
     String dbUser = (String) dbConf.get("dbUser");
     String dbPass = (String) dbConf.get("password");
     Integer minPool = (Integer) dbConf.get("minConnectorPoolSize");
     Integer maxPool = (Integer) dbConf.get("maxConnectorPoolSize");
-    DatabaseAccess.configure(host, dbPort, dbName, dbUser, dbPass, minPool, maxPool);
+    DatabaseAccess.configure(dbPath, dbUser, dbPass, minPool, maxPool);
     
     Map serverConf = (Map) conf.get("server");
     Integer srvPort = (Integer) serverConf.get("port");

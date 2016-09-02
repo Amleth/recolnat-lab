@@ -67,7 +67,7 @@ class FreeSpace extends React.Component {
     // var id = this.props.managerstore.getSelected().id;
     var sets = this.props.managerstore.getSets();
     var id = sets[sets.length-1].uid;
-    window.setTimeout(MetadataActions.loadLabBench.bind(null, id), 10);
+    window.setTimeout(MetadataActions.loadLabBench.bind(null, null), 10);
     window.setTimeout(MinimapActions.unsetMinimap, 10);
   }
 

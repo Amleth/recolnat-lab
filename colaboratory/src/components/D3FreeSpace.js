@@ -658,7 +658,7 @@ class D3FreeSpace {
     Array.prototype.push.apply(contextMenuObjects.aois, objectsAtEvent.aois.map(buildContextMenuElement));
     Array.prototype.push.apply(contextMenuObjects.tois, objectsAtEvent.tois.map(buildContextMenuElement));
     //console.log(JSON.stringify(objectsAtEvent));
-    MenuActions.displayContextMenu(d3.event.clientX, d3.event.clientY, contextMenuObjects);
+    window.setTimeout(MenuActions.displayContextMenu.bind(null, d3.event.clientX, d3.event.clientY, contextMenuObjects), 10);
   }
 
 }

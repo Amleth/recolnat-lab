@@ -49,7 +49,10 @@ public class ColaboratorySocket {
 
   @OnMessage
   public void onMessage(String message, Session session) throws JSONException, InterruptedException {
-    System.out.println("Message: " + message);
+    if (log.isInfoEnabled()) {
+      log.info("Message received by server: " + message);
+    }
+
     if (message.equals("PING")) {
       session.getAsyncRemote().sendText("PONG");
       return;
@@ -83,6 +86,13 @@ public class ColaboratorySocket {
       mapAccessLock.unlock();
     }
 
+    Integer messageId;
+    try {
+      messageId = jsonIn.getInt("messageId");
+    } catch (JSONException ex) {
+      messageId = null;
+    }
+
     try {
       int action = jsonIn.getInt("action");
       List<String> modified = null;
@@ -91,7 +101,7 @@ public class ColaboratorySocket {
       String name;
       JSONObject payload;
       String elementToCopyId, futureParentId;
-      Integer x,y;
+      Integer x, y;
 
       switch (action) {
         case Action.ClientActionType.CONNECT:
@@ -119,12 +129,11 @@ public class ColaboratorySocket {
               break;
             case "create-roi":
               imageId = jsonIn.getString("image");
-              payload = jsonIn.getJSONObject("payload");
-              Double area = payload.getDouble("area");
-              Double perimeter = payload.getDouble("perimeter");
-              JSONArray vertices = payload.getJSONArray("polygon");
+              Double area = jsonIn.getDouble("area");
+              Double perimeter = jsonIn.getDouble("perimeter");
+              JSONArray vertices = jsonIn.getJSONArray("polygon");
               try {
-                name = payload.getString("name"); // Optional
+                name = jsonIn.getString("name"); // Optional
               } catch (JSONException ex) {
                 name = null;
               }
@@ -132,11 +141,10 @@ public class ColaboratorySocket {
               break;
             case "create-poi":
               imageId = jsonIn.getString("parent");
-              payload = jsonIn.getJSONObject("payload");
-              x = payload.getInt("x");
-              y = payload.getInt("y");
+              x = jsonIn.getInt("x");
+              y = jsonIn.getInt("y");
               try {
-                name = payload.getString("name");
+                name = jsonIn.getString("name");
               } catch (JSONException ex) {
                 name = null;
               }
@@ -144,11 +152,10 @@ public class ColaboratorySocket {
               break;
             case "create-toi":
               imageId = jsonIn.getString("parent");
-              payload = jsonIn.getJSONObject("payload");
-              Double length = payload.getDouble("length");
-              JSONArray pathVertices = payload.getJSONArray("path");
+              Double length = jsonIn.getDouble("length");
+              JSONArray pathVertices = jsonIn.getJSONArray("path");
               try {
-                name = payload.getString("name");
+                name = jsonIn.getString("name");
               } catch (JSONException ex) {
                 name = null;
               }
@@ -156,18 +163,17 @@ public class ColaboratorySocket {
               break;
             case "create-aoi":
               imageId = jsonIn.getString("parent");
-              payload = jsonIn.getJSONObject("payload");
-              length = payload.getDouble("measure");
-              JSONArray angleVertices = payload.getJSONArray("vertices");
+              length = jsonIn.getDouble("measure");
+              JSONArray angleVertices = jsonIn.getJSONArray("vertices");
               try {
-                name = payload.getString("name");
+                name = jsonIn.getString("name");
               } catch (JSONException ex) {
                 name = null;
               }
               modified = ImageEditorResource.createAngleOfInterest(imageId, name, length, angleVertices, userLogin);
               break;
             case "add-measure-standard":
-              String pathId = jsonIn.getString("pathId");
+              String pathId = jsonIn.getString("path");
               Double value = jsonIn.getDouble("value");
               String unit = jsonIn.getString("unit");
               name = jsonIn.getString("name");
@@ -187,7 +193,7 @@ public class ColaboratorySocket {
               modified = SetResource.createSet(parentSetId, name, userLogin);
               break;
             case "delete-element-from-set":
-              String linkId = jsonIn.getString("linkId");
+              String linkId = jsonIn.getString("link");
               modified = SetResource.deleteElementFromSet(linkId, userLogin);
               break;
             case "link":
@@ -201,7 +207,7 @@ public class ColaboratorySocket {
               modified = SetResource.copy(elementToCopyId, futureParentId, userLogin);
               break;
             case "cutpaste":
-              String currentParentToElementLinkId = jsonIn.getString("linkId");
+              String currentParentToElementLinkId = jsonIn.getString("link");
               futureParentId = jsonIn.getString("destination");
               modified = SetResource.cutPaste(currentParentToElementLinkId, futureParentId, userLogin);
               break;
@@ -272,6 +278,8 @@ public class ColaboratorySocket {
       // If we are here, no errors occurred, therefore inform client of operation success.
       JSONObject done = new JSONObject();
       done.put("action", Action.ServerActionType.DONE);
+      done.put("id", messageId);
+      done.put("request", jsonIn);
       session.getAsyncRemote().sendText(done.toString());
       // If the operation modified any resources, inform all listening clients.
       if (modified != null) {
@@ -284,19 +292,25 @@ public class ColaboratorySocket {
       JSONObject forbidden = new JSONObject();
       forbidden.put("forbidden", ex.getMessage());
       forbidden.put("action", Action.ServerActionType.DENIED);
+      forbidden.put("id", messageId);
+      forbidden.put("request", jsonIn);
       session.getAsyncRemote().sendText(forbidden.toString());
     } catch (ObsoleteDataException ex) {
       JSONObject obsolete = new JSONObject();
       obsolete.put("action", Action.ServerActionType.DENIED);
       obsolete.put("obsolete", ex.getObsoleteIdsAsJSON());
+      obsolete.put("id", messageId);
+      obsolete.put("request", jsonIn);
       session.getAsyncRemote().sendText(obsolete.toString());
-    } catch(ResourceNotExistsException ex) {
+    } catch (ResourceNotExistsException ex) {
       JSONObject inputError = new JSONObject();
       inputError.put("action", Action.ServerActionType.DENIED);
       inputError.put("input", ex.getMessage());
+      inputError.put("id", messageId);
+      inputError.put("request", jsonIn);
       session.getAsyncRemote().sendText(inputError.toString());
     }
-    
+
   }
 
   @OnClose
@@ -305,15 +319,17 @@ public class ColaboratorySocket {
     ColaboratorySocket.mapAccessLock.lock();
     try {
       Collection<String> resourceIds = (Collection<String>) ColaboratorySocket.sessionIdToResources.get(session.getId());
-      Iterator<String> itResourceIds = resourceIds.iterator();
-      while (itResourceIds.hasNext()) {
-        String resourceId = itResourceIds.next();
-        Collection<String> sessions = (Collection<String>) ColaboratorySocket.resourceToSessions.get(resourceId);
-        Iterator<String> itSessions = sessions.iterator();
-        while (itSessions.hasNext()) {
-          String sessionId = itSessions.next();
-          if (sessionId.equals(session.getId())) {
-            itSessions.remove();
+      if (resourceIds != null) {
+        Iterator<String> itResourceIds = resourceIds.iterator();
+        while (itResourceIds.hasNext()) {
+          String resourceId = itResourceIds.next();
+          Collection<String> sessions = (Collection<String>) ColaboratorySocket.resourceToSessions.get(resourceId);
+          Iterator<String> itSessions = sessions.iterator();
+          while (itSessions.hasNext()) {
+            String sessionId = itSessions.next();
+            if (sessionId.equals(session.getId())) {
+              itSessions.remove();
+            }
           }
         }
       }
@@ -327,27 +343,29 @@ public class ColaboratorySocket {
 
   @OnError
   public void onError(Session session, Throwable t) {
-    log.error("Error in session " + session.getId() + " : " + t.getMessage());
+    log.error("Error in session " + session.getId(), t);
   }
 
   @OnOpen
   public void onConnect(Session session, EndpointConfig config) throws SessionException, IOException {
     // Client opens connection
     // Get login status from CAS
-    System.out.println("Opening new websocket session " + session.getId());
-    if (!config.getUserProperties().containsKey("CASTGC")) {
-      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token not found."));
-      return;
-    }
+    log.info("Opening new websocket session " + session.getId());
+//    if (!config.getUserProperties().containsKey("CASTGC")) {
+//      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token not found."));
+//      return;
+//    }
     String tgt = (String) config.getUserProperties().get("CASTGC");
     String user = null;
     try {
       user = CASAuthentication.getCASUserLogin(tgt);
     } catch (ConnectException ex) {
       session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token  validation failed."));
+      log.warn("Socket closed due to connection exception to CAS", ex);
       return;
     } catch (IOException ex) {
       session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token  validation failed."));
+      log.warn("Socket closed due to I/O exception reading CAS response", ex);
       return;
     }
 
@@ -379,6 +397,10 @@ public class ColaboratorySocket {
     response.put("resource", resource);
     response.put("timestamp", new Date().getTime());
 
+    if (log.isDebugEnabled()) {
+      log.debug("Sending resource on subscription " + response.toString());
+    }
+
     session.getAsyncRemote().sendText(response.toString());
   }
 
@@ -387,30 +409,32 @@ public class ColaboratorySocket {
       ColaboratorySocket.mapAccessLock.lock();
       try {
         Collection<String> listeners = (Collection<String>) ColaboratorySocket.resourceToSessions.get(resourceId);
-        Iterator<String> itListeners = listeners.iterator();
-        while (itListeners.hasNext()) {
-          String sessionId = itListeners.next();
-          Session session = ColaboratorySocket.sessionIdToSession.get(sessionId);
-          if(session == null) {
-            log.error("Session " + sessionId + " is listed as listening to a resource but is not mapped to an existing session");
-            continue;
+        if (listeners != null) {
+          Iterator<String> itListeners = listeners.iterator();
+          while (itListeners.hasNext()) {
+            String sessionId = itListeners.next();
+            Session session = ColaboratorySocket.sessionIdToSession.get(sessionId);
+            if (session == null) {
+              log.error("Session " + sessionId + " is listed as listening to a resource but is not mapped to an existing session");
+              continue;
+            }
+
+            String userLogin = ColaboratorySocket.sessionIdToUser.get(sessionId);
+            JSONObject message = new JSONObject();
+
+            try {
+              JSONObject metadata = DatabaseResource.getData(resourceId, userLogin);
+
+              message.put("action", Action.ServerActionType.RESOURCE);
+              message.put("timestamp", new Date().getTime());
+              message.put("resource", metadata);
+            } catch (AccessForbiddenException ex) {
+              message.put("forbidden", resourceId);
+              message.put("action", Action.ServerActionType.RESOURCE);
+            }
+
+            session.getAsyncRemote().sendText(message.toString());
           }
-          
-          String userLogin = ColaboratorySocket.sessionIdToUser.get(sessionId);
-          JSONObject message = new JSONObject();
-          
-          try {
-            JSONObject metadata = DatabaseResource.getData(userLogin, resourceId);
-            
-            message.put("action", Action.ServerActionType.RESOURCE);
-            message.put("timestamp", new Date().getTime());
-            message.put("resource", metadata);
-          } catch (AccessForbiddenException ex) {
-            message.put("forbidden", resourceId);
-            message.put("action", Action.ServerActionType.RESOURCE);
-          }
-          
-          session.getAsyncRemote().sendText(message.toString());
         }
       } finally {
         mapAccessLock.unlock();

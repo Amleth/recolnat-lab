@@ -8,7 +8,6 @@ import React from 'react';
 import ModalConstants from '../constants/ModalConstants';
 
 import AddEntitiesToSetModal from './modals/AddEntitiesToSetModal';
-import NewStudyModal from './modals/NewStudyModal';
 import LoginModal from './modals/LoginModal';
 import ConfirmDeleteModal from './modals/ConfirmDelete';
 import AddAnnotationToEntity from './modals/AddAnnotationToEntity';

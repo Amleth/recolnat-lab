@@ -9,7 +9,7 @@ import Classes from '../../constants/CommonSVGClasses';
 
 import MetadataActions from '../../actions/MetadataActions';
 
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class EditPoI {
   static drag() {
@@ -82,7 +82,7 @@ class EditPoI {
       { key: 'y', value: coords[1] }
     ];
 
-    REST.changeEntityProperties(d.uid, properties, MetadataActions.updateLabBenchFrom.bind(null, d.uid), EditPoI.moveAbortedByServer);
+    ServiceMethods.editProperties(d.uid, properties);
 
     d3.select('#POI-EDIT-' + data.uid).remove();
     d3.select('.' + Classes.ROOT_CLASS)
@@ -91,7 +91,7 @@ class EditPoI {
 
   static moveAbortedByServer() {
     alert('Le déplacement a été refusé par le serveur');
-    window.setTimeout(MetadataActions.updateLabBenchFrom, 10);
+    //window.setTimeout(MetadataActions.updateLabBenchFrom, 10);
   }
 }
 

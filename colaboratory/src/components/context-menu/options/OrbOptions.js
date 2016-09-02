@@ -3,8 +3,6 @@
  */
 'use strict';
 
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
 import d3 from 'd3';
 
 import ViewActions from '../../../actions/ViewActions';
@@ -12,6 +10,8 @@ import ModalActions from '../../../actions/ModalActions';
 
 import TypeConstants from '../../../constants/TypeConstants';
 import ModalConstants from '../../../constants/ModalConstants';
+
+import ServiceMethods from '../../../utils/ServiceMethods';
 
 import conf from '../../../conf/ApplicationConfiguration';
 
@@ -21,23 +21,7 @@ class OrbOptions {
       return;
     }
 
-    request.post(conf.actions.databaseActions.remove)
-      .set('Content-Type', "application/json")
-      .use(request_no_cache)
-      .send({id: data.uid})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          if(errorCallback) {
-            errorCallback(err)
-          }
-        }
-        else {
-          if(successCallback) {
-            successCallback(res);
-          }
-        }
-      });
+    ServiceMethods.remove(data.uid, successCallback);
   }
 
   static unlinkFromSet(data, errorCallback=null, successCallback=null) {

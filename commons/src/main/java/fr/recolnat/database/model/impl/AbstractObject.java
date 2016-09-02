@@ -9,7 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -45,7 +45,7 @@ public class AbstractObject {
 
   }
 
-  public AbstractObject(OrientElement e, OrientVertex vUser, OrientGraph g) {
+  public AbstractObject(OrientElement e, OrientVertex vUser, OrientBaseGraph g) {
     if (log.isTraceEnabled()) {
       log.trace("----- BEGIN OBJECT PROPERTIES -----");
     }

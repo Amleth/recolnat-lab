@@ -1,6 +1,6 @@
 package fr.recolnat.database.utils;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 
@@ -9,7 +9,7 @@ import fr.recolnat.database.model.DataModel;
  */
 public class DatabaseTester {
 
-  public static void createTestWorkbench(OrientVertex user, OrientGraph g) {
+  public static void createTestWorkbench(OrientVertex user, OrientBaseGraph g) {
 //    OrientVertex user = CreatorUtils.createUser("Robert LeRouge", g);
       String userId = user.getProperty(DataModel.Properties.id);
       OrientVertex rootSet = (OrientVertex) AccessUtils.getCoreSet(user, g);

@@ -1,7 +1,6 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
 
 //import VirtualBenchLab from './components/VirtualBenchLab';
 import LeftPane from './components/panes/LeftPane';
@@ -26,6 +25,7 @@ import ModeStore from './stores/ModeStore';
 import DragNDropStore from './stores/DragNDropStore';
 import InspectorStore from './stores/InspectorStore';
 import BasketStore from './stores/BasketStore';
+import WebSocketConnector from './utils/WebSocketConnector';
 
 import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
 
@@ -54,6 +54,7 @@ const basketstore = new BasketStore();
 const modestore = new ModeStore();
 const inspecstore = new InspectorStore();
 const dragstore = new DragNDropStore();
+const socket = new WebSocketConnector();
 const controller = new InterStoreCommunicationsController({
   ministore: ministore,
   viewstore: viewstore,

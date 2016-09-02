@@ -1,6 +1,6 @@
 package fr.recolnat.database.model.impl;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -15,7 +15,7 @@ import org.codehaus.jettison.json.JSONObject;
  */
 public class PointOfInterest extends AbstractObject {
 
-  public PointOfInterest(OrientVertex vPoint, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public PointOfInterest(OrientVertex vPoint, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vPoint, vUser, g);
     if (!AccessRights.canRead(vUser, vPoint, g)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vPoint.getProperty(DataModel.Properties.id));

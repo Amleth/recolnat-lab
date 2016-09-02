@@ -7,7 +7,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -33,7 +33,7 @@ public class Specimen extends AbstractObject {
   private final Set<String> images = new HashSet<>();
   private final Set<String> containedInSets = new HashSet<>();
 
-  public Specimen(OrientVertex vSpecimen, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public Specimen(OrientVertex vSpecimen, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vSpecimen, vUser, g);
     if (!AccessRights.canRead(vUser, vSpecimen, g)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSpecimen.getProperty(DataModel.Properties.id));

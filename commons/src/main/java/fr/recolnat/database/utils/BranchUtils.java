@@ -7,7 +7,7 @@ package fr.recolnat.database.utils;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import java.util.Iterator;
@@ -25,7 +25,7 @@ public class BranchUtils {
 
   private static final Logger log = LoggerFactory.getLogger(BranchUtils.class);
 
-  public static OrientVertex branchSubTree(OrientVertex vStart, OrientVertex vUser, OrientGraph g) {
+  public static OrientVertex branchSubTree(OrientVertex vStart, OrientVertex vUser, OrientBaseGraph g) {
     if (!AccessRights.canRead(vUser, vStart, g)) {
       return null;
     }
@@ -177,12 +177,12 @@ public class BranchUtils {
     return vBranch;
   }
   
-  public static boolean isMainBranch(OrientVertex v, OrientGraph g) {
+  public static boolean isMainBranch(OrientVertex v, OrientBaseGraph g) {
     // NPE means database is screwed up, node is missing branch status
     return v.getProperty(DataModel.Properties.branch).equals(DataModel.Globals.BRANCH_MAIN);
   }
 
-  private static OrientVertex branchImage(OrientVertex vOriginalImage, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchImage(OrientVertex vOriginalImage, OrientVertex vUser, OrientBaseGraph g) {
     String name = vOriginalImage.getProperty(DataModel.Properties.name);
     String imageUrl = vOriginalImage.getProperty(DataModel.Properties.imageUrl);
     String thumbUrl = vOriginalImage.getProperty(DataModel.Properties.thumbUrl);
@@ -198,7 +198,7 @@ public class BranchUtils {
     return vImageFork;
   }
 
-  private static OrientVertex branchMeasureStandard(OrientVertex vStandard, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchMeasureStandard(OrientVertex vStandard, OrientVertex vUser, OrientBaseGraph g) {
     String name = vStandard.getProperty(DataModel.Properties.name);
     Double length = vStandard.getProperty(DataModel.Properties.length);
     OrientVertex vStandardFork = CreatorUtils.createMeasureStandard(length, "mm", name, g);
@@ -211,7 +211,7 @@ public class BranchUtils {
     return vStandardFork;
   }
 
-  private static OrientVertex branchMeasurement(OrientVertex vMeasurement, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchMeasurement(OrientVertex vMeasurement, OrientVertex vUser, OrientBaseGraph g) {
     Double value = vMeasurement.getProperty(DataModel.Properties.pxValue);
     DataModel.Enums.Measurement measureType = vMeasurement.getProperty(DataModel.Properties.measureType);
     OrientVertex vMeasurementFork = CreatorUtils.createMeasurement(value, measureType, g);
@@ -224,7 +224,7 @@ public class BranchUtils {
     return vMeasurementFork;
   }
 
-  private static OrientVertex branchTrailOfInterest(OrientVertex vTrail, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchTrailOfInterest(OrientVertex vTrail, OrientVertex vUser, OrientBaseGraph g) {
     List<List<Integer>> coordinates = vTrail.getProperty(DataModel.Properties.vertices);
     String name = vTrail.getProperty(DataModel.Properties.name);
     OrientVertex vTrailFork = CreatorUtils.createTrailOfInterest(coordinates, name, g);
@@ -237,7 +237,7 @@ public class BranchUtils {
     return vTrailFork;
   }
 
-  private static OrientVertex branchPointOfInterest(OrientVertex vPoint, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchPointOfInterest(OrientVertex vPoint, OrientVertex vUser, OrientBaseGraph g) {
     Integer x = vPoint.getProperty(DataModel.Properties.coordX);
     Integer y = vPoint.getProperty(DataModel.Properties.coordY);
     String name = vPoint.getProperty(DataModel.Properties.name);
@@ -251,7 +251,7 @@ public class BranchUtils {
     return vPointFork;
   }
 
-  private static OrientVertex branchRegionOfInterest(OrientVertex vRegion, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchRegionOfInterest(OrientVertex vRegion, OrientVertex vUser, OrientBaseGraph g) {
     List<List<Integer>> coordinates = vRegion.getProperty(DataModel.Properties.vertices);
     String name = vRegion.getProperty(DataModel.Properties.name);
     OrientVertex vRegionFork = CreatorUtils.createRegionOfInterest(name, coordinates, g);
@@ -264,7 +264,7 @@ public class BranchUtils {
     return vRegionFork;
   }
 
-  private static OrientVertex branchSet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchSet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g) {
     String name = vSet.getProperty(DataModel.Properties.name);
     OrientVertex vSetFork = CreatorUtils.createSet(name, "bag", g);
     vSetFork.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_SIDE);
@@ -276,7 +276,7 @@ public class BranchUtils {
     return vSetFork;
   }
 
-  private static OrientVertex branchSpecimen(OrientVertex vSpecimen, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchSpecimen(OrientVertex vSpecimen, OrientVertex vUser, OrientBaseGraph g) {
     String name = vSpecimen.getProperty(DataModel.Properties.name);
     OrientVertex vSpecimenFork = CreatorUtils.createSpecimen(name, g);
     vSpecimenFork.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_SIDE);
@@ -288,7 +288,7 @@ public class BranchUtils {
     return vSpecimenFork;
   }
 
-  private static OrientVertex branchStudy(OrientVertex vStudy, OrientVertex vUser, OrientGraph g) {
+  private static OrientVertex branchStudy(OrientVertex vStudy, OrientVertex vUser, OrientBaseGraph g) {
     String name = vStudy.getProperty(DataModel.Properties.name);
     // Rights granted internally
     OrientVertex vStudyFork = CreatorUtils.createStudy(name, vUser, g);
@@ -299,7 +299,7 @@ public class BranchUtils {
     return vStudyFork;
   }
   
-  public static OrientVertex getMainBranchAncestor(OrientVertex v, OrientGraph g) {
+  public static OrientVertex getMainBranchAncestor(OrientVertex v, OrientBaseGraph g) {
     if(BranchUtils.isMainBranch(v, g)) {
       return v;
     }

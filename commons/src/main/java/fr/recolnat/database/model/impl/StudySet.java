@@ -9,7 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -40,7 +40,7 @@ public class StudySet extends AbstractObject {
 //  private String linkId = null;
 //  private final String type = "bag";
 //  private String name;
-  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vSet, vUser, g);
     if (!AccessRights.canRead(vUser, vSet, g)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSet.getProperty(DataModel.Properties.id));

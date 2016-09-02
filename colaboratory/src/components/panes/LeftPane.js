@@ -5,7 +5,6 @@
 
 import React from "react";
 
-import GraphNavigator from './../../tools/palettes/GraphNavigator';
 import Minimap from '../../tools/palettes/Minimap';
 import CollectionNavigator from '../../tools/palettes/CollectionNavigator';
 import Toolbox from '../../tools/palettes/Toolbox';

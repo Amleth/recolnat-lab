@@ -17,6 +17,8 @@ import Popup from '../popups/CreateAnglePopup';
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
+import ServiceMethods from '../../utils/ServiceMethods';
+
 import icon from '../../images/protractor.svg';
 
 class CreateAngle extends AbstractTool {
@@ -98,19 +100,15 @@ class CreateAngle extends AbstractTool {
       return null;
     }
 
-    var data = {};
-    data.serviceUrl = conf.actions.imageServiceActions.createAngleOfInterest;
-    data.parent = this.state.imageId;
-    data.payload = {};
-    data.payload.vertices = [
+    var vertices = [
       [this.state.vertex1.x, this.state.vertex1.y],
       [this.state.center.x, this.state.center.y],
       [this.state.vertex2.x, this.state.vertex2.y]
     ];
-    data.payload.measure = this.getAngleInDegrees();
-    data.payload.name = this.state.name;
+    var measure = this.getAngleInDegrees();
+    var name = this.state.name;
 
-    return data;
+    ServiceMethods.createAngleOfInterest(this.state.imageId, measure, vertices, name);
   }
 
   begin() {

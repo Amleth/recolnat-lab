@@ -4,14 +4,14 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
 
 import AbstractModal from './AbstractModal';
 
 import Globals from '../../utils/Globals';
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 import ModalConstants from '../../constants/ModalConstants';
+import ServerConstants from '../../constants/ServerConstants';
 
 import ManagerActions from '../../actions/ManagerActions';
 
@@ -30,7 +30,7 @@ class ConfirmDelete extends AbstractModal {
   checkKey(event) {
     switch(event.keyCode) {
       case 13:
-        this.createNewStudy();
+        this.unlink();
         break;
       case 27:
         this.cancel();
@@ -38,24 +38,19 @@ class ConfirmDelete extends AbstractModal {
     }
   }
 
-  unlink() {
-    var data = this.props.modalstore.getTargetData();
-    request.post(conf.actions.setServiceActions.deleteFromSet)
-      .set('Content-Type', "application/json")
-      .send({
-        linkId: data.link
-      })
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          this.props.modalstore.runErrorCallback(err);
-        }
-        else {
-          this.props.modalstore.runSuccessCallback(res);
-        }
-      });
+  receiveMessage(message) {
+    if(message.action === ServerConstants.ActionTypes.Receive.DONE) {
+      this.props.modalstore.runSuccessCallback(message);
+    }
+    else {
+      this.props.modalstore.runErrorCallback(message);
+    }
   }
 
+  unlink() {
+    var data = this.props.modalstore.getTargetData();
+    ServiceMethods.deleteElementFromSet(data.link, this.receiveMessage.bind(this));
+  }
 
   render() {
     //console.log('rendering confirm delete');

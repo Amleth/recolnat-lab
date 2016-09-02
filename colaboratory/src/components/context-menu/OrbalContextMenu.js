@@ -322,7 +322,8 @@ class OrbalContextMenu extends React.Component {
     this.props.metastore.addMetadataUpdateListener(id, this._onActiveItemMetadataUpdated);
 
     this.setState({active: this.state.active && keepActive, activeItemId: id, activeItemLinkId: link, activeItemIndex: index});
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, [id]), 10);
+
+    window.setTimeout(this._onActiveItemMetadataUpdated, 50);
   }
 
   previousItem(event) {
@@ -406,7 +407,7 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom();
+              //MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -441,7 +442,7 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom();
+              //MetadataActions.updateLabBenchFrom();
             }
           );
           this.southEastAction = OrbOptions.notAvailable.bind(null);
@@ -474,7 +475,7 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom();
+              //MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -508,7 +509,7 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom();
+              //MetadataActions.updateLabBenchFrom();
             }
           );
 
@@ -546,8 +547,8 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom(metadata.uid);
-              ManagerActions.reloadDisplayedSets();
+              //MetadataActions.updateLabBenchFrom(metadata.uid);
+              //ManagerActions.reloadDisplayedSets();
             }
           );
 
@@ -586,8 +587,8 @@ class OrbalContextMenu extends React.Component {
               console.error(err);
             },
             function (res) {
-              MetadataActions.updateLabBenchFrom(metadata.uid);
-              ManagerActions.reloadDisplayedSets();
+              //MetadataActions.updateLabBenchFrom(metadata.uid);
+              //ManagerActions.reloadDisplayedSets();
             }
           );
 

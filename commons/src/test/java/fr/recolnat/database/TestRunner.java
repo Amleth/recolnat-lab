@@ -1,6 +1,6 @@
 package fr.recolnat.database;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import fr.recolnat.database.model.StructureBuilder;
 import fr.recolnat.database.utils.DatabaseTester;
@@ -17,7 +17,7 @@ public class TestRunner {
     OrientGraphNoTx gntx = conn.getNonTransactionalGraph();
     StructureBuilder.createRecolnatDataModel(gntx);
 
-    OrientGraph g = conn.getTransactionalGraph();
+    OrientBaseGraph g = conn.getTransactionalGraph();
     try {
 //      DatabaseTester.createTestWorkbench(g);
       g.commit();

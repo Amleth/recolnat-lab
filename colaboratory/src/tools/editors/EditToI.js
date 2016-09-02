@@ -6,7 +6,7 @@ import Classes from '../../constants/CommonSVGClasses';
 
 import MetadataActions from '../../actions/MetadataActions';
 
-import REST from '../../utils/REST';
+import REST from '../../utils/ServiceMethods';
 
 class EditToI {
 

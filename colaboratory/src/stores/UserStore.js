@@ -4,13 +4,13 @@
 'use strict';
 
 import {EventEmitter} from 'events';
-import request from 'superagent';
 
 import AppDispatcher from '../dispatcher/AppDispatcher';
 
 import UserEvents from './events/UserEvents';
 
 import ModalActions from '../actions/ModalActions';
+import SocketActions from '../actions/SocketActions';
 
 import ModalConstants from '../constants/ModalConstants';
 
@@ -25,7 +25,8 @@ class UserStore extends EventEmitter {
     this.userLogin = null;
 
     // Perform initial check
-    SocketActions.registerListener('user', this.userConnected.bind(this));
+    window.setTimeout(SocketActions.registerListener.bind(null, 'user', this.userConnected.bind(this)), 10);
+
   }
 
   userConnected(user) {
@@ -33,11 +34,13 @@ class UserStore extends EventEmitter {
       this.userRplusId = user.uid;
       this.userLogin = user.name;
       this.userAuthorized = true;
+      this.emit(UserEvents.USER_LOG_IN);
     }
     else {
       this.userAuthorized = false;
       this.userRplusId = null;
       this.userLogin = null;
+      this.emit(UserEvents.USER_LOG_OUT);
     }
   }
 

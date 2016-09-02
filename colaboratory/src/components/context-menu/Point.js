@@ -43,10 +43,6 @@ class Point extends ContextMenuItem {
     alert('La suppression a échoué');
   }
 
-  reloadMetadata(res) {
-    ViewActions.updateMetadata(this.props.item.uid);
-  }
-
   componentWillUnmount() {
     if(this.state.rect) {
       this.state.rect.interrupt().transition().attr('fill', this.state.rectColor);

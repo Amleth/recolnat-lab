@@ -1,6 +1,6 @@
 package fr.recolnat.database;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 
@@ -28,11 +28,13 @@ public class RemoteDatabaseConnector {
     this.user = login;
     this.pass = password;
 
-    this.factory = new OrientGraphFactory(dbUrl, user, pass).setupPool(1,10);
+    
+//    this.factory = new OrientGraphFactory(dbUrl, user, pass).setupPool(1,10);
+    this.factory = new OrientGraphFactory("plocal:/apps/recolnat/lab/vm/databases/ReColNatPlusDev", this.user, this.pass).setupPool(1,10);
   }
 
-  public OrientGraph getTransactionalGraph() {
-    OrientGraph graph = factory.getTx();
+  public OrientBaseGraph getTransactionalGraph() {
+    OrientBaseGraph graph = factory.getTx();
     return graph;
   }
 

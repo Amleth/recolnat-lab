@@ -126,7 +126,7 @@ class ElementInspector extends React.Component {
     });
 
     this.addMetadataListeners(elements, this._onEntityMetadataChange);
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, elements), 10);
+    window.setTimeout(this._onEntityMetadataChange, 50);
   }
 
   addMetadataListeners(ids, callback) {
@@ -164,7 +164,7 @@ class ElementInspector extends React.Component {
     annotationsIds = _.uniq(annotationsIds);
     var newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
     //var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
-    console.log('New annotations ids: ' + JSON.stringify(newAnnotationIds));
+    //console.log('New annotations ids: ' + JSON.stringify(newAnnotationIds));
 
     //this.clearMetadataListeners(removedAnnotationIds);
     this.addMetadataListeners(newAnnotationIds, this._onAnnotationMetadataChange);
@@ -174,7 +174,7 @@ class ElementInspector extends React.Component {
       annotationsIds: annotationsIds
     });
 
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, newAnnotationIds), 10);
+    window.setTimeout(this._onAnnotationMetadataChange, 50);
   }
 
   processAnnotationMetadata() {
@@ -204,7 +204,8 @@ class ElementInspector extends React.Component {
       annotations: annotations,
       creatorsIds: creatorIds
     });
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, newCreatorIds), 10);
+
+    window.setTimeout(this._onCreatorMetadataChange, 50);
   }
 
   processCreatorMetadata() {
@@ -311,8 +312,7 @@ class ElementInspector extends React.Component {
       ModalActions.showModal.bind(
         null,
         ModalConstants.Modals.addAnnotationToEntity,
-        {entity: id},
-        function(data) {  window.setTimeout(MetadataActions.updateMetadata.bind(null, [id]), 10);}),
+        {entity: id}),
       10);
   }
 

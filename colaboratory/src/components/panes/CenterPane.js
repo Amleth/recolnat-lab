@@ -61,7 +61,6 @@ class CenterPane extends React.Component {
     return (
       <div style={this.componentContainerStyle}>
         <div className={"ui " + this.state.loading + " dimmer"} style={this.dimmerStyle}>
-          <div className='ui large header'>Chargement en cours</div>
           <div className="ui large text loader">{this.state.loader}</div>
         </div>
         <VirtualBenchLab

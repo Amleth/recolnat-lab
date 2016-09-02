@@ -18,7 +18,7 @@ import ModalActions from '../../actions/ModalActions';
 import ViewActions from '../../actions/ViewActions';
 import BasketActions from '../../actions/BasketActions';
 
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class AddEntitiesToSetModal extends AbstractModal {
   constructor(props) {
@@ -79,15 +79,12 @@ class AddEntitiesToSetModal extends AbstractModal {
 
   createSubSet() {
     var name = this.state.nameInput;
-    REST.createSubSet(
-      this.state.parentId,
-      this.state.nameInput,
-      function(parentId, newSetId, linkId) {
-        window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
-        window.setTimeout(ManagerActions.select.bind(null, newSetId, 'Set', name, parentId, linkId), 20);
+    ServiceMethods.createSet(this.state.nameInput, this.state.parentId, function(parentId, newSetId, linkId) {
+      window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
+      window.setTimeout(ManagerActions.select.bind(null, newSetId, 'Set', name, parentId, linkId), 20);
 
-        window.setTimeout(ManagerActions.reloadDisplayedSets.bind(null), 30);
-      });
+      window.setTimeout(ManagerActions.reloadDisplayedSets.bind(null), 30);
+    });
   }
 
   createFromBasket() {
@@ -140,6 +137,8 @@ class AddEntitiesToSetModal extends AbstractModal {
       case ModeConstants.Modes.OBSERVATION:
         onSuccess = function(response) {
           // Place specimens in middle of screen
+          console.warning('Callback not implemented');
+          return;
           window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
 
           if(!keepInBasket) {
@@ -154,6 +153,7 @@ class AddEntitiesToSetModal extends AbstractModal {
           var x = view.left + view.width / 2;
           var y = view.top + view.height / 2;
           for(var j = 0; j < response.linkedEntities.length; ++j) {
+
             var linkedEntity = response.linkedEntities[j];
             for(var k = 0; k < linkedEntity.images.length; ++k) {
               var image = linkedEntity.images[k];
@@ -167,7 +167,7 @@ class AddEntitiesToSetModal extends AbstractModal {
             }
           }
 
-          REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom);
+          //REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom);
         };
         onError = function(err, res) {
           alert("Problème lors de l'import. Veuillez réessayer plus tard.");
@@ -179,7 +179,9 @@ class AddEntitiesToSetModal extends AbstractModal {
         break;
     }
 
-    REST.importRecolnatSpecimensIntoSet(specimens, this.state.parentId, onSuccess.bind(this), onError);
+    for(var s = 0; s < specimens.length; ++s) {
+      ServiceMethods.importRecolnatSpecimen(this.state.parentId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onSuccess.bind(this));
+    }
   }
 
   createFromWeb() {
@@ -224,8 +226,13 @@ class AddEntitiesToSetModal extends AbstractModal {
     if(!this.state.active && nextState.active) {
       nextState.parentId = this.props.modalstore.getTargetData().parent;
       // nextState.parentIndex = this.props.modalstore.getTargetData().index;
-      this.props.metastore.addMetadataUpdateListener(nextState.parentId, this._onMetadataAvailable);
-      window.setTimeout(MetadataActions.updateMetadata.bind(null, [nextState.parentId]), 10);
+      var metadata = nextProps.metastore.getMetadataAbout(nextState.parentId);
+      if(metadata) {
+        nextState.displayName = metadata.name;
+      }
+      else {
+        this.props.metastore.addMetadataUpdateListener(nextState.parentId, this._onMetadataAvailable);
+      }
       window.setTimeout(BasketActions.reloadBasket, 10);
     }
     super.componentWillUpdate(nextProps, nextState);

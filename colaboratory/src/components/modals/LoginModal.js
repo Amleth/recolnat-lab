@@ -29,7 +29,7 @@ class LoginModal extends React.Component {
     this.loginWindow = null;
 
     this.state = {
-      active: false
+      active: !props.userstore.isUserAuthorized()
     };
   }
 
@@ -66,7 +66,8 @@ class LoginModal extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.active && !prevState.active) {
+    console.log("did update");
+    if(this.state.active) {
       $(this.refs.modal.getDOMNode())
         .modal('setting', 'closable', false)
         .modal('show');

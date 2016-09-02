@@ -53,7 +53,7 @@ class RightPane extends React.Component {
           metastore={this.props.metastore}
           modestore={this.props.modestore}
           managerstore={this.props.managerstore}
-          />
+        />
         <SetMetadataDisplay
           metastore={this.props.metastore}
           toolstore={this.props.toolstore}
@@ -87,3 +87,4 @@ class RightPane extends React.Component {
 }
 
 export default RightPane;
+

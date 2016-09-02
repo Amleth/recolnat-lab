@@ -4,8 +4,8 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
+
+import SocketActions from '../../actions/SocketActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
@@ -38,6 +38,7 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
 
   initialState() {
     return {
+      id: null,
       isVisibleInCurrentMode: true,
       type: null,
       source: null,
@@ -51,24 +52,19 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
   }
 
   downloadMetadata(id) {
-    request.post(conf.actions.databaseActions.getData)
-      .use(request_no_cache)
-      .send([id])
-      .withCredentials()
-      .end((err, res) => {
-          if(err) {
-            console.error("Could not get data about object " + err);
-            this.setState(this.initialState());
-          }
-          else {
-            var metadata = JSON.parse(res.text);
-            //console.log(res.text);
-            if(metadata[0]) {
-              this.processCoLabMetadata(metadata[0]);
-            }
-          }
-        }
-      );
+    if(this.state.id) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
+    }
+    this.props.metastore.addMetadataUpdateListener(id, this.receiveMetadata.bind(this));
+    this.setState({id: id});
+    window.setTimeout(this.receiveMetadata.bind(this, id), 50);
+  }
+
+  receiveMetadata() {
+    var data = this.props.metastore.getMetadataAbout(this.state.id);
+    if(data) {
+      this.processCoLabMetadata(data);
+    }
   }
 
   processCoLabMetadata(metadata) {
@@ -97,6 +93,9 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
   componentWillUnmount() {
     this.props.managerstore.removeSelectionChangeListener(this._onWorkbenchSelectionChange);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    if(this.state.id) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
+    }
   }
 
   render() {

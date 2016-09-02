@@ -3,7 +3,7 @@ package fr.recolnat.database.utils;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import org.apache.commons.lang.NotImplementedException;
@@ -45,7 +45,7 @@ public class CreatorUtils {
    * @param graph
    * @return
    */
-  public static String newVertexUUID(OrientGraph graph) {
+  public static String newVertexUUID(OrientBaseGraph graph) {
     String uuid = "V-" + UUID.randomUUID().toString();
     Iterator<Vertex> itExistingEntities = graph.getVertices("V",
         new String[]{DataModel.Properties.id},
@@ -65,7 +65,7 @@ public class CreatorUtils {
    * @param graph
    * @return
    */
-  public static String newEdgeUUID(OrientGraph graph) {
+  public static String newEdgeUUID(OrientBaseGraph graph) {
     String uuid = "E-" + UUID.randomUUID().toString();
     Iterator<Edge> itExistingEntities = graph.getEdges(DataModel.Properties.id, uuid).iterator();
     while(itExistingEntities.hasNext()) {
@@ -84,7 +84,7 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-//  public static OrientVertex createAbstractScientificEntity(String type, String id, OrientGraph graph) throws AlreadyExistsException {
+//  public static OrientVertex createAbstractScientificEntity(String type, String id, OrientBaseGraph graph) throws AlreadyExistsException {
 //    if(type == null || id == null) {
 //      throw new NullArgumentException("Input argument 'type' or 'id' is null. This is not allowed.");
 //    }
@@ -110,7 +110,7 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-//  public static OrientVertex createRecolnatAbstractEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//  public static OrientVertex createRecolnatAbstractEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientBaseGraph graph) throws AlreadyExistsException {
 //    if(id == null) {
 //      throw new NullArgumentException("Input argument 'id' is null. This is not allowed.");
 //    }
@@ -138,7 +138,7 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-//  public static OrientVertex createAbstractLeafEntity (String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//  public static OrientVertex createAbstractLeafEntity (String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientBaseGraph graph) throws AlreadyExistsException {
 //    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
 //    ret.moveToClass(DataModel.Classes.leafEntity);
 //    return ret;
@@ -159,7 +159,7 @@ public class CreatorUtils {
    * @return the created vertex
    * @throws AlreadyExistsException
    */
-//  public static OrientVertex createRelationship(String id, DataModel.Enums.Modules createdInModule, OrientVertex user, Date createdAt, DataModel.Enums.Relationships type, OrientVertex relSubject, OrientVertex relObject, String relName, OrientVertex relCreator, OrientGraph graph) throws AlreadyExistsException {
+//  public static OrientVertex createRelationship(String id, DataModel.Enums.Modules createdInModule, OrientVertex user, Date createdAt, DataModel.Enums.Relationships type, OrientVertex relSubject, OrientVertex relObject, String relName, OrientVertex relCreator, OrientBaseGraph graph) throws AlreadyExistsException {
 //    if(type == null) {
 //      throw new NullArgumentException("Input argument 'type' is null. This is not allowed.");
 //    }
@@ -190,7 +190,7 @@ public class CreatorUtils {
    * @return
    * @throws fr.recolnat.database.exceptions.AlreadyExistsException
    */
-//  public static OrientVertex createAbstractCompositeEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) throws AlreadyExistsException {
+//  public static OrientVertex createAbstractCompositeEntity(String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientBaseGraph graph) throws AlreadyExistsException {
 //    OrientVertex ret = createRecolnatAbstractEntity(id, createdInModule, createdAt, graph);
 //    ret.moveToClass(DataModel.Classes.compositeEntity);
 //    return ret;
@@ -206,7 +206,7 @@ public class CreatorUtils {
    * @param graph
    * @return
    */
-  public static OrientVertex createSentiment(DataModel.Enums.OpinionPolarity type, Date date, OrientVertex opinionTarget, OrientVertex opinionSource, OrientVertex sealOfAuthority, OrientGraph graph) {
+  public static OrientVertex createSentiment(DataModel.Enums.OpinionPolarity type, Date date, OrientVertex opinionTarget, OrientVertex opinionSource, OrientVertex sealOfAuthority, OrientBaseGraph graph) {
     throw new NotImplementedException();
   }
 
@@ -219,7 +219,7 @@ public class CreatorUtils {
    * @param graph
    * @return
    */
-  public static OrientVertex createConcreteClass(String className, String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientGraph graph) {
+  public static OrientVertex createConcreteClass(String className, String id, DataModel.Enums.Modules createdInModule, Date createdAt, OrientBaseGraph graph) {
     throw new NotImplementedException();
   }
 
@@ -230,7 +230,7 @@ public class CreatorUtils {
    * @param g
    * @return 
    */
-  public static OrientVertex createUser(String name, OrientGraph g) {
+  public static OrientVertex createUser(String name, OrientBaseGraph g) {
     OrientVertex user = g.addVertex("class:" + DataModel.Classes.user);
     user.setProperty(DataModel.Properties.id, UUID.randomUUID().toString());
     user.setProperty(DataModel.Properties.name, name);
@@ -248,7 +248,7 @@ public class CreatorUtils {
    * @param g
    * @return 
    */
-  public static OrientVertex createNewUserAndUserData(String loginName, OrientGraph g) {
+  public static OrientVertex createNewUserAndUserData(String loginName, OrientBaseGraph g) {
     OrientVertex vUser = CreatorUtils.createUser(loginName, g);
     OrientVertex vRootSet = CreatorUtils.createSet("Racine des sets", DataModel.Globals.ROOT_SET_ROLE, g);
     OrientVertex vDefaultView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
@@ -263,7 +263,7 @@ public class CreatorUtils {
     return vUser;
   }
 
-  public static OrientVertex createSet(String name, String role, OrientGraph g) {
+  public static OrientVertex createSet(String name, String role, OrientBaseGraph g) {
     OrientVertex vSet = g.addVertex("class:" + DataModel.Classes.set);
     vSet.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     vSet.setProperty(DataModel.Properties.name, name);
@@ -274,7 +274,7 @@ public class CreatorUtils {
     return vSet;
   }
   
-  public static OrientVertex createView(String name, String role, OrientGraph g) {
+  public static OrientVertex createView(String name, String role, OrientBaseGraph g) {
     OrientVertex vView = g.addVertex("class:" + DataModel.Classes.setView);
     vView.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     vView.setProperty(DataModel.Properties.name, name);
@@ -285,7 +285,7 @@ public class CreatorUtils {
     return vView;
   }
   
-  public static OrientVertex createImage(String name, String imageUrl, int width, int height, String thumbUrl, OrientGraph g) {
+  public static OrientVertex createImage(String name, String imageUrl, int width, int height, String thumbUrl, OrientBaseGraph g) {
     OrientVertex image = g.addVertex("class:" + DataModel.Classes.image);
     
     image.setProperties(
@@ -302,7 +302,7 @@ public class CreatorUtils {
     return image;
   }
   
-  public static OrientVertex createSpecimen(String name, OrientGraph g) {
+  public static OrientVertex createSpecimen(String name, OrientBaseGraph g) {
     OrientVertex specimen = g.addVertex("class:" + DataModel.Classes.specimen);
     
     specimen.setProperties(
@@ -314,7 +314,7 @@ public class CreatorUtils {
     return specimen;
   }
   
-  public static OrientVertex createStudy(String name, OrientVertex creator, OrientGraph g) {
+  public static OrientVertex createStudy(String name, OrientVertex creator, OrientBaseGraph g) {
     OrientVertex study = g.addVertex("class:" + DataModel.Classes.study);
     
     study.setProperties(DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
@@ -330,7 +330,7 @@ public class CreatorUtils {
     return study;
   }
 
-  public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientGraph g) {
+  public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientBaseGraph g) {
     Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.originalSource, 
         new String[] {
           DataModel.Properties.id, 
@@ -360,7 +360,7 @@ public class CreatorUtils {
     return entity;
   }
   
-  public static OrientVertex createRegionOfInterest(String name, List<List<Integer>> coords, OrientGraph g) {
+  public static OrientVertex createRegionOfInterest(String name, List<List<Integer>> coords, OrientBaseGraph g) {
     OrientVertex polygon = g.addVertex("class:" + DataModel.Classes.regionOfInterest);
 
     polygon.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
@@ -372,7 +372,7 @@ public class CreatorUtils {
     return polygon;
   }
   
-  public static OrientVertex createAngleOfInterest(String name, List<List<Integer>> coords, OrientGraph g) {
+  public static OrientVertex createAngleOfInterest(String name, List<List<Integer>> coords, OrientBaseGraph g) {
     OrientVertex angle = g.addVertex("class:" + DataModel.Classes.angleOfInterest);
 
     angle.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
@@ -384,7 +384,7 @@ public class CreatorUtils {
     return angle;
   }
 
-  public static OrientVertex createTrailOfInterest(List<List<Integer>> coords, String name, OrientGraph g) {
+  public static OrientVertex createTrailOfInterest(List<List<Integer>> coords, String name, OrientBaseGraph g) {
     OrientVertex path = g.addVertex("class:" + DataModel.Classes.trailOfInterest);
 
     path.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
@@ -396,7 +396,7 @@ public class CreatorUtils {
     return path;
   }
 
-  public static OrientVertex createPointOfInterest(Integer x, Integer y, String name, OrientGraph g) {
+  public static OrientVertex createPointOfInterest(Integer x, Integer y, String name, OrientBaseGraph g) {
     OrientVertex pointOfInterest = g.addVertex("class:" + DataModel.Classes.pointOfInterest);
 
     pointOfInterest.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
@@ -409,7 +409,7 @@ public class CreatorUtils {
     return pointOfInterest;
   }
 
-  public static OrientVertex createAnnotation(String text, OrientGraph g) {
+  public static OrientVertex createAnnotation(String text, OrientBaseGraph g) {
     OrientVertex annotation = g.addVertex("class:" + DataModel.Classes.annotation);
 
     annotation.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
@@ -428,7 +428,7 @@ public class CreatorUtils {
    * @param g
    * @return
    */
-  public static OrientVertex createMeasureStandard(Double value, String unit, String name, OrientGraph g) {
+  public static OrientVertex createMeasureStandard(Double value, String unit, String name, OrientBaseGraph g) {
     OrientVertex annotation = CreatorUtils.createAnnotation(DataModel.Classes.measureStandard, g);
     if(unit.equalsIgnoreCase("cm")) {
       value = value*10;
@@ -455,7 +455,7 @@ public class CreatorUtils {
    * @param g
    * @return
    */
-  public static OrientVertex createMeasurement(Double value, DataModel.Enums.Measurement type, OrientGraph g) {
+  public static OrientVertex createMeasurement(Double value, DataModel.Enums.Measurement type, OrientBaseGraph g) {
     OrientVertex annotation = CreatorUtils.createAnnotation(DataModel.Classes.measurement, g);
 
     annotation.setProperty(DataModel.Properties.pxValue, value);

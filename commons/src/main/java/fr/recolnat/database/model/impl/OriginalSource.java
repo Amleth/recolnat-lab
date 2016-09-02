@@ -5,7 +5,7 @@
  */
 package fr.recolnat.database.model.impl;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -16,7 +16,7 @@ import org.codehaus.jettison.json.JSONObject;
  */
 public class OriginalSource extends AbstractObject {
   
-  public OriginalSource(OrientVertex vOriginalSource, OrientVertex vUser, OrientGraph g) {
+  public OriginalSource(OrientVertex vOriginalSource, OrientVertex vUser, OrientBaseGraph g) {
     super(vOriginalSource, vUser, g);
   }
   

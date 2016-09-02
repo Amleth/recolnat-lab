@@ -1,10 +1,5 @@
 package org.dicen.recolnat.services.core.actions;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import javassist.NotFoundException;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  */

@@ -4,12 +4,13 @@
 'use strict';
 
 import d3 from 'd3';
-import request from 'superagent';
 
 import MetadataActions from '../actions/MetadataActions';
 import ViewActions from '../actions/ViewActions';
 
 import Classes from '../constants/CommonSVGClasses';
+
+import ServiceMethods from '../utils/ServiceMethods';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -65,19 +66,13 @@ class D3EventHandlers {
     var height = d.newHeight* d.displayHeight/ d.height;
     var width = d.newWidth* d.displayHeight/ d.height;
 
-    request.post(conf.actions.viewServiceActions.resize)
-      .send({link: link})
-      .send({view: view})
-      .send({entity: entity})
-      .send({height: height})
-      .send({width: width})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error(err);
-        }
-        MetadataActions.updateLabBenchFrom(view);
-      });
+    if(width <= 0 || height <= 0) {
+      alert('La hauteur et la largeur doivent être positives');
+      return;
+    }
+
+    ServiceMethods.resize(view, link, entity, width, height);
+
     d3.select('#RESIZE_WINDOW').remove();
     d.newHeight = null;
     d.newWidth = null;
@@ -128,7 +123,8 @@ class D3EventHandlers {
 
   static fixImagePosition(d) {
     if(d3.event.sourceEvent.which == 1) {
-      ViewActions.moveEntity(d.view, d.entity, d.link, d.x+ (d.tx)* d.displayHeight/ d.height, d.y+ (d.ty)* d.displayHeight/ d.height);
+      ServiceMethods.move(d.view, d.link, d.entity, d.x+ (d.tx)* d.displayHeight/ d.height, d.y+ (d.ty)* d.displayHeight/ d.height);
+      //ViewActions.moveEntity(d.view, d.entity, d.link, d.x+ (d.tx)* d.displayHeight/ d.height, d.y+ (d.ty)* d.displayHeight/ d.height);
 
       d3.select('#MOVE_OBJECT').remove();
 

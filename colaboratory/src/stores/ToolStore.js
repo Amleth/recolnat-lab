@@ -1,8 +1,6 @@
 'use strict';
 
 import {EventEmitter} from 'events';
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
@@ -157,36 +155,30 @@ class ToolStore extends EventEmitter {
   saveToolData() {
     if(this.activeTool) {
       if(this.activeTool.component.canSave()) {
-        var saveData = this.activeTool.component.save();
-        if(saveData) {
-          this.sendData(saveData, this.resetActiveTool.bind(this));
-        }
-        else {
-          console.log("No data to save");
-        }
+        this.activeTool.component.save();
       }
     }
   }
 
-  sendData(data, onSuccessCallback) {
-    console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
-    request.post(data.serviceUrl)
-      .set("Content-Type", "application/json")
-      .use(request_no_cache)
-      .send(data)
-      .withCredentials()
-      .end((err, res) => {
-        if (err) {
-          console.log(err);
-          alert("Impossible de sauvegarder les changements");
-        }
-        else {
-          MetadataActions.updateLabBenchFrom(data.parent);
-          //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
-          onSuccessCallback();
-        }
-      });
-  }
+  //sendData(data, onSuccessCallback) {
+  //  console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
+  //  request.post(data.serviceUrl)
+  //    .set("Content-Type", "application/json")
+  //    .use(request_no_cache)
+  //    .send(data)
+  //    .withCredentials()
+  //    .end((err, res) => {
+  //      if (err) {
+  //        console.log(err);
+  //        alert("Impossible de sauvegarder les changements");
+  //      }
+  //      else {
+  //        MetadataActions.updateLabBenchFrom(data.parent);
+  //        //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
+  //        onSuccessCallback();
+  //      }
+  //    });
+  //}
 
   register(name, onClickAction, component) {
     this.tools[name] = {

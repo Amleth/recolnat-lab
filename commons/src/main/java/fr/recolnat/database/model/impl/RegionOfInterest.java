@@ -2,7 +2,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -25,7 +25,7 @@ public class RegionOfInterest extends AbstractObject {
   private final Set<String> measurements = new HashSet<>();
   
 
-  public RegionOfInterest(OrientVertex vRoi, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public RegionOfInterest(OrientVertex vRoi, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vRoi, vUser, g);
     
     if (!AccessRights.canRead(vUser, vRoi, g)) {

@@ -7,7 +7,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -48,7 +48,7 @@ public class RecolnatImage extends AbstractObject {
   
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
   
-  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     super(vImage, vUser, g);
     
     if (!AccessRights.canRead(vUser, vImage, g)) {

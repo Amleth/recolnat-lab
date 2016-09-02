@@ -6,7 +6,7 @@
 package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import org.codehaus.jettison.json.JSONException;
@@ -27,7 +27,7 @@ public class PositionedEntity implements Comparable<PositionedEntity> {
   public final String parentViewId;
   public final String displayedEntityId;
   
-  public PositionedEntity(OrientEdge eLink, OrientVertex vDisplayedEntity, OrientVertex vParent, OrientGraph g) {
+  public PositionedEntity(OrientEdge eLink, OrientVertex vDisplayedEntity, OrientVertex vParent, OrientBaseGraph g) {
     this.linkId = eLink.getProperty(DataModel.Properties.id);
     this.x = eLink.getProperty(DataModel.Properties.coordX);
     this.y = eLink.getProperty(DataModel.Properties.coordY);

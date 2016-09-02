@@ -16,8 +16,11 @@ import MenuActions from '../../actions/MenuActions';
 import ModalConstants from '../../constants/ModalConstants';
 import ModeConstants from '../../constants/ModeConstants';
 
+import SetDisplayItem from './SetDisplayItem';
+import SetDisplaySubSet from './SetDisplaySubSet';
+
 import Globals from '../../utils/Globals';
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class SetDisplay extends React.Component {
   constructor(props) {
@@ -87,20 +90,24 @@ class SetDisplay extends React.Component {
       height: '5px'
     };
 
-    this._onSelectionChange = () => {
-      const changeSelected = () => this.setState({});
-      return changeSelected.apply(this);
-    };
+    //this._onSelectionChange = () => {
+    //  const changeSelected = () => this.setState({});
+    //  return changeSelected.apply(this);
+    //};
 
-    this._onMetadataUpdate = () => {
-      const updateMetadata = () => this.updateMetadata();
-      return updateMetadata.apply(this);
-    };
+    var subSets = [];
+    var items = [];
+    if(this.props.set.subsets) {
+      subSets = JSON.parse(JSON.stringify(this.props.set.subsets));
+    }
+    if(this.props.set.items) {
+      items = JSON.parse(JSON.stringify(this.props.set.items));
+    }
 
     this.state = {
       displayName: this.props.index === 0 ? 'Mes sets' : this.props.set.name,
-      subSets: [],
-      items: [],
+      subSets: subSets,
+      items: items,
       validEntityDraggedOverSelf: false
       //selectedId: null
     };
@@ -108,119 +115,52 @@ class SetDisplay extends React.Component {
     //console.log(JSON.stringify(props.set));
   }
 
-  setActive(idx, node) {
-    //console.log(JSON.stringify(this.props.set));
-    window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.set.uid, node.linkToParent),10);
-    window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, node.uid), 10);
-    window.setTimeout(InspectorActions.setInspectorData.bind(null, [node.uid]), 10);
-    if(node.type === 'Set') {
-      window.setTimeout(MetadataActions.setLabBenchId.bind(null, node.uid), 10);
-    }
-  }
-
-  selectAndLoadSet(idx, item) {
-    window.setTimeout(MetadataActions.setLabBenchId.bind(null, item.uid), 10);
-    window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.set.uid, item.uid), 10);
-    window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
-  }
-
-  updateMetadata() {
-    var items = [];
+  itemOrSubSetUpdated() {
     var subSets = [];
-    if(this.props.set) {
-      if(this.props.set.subsets) {
-        for (var i = 0; i < this.props.set.subsets.length; ++i) {
-          var metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i].uid);
-          if (metadata) {
-            //console.log('pushing subset ' +metadata.uid);
-            metadata.linkToParent = this.props.set.subsets[i].link;
-            subSets.push(metadata);
-          }
+    var items = [];
+
+    if(this.props.set.subsets) {
+      for (var i = 0; i < this.props.set.subsets.length; ++i) {
+        var metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i].uid);
+        if (metadata) {
+          //console.log('pushing subset ' +metadata.uid);
+          metadata.link = this.props.set.subsets[i].link;
+          subSets.push(metadata);
         }
-
-        subSets = _.sortBy(subSets, Globals.getName);
-      }
-
-      if(this.props.set.items) {
-        for (i = 0; i < this.props.set.items.length; ++i) {
-          var metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i].uid);
-          if (metadata) {
-            metadata.linkToParent = this.props.set.items[i].link;
-            //console.log('pushing item ' +metadata.uid);
-            items.push(metadata);
-          }
+        else {
+          subSets.push({
+            uid: this.props.set.subsets[i].uid,
+            link: this.props.set.subsets[i].link,
+            name: this.props.set.subsets[i].uid
+          });
         }
-
-        items = _.sortBy(items, Globals.getName);
       }
+      subSets = _.sortBy(subSets, Globals.getName);
     }
 
+    if(this.props.set.items) {
+      for (i = 0; i < this.props.set.items.length; ++i) {
+        var metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i].uid);
+
+        if (metadata) {
+          metadata.link = this.props.set.items[i].link;
+          //console.log('pushing item ' +metadata.uid);
+          items.push(metadata);
+        }
+        else {
+          items.push({
+            uid: this.props.set.items[i].uid,
+            link: this.props.set.items[i].link,
+            name: this.props.set.items[i].uid
+          });
+        }
+      }
+      items = _.sortBy(items, Globals.getName);
+    }
+
+    console.log('call from ' + this.props.set.uid);
+    console.log('call from ' + this.state.displayName);
     this.setState({items: items, subSets: subSets});
-  }
-
-  getChildrenData(props) {
-    if(props.set) {
-      var idsOfElementsToUpdate = [];
-      if(props.set.subsets.length > 0) {
-        //console.log(JSON.stringify(props.set.subsets));
-        for(var i = 0; i < props.set.subsets.length; ++i) {
-          idsOfElementsToUpdate.push(props.set.subsets[i].uid);
-        }
-      }
-      if(props.set.items.length > 0) {
-        //console.log(JSON.stringify(props.set.items));
-        for(var j = 0; j < props.set.items.length; ++j) {
-          idsOfElementsToUpdate.push(props.set.items[j].uid);
-        }
-      }
-      window.setTimeout(MetadataActions.updateMetadata.bind(null, idsOfElementsToUpdate), 10);
-    }
-  }
-
-  callContextMenu(entity, index, event) {
-    event.preventDefault();
-    var objectsAtEvent = {
-      sets:[],
-      specimens: [],
-      images: []
-    };
-    switch(entity.type) {
-      case 'Set':
-        objectsAtEvent.sets.push({
-          parent: this.props.set.uid,
-          link: entity.linkToParent,
-          data: entity
-        });
-        break;
-      case 'Specimen':
-        objectsAtEvent.specimens.push({
-          parent: this.props.set.uid,
-          link: entity.linkToParent,
-          data: entity
-        });
-        break;
-      case 'Image':
-        objectsAtEvent.images.push({
-          parent: this.props.set.uid,
-          link: entity.linkToParent,
-          data: entity
-        });
-        break;
-      default:
-        console.error('No processor for ' + entity.type);
-    }
-    MenuActions.displayContextMenu(event.clientX, event.clientY, objectsAtEvent);
-  }
-
-  startDragSet(set, event) {
-    this.props.dragstore.setAction('managerDragSet', set);
-    event.dataTransfer.setData('text/plain', set.uid);
-  }
-
-  startDragItem(item, event) {
-    this.props.dragstore.setAction('managerDragItem', item);
-    event.dataTransfer.setData('text/plain', item.uid);
-    event.dataTransfer.dropEffect = 'move';
   }
 
   preventDefault(event) {
@@ -263,11 +203,7 @@ class SetDisplay extends React.Component {
     if(this.state.validEntityDraggedOverSelf) {
       var data = this.props.dragstore.getData();
 
-      var error = function(err) {
-        alert("L'opération a échoué, veuillez réessayer plus tard");
-      };
-
-      REST.moveEntityFromSetToSet(data.linkToParent, this.props.set.uid, ManagerActions.reloadDisplayedSets, error);
+      ServiceMethods.cutPaste(data.linkToParent, this.props.set.uid, undefined);
     }
     this.setState({validEntityDraggedOverSelf: false});
   }
@@ -297,33 +233,40 @@ class SetDisplay extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
-    this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
-    if(this.props.set.hash) {
-      //this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
-
-      this.getChildrenData(this.props);
+  addMetadataUpdateListeners(s) {
+    if(s.subsets) {
+      for (var i = 0; i < s.subsets.length; ++i) {
+        console.log('mount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+        this.props.metastore.addMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
+      }
     }
-    //if(this.props.index === 0) {
-    //  this.addItemStyle.display = 'none';
-    //}
+
+    if(s.items) {
+      for (i = 0; i < s.items.length; ++i) {
+        console.log('mount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+        this.props.metastore.addMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
+      }
+    }
   }
 
-  componentWillReceiveProps(props) {
-    if(props.set.loading) {
-      this.setState({displayName: 'Chargement...', subSets: [], items: []});
-    }
-    else if(props.set.hash != this.props.set.hash) {
-      //this.props.metastore.addMetadataUpdateListener(null, this._onMetadataUpdate);
-      this.getChildrenData(props);
-      if(props.index === 0) {
-        this.setState({displayName: 'Mes sets'});
-      }
-      else {
-        this.setState({displayName: props.set.name});
+  removeMetadataUpdateListeners(s) {
+    if(s.subsets) {
+      for (var i = 0; i < s.subsets.length; ++i) {
+        console.log('unmount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+        this.props.metastore.removeMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
+
+    if(s.items) {
+      for (i = 0; i < s.items.length; ++i) {
+        console.log('unmount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+        this.props.metastore.removeMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
+      }
+    }
+  }
+
+  componentDidMount() {
+    //this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -337,11 +280,40 @@ class SetDisplay extends React.Component {
       this.noMarginPaddingStyle.pointerEvents = null;
       this.textStyle.pointerEvents = null;
     }
+
+    if(nextProps.set.loading) {
+      nextState.displayName = 'Chargement...';
+    }
+
+    if(nextProps.index === 0) {
+      nextState.displayName = 'Mes sets';
+    }
+    else {
+      nextState.displayName = nextProps.set.name;
+    }
+
+    if(nextProps.set.hash != this.props.set.hash) {
+      nextState.subSets = nextProps.set.subsets;
+      nextState.items = nextProps.set.items;
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if(prevProps.set.hash != this.props.set.hash) {
+      console.log('previous hash ' + prevProps.set.hash);
+      console.log('next hash ' + this.props.set.hash);
+      console.log('existing component receives new props with new hash');
+      this.removeMetadataUpdateListeners(prevProps.set);
+      this.addMetadataUpdateListeners(this.props.set);
+      this.itemOrSubSetUpdated();
+    }
   }
 
   componentWillUnmount() {
-    this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
-    this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
+    console.log('unmounting ' + this.props.set.uid);
+    //this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
+    //this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
+    this.removeMetadataUpdateListeners(this.props.set);
   }
 
   render() {
@@ -391,80 +363,26 @@ class SetDisplay extends React.Component {
         onDrop={this.addDraggedEntity.bind(this)}
         style={this.listContainerStyle}>
         <div className='ui selection list' style={this.noMarginPaddingStyle}>
-          {this.state.subSets.map(function(s, idx) {
-            var icon = 'ui icon help';
-            var linkStyle = {
-              margin: 0
-            };
-
-            if(self.props.set.selectedId == s.uid) {
-              linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
-            }
-            if(s.uid == self.props.managerstore.getSelected().id) {
-              linkStyle.color = 'blue';
-            }
-
-            if(self.state.validEntityDraggedOverSelf) {
-              linkStyle.pointerEvents = 'none';
-            }
-
-            return (
-              <a className={'item '}
-                 style={linkStyle}
-                 key={'SET-OPTION-' + s.uid}
-                 onClick={self.setActive.bind(self, idx, s)}
-                 onContextMenu={self.callContextMenu.bind(self, s, idx)}
-                 draggable={true}
-                 onDragStart={self.startDragSet.bind(self, s)}
-                 onDragEnd={self.clearDrag.bind(self)}
-                 onDoubleClick={self.selectAndLoadSet.bind(self, idx, s)}>
-                <div>
-                  <i className='ui icon folder' style={self.textStyle} />{s.name}
-                </div>
-              </a>);
-          })
-          }
+          {this.state.subSets.map(function(subSet, idx) {
+            return <SetDisplaySubSet key={'S-' + subSet.link}
+                                     managerstore={self.props.managerstore}
+                                     metastore={self.props.metastore}
+                                     dragstore={self.props.dragstore}
+                                     index={self.props.index}
+                                     parentSetId={self.props.set.uid}
+                                     set={subSet}
+                                     />
+          })}
           {this.state.items.map(function(item, idx) {
-            //console.log(JSON.stringify(item));
-            var icon = 'ui icon file';
-            var linkStyle = {
-              margin: 0
-            };
-
-            if(self.props.set.selectedId == item.uid) {
-              linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
-            }
-            if(item.uid == self.props.managerstore.getSelected().id) {
-              linkStyle.color = 'blue';
-            }
-            if(self.state.validEntityDraggedOverSelf) {
-              linkStyle.pointerEvents = 'none';
-            }
-            switch(item.type) {
-              case 'Specimen':
-                icon = 'ui icon barcode';
-                break;
-              case 'Image':
-                icon = 'ui icon file image outline';
-                break;
-              default:
-            }
-
-            return <a className={'item '}
-                      style={linkStyle}
-                      key={'SET-OPTION-' + item.uid}
-                      onContextMenu={self.callContextMenu.bind(self, item, idx)}
-                      draggable={true}
-                      onDragStart={self.startDragItem.bind(self, item)}
-                      onDragEnd={self.clearDrag.bind(self)}
-                      onClick={self.setActive.bind(self, idx, item)}
-            >
-              <div>
-                <i className={icon} style={self.textStyle} />{item.name}
-              </div>
-            </a>
-          })
-          }
+            return <SetDisplayItem
+              key={'K-' + item.link}
+              managerstore={self.props.managerstore}
+              metastore={self.props.metastore}
+              dragstore={self.props.dragstore}
+              index={self.props.index}
+              parentSetId={self.props.set.uid}
+              item={item} />;
+          })}
         </div>
         <div style={this.noMarginPaddingStyle} className='ui center aligned basic segment'>
         </div>
@@ -473,11 +391,80 @@ class SetDisplay extends React.Component {
   }
 }
 
-//<div
-//  style={this.noMarginPaddingStyle}
-//  className='ui center aligned basic segment'>
-//  <i className='large add circle green icon'
-//     onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: self.props.set.uid, index: self.props.index})}/>
-//</div>
+//{this.state.subSets.map(function(s, idx) {
+//  var icon = 'ui icon help';
+//  var linkStyle = {
+//    margin: 0
+//  };
+//
+//  if(self.props.set.selectedId == s.uid) {
+//    linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
+//  }
+//  if(s.uid == self.props.managerstore.getSelected().id) {
+//    linkStyle.color = 'blue';
+//  }
+//
+//  if(self.state.validEntityDraggedOverSelf) {
+//    linkStyle.pointerEvents = 'none';
+//  }
+//
+//  return (
+//    <a className={'item '}
+//       style={linkStyle}
+//       key={'SET-OPTION-' + s.uid}
+//       onClick={self.setActive.bind(self, idx, s)}
+//       onContextMenu={self.callContextMenu.bind(self, s, idx)}
+//       draggable={true}
+//       onDragStart={self.startDragSet.bind(self, s)}
+//       onDragEnd={self.clearDrag.bind(self)}
+//       onDoubleClick={self.selectAndLoadSet.bind(self, idx, s)}>
+//      <div>
+//        <i className='ui icon folder' style={self.textStyle} />{s.name}
+//      </div>
+//    </a>);
+//})
+//}
+
+//{this.state.items.map(function(item, idx) {
+//  //console.log(JSON.stringify(item));
+//  var icon = 'ui icon file';
+//  var linkStyle = {
+//    margin: 0
+//  };
+//
+//  if(self.props.set.selectedId == item.uid) {
+//    linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
+//  }
+//  if(item.uid == self.props.managerstore.getSelected().id) {
+//    linkStyle.color = 'blue';
+//  }
+//  if(self.state.validEntityDraggedOverSelf) {
+//    linkStyle.pointerEvents = 'none';
+//  }
+//  switch(item.type) {
+//    case 'Specimen':
+//      icon = 'ui icon barcode';
+//      break;
+//    case 'Image':
+//      icon = 'ui icon file image outline';
+//      break;
+//    default:
+//  }
+//
+//  return <a className={'item '}
+//            style={linkStyle}
+//            key={'SET-OPTION-' + item.uid}
+//            onContextMenu={self.callContextMenu.bind(self, item, idx)}
+//            draggable={true}
+//            onDragStart={self.startDragItem.bind(self, item)}
+//            onDragEnd={self.clearDrag.bind(self)}
+//            onClick={self.setActive.bind(self, idx, item)}
+//  >
+//    <div>
+//      <i className={icon} style={self.textStyle} />{item.name}
+//    </div>
+//  </a>
+//})
+//}
 
 export default SetDisplay;

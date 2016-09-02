@@ -16,7 +16,7 @@ import ManagerActions from '../../actions/ManagerActions';
 import BasketActions from '../../actions/BasketActions';
 import InspectorActions from '../../actions/InspectorActions';
 
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class CreateAndFillSet extends AbstractModal {
   constructor(props) {
@@ -104,7 +104,9 @@ class CreateAndFillSet extends AbstractModal {
       window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
       window.setTimeout(InspectorActions.setInspectorData.bind(null, [newSetId]), 10);
 
-      REST.importRecolnatSpecimensIntoSet(specimens, newSetId, onImportSuccess, onImportError);
+      for(var s = 0; s < specimens.length; ++s) {
+        ServiceMethods.importRecolnatSpecimen(newSetId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onImportSuccess);
+      }
     };
 
     var onSetCreationError = function(err, res) {
@@ -112,9 +114,9 @@ class CreateAndFillSet extends AbstractModal {
       window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
     };
 
-    REST.createSubSet(
-      null,
+    ServiceMethods.createSet(
       this.state.nameInput,
+      null,
       onSetCreationSuccess,
       onSetCreationError);
   }

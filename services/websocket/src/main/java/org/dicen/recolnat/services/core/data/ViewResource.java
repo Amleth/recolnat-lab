@@ -7,7 +7,7 @@ package org.dicen.recolnat.services.core.data;
 
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
@@ -32,7 +32,7 @@ public class ViewResource {
       boolean retry = true;
       while (retry) {
         retry = false;
-        OrientGraph g = DatabaseAccess.getTransactionalGraph();
+        OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
         try {
           OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
           OrientVertex vView = AccessUtils.getView(viewId, g);
@@ -62,7 +62,7 @@ public class ViewResource {
 
   public static List<String> moveEntityInView(String viewId, String linkId, String entityId, Integer x, Integer y, String user) throws JSONException, AccessForbiddenException {
     List<String> changes = new LinkedList<>();
-    OrientGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
     try {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
       OrientVertex vView = AccessUtils.getView(viewId, g);
@@ -99,7 +99,7 @@ public class ViewResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vView = AccessUtils.getView(viewId, g);

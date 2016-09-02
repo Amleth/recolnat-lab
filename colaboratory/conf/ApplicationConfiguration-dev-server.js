@@ -6,7 +6,7 @@ var Integration = {
 
 var Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets'
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory'
 };
 
 var Endpoints = {
@@ -75,5 +75,27 @@ var Actions = {
   }
 };
 
+var SocketActions = {
+  createRegionOfInterest: "create-roi",
+  createPointOfInterest: "create-poi",
+  createTrailOfInterest: "create-toi",
+  createAngleOfInterest: "create-aoi",
+  addMeasureStandard: "add-measure-standard",
+  createSet: "create-set",
+  deleteFromSet: "delete-element-from-set",
+  link: "link",
+  copy: "copy",
+  cutPaste: "cutpaste",
+  importRecolnatSpecimen: "import-recolnat-specimen",
+  importExternalImage: "import-external-image",
+  place: 'place',
+  move: 'move',
+  resize: 'resize',
+  createStudy: "create-study",
+  remove: 'remove',
+  addAnnotation: 'add-annotation',
+  editProperties: 'edit-properties'
+};
 
-export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration};
+
+export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

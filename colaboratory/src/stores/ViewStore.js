@@ -4,8 +4,6 @@
 "use strict";
 
 import {EventEmitter} from 'events';
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
 
 import AppDispatcher from "../dispatcher/AppDispatcher";
 
@@ -14,6 +12,8 @@ import ViewConstants from '../constants/ViewConstants';
 import ViewEvents from './events/ViewEvents';
 
 import MetadataActions from '../actions/MetadataActions';
+
+import ServiceMethods from '../utils/ServiceMethods';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -134,25 +134,7 @@ class ViewStore extends EventEmitter {
   }
 
   sendPlaceRequest(viewId, entityId, x, y) {
-    request.post(conf.actions.viewServiceActions.place)
-      .send([{
-        view: viewId,
-        entity: entityId,
-        x: x,
-        y: y
-      }])
-      .use(request_no_cache)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error(err);
-          alert('Erreur pendant le placement: ' + err);
-        }
-        else {
-          MetadataActions.updateLabBenchFrom(viewId);
-
-        }
-      });
+    ServiceMethods.place(viewId, entityId, x, y, undefined);
   }
 
   sendMoveRequest(viewId, entityId, linkId, x, y) {
@@ -168,23 +150,7 @@ class ViewStore extends EventEmitter {
       alert("Aucun identifiant de lien. Veuillez recommencer l'opération.");
       return;
     }
-    request.post(conf.actions.viewServiceActions.move)
-      .send({view: viewId})
-      .send({entity: entityId})
-      .send({link: linkId})
-      .send({x: x})
-      .send({y: y})
-      .use(request_no_cache)
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error(err);
-          alert('Erreur pendant le placement: ' + err);
-        }
-        else {
-          MetadataActions.updateLabBenchFrom(viewId);
-        }
-      });
+    ServiceMethods.move(viewId, linkId, entityId, x, y, undefined);
   }
 
   addViewportListener(callback) {

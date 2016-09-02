@@ -1,8 +1,9 @@
 package org.dicen.recolnat.services.core.data;
 
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
@@ -44,7 +45,7 @@ public class DatabaseResource {
   private static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
   
   public static JSONObject getUserData(String userLogin) throws JSONException {
-    OrientGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
       ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
@@ -55,9 +56,9 @@ public class DatabaseResource {
     }
   }
 
-  public static JSONObject getData(String user, String entityId) throws JSONException, AccessForbiddenException {
+  public static JSONObject getData(String entityId, String user) throws JSONException, AccessForbiddenException {
     JSONObject entity = new JSONObject();
-    OrientGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex v = (OrientVertex) AccessUtils.getNodeById(entityId, g);
@@ -102,7 +103,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
 
@@ -126,7 +127,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
@@ -166,7 +167,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
@@ -197,7 +198,7 @@ public class DatabaseResource {
     return changes;
   }
 
-  private static AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientGraph g) throws JSONException, AccessDeniedException, AccessForbiddenException {
+  private static AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientBaseGraph g) throws JSONException, AccessDeniedException, AccessForbiddenException {
     String cl = v.getProperty("@class");
     switch (cl) {
       case DataModel.Classes.set:
@@ -232,7 +233,7 @@ public class DatabaseResource {
     }
   }
 
-  private static AbstractObject getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientGraph g) {
+  private static AbstractObject getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientBaseGraph g) {
     String cl = e.getProperty("@class");
     switch (cl) {
       default:

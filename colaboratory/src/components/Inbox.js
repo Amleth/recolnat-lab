@@ -8,7 +8,7 @@ import React from 'react';
 import MetadataActions from '../actions/MetadataActions';
 import ViewActions from '../actions/ViewActions';
 
-import REST from '../utils/REST';
+import ServiceMethods from '../utils/ServiceMethods';
 
 class Inbox extends React.Component {
   constructor(props) {
@@ -56,8 +56,8 @@ class Inbox extends React.Component {
     // Download metadata for unplaced entities
     for(var i = 0; i < undisplayedImageIds.length; ++i) {
       this.props.metastore.addMetadataUpdateListener(undisplayedImageIds[i], this._onUnplacedEntityMetadataUpdate);
+      window.setTimeout(this._onUnplacedEntityMetadataUpdate.bind(this, undisplayedImageIds[i]), 50);
     }
-    window.setTimeout(MetadataActions.updateMetadata.bind(null, undisplayedImageIds), 10);
   }
 
   addEntityMetadata(id) {
@@ -99,21 +99,16 @@ class Inbox extends React.Component {
     window.setTimeout(function() {
       ViewActions.changeLoaderState("Placement en cours.")}, 10);
 
-    var data = [];
     var x = this.props.viewstore.getView().left;
     var y = this.props.viewstore.getView().top;
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      data.push({
-        x: x,
-        y: y,
-        view: viewId,
-        entity: this.state.content[i].uid
-      });
+      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+
       x = x + this.state.content[i].width + 100;
     }
 
-    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+
   }
 
   placeAllImagesInColumn() {
@@ -125,23 +120,15 @@ class Inbox extends React.Component {
     var y = this.props.viewstore.getView().top;
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      data.push({
-        x: x,
-        y: y,
-        view: viewId,
-        entity: this.state.content[i].uid
-      });
+      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
       y = y + this.state.content[i].height + 200;
     }
-
-    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
   }
 
   placeAllImagesInGrid() {
     window.setTimeout(
       ViewActions.changeLoaderState.bind(null, "Placement en cours."), 10);
 
-    var data = [];
     var x = this.props.viewstore.getView().left;
     var y = this.props.viewstore.getView().top;
     var maxHeight = Math.max(
@@ -160,12 +147,8 @@ class Inbox extends React.Component {
     );
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      data.push({
-        x: x,
-        y: y,
-        view: viewId,
-        entity: this.state.content[i].uid
-      });
+      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+
       x = x + maxWidth + 200;
       if((i+1) % 5 == 0) {
         y = y + maxHeight + 200;
@@ -186,12 +169,10 @@ class Inbox extends React.Component {
         );
       }
     }
-
-    REST.placeEntityInView(data, Inbox.updateLabBenchAndFitView.bind(null, viewId));
   }
 
   static updateLabBenchAndFitView(viewId) {
-    window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, viewId), 10);
+    //window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, viewId), 10);
     window.setTimeout(ViewActions.fitView, 750);
   }
 

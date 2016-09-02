@@ -10,7 +10,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import java.util.Date;
@@ -26,7 +26,7 @@ public class AccessRights {
 
   private static final Logger log = LoggerFactory.getLogger(AccessRights.class);
 
-  public static DataModel.Enums.AccessRights getAccessRights(@NotNull OrientVertex user, @NotNull OrientVertex node, OrientGraph graph) {
+  public static DataModel.Enums.AccessRights getAccessRights(@NotNull OrientVertex user, @NotNull OrientVertex node, OrientBaseGraph graph) {
     DataModel.Enums.AccessRights ret = DataModel.Enums.AccessRights.NONE;
 
     // If node and user are same, user HAS access rights to his own node
@@ -94,21 +94,21 @@ public class AccessRights {
     return ret;
   }
   
-  public static boolean canRead(OrientVertex vUser, OrientVertex vNode, OrientGraph g) {
+  public static boolean canRead(OrientVertex vUser, OrientVertex vNode, OrientBaseGraph g) {
     if(AccessRights.getAccessRights(vUser, vNode, g).value() >= DataModel.Enums.AccessRights.READ.value()) {
       return true;
     }
     return false;
   }
   
-  public static boolean canWrite(@NotNull OrientVertex vUser, @NotNull OrientVertex vNode, OrientGraph g) {
+  public static boolean canWrite(@NotNull OrientVertex vUser, @NotNull OrientVertex vNode, OrientBaseGraph g) {
     if(AccessRights.getAccessRights(vUser, vNode, g).value() >= DataModel.Enums.AccessRights.WRITE.value()) {
       return true;
     }
     return false;
   }
   
-  public static boolean canPublicRead(OrientVertex vNode, OrientGraph g) {
+  public static boolean canPublicRead(OrientVertex vNode, OrientBaseGraph g) {
     Integer publicAccessRights = vNode.getProperty(DataModel.Properties.publicAccess);
     if(publicAccessRights == null) {
       return false;
@@ -131,7 +131,7 @@ public class AccessRights {
    * @pre Current user is allowed to change access rights for accessor and node
    * @return
    */
-  public static OrientEdge grantAccessRights(OrientVertex accessor, OrientVertex node, DataModel.Enums.AccessRights rights, OrientGraph graph) {
+  public static OrientEdge grantAccessRights(OrientVertex accessor, OrientVertex node, DataModel.Enums.AccessRights rights, OrientBaseGraph graph) {
     OrientEdge edge = AccessUtils.getEdgeBetweenVertices(accessor, node, DataModel.Links.hasAccessRights, true, graph);
     if (edge == null) {
       edge = graph.addEdge("class:" + DataModel.Links.hasAccessRights, accessor, node, DataModel.Links.hasAccessRights);
@@ -143,18 +143,18 @@ public class AccessRights {
     return edge;
   }
   
-  public static void grantPublicAccessRights(OrientVertex node, DataModel.Enums.AccessRights rights, OrientGraph graph) {
+  public static void grantPublicAccessRights(OrientVertex node, DataModel.Enums.AccessRights rights, OrientBaseGraph graph) {
     node.setProperty(DataModel.Properties.publicAccess, rights.value());
   }
 
-  public static void revokeAccessRights(OrientVertex user, OrientVertex node, OrientGraph graph) {
+  public static void revokeAccessRights(OrientVertex user, OrientVertex node, OrientBaseGraph graph) {
     OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, true, graph);
     if (edge != null) {
       edge.remove();
     }
   }
   
-  public static boolean isLatestVersionAndHasRights(OrientVertex user, OrientVertex node, DataModel.Enums.AccessRights level, OrientGraph g) {
+  public static boolean isLatestVersionAndHasRights(OrientVertex user, OrientVertex node, DataModel.Enums.AccessRights level, OrientBaseGraph g) {
     if(AccessUtils.isLatestVersion(node)) {
       if(AccessRights.getAccessRights(user, node, g).value() >= level.value()) {
         return true;

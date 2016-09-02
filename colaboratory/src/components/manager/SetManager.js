@@ -4,8 +4,6 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
 
 import SetDisplay from './SetDisplay';
 
@@ -70,7 +68,7 @@ class SetManager extends React.Component {
     this._onSetUpdate = () => {
       const updateDisplay = () => this.setState({
         displayedSets: this.props.managerstore.getSets(),
-        studyContainer: this.props.managerstore.getStudies()});
+        coreSet: this.props.managerstore.getCoreSet()});
       return updateDisplay.apply(this);
     };
 
@@ -84,9 +82,11 @@ class SetManager extends React.Component {
     this.state = {
       isVisibleInCurrentMode: true,
       userLoggedIn: false,
-      studyContainer: null,
+      coreSet: null,
       displayedSets: []
     };
+
+    this.listeneningToMetadataForIds = {};
   }
 
   showHelp() {
@@ -116,15 +116,11 @@ class SetManager extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.userLoggedIn && !prevState.userLoggedIn) {
-      if(this.state.displayedSets.length > 0) {
-        ManagerActions.loadStudiesAndSets();
-      }
-      else {
-        window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, null, 'Set', 0, undefined, undefined, true)
-          , 10);
-      }
-    }
+    //if(this.state.userLoggedIn && !prevState.userLoggedIn) {
+    //    window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, this.props.managerstore.getCoreSet(), 'Set', 0, true)
+    //      , 10);
+    //
+    //}
     if(this.state.displayedSets.length != prevState.displayedSets.length) {
       var node = this.refs.sets.getDOMNode();
       var scrollAnimate = window.setInterval(function () {
@@ -169,7 +165,7 @@ class SetManager extends React.Component {
       <div style={this.optionBarStyle}></div>
       <div style={this.workbenchExplorerStyle} ref='sets'>
         {this.state.displayedSets.map(function(s, idx) {
-          return <SetDisplay key={'SET-NODE-' + idx + '-' + s.uid}
+          return <SetDisplay key={'SET-NODE-' + idx}
                              set={s}
                              index={idx}
                              managerstore={self.props.managerstore}

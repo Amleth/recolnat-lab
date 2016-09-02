@@ -4,8 +4,8 @@
 'use strict';
 
 import React from 'react';
-import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
+
+import ServiceMethods from '../../../utils/ServiceMethods';
 
 import conf from '../../../conf/ApplicationConfiguration';
 
@@ -34,19 +34,7 @@ class Remove extends React.Component {
 
   removeSelf() {
     var self = this;
-    request.post(conf.actions.databaseActions.remove)
-      .use(request_no_cache)
-      .set('Content-Type', "application/json")
-      .send({id: this.props.uid})
-      .withCredentials()
-      .end((err, res) => {
-        if(err) {
-          self.props.errorCallback(err)
-        }
-        else {
-          self.props.successCallback(res);
-        }
-      })
+    ServiceMethods.remove(this.props.uid, this.props.successCallback);
   }
 
   render() {

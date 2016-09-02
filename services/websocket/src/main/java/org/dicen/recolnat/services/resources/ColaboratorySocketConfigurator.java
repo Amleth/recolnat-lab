@@ -17,6 +17,7 @@ import javax.websocket.server.ServerEndpointConfig;
  * @author dmitri
  */
 public class ColaboratorySocketConfigurator extends ServerEndpointConfig.Configurator {
+  
   @Override
   public void modifyHandshake(ServerEndpointConfig config, HandshakeRequest request, HandshakeResponse response) {
     List<String> cookiesStr = request.getHeaders().get("Cookie");

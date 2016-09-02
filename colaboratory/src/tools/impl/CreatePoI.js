@@ -16,6 +16,8 @@ import Classes from "../../constants/CommonSVGClasses";
 
 import Popup from "../popups/CreatePoIPopup";
 
+import ServiceMethods from '../../utils/ServiceMethods';
+
 import conf from "../../conf/ApplicationConfiguration";
 import ToolConf from "../../conf/Tools-conf";
 
@@ -70,15 +72,7 @@ class CreatePoI extends AbstractTool {
     }
     alert("Enregistrement du point aux coordonnées " + this.state.x + "," + this.state.y + " en cours");
 
-    var data = {};
-    data.serviceUrl = conf.actions.imageServiceActions.createPointOfInterest;
-    data.parent = this.state.imageUri;
-    data.payload = {};
-    data.payload.x = this.state.x;
-    data.payload.y = this.state.y;
-    data.payload.name = this.state.name;
-
-    return data;
+    ServiceMethods.createPointOfInterest(this.state.imageUri, this.state.x, this.state.y, this.state.name);
   }
 
   begin() {

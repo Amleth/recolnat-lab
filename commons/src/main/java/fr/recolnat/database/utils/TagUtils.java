@@ -6,7 +6,7 @@
 package fr.recolnat.database.utils;
 
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import java.util.Date;
@@ -16,7 +16,7 @@ import java.util.Date;
  * @author dmitri
  */
 public class TagUtils {
-  public static OrientVertex createTag(String text, String hexColor, OrientGraph g) {
+  public static OrientVertex createTag(String text, String hexColor, OrientBaseGraph g) {
     OrientVertex vTag = g.addVertex("class:" + DataModel.Classes.tag);
     vTag.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     vTag.setProperty(DataModel.Properties.text, text);
@@ -26,7 +26,7 @@ public class TagUtils {
     return vTag;
   }
   
-  public static OrientVertex tagEntity(OrientVertex vEntity, OrientVertex vTag, OrientGraph g) {
+  public static OrientVertex tagEntity(OrientVertex vEntity, OrientVertex vTag, OrientBaseGraph g) {
     OrientVertex vAssociation = g.addVertex("class:" + DataModel.Classes.tagging);
     vAssociation.setProperty(DataModel.Properties.id, CreatorUtils.newVertexUUID(g));
     vAssociation.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());

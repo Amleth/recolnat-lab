@@ -47,8 +47,6 @@ class SimpleImageDisplay extends React.Component {
     };
 
     this.imageStyle = {
-      //minWidth: '50%',
-      //width: '50%',
       maxWidth: '50%',
       maxHeight: '90%'
     };
@@ -85,14 +83,21 @@ class SimpleImageDisplay extends React.Component {
     };
   }
 
+  removeListeners() {
+    for(var i = 0; i < this.state.listening.length; ++i) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.listening[i], this._onMetadataReceived);
+    }
+  }
+
   getImagesOfSelection(selection) {
+    this.removeListeners();
     this.setState({imagesOfSelection: [], imageUrl: null, listening: [selection.id]});
     switch(selection.type) {
       case 'Image':
       case 'Specimen':
       case 'Set':
         this.props.metastore.addMetadataUpdateListener(selection.id, this._onMetadataReceived);
-        window.setTimeout(MetadataActions.updateMetadata.bind(null, [selection.id]), 10);
+        this._onMetadataReceived(selection.id);
         break;
       default:
         this.setState({selectionTitle: "Pré-visionneuse d'images"});
@@ -102,7 +107,7 @@ class SimpleImageDisplay extends React.Component {
   }
 
   processReceivedMetadata(id) {
-    this.props.metastore.removeMetadataUpdateListener(id, this._onMetadataReceived);
+    //this.props.metastore.removeMetadataUpdateListener(id, this._onMetadataReceived);
     if(!_.contains(this.state.listening, id)) {
       return;
     }
@@ -116,23 +121,23 @@ class SimpleImageDisplay extends React.Component {
             imagesOfSelection: _.sortBy(_.values(keyedImages), Globals.getName)});
           break;
         case 'Specimen':
-          var listening = this.state.listening;
+          var listening = JSON.parse(JSON.stringify(this.state.listening));
           for(var i = 0; i < metadata.images.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.images[i], this._onMetadataReceived);
             listening.push(metadata.images[i]);
+            this._onMetadataReceived(metadata.images[i]);
           }
-          window.setTimeout(MetadataActions.updateMetadata.bind(null, metadata.images), 10);
           this.setState({listening: listening});
           break;
         case 'Set':
-          var listening = this.state.listening;
+          var listening = JSON.parse(JSON.stringify(this.state.listening));
           var metaToUpdate = [];
           for(var i = 0; i < metadata.items.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.items[i].uid, this._onMetadataReceived);
             listening.push(metadata.items[i].uid);
             metaToUpdate.push(metadata.items[i].uid);
+            this._onMetadataReceived(metadata.items[i].uid);
           }
-          window.setTimeout(MetadataActions.updateMetadata.bind(null, metaToUpdate), 10);
           this.setState({listening: listening});
           break;
         default:
@@ -177,20 +182,11 @@ class SimpleImageDisplay extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    //$(this.refs.warning.getDOMNode()).popup({
-    //  position: 'bottom center'
-    //});
-  }
-
   componentWillUnmount() {
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
+    this.removeListeners();
   }
-
-//<i className='small yellow warning sign icon'
-//ref='warning'
-//data-content="Les images affichées ici peuvent être déformées pour rentrer dans l'espace limité prévu à cet effet" />
 
   render() {
     var self = this;

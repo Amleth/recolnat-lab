@@ -5,11 +5,11 @@
 
 import React from 'react';
 import request from 'superagent';
-import request_no_cache from 'superagent-no-cache';
 
 import AbstractMetadataDisplay from './AbstractManagerMetadataDisplay';
 
 import MetadataActions from '../../actions/MetadataActions';
+import SocketActions from '../../actions/SocketActions';
 
 import conf from '../../conf/ApplicationConfiguration';
 
@@ -61,6 +61,7 @@ class SpecimenMetadataDisplay extends React.Component {
 
   initialState() {
     return {
+      id: null,
       isVisibleInCurrentMode: true,
       metadata: null,
       source: null,
@@ -77,24 +78,19 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   downloadMetadata(id) {
-    request.post(conf.actions.databaseActions.getData)
-      .use(request_no_cache)
-      .send([id])
-      .withCredentials()
-      .end((err, res) => {
-          if(err) {
-            console.error("Could not get data about object " + err);
-            this.setState(this.initialState());
-          }
-          else {
-            var metadata = JSON.parse(res.text);
-            //console.log(res.text);
-            if(metadata[0]) {
-              this.processCoLabMetadata(metadata[0]);
-            }
-          }
-        }
-      );
+    if(this.state.id) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
+    }
+    this.props.metastore.addMetadataUpdateListener(id, this.receiveMetadata.bind(this));
+    this.setState({id: id});
+    window.setTimeout(this.receiveMetadata.bind(this), 50);
+  }
+
+  receiveMetadata() {
+    var data = this.props.metastore.getMetadataAbout(this.state.id);
+    if(data) {
+      this.processCoLabMetadata(data);
+    }
   }
 
   processCoLabMetadata(metadata) {
@@ -106,10 +102,10 @@ class SpecimenMetadataDisplay extends React.Component {
           this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
         }
         this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onOriginalSourceMetadataAvailable);
-        window.setTimeout(MetadataActions.updateMetadata.bind(null, [metadata.originalSource]), 10);
       }
 
       this.setState({metadata: metadata});
+      window.setTimeout(this._onOriginalSourceMetadataAvailable.bind(this, metadata.originalSource), 50);
     }
   }
 
@@ -313,6 +309,9 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   componentWillUnmount() {
+    if(this.state.id) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
+    }
     if(this.state.metadata) {
       this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
     }

@@ -11,7 +11,7 @@ import ModalConstants from '../../constants/ModalConstants';
 
 import ModalActions from '../../actions/ModalActions';
 
-import REST from '../../utils/REST';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class AddAnnotationToEntity extends AbstractModal {
   constructor(props) {
@@ -41,19 +41,18 @@ class AddAnnotationToEntity extends AbstractModal {
       return;
     }
 
-var self = this;
+    var self = this;
     var onSuccess = function(data) {
       window.setTimeout(self.props.modalstore.runSuccessCallback(data), 10);
       self.cancel();
-    }
+    };
 
     var onError = function(data) {
-      window.setTimeout(self.props.modalstore.rurunErrorCallback(data), 10);
+      window.setTimeout(self.props.modalstore.runErrorCallback(data), 10);
       alert("L'ajout a échoué suite à un problème réseau. Veuillez rééessayer plus tard");
-    }
+    };
 
-    REST.addAnnotation(
-      this.state.annotationTextInput,            this.props.modalstore.getTargetData().entity, onSuccess, onError);
+    ServiceMethods.addAnnotation( this.props.modalstore.getTargetData().entity, this.state.annotationTextInput, onSuccess, onError);
     this.cancel();
   }
 

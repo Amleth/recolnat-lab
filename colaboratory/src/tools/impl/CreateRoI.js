@@ -15,6 +15,8 @@ import ToolActions from '../../actions/ToolActions';
 
 import Popup from '../popups/CreateRoIPopup';
 
+import ServiceMethods from '../../utils/ServiceMethods';
+
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
@@ -250,14 +252,9 @@ class CreateRoI extends AbstractTool {
       return null;
     }
     // Create polygon or polyline representation of this area..
-    var data = {};
-    data.serviceUrl = conf.actions.imageServiceActions.createRegionOfInterest;
-    data.image = this.state.imageUri;
-    data.parent = this.state.imageUri;
-    data.payload = {};
-    data.payload.polygon = [];
-    data.payload.name = this.state.name;
-    data.payload.perimeter = 0;
+
+    var polygon = [];
+    var perimeter = 0;
     var x = null;
     var y = null;
     var edges = this.state.edges;
@@ -266,12 +263,12 @@ class CreateRoI extends AbstractTool {
       x = edge.end.x;
       y = edge.end.y;
 
-      data.payload.polygon.push([edge.start.x, edge.start.y]);
-      data.payload.perimeter += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
+      polygon.push([edge.start.x, edge.start.y]);
+      perimeter += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
     }
-    data.payload.area = Math.abs(polygonArea(data.payload.polygon));
+    var area = Math.abs(polygonArea(polygon));
 
-    return data;
+    ServiceMethods.createRegionOfInterest(this.state.imageUri, area, perimeter, polygon, this.state.name);
   }
 
   static getNextEdge(edges, x, y) {

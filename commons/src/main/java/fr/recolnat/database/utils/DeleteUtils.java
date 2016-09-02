@@ -5,7 +5,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
@@ -46,7 +46,7 @@ public class DeleteUtils {
    * @param graph
    * @return
    */
-  public static List<String> unlinkItemFromSet(String linkId, OrientVertex vUser, OrientGraph graph) throws AccessForbiddenException, ObsoleteDataException {
+  public static List<String> unlinkItemFromSet(String linkId, OrientVertex vUser, OrientBaseGraph graph) throws AccessForbiddenException, ObsoleteDataException {
     List<String> modified = new LinkedList<>();
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
     if (eLink == null) {
@@ -116,7 +116,7 @@ public class DeleteUtils {
    * @param userId
    * @param g
    */
-  private static List<String> removeEntityFromView(OrientVertex vEntity, OrientVertex vView, OrientVertex vUser, OrientGraph g) throws AccessForbiddenException {
+  private static List<String> removeEntityFromView(OrientVertex vEntity, OrientVertex vView, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
     List<String> modified = new LinkedList<>();
     Iterator<Edge> itDisplays = vView.getEdges(vEntity, Direction.OUT, DataModel.Links.displays).iterator();
     if (itDisplays.hasNext()) {
@@ -139,7 +139,7 @@ public class DeleteUtils {
    * anything)
    * @param g
    */
-  private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientGraph g) {
+  private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientBaseGraph g) {
     if (log.isDebugEnabled()) {
       log.debug("unlinkItemFromSet(" + eLink.toString() + "," + vChildItemOrSet.toString() + ", " + vParentSet.toString() + ", " + vUser.toString() + ")");
     }
@@ -215,7 +215,7 @@ public class DeleteUtils {
    * @param g
    * @return
    */
-  public static List<String> delete(String id, OrientVertex user, OrientGraph g) throws ResourceNotExistsException, AccessForbiddenException {
+  public static List<String> delete(String id, OrientVertex user, OrientBaseGraph g) throws ResourceNotExistsException, AccessForbiddenException {
     List<String> deleted = new ArrayList<>();
     OrientVertex vElt = AccessUtils.getNodeById(id, g);
     if (vElt != null) {
@@ -250,7 +250,7 @@ public class DeleteUtils {
    * static method).
    * @return
    */
-  private static List<String> deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientGraph g) {
+  private static List<String> deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientBaseGraph g) {
     List<String> deleted = new LinkedList<>();
     // Clone node representing new version
     OrientVertex deletedVertex = (OrientVertex) g.addVertex("class:" + vertexToDelete.getProperty("@class"));
@@ -277,7 +277,7 @@ public class DeleteUtils {
    * make sure beforehand).
    * @return
    */
-  private static List<String> deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientGraph g) throws AccessForbiddenException {
+  private static List<String> deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientBaseGraph g) throws AccessForbiddenException {
     List<String> modified = new LinkedList<>();
     String userId = user.getProperty(DataModel.Properties.id);
     OrientVertex itemToVersion = null;
@@ -360,7 +360,7 @@ public class DeleteUtils {
     return modified;
   }
 
-  public static boolean canUserDeleteSubGraph(OrientVertex vObject, OrientVertex vUser, OrientGraph g) {
+  public static boolean canUserDeleteSubGraph(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g) {
     if (!DeleteUtils.canUserDeleteVertex(vObject, vUser, g)) {
       return false;
     }
@@ -587,7 +587,7 @@ public class DeleteUtils {
     }
   }
 
-  private static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientGraph g) {
+  private static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g) {
     // If a vertex has a newer version, it cannot be deleted (no forks in graph)
     if (!AccessUtils.isLatestVersion(vObject)) {
       return false;
@@ -626,7 +626,7 @@ public class DeleteUtils {
     return true;
   }
 
-  public static boolean canUserDeleteEdge(OrientEdge edge, OrientVertex user, OrientGraph g) {
+  public static boolean canUserDeleteEdge(OrientEdge edge, OrientVertex user, OrientBaseGraph g) {
     // The answer depends on user rights on one side of the edge, or both.
     switch (edge.getLabel()) {
       case DataModel.Links.createdBy:

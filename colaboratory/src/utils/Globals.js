@@ -3,8 +3,6 @@
  */
 'use strict';
 
-import request from 'superagent';
-
 import ModeConstants from '../constants/ModeConstants';
 
 import ModeActions from '../actions/ModeActions';

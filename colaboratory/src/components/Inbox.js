@@ -44,6 +44,12 @@ class Inbox extends React.Component {
   calculateUnplacedEntities() {
     var labBench = this.props.benchstore.getLabBench();
     var viewId = this.props.benchstore.getActiveViewId();
+    if(!viewId) {
+      return;
+    }
+    if(!labBench.images) {
+      return;
+    }
     var imageIds = Object.keys(labBench.images);
     var viewData = this.props.benchstore.getActiveViewData();
     var displayedImageIds = viewData.displays.map(function(display) {
@@ -103,7 +109,7 @@ class Inbox extends React.Component {
     var y = this.props.viewstore.getView().top;
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
 
       x = x + this.state.content[i].width + 100;
     }
@@ -120,7 +126,7 @@ class Inbox extends React.Component {
     var y = this.props.viewstore.getView().top;
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
       y = y + this.state.content[i].height + 200;
     }
   }
@@ -147,7 +153,7 @@ class Inbox extends React.Component {
     );
     var viewId = this.state.viewId;
     for(var i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.placeEntityInView(viewId, this.state.content[i].uid, x, y, Inbox.updateLabBenchAndFitView.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
 
       x = x + maxWidth + 200;
       if((i+1) % 5 == 0) {
@@ -171,7 +177,7 @@ class Inbox extends React.Component {
     }
   }
 
-  static updateLabBenchAndFitView(viewId) {
+  static imagePlaced() {
     //window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, viewId), 10);
     window.setTimeout(ViewActions.fitView, 750);
   }

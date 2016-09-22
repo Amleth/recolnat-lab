@@ -149,7 +149,7 @@ class ManagerStore extends EventEmitter {
       this.studyContainer.selectedId = itemId;
     }
     else {
-      this.displayedSets[setIdx].selectedId = itemId;
+        this.displayedSets[setIdx].selectedId = itemId;
     }
   }
 

@@ -79,12 +79,17 @@ class AddEntitiesToSetModal extends AbstractModal {
 
   createSubSet() {
     var name = this.state.nameInput;
-    ServiceMethods.createSet(this.state.nameInput, this.state.parentId, function(parentId, newSetId, linkId) {
-      window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
-      window.setTimeout(ManagerActions.select.bind(null, newSetId, 'Set', name, parentId, linkId), 20);
+    ServiceMethods.createSet(this.state.nameInput, this.state.parentId, this.subSetCreated.bind(this));
+  }
 
-      window.setTimeout(ManagerActions.reloadDisplayedSets.bind(null), 30);
-    });
+  subSetCreated(message) {
+    if(message.clientProcessError) {
+      alert('Impossible de créer le set ' + name);
+    }
+    else {
+      window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, message.data.parentSet, message.data.subSet), 10);
+      window.setTimeout(ManagerActions.select.bind(null, message.data.subSet, 'Set', this.state.nameInput, message.data.parentSet, message.data.link), 20);
+    }
   }
 
   createFromBasket() {
@@ -113,63 +118,61 @@ class AddEntitiesToSetModal extends AbstractModal {
       });
     }
 
+    var importedEntities = [];
+    var errors = 0;
     var onSuccess = null;
     var onError = null;
     var keepInBasket = false;
     switch(this.props.modestore.getMode()) {
       case ModeConstants.Modes.SET:
-        onSuccess = function(response) {
-          window.setTimeout(ManagerActions.reloadDisplayedSets, 10);
-          window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
+        onSuccess = function(message) {
+          //window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, message.data.recolnatUuid, false), 10);
           if(!keepInBasket) {
-            for (var j = 0; j < items.length; ++j) {
-              window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[j]), 10);
-            }
+            // Remove this entity from basket
+            window.setTimeout(BasketActions.removeItemFromBasket.bind(null, message.data.recolnatUuid), 10);
           }
-          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+          importedEntities.push(message.data);
         };
-        onError = function(error) {
-          alert("Problème lors de l'import. Veuillez réessayer plus tard.");
-          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+        onError = function() {
+          errors++;
         };
         break;
       case ModeConstants.Modes.ORGANISATION:
       case ModeConstants.Modes.OBSERVATION:
-        onSuccess = function(response) {
-          // Place specimens in middle of screen
-          console.warning('Callback not implemented');
-          return;
-          window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
-
-          if(!keepInBasket) {
-            for (var k = 0; k < items.length; ++k) {
-              window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[k]), 10);
-            }
+        var placed = 0;
+        var imagesToPlace = 0;
+        var onEntityPlaced = function(message) {
+          placed++;
+          if(placed === imagesToPlace) {
+            window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
           }
-          var viewId = this.props.benchstore.getActiveViewId();
-
-          var data = [];
-          var view = this.props.viewstore.getView();
-          var x = view.left + view.width / 2;
-          var y = view.top + view.height / 2;
-          for(var j = 0; j < response.linkedEntities.length; ++j) {
-
-            var linkedEntity = response.linkedEntities[j];
-            for(var k = 0; k < linkedEntity.images.length; ++k) {
-              var image = linkedEntity.images[k];
-              data.push({
-                x: x,
-                y: y,
-                view: viewId,
-                entity: image.uid
-              });
-              x = x+image.width + 100;
-            }
-          }
-
-          //REST.placeEntityInView(data, MetadataActions.updateLabBenchFrom);
         };
-        onError = function(err, res) {
+        onSuccess = function(response) {
+          importedEntities.push(response.data);
+          if(!keepInBasket) {
+            window.setTimeout(BasketActions.removeItemFromBasket.bind(null, response.data.recolnatUuid), 10);
+          }
+
+          if(importedEntities.length + errors === specimens.length) {
+            // Place specimens in middle of screen
+            window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Placement des images...'), 10);
+            var viewId = this.props.benchstore.getActiveViewId();
+
+            var view = this.props.viewstore.getView();
+            var x = view.left + view.width / 2;
+            var y = view.top + view.height / 2;
+            for(var j = 0; j < importedEntities.length; ++j) {
+              var linkedEntity = importedEntities[j];
+              for(var k = 0; k < linkedEntity.images.length; ++k) {
+                var image = linkedEntity.images[k];
+                imagesToPlace++;
+                ServiceMethods.place(viewId, image.uid, x, y, onEntityPlaced.bind(this));
+                x = x+image.width + 100;
+              }
+            }
+          }
+        };
+        onError = function() {
           alert("Problème lors de l'import. Veuillez réessayer plus tard.");
           window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
         };
@@ -179,8 +182,27 @@ class AddEntitiesToSetModal extends AbstractModal {
         break;
     }
 
+    var onResponse = function(message) {
+      if(importedEntities.length + errors + 1 === specimens.length) {
+        if(errors > 0) {
+          alert("Des problèmes sont survenus lors de l'import. Les spécimens concernés sont restés dans le panier.");
+        }
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+      }
+      else {
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "  + (importedEntities.length+1) +'/' + specimens.length + ' (' + errors + ' erreurs)'), 10);
+      }
+      if(message.clientProcessError) {
+        errors++;
+        onError.call(this);
+      }
+      else {
+        onSuccess.call(this, message);
+      }
+    };
+
     for(var s = 0; s < specimens.length; ++s) {
-      ServiceMethods.importRecolnatSpecimen(this.state.parentId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onSuccess.bind(this));
+      ServiceMethods.importRecolnatSpecimen(this.state.parentId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onResponse.bind(this));
     }
   }
 

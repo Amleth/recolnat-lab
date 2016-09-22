@@ -38,25 +38,11 @@ class LabBenchStore extends EventEmitter {
           delete this.ids;
           this.labBench = {};
           this.labBench.id = action.id;
+          this.activeView = null;
+          this.emit(MetadataEvents.LAB_BENCH_READY);
           break;
         case MetadataConstants.ActionTypes.LOAD_LAB_BENCH:
-          //if(action.id) {
-          //  console.log('loading bench ' + this.labBench.id);
-          //  this.removeListeners();
-          //  delete this.labBench;
-          //  delete this.ids;
-          //  this.labBench = {};
-          //  this.loadNewBench(action.id);
-          //}
-          //else if(this.labBench.id) {
           this.loadNewBench(this.labBench.id);
-          //}
-          //else {
-          //  console.log('unloading bench');
-          //  delete this.labBench;
-          //  this.labBench = {};
-          //  this.emit(MetadataEvents.LAB_BENCH_READY);
-          //}
           break;
         case ViewConstants.ActionTypes.Local.SET_ACTIVE_VIEW:
           if(this.activeView != action.id) {

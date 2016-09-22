@@ -1,0 +1,14 @@
+database:
+  dbPath: /tmp/db/ReColNat
+  dbUser: root
+  password: root
+  minConnectorPoolSize: 1
+  maxConnectorPoolSize: 4
+  backup:
+    directory: /tmp/backups/
+    firstExecutionDate: 7-3:00
+    frequency: 7
+server:
+  port: 10001
+logging:
+  level: INFO

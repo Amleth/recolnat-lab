@@ -94,9 +94,14 @@ class Minimap extends React.Component {
   updateStoreWithPosition() {
     var imageId = this.props.toolstore.getSelectedImageId();
     if(!imageId) {
+      window.setTimeout(MinimapActions.unsetMinimap, 10);
       return;
     }
     var viewData = this.props.benchstore.getActiveViewData();
+    if(!viewData) {
+      window.setTimeout(MinimapActions.unsetMinimap, 10);
+      return;
+    }
     var imageUrl = this.props.ministore.getImage().url;
     if(!imageUrl) {
       return;
@@ -105,7 +110,6 @@ class Minimap extends React.Component {
     for(var i = 0; i < viewData.displays.length; ++i) {
       if(viewData.displays[i].link == imageId) {
         var displayData = viewData.displays[i];
-
         window.setTimeout(
         MinimapActions.initMinimap.bind(null, imageUrl, displayData.displayWidth, displayData.displayHeight, displayData.x, displayData.y), 10);
         break;

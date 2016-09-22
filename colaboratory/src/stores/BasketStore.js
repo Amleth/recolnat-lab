@@ -53,6 +53,7 @@ class BasketStore extends EventEmitter {
           this.emit(BasketEvents.BASKET_UPDATE);
           break;
         case BasketConstants.ActionTypes.BASKET_REMOVE_ITEM:
+          this.updateBasketSelection(action.item, false);
           this.removeItemFromBasket(action.item);
           this.emit(BasketEvents.BASKET_UPDATE);
           break;

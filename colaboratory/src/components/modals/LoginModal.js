@@ -66,7 +66,6 @@ class LoginModal extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log("did update");
     if(this.state.active) {
       $(this.refs.modal.getDOMNode())
         .modal('setting', 'closable', false)

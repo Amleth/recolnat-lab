@@ -24,6 +24,7 @@ import org.dicen.recolnat.services.core.data.ImageEditorResource;
 import org.dicen.recolnat.services.core.data.SetResource;
 import org.dicen.recolnat.services.core.data.ViewResource;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
+import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +96,7 @@ public class ColaboratorySocket {
 
     try {
       int action = jsonIn.getInt("action");
+      ActionResult result = null;
       List<String> modified = null;
       // Shared variables that must be declared here otherwise compiler complains
       String entityId, viewId, imageId;
@@ -190,7 +192,8 @@ public class ColaboratorySocket {
               } catch (JSONException ex) {
                 parentSetId = null;
               }
-              modified = SetResource.createSet(parentSetId, name, userLogin);
+              result = SetResource.createSet(parentSetId, name, userLogin);
+              modified = result.getModified();
               break;
             case "delete-element-from-set":
               String linkId = jsonIn.getString("link");
@@ -216,7 +219,8 @@ public class ColaboratorySocket {
               name = jsonIn.getString("name");
               String recolnatSpecimenUuid = jsonIn.getString("recolnatSpecimenUuid");
               JSONArray images = jsonIn.getJSONArray("images");
-              modified = SetResource.importRecolnatSpecimen(parentSetId, name, recolnatSpecimenUuid, images, userLogin);
+              result = SetResource.importRecolnatSpecimen(parentSetId, name, recolnatSpecimenUuid, images, userLogin);
+              modified = result.getModified();
               break;
             case "import-external-image":
               parentSetId = jsonIn.getString("set");
@@ -280,6 +284,9 @@ public class ColaboratorySocket {
       done.put("action", Action.ServerActionType.DONE);
       done.put("id", messageId);
       done.put("request", jsonIn);
+      if (result != null) {
+        done.put("data", result.getResponse());
+      }
       session.getAsyncRemote().sendText(done.toString());
       // If the operation modified any resources, inform all listening clients.
       if (modified != null) {
@@ -348,24 +355,26 @@ public class ColaboratorySocket {
 
   @OnOpen
   public void onConnect(Session session, EndpointConfig config) throws SessionException, IOException {
-    // Client opens connection
-    // Get login status from CAS
     log.info("Opening new websocket session " + session.getId());
-//    if (!config.getUserProperties().containsKey("CASTGC")) {
-//      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token not found."));
-//      return;
-//    }
     String tgt = (String) config.getUserProperties().get("CASTGC");
     String user = null;
     try {
       user = CASAuthentication.getCASUserLogin(tgt);
     } catch (ConnectException ex) {
-      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token  validation failed."));
-      log.warn("Socket closed due to connection exception to CAS", ex);
+      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
+      
+      if (log.isWarnEnabled()) {
+        log.warn("Socket closed due to connection exception to CAS");
+      }
+      if(log.isDebugEnabled()) {
+        log.debug("Exception details.", ex);
+      }
       return;
     } catch (IOException ex) {
-      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token  validation failed."));
-      log.warn("Socket closed due to I/O exception reading CAS response", ex);
+      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
+      if (log.isWarnEnabled()) {
+        log.warn("Socket closed due to I/O exception reading CAS response", ex);
+      }
       return;
     }
 

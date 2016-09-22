@@ -7,6 +7,7 @@ package org.dicen.recolnat.services.core.data;
 
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -32,6 +33,12 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
+import fr.recolnat.database.model.impl.RecolnatImage;
+import java.io.InputStream;
+import java.net.URLConnection;
+import java.util.Iterator;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +77,7 @@ public class SetResource {
     }
   }
 
-  public static List<String> createSet(String parentSetId, String name, String user) throws JSONException, AccessForbiddenException {
+  public static ActionResult createSet(String parentSetId, String name, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createSet");
     }
@@ -78,8 +85,9 @@ public class SetResource {
     if (log.isDebugEnabled()) {
       log.debug("Parent set id is " + parentSetId);
     }
-
-    List<String> changes = new LinkedList<>();
+    
+    ActionResult result = new ActionResult();
+//    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -116,9 +124,14 @@ public class SetResource {
         g.commit();
 
         // Build return object
-        changes.add(vParentSet.getProperty(DataModel.Properties.id));
-        changes.add(vSet.getProperty(DataModel.Properties.id));
-        changes.add(vView.getProperty(DataModel.Properties.id));
+        result.addModifiedId(vParentSet.getProperty(DataModel.Properties.id));
+        result.addModifiedId(vSet.getProperty(DataModel.Properties.id));
+        result.addModifiedId(vView.getProperty(DataModel.Properties.id));
+        
+        result.setResponse("parentSet", vParentSet.getProperty(DataModel.Properties.id));
+        result.setResponse("subSet", vSet.getProperty(DataModel.Properties.id));
+        result.setResponse("link", eParentToChildLink.getProperty(DataModel.Properties.id));
+        result.setResponse("defaultView", vView.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -128,7 +141,7 @@ public class SetResource {
       }
     }
 
-    return changes;
+    return result;
   }
 
   public static List<String> deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
@@ -301,9 +314,10 @@ public class SetResource {
     return changes;
   }
 
-  public static List<String> importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException,  InterruptedException, ResourceNotExistsException {
+  public static ActionResult importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException,  InterruptedException, ResourceNotExistsException {
     String imageUrl = null;
-    List<String> changes = new ArrayList<>();
+    ActionResult result = new ActionResult();
+//    List<String> changes = new ArrayList<>();
 
     boolean retry = true;
     while (retry) {
@@ -337,8 +351,8 @@ public class SetResource {
             }
           }
           
-          changes.add((String) vOriginalSource.getProperty(DataModel.Properties.id));
-          changes.add((String) vSpecimen.getProperty(DataModel.Properties.id));
+          result.addModifiedId((String) vOriginalSource.getProperty(DataModel.Properties.id));
+          result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
           // Check if all images are on the main tree of the specimen
           for (int i = 0; i < images.length(); ++i) {
             JSONObject image = images.getJSONObject(i);
@@ -346,12 +360,19 @@ public class SetResource {
             String thumbUrl = image.getString("thumburl");
             OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
             if (vImage == null) {
+//              String metadataUrlString = "https://mediatheque.mnhn.fr/service/public/media/" + imageUrl.substring(imageUrl.lastIndexOf("/"));
+//              GetMethod get = new GetMethod(metadataUrlString);
+//              JSONObject metadata = new JSONObject(get.getResponseBodyAsString());
 //              JSONObject metadata = ImageMetadataDownloader.downloadImageMetadata(imageUrl);
+//              int width = metadata.getInt("width"); 
+//              int height = metadata.getInt("height");
               BufferedImage img = ImageIO.read(new URL(imageUrl));
-              vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, img.getWidth(), img.getHeight(), thumbUrl, g);
+              int width = img.getWidth();
+              int height = img.getHeight();
+              vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, width, height, thumbUrl, g);
               g.commit();
               
-              changes.add((String) vImage.getProperty(DataModel.Properties.id));
+              result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
             }
           }
           // Make branch of specimen tree
@@ -362,9 +383,23 @@ public class SetResource {
           OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
           g.commit();
           
-          changes.add((String) vSpecimen.getProperty(DataModel.Properties.id));
+          result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
         
-        changes.add((String) vSet.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
+        result.setResponse("recolnatUuid", recolnatSpecimenUuid);
+        
+        JSONArray jImages = new JSONArray();
+        Iterator<Vertex> itImages = vSpecimen.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+        while(itImages.hasNext()) {
+          OrientVertex vImage = (OrientVertex) itImages.next();
+          if(AccessUtils.isLatestVersion(vImage)) {
+              if(AccessRights.canRead(vUser, vImage, g)) {
+                RecolnatImage image = new RecolnatImage(vImage, vUser, g);
+                jImages.put(image.toJSON());
+              }
+          }
+        }
+        result.setResponse("images", jImages);
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -380,7 +415,7 @@ public class SetResource {
       }
     }
     
-    return changes;
+    return result;
   }
 
   public static List<String> importExternalImage(String setId, String imageUrl, String imageName, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException {

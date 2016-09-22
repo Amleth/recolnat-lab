@@ -24,6 +24,8 @@ class Connector extends EventEmitter {
     this.idToData = {};
     // Counts number of messages and serves as message id for this session. Only message which have a custom answer (i.e. UPDATE) need to be id'd.
     this.messageCounter = 0;
+    // Associates a message id (from messageCounter variable) to two callbacks : success and error
+    this.messageIdToCallback = {};
     this.websocketServerMethod = "";
     this.websocket = null;
     this.ping = null;
@@ -123,6 +125,7 @@ class Connector extends EventEmitter {
         break;
       case ServerConstants.ActionTypes.Receive.DENIED:
         console.log("Got DENIED from server " + message.data);
+        jsonMessage.clientProcessError = true;
         this.emit(jsonMessage.id, jsonMessage);
         break;
       default:

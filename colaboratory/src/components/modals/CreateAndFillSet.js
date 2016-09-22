@@ -10,6 +10,7 @@ import Basket from '../manager/Basket';
 import AbstractModal from './AbstractModal';
 
 import ModalConstants from '../../constants/ModalConstants';
+import ServerConstants from '../../constants/ServerConstants';
 
 import ViewActions from '../../actions/ViewActions';
 import ManagerActions from '../../actions/ManagerActions';
@@ -80,45 +81,58 @@ class CreateAndFillSet extends AbstractModal {
       });
     }
 
-    var onImportSuccess = function(response) {
-      window.setTimeout(ManagerActions.reloadDisplayedSets, 10);
-      window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
-      if(!keepInBasket) {
-        for (var j = 0; j < items.length; ++j) {
-          window.setTimeout(BasketActions.removeItemFromBasket.bind(null, items[j]), 10);
+    var imported = 0;
+    var errors = 0;
+
+    var onImportResponse = function(message) {
+      imported++;
+      if(message.clientProcessError) {
+        errors++;
+      }
+      else {
+        //window.setTimeout(BasketActions.changeBasketSelectionState.bind(null, null, false), 10);
+        if (!keepInBasket) {
+            window.setTimeout(BasketActions.removeItemFromBasket.bind(null, message.data.recolnatUuid), 10);
         }
       }
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
-    };
 
-    var onImportError = function(err, response) {
-      alert("Echec de l'import. Veuillez réessayer plus tard");
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+      imported++;
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "  + imported +'/' + specimens.length + ' (' + errors + ' erreurs)'), 10);
+
+      if(imported === specimens.length) {
+        if(errors > 0) {
+          alert("Certains spécimens n'ont pas pu être importés. Ils sont restés dans le panier.");
+        }
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+      }
     };
 
     // On set creation success, import images
-    var onSetCreationSuccess = function(parentId, newSetId, linkId) {
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
-
-      window.setTimeout(ManagerActions.select.bind(null,newSetId, 'Set', name, parentId, linkId),10);
-      window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, parentId, newSetId), 10);
-      window.setTimeout(InspectorActions.setInspectorData.bind(null, [newSetId]), 10);
-
-      for(var s = 0; s < specimens.length; ++s) {
-        ServiceMethods.importRecolnatSpecimen(newSetId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onImportSuccess);
+    var onSetCreationResponse = function(message) {
+      if(message.clientProcessError) {
+        alert('Impossible de créer le nouveau set. Veuillez réessayer plus tard');
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
       }
-    };
+      else {
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
 
-    var onSetCreationError = function(err, res) {
-      alert('Impossible de créer le nouveau set. Veuillez réessayer plus tard');
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+        console.log(JSON.stringify(message));
+
+        window.setTimeout(ManagerActions.select.bind(null,message.data.subSet, 'Set', name, message.data.parentSet, message.data.link),10);
+        window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, message.data.parentSet, message.data.subSet), 10);
+        window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.subSet]), 10);
+
+        for(var s = 0; s < specimens.length; ++s) {
+          ServiceMethods.importRecolnatSpecimen(message.data.subSet, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onImportResponse);
+        }
+      }
+
     };
 
     ServiceMethods.createSet(
       this.state.nameInput,
       null,
-      onSetCreationSuccess,
-      onSetCreationError);
+      onSetCreationResponse);
   }
 
   componentDidMount() {

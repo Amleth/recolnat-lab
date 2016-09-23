@@ -70,7 +70,7 @@ class CreatePoI extends AbstractTool {
       alert("Les coordonnées ne sont pas valides : x=" + this.state.x + " y=" + this.state.y);
       return;
     }
-    alert("Enregistrement du point aux coordonnées " + this.state.x + "," + this.state.y + " en cours");
+    //alert("Enregistrement du point aux coordonnées " + this.state.x + "," + this.state.y + " en cours");
 
     ServiceMethods.createPointOfInterest(this.state.imageUri, this.state.x, this.state.y, this.state.name);
   }

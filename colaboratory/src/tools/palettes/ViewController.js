@@ -91,18 +91,30 @@ class ViewController extends React.Component {
 
   resetZoom() {
     var view = this.props.viewstore.getView();
-    if(view.scale == 1.0) {
+    if (view.scale < 1.0001 && view.scale > 0.9999) {
       return;
     }
     //console.log(JSON.stringify(view));
-    ViewActions.updateViewport(
-      (view.left-view.width)/(2*view.scale),
-      (view.top-view.height)/(2*view.scale),
-      null,
-      null,
-      1.0,
-      true
-    );
+    if (view.scale < 1.0) {
+      ViewActions.updateViewport(
+        (view.left - view.width / 2) / (view.scale),
+        (view.top - view.height / 2) / (view.scale),
+        null,
+        null,
+        1.0,
+        true
+      );
+    }
+    else {
+      ViewActions.updateViewport(
+        (view.left ) / (view.scale)+ view.width/2,
+        (view.top ) / (view.scale)+ view.height/2,
+        null,
+        null,
+        1.0,
+        true
+      );
+    }
   }
 
   displayAllElementsInView() {

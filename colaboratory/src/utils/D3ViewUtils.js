@@ -26,10 +26,10 @@ export default class D3ViewUtils {
       .attr('class', Classes.CHILD_GROUP_CLASS)
       .attr('id', d => 'GROUP-' + d.link)
       .attr('transform', function(d) {
-        console.log('data=' + JSON.stringify(d));
-        console.log('d.dHeight=' + d.displayHeight);
-        console.log('d.height=' + d.height);
-        console.log('scale=' + d.displayHeight / d.height);
+        //console.log('data=' + JSON.stringify(d));
+        //console.log('d.dHeight=' + d.displayHeight);
+        //console.log('d.height=' + d.height);
+        //console.log('scale=' + d.displayHeight / d.height);
         return d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')'});
       //.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
     children.exit().remove();

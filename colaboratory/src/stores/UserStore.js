@@ -26,7 +26,6 @@ class UserStore extends EventEmitter {
 
     // Perform initial check
     window.setTimeout(SocketActions.registerListener.bind(null, 'user', this.userConnected.bind(this)), 10);
-
   }
 
   userConnected(user) {

@@ -100,6 +100,10 @@ class AddEntitiesToSetModal extends AbstractModal {
     window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "), 10);
 
     var items = this.props.basketstore.getBasketSelection();
+    if(items.length === 0) {
+      alert('Aucune image à importer');
+      return;
+    }
     var specimens = [];
     for(var i = 0; i < items.length; ++i) {
       var itemId = items[i];

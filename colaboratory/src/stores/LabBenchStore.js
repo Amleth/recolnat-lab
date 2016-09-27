@@ -209,8 +209,10 @@ class LabBenchStore extends EventEmitter {
 
   loadSubSets(linksAndIds) {
     for(var i = 0; i < linksAndIds.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, linksAndIds[i].uid, this.subSetLoaded.bind(this)), 10);
-      this.ids.subSets.push(linksAndIds[i].uid);
+      if(!_.contains(this.ids.subSets, linksAndIds[i].uid)) {
+        window.setTimeout(SocketActions.registerListener.bind(null, linksAndIds[i].uid, this.subSetLoaded.bind(this)), 10);
+        this.ids.subSets.push(linksAndIds[i].uid);
+      }
     }
   }
 
@@ -225,8 +227,10 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadView(id) {
-    window.setTimeout(SocketActions.registerListener.bind(null, id, this.viewLoaded.bind(this)), 10);
-    this.ids.views.push(id);
+    if(!_.contains(this.ids.views, id)) {
+      window.setTimeout(SocketActions.registerListener.bind(null, id, this.viewLoaded.bind(this)), 10);
+      this.ids.views.push(id);
+    }
   }
 
   viewLoaded(view) {
@@ -243,8 +247,10 @@ class LabBenchStore extends EventEmitter {
 
   loadItems(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.itemLoaded.bind(this)), 10);
-      this.ids.items.push(ids[i]);
+      if(!_.contains(this.ids.items, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.itemLoaded.bind(this)), 10);
+        this.ids.items.push(ids[i]);
+      }
     }
   }
 
@@ -289,8 +295,10 @@ class LabBenchStore extends EventEmitter {
 
   loadAoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.aoiLoaded.bind(this)), 10);
-      this.ids.aois.push(ids[i]);
+      if(!_.contains(this.ids.aois, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.aoiLoaded.bind(this)), 10);
+        this.ids.aois.push(ids[i]);
+      }
     }
   }
 
@@ -309,8 +317,10 @@ class LabBenchStore extends EventEmitter {
 
   loadRoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.roiLoaded.bind(this)), 10);
-      this.ids.rois.push(ids[i]);
+      if(!_.contains(this.ids.rois, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.roiLoaded.bind(this)), 10);
+        this.ids.rois.push(ids[i]);
+      }
     }
   }
 
@@ -329,8 +339,10 @@ class LabBenchStore extends EventEmitter {
 
   loadPoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.poiLoaded.bind(this)), 10);
-      this.ids.pois.push(ids[i]);
+      if(!_.contains(this.ids.pois, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.poiLoaded.bind(this)), 10);
+        this.ids.pois.push(ids[i]);
+      }
     }
   }
 
@@ -346,8 +358,10 @@ class LabBenchStore extends EventEmitter {
 
   loadToIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i],this.toiLoaded.bind(this)), 10);
-      this.ids.tois.push(ids[i]);
+      if(!_.contains(this.ids.tois, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i],this.toiLoaded.bind(this)), 10);
+        this.ids.tois.push(ids[i]);
+      }
     }
   }
 
@@ -366,8 +380,10 @@ class LabBenchStore extends EventEmitter {
 
   loadMeasureStandards(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.standardLoaded.bind(this)), 10);
-      this.ids.measureStandards.push(ids[i]);
+      if(!_.contains(this.ids.measureStandards, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.standardLoaded.bind(this)), 10);
+        this.ids.measureStandards.push(ids[i]);
+      }
     }
   }
 
@@ -383,8 +399,10 @@ class LabBenchStore extends EventEmitter {
 
   loadMeasurements(ids) {
     for(var i = 0; i < ids.length; ++i) {
-      window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.measurementLoaded.bind(this)), 10);
-      this.ids.measurements.push(ids[i]);
+      if(!_.contains(this.ids.measurements, ids[i])) {
+        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.measurementLoaded.bind(this)), 10);
+        this.ids.measurements.push(ids[i]);
+      }
     }
   }
 
@@ -399,6 +417,9 @@ class LabBenchStore extends EventEmitter {
   }
 
   removeListeners() {
+    if(this.labBench.id) {
+      window.setTimeout(SocketActions.removeListener.bind(null, this.labBench.id, this.receiveBench.bind(this)), 10);
+    }
     if(this.ids) {
       if(this.ids.subSets) {
         for (var i = 0; i < this.ids.subSets.length; ++i) {
@@ -484,14 +505,14 @@ class LabBenchStore extends EventEmitter {
 
     var loadingText = <div>Chargement en cours...<br/>
       <p>Sous-sets {_.size(this.labBench.subSets)}/{this.ids.subSets.length}<br />
-      Spécimens&Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
-      Vues {_.size(this.labBench.views)}/{this.ids.views.length}<br />
-      Zones {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
-      Angles {_.size(this.labBench.aois)}/{this.ids.aois.length}<br />
-      Points {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
-      Chemins {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
-      Mesures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
-      Étalons {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
+        Spécimens&Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
+        Vues {_.size(this.labBench.views)}/{this.ids.views.length}<br />
+        Zones {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
+        Angles {_.size(this.labBench.aois)}/{this.ids.aois.length}<br />
+        Points {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
+        Chemins {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
+        Mesures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
+        Étalons {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
     </div>;
 
     window.setTimeout(ViewActions.changeLoaderState.bind(null, loadingText), 10);

@@ -97,7 +97,7 @@ class SimpleImageDisplay extends React.Component {
       case 'Specimen':
       case 'Set':
         this.props.metastore.addMetadataUpdateListener(selection.id, this._onMetadataReceived);
-        this._onMetadataReceived(selection.id);
+        this.processReceivedMetadata(selection.id, true);
         break;
       default:
         this.setState({selectionTitle: "Pré-visionneuse d'images"});
@@ -106,12 +106,14 @@ class SimpleImageDisplay extends React.Component {
     this.setState({selectionTitle: selection.name});
   }
 
-  processReceivedMetadata(id) {
+  processReceivedMetadata(id, skipListenerCheck = false) {
     //this.props.metastore.removeMetadataUpdateListener(id, this._onMetadataReceived);
-    if(!_.contains(this.state.listening, id)) {
+    if(!_.contains(this.state.listening, id) && !skipListenerCheck) {
+      console.log('Not listening for ' + id);
       return;
     }
     var metadata = this.props.metastore.getMetadataAbout(id);
+    console.log('Metadata for ' + id + " : " + JSON.stringify(metadata));
     if(metadata) {
       switch(metadata.type) {
         case 'Image':
@@ -125,7 +127,7 @@ class SimpleImageDisplay extends React.Component {
           for(var i = 0; i < metadata.images.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.images[i], this._onMetadataReceived);
             listening.push(metadata.images[i]);
-            this._onMetadataReceived(metadata.images[i]);
+            this.processReceivedMetadata(metadata.images[i], true);
           }
           this.setState({listening: listening});
           break;
@@ -136,7 +138,7 @@ class SimpleImageDisplay extends React.Component {
             this.props.metastore.addMetadataUpdateListener(metadata.items[i].uid, this._onMetadataReceived);
             listening.push(metadata.items[i].uid);
             metaToUpdate.push(metadata.items[i].uid);
-            this._onMetadataReceived(metadata.items[i].uid);
+            this.processReceivedMetadata(metadata.items[i].uid, true);
           }
           this.setState({listening: listening});
           break;

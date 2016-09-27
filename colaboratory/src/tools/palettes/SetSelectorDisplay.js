@@ -74,8 +74,12 @@ class SetSelectorDisplay extends React.Component {
   }
 
   loadRootSet() {
-    window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, null, 'Set', 0, true)
-      , 10);
+    var user = this.props.userstore.getUserData();
+    if(user) {
+      var coreSetId = user.coreSet;
+      window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, coreSetId, 'Set', 0, true)
+        , 10);
+    }
   }
 
   componentDidMount() {

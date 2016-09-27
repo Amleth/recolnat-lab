@@ -43,6 +43,7 @@ class LeftPane extends React.Component {
         managerstore={this.props.managerstore}
         modestore={this.props.modestore} />
         <SetSelectorDisplay modestore={this.props.modestore}
+                            userstore={this.props.userstore}
                       managerstore={this.props.managerstore} />
         <GroupSelector
                         modestore={this.props.modestore}

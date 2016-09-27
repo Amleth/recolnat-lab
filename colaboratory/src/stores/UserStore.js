@@ -23,6 +23,7 @@ class UserStore extends EventEmitter {
     this.userAuthorized = false;
     this.userRplusId = null;
     this.userLogin = null;
+    this.userData = null;
 
     // Perform initial check
     window.setTimeout(SocketActions.registerListener.bind(null, 'user', this.userConnected.bind(this)), 10);
@@ -33,18 +34,24 @@ class UserStore extends EventEmitter {
       this.userRplusId = user.uid;
       this.userLogin = user.name;
       this.userAuthorized = true;
+      this.userData = user;
       this.emit(UserEvents.USER_LOG_IN);
     }
     else {
       this.userAuthorized = false;
       this.userRplusId = null;
       this.userLogin = null;
+      this.userData = null;
       this.emit(UserEvents.USER_LOG_OUT);
     }
   }
 
   getUser() {
     return {rPlusId: this.userRplusId, login: this.userLogin};
+  }
+
+  getUserData() {
+    return this.userData;
   }
 
   isUserAuthorized() {

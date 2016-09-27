@@ -45,7 +45,7 @@ public class UserProfileResource {
       log.debug("begin=" + beginDate + " end=" + endDate);
     }
     
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
         Log l = new Log(requestedUser, beginDate, endDate, user, g);
         return l.toJSON().toString();

@@ -35,7 +35,7 @@ public class ImageEditorResource {
   private final static Logger log = LoggerFactory.getLogger(ImageEditorResource.class);
 
   public static JSONObject getImage(String id, String user) throws InternalServerErrorException, AccessForbiddenException {
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     RecolnatImage img = null;
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
@@ -54,7 +54,7 @@ public class ImageEditorResource {
   }
 
   public static JSONObject getSpecimen(String id, String user) throws InternalServerErrorException, AccessForbiddenException {
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex vSpecimen = (OrientVertex) AccessUtils.getNodeById(id, g);
@@ -87,7 +87,7 @@ public class ImageEditorResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         String userId = vUser.getProperty(DataModel.Properties.id);
@@ -146,7 +146,7 @@ public class ImageEditorResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vImage = AccessUtils.getNodeById(imageId, g);
@@ -195,7 +195,7 @@ public class ImageEditorResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vMeasurement = AccessUtils.getNodeById(measurementId, g);
@@ -257,7 +257,7 @@ public class ImageEditorResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vImage = AccessUtils.getNodeById(parent, g);
@@ -330,7 +330,7 @@ public class ImageEditorResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
 
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);

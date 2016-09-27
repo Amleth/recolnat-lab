@@ -45,7 +45,7 @@ public class DatabaseResource {
   private static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
   
   public static JSONObject getUserData(String userLogin) throws JSONException {
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
       ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
@@ -58,7 +58,7 @@ public class DatabaseResource {
 
   public static JSONObject getData(String entityId, String user) throws JSONException, AccessForbiddenException {
     JSONObject entity = new JSONObject();
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex v = (OrientVertex) AccessUtils.getNodeById(entityId, g);
@@ -103,7 +103,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
 
@@ -127,7 +127,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
@@ -167,7 +167,7 @@ public class DatabaseResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);

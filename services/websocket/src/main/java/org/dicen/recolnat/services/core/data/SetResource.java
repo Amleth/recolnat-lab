@@ -51,7 +51,7 @@ public class SetResource {
   private static final Logger log = LoggerFactory.getLogger(SetResource.class);
 
   public static JSONObject getSet(String setId, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException, InternalServerErrorException {
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     StudySet set = null;
     try {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
@@ -91,7 +91,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vParentSet = null;
@@ -150,7 +150,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         // Permissions checked internally
@@ -176,7 +176,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vTarget = AccessUtils.getNodeById(elementToCopyId, g);
@@ -217,7 +217,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vDestination = AccessUtils.getSet(futureParentId, g);
@@ -262,7 +262,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
 
@@ -322,7 +322,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vSet = AccessUtils.getSet(setId, g);
@@ -423,7 +423,7 @@ public class SetResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vSet = AccessUtils.getSet(setId, g);

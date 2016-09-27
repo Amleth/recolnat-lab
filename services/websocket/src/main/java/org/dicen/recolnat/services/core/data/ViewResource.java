@@ -32,7 +32,7 @@ public class ViewResource {
       boolean retry = true;
       while (retry) {
         retry = false;
-        OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+        OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
         try {
           OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
           OrientVertex vView = AccessUtils.getView(viewId, g);
@@ -62,7 +62,7 @@ public class ViewResource {
 
   public static List<String> moveEntityInView(String viewId, String linkId, String entityId, Integer x, Integer y, String user) throws JSONException, AccessForbiddenException {
     List<String> changes = new LinkedList<>();
-    OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+    OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
     try {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
       OrientVertex vView = AccessUtils.getView(viewId, g);
@@ -99,7 +99,7 @@ public class ViewResource {
     boolean retry = true;
     while (retry) {
       retry = false;
-      OrientBaseGraph g = DatabaseAccess.getTransactionalGraph();
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vView = AccessUtils.getView(viewId, g);

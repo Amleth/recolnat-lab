@@ -96,7 +96,6 @@ class CreateAndFillSet extends AbstractModal {
         }
       }
 
-      imported++;
       window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours... "  + imported +'/' + specimens.length + ' (' + errors + ' erreurs)'), 10);
 
       if(imported === specimens.length) {
@@ -114,16 +113,21 @@ class CreateAndFillSet extends AbstractModal {
         window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
       }
       else {
-        window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
+        if(items.length > 0) {
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
 
-        console.log(JSON.stringify(message));
+          console.log(JSON.stringify(message));
 
-        window.setTimeout(ManagerActions.select.bind(null,message.data.subSet, 'Set', name, message.data.parentSet, message.data.link),10);
-        window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, message.data.parentSet, message.data.subSet), 10);
-        window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.subSet]), 10);
+          window.setTimeout(ManagerActions.select.bind(null, message.data.subSet, 'Set', name, message.data.parentSet, message.data.link), 10);
+          window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, message.data.parentSet, message.data.subSet), 10);
+          window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.subSet]), 10);
 
-        for(var s = 0; s < specimens.length; ++s) {
-          ServiceMethods.importRecolnatSpecimen(message.data.subSet, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onImportResponse);
+          for (var s = 0; s < specimens.length; ++s) {
+            ServiceMethods.importRecolnatSpecimen(message.data.subSet, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onImportResponse);
+          }
+        }
+        else {
+          window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
         }
       }
 

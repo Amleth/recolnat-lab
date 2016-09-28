@@ -24,6 +24,16 @@ class AddEntitiesToSetModal extends AbstractModal {
   constructor(props) {
     super(props);
 
+    this.buttonSubTextStyle = {
+      fontSize: '10px'
+    };
+
+    this.actionBarStyle = {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: '10px'
+    };
+
     this._onMetadataAvailable = () => {
       const updateDisplayedName = () => this.updateDisplayName();
       return updateDisplayedName.apply(this);
@@ -50,7 +60,7 @@ class AddEntitiesToSetModal extends AbstractModal {
     state.validatedItems = [];
   }
 
-  create() {
+  create(keepInBasket) {
     if(!this.state.parentId) {
       console.error('No parent selected');
       alert('Aucun set parent sélectionné');
@@ -61,7 +71,7 @@ class AddEntitiesToSetModal extends AbstractModal {
         this.createSubSet();
         break;
       case 'recolnat':
-        this.createFromBasket();
+        this.createFromBasket(keepInBasket);
         break;
       case 'web':
         this.createFromWeb();
@@ -92,7 +102,7 @@ class AddEntitiesToSetModal extends AbstractModal {
     }
   }
 
-  createFromBasket() {
+  createFromBasket(keepInBasket) {
     if(this.state.parentId.length < 1) {
       alert('Aucun set sélectionné');
       return;
@@ -126,7 +136,7 @@ class AddEntitiesToSetModal extends AbstractModal {
     var errors = 0;
     var onSuccess = null;
     var onError = null;
-    var keepInBasket = false;
+    //var keepInBasket = false;
     switch(this.props.modestore.getMode()) {
       case ModeConstants.Modes.SET:
         onSuccess = function(message) {
@@ -291,6 +301,18 @@ class AddEntitiesToSetModal extends AbstractModal {
                      onChange={this.onNameChange.bind(this)}/>
             </div>
           </div>
+          <div className="actions" style={this.actionBarStyle}>
+            <div className="ui black deny button" onClick={this.cancel.bind(this)}>
+              Annuler
+            </div>
+            <div className="ui positive right labeled icon button"
+                 onClick={this.create.bind(this, false)}>
+              <div className='ui text'>
+                Ajouter au set
+              </div>
+              <i className="checkmark icon"></i>
+            </div>
+          </div>
         </div>
         <div className="ui bottom attached tab segment" data-tab="recolnat">
           <div className='content'>
@@ -300,18 +322,34 @@ class AddEntitiesToSetModal extends AbstractModal {
               <Basket basketstore={this.props.basketstore}/>
             </div>
           </div>
+          <div className="actions" style={this.actionBarStyle}>
+            <div className="ui black deny button" onClick={this.cancel.bind(this)}>
+              Annuler
+            </div>
+            <div className="ui positive right labeled icon button"
+                 onClick={this.create.bind(this, true)}>
+              <div className='ui text'>
+                Ajouter au set
+              </div>
+              <div className='ui text' style={this.buttonSubTextStyle}>
+                et conserver dans le panier
+              </div>
+              <i className="checkmark icon"></i>
+            </div>
+            <div className="ui positive right labeled icon button"
+                 onClick={this.create.bind(this, false)}>
+              <div className='ui text'>
+                Ajouter au set
+              </div>
+              <div className='ui text' style={this.buttonSubTextStyle}>
+                et supprimer du panier
+              </div>
+              <i className="checkmark icon"></i>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="actions">
-        <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-          Annuler
-        </div>
-        <div className="ui positive right labeled icon button"
-             onClick={this.create.bind(this)}>
-          Ajouter
-          <i className="checkmark icon"></i>
-        </div>
-      </div>
+
     </div>;
   }
 }

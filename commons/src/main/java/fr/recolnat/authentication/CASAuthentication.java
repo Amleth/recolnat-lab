@@ -31,12 +31,12 @@ import org.xml.sax.SAXException;
  * @author dmitri
  */
 public class CASAuthentication {
-  public static String getCASUserLogin(String tgt) throws AccessDeniedException, ConnectException, IOException {
+  public static String getCASUserLogin(String tgt, String ticketUrl, String serviceValidateUrl) throws AccessDeniedException, ConnectException, IOException {
     // We have TGT. Send to CAS authentication.
     String serviceTicket = "";
     HttpURLConnection conn = null;
     try {
-      URL ticketsUrl = new URL("https://cas.recolnat.org/v1/tickets/" + tgt);
+      URL ticketsUrl = new URL(ticketUrl + "/" + tgt);
       conn = (HttpURLConnection) ticketsUrl.openConnection();
       conn.setDoOutput(true);
       conn.setRequestMethod("POST");
@@ -76,7 +76,7 @@ public class CASAuthentication {
     conn = null;
     try {
       // Validate ST in order to be able to get user data.
-      URL url = new URL("https://cas.recolnat.org/serviceValidate?ticket=" + serviceTicket + "&service=https://wp5.recolnat.org");
+      URL url = new URL(serviceValidateUrl + "?ticket=" + serviceTicket + "&service=https://wp5.recolnat.org");
       conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("POST");
       if(conn.getResponseCode() != 200) {

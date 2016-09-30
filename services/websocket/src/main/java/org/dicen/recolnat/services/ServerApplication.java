@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import org.apache.commons.lang.time.DateUtils;
+import org.dicen.recolnat.services.configuration.Authentication;
 import org.dicen.recolnat.services.core.backup.BackupTask;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.dicen.recolnat.services.resources.ColaboratorySocket;
@@ -39,6 +40,19 @@ public class ServerApplication {
     Integer minPool = (Integer) dbConf.get("minConnectorPoolSize");
     Integer maxPool = (Integer) dbConf.get("maxConnectorPoolSize");
     DatabaseAccess.configure(dbPath, dbUser, dbPass, minPool, maxPool, dbBackupDirectory);
+    
+    Map authConf = (Map) conf.get("authentication");
+    Map cas = (Map) authConf.get("cas");
+    if(cas != null) {
+      log.info("Service configured to authenticate with CAS");
+      String ticketUrl = (String) cas.get("ticketUrl");
+      String serviceValidateUrl = (String) cas.get("serviceValidateUrl");
+      log.info("ticketUrl=" + ticketUrl);
+      log.info("serviceValidateUrl=" + serviceValidateUrl);
+      Authentication.authenticationMethod = 2;
+      Authentication.CASConfiguration.ticketUrl = ticketUrl;
+      Authentication.CASConfiguration.serviceValidateUrl = serviceValidateUrl;
+    }
     
     Map serverConf = (Map) conf.get("server");
     Integer srvPort = (Integer) serverConf.get("port");

@@ -8,6 +8,10 @@ database:
     directory: /tmp/backups/
     firstExecutionDate: 7-3:00
     frequency: 7
+authentication:
+  cas: 
+    ticketUrl: https://cas.recolnat.org/v1/tickets
+    serviceValidateUrl: https://cas.recolnat.org/serviceValidate
 server:
   port: 10001
 logging:

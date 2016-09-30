@@ -24,6 +24,8 @@ import org.dicen.recolnat.services.core.data.ImageEditorResource;
 import org.dicen.recolnat.services.core.data.SetResource;
 import org.dicen.recolnat.services.core.data.ViewResource;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
+import org.apache.commons.lang.NotImplementedException;
+import org.dicen.recolnat.services.configuration.Authentication;
 import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -356,25 +358,10 @@ public class ColaboratorySocket {
   @OnOpen
   public void onConnect(Session session, EndpointConfig config) throws SessionException, IOException {
     log.info("Opening new websocket session " + session.getId());
-    String tgt = (String) config.getUserProperties().get("CASTGC");
-    String user = null;
-    try {
-      user = CASAuthentication.getCASUserLogin(tgt);
-    } catch (ConnectException ex) {
+    // Check in configuration which authentication method to use
+    String user = Authentication.authenticate(config);
+    if(user == null) {
       session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
-      
-      if (log.isWarnEnabled()) {
-        log.warn("Socket closed due to connection exception to CAS");
-      }
-      if(log.isDebugEnabled()) {
-        log.debug("Exception details.", ex);
-      }
-      return;
-    } catch (IOException ex) {
-      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
-      if (log.isWarnEnabled()) {
-        log.warn("Socket closed due to I/O exception reading CAS response", ex);
-      }
       return;
     }
 

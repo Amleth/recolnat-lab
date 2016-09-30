@@ -71,6 +71,8 @@ public class DeleteUtils {
       log.debug(eLink.toString());
     }
     eLink.remove();
+    modified.add((String) vParentSet.getProperty(DataModel.Properties.id));
+    modified.add((String) vChildItemOrSet.getProperty(DataModel.Properties.id));
 
     // Remove item from all associated views
     Iterator<Vertex> itViews = vNewParent.getVertices(Direction.OUT, DataModel.Links.hasView).iterator();

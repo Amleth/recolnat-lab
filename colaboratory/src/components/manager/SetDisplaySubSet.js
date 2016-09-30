@@ -59,11 +59,11 @@ class SetDisplaySubSet extends React.Component {
       images: []
     };
 
-        objectsAtEvent.sets.push({
-          parent: this.props.parentSetId,
-          link: entity.linkToParent,
-          data: entity
-        });
+    objectsAtEvent.sets.push({
+      parent: this.props.parentSetId,
+      link: entity.link,
+      data: entity
+    });
 
     MenuActions.displayContextMenu(event.clientX, event.clientY, objectsAtEvent);
   }

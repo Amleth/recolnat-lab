@@ -25,15 +25,9 @@ class OrbOptions {
   }
 
   static unlinkFromSet(data, errorCallback=null, successCallback=null) {
-    console.log('Entering unlinkFromSet');
+    //console.log('Entering unlinkFromSet data=' + JSON.stringify(data));
     ModalActions.showModal(ModalConstants.Modals.confirmDelete, data, successCallback, errorCallback);
-    //if(!confirm("L'entité choisie sera enlevée du set. Confirmation ?")) {
-    //  return;
-    //}
-    //console.log('Deleting');
-
-
-}
+  }
 
   static edit(data) {
 

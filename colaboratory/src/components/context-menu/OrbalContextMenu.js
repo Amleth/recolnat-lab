@@ -312,13 +312,8 @@ class OrbalContextMenu extends React.Component {
 
   setActiveItem(index, itemIds, keepActive=true) {
     var entity = itemIds[index];
-    // console.log(JSON.stringify(entity));
     var id = entity.data.uid;
     var link = entity.link;
-    //if(this.props.benchstore.getDisplayData(id)) {
-    //  link = itemIds[index];
-    //  id = this.props.benchstore.getDisplayData(id).entity;
-    //}
     this.props.metastore.addMetadataUpdateListener(id, this._onActiveItemMetadataUpdated);
 
     this.setState({active: this.state.active && keepActive, activeItemId: id, activeItemLinkId: link, activeItemIndex: index});
@@ -540,9 +535,10 @@ class OrbalContextMenu extends React.Component {
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.notAvailable.bind(null);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.unlinkFromSet.bind(null, {
-              link: this.state.activeItemLinkId
-            },
+          var data = {
+            link: this.state.activeItemLinkId
+          };
+          this.southAction = OrbOptions.unlinkFromSet.bind(null, data,
             function (err) {
               console.error(err);
             },

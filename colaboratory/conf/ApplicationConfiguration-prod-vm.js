@@ -5,8 +5,8 @@ var Integration = {
 };
 
 var Services = {
-  laboratoryRESTService: 'https://wp5test.recolnat.org/services/vm/'
-  //laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets'
+  laboratoryRESTService: 'https://wp5test.recolnat.org/services/vm',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/vm/websockets/colaboratory'
 };
 
 var Endpoints = {
@@ -16,9 +16,9 @@ var Endpoints = {
   setService: Services.laboratoryRESTService + '/set',
   studyService: Services.laboratoryRESTService + '/study',
   userProfileService: Services.laboratoryRESTService + '/user-profile',
-  viewService: Services.laboratoryRESTService + '/view'
+  viewService: Services.laboratoryRESTService + '/view',
 
-  //virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
+  virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
 };
 
 var Actions = {
@@ -75,5 +75,27 @@ var Actions = {
   }
 };
 
+var SocketActions = {
+  createRegionOfInterest: "create-roi",
+  createPointOfInterest: "create-poi",
+  createTrailOfInterest: "create-toi",
+  createAngleOfInterest: "create-aoi",
+  addMeasureStandard: "add-measure-standard",
+  createSet: "create-set",
+  deleteFromSet: "delete-element-from-set",
+  link: "link",
+  copy: "copy",
+  cutPaste: "cutpaste",
+  importRecolnatSpecimen: "import-recolnat-specimen",
+  importExternalImage: "import-external-image",
+  place: 'place',
+  move: 'move',
+  resize: 'resize',
+  createStudy: "create-study",
+  remove: 'remove',
+  addAnnotation: 'add-annotation',
+  editProperties: 'edit-properties'
+};
 
-export default {urls: Endpoints, actions: Actions, integration: Integration};
+
+export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

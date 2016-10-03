@@ -159,7 +159,7 @@ class ContextMenu extends React.Component {
              style={this.menuStyle}>
           <div className='vertically fitted item'>
             <div className='menu'>
-              <a className='down item'>Version beta 0.9.2</a>
+              <a className='down item'>Version beta 0.9.2 (03/10/2016)</a>
             </div>
           </div>
         </div>

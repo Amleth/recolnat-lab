@@ -45,12 +45,17 @@ public class DatabaseResource {
   private static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
   
   public static JSONObject getUserData(String userLogin) throws JSONException {
-    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
+    OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
+      if(vUser == null) {
+        // Create user
+        vUser = CreatorUtils.createNewUserAndUserData(userLogin, g);
+      }
       ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
       return user.toJSON();
-    } finally {
+    }
+    finally {
       g.rollback();
       g.shutdown();
     }

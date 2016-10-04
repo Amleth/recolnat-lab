@@ -18,6 +18,7 @@ import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
 import ServiceMethods from '../../utils/ServiceMethods';
+import Globals from '../../utils/Globals';
 
 import icon from '../../images/protractor.svg';
 
@@ -108,7 +109,7 @@ class CreateAngle extends AbstractTool {
     var measure = this.getAngleInDegrees();
     var name = this.state.name;
 
-    ServiceMethods.createAngleOfInterest(this.state.imageId, measure, vertices, name);
+    ServiceMethods.createAngleOfInterest(this.state.imageId, measure, vertices, name, Globals.setSavedEntityInInspector);
   }
 
   begin() {

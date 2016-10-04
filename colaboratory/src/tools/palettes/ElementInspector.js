@@ -53,7 +53,46 @@ class ElementInspector extends React.Component {
       //overflowY: 'auto',
       //height: '80%',
       margin: 0,
-      padding: 0
+      padding: 0,
+      position: 'relative'
+    };
+
+    this.entityNameStyle = {
+      //fontSize: 'large',
+      //fontWeight: 'bold'
+      margin: 0
+    };
+
+    this.addAnnotationStyle = {
+      position: 'relative',
+      //right: 0,
+      bottom: '10px'
+    };
+
+    this.annotationStyle = {
+      marginBottom: '10px'
+    };
+
+    this.annotationMetadataStyle = {
+      display: 'flex',
+      flexDirection: 'row-reverse',
+      fontSize: 'x-small'
+    };
+
+    this.annotationAuthorStyle = {
+      order: 2,
+      marginLeft: 5,
+      marginRight: 5
+    };
+
+    this.annotationDateStyle = {
+      order: 1,
+      marginLeft: 5,
+      marginRight: 5
+    };
+
+    this.annotationTextStyle = {
+
     };
 
     this.annotationTitleStyle = {
@@ -318,12 +357,35 @@ class ElementInspector extends React.Component {
 
   buildEntityDisplay(entityId) {
     var displayName = null;
+    var displayType = '(?)';
     var entityMetadata = this.state.entities[entityId];
     if (entityMetadata) {
       displayName = entityMetadata.name;
     }
     else {
       return null;
+    }
+    switch(entityMetadata.type) {
+      case 'PointOfInterest':
+        displayType = '(Point)';
+        break;
+      case 'TrailOfInterest':
+        displayType = '(Chemin)';
+        break;
+      case 'RegionOfInterest':
+        displayType = '(Zone)';
+        break;
+      case 'AngleOfInterest':
+        displayType = '(Angle)';
+        break;
+      case 'Image':
+        displayType = '(Image)';
+        break;
+      case 'Set':
+        displayType = '(Set)';
+        break;
+      default:
+        console.warn('Unknown entity type ' + entityMetadata.type);
     }
     var measurements = entityMetadata.measurements;
     if(!measurements) {
@@ -334,16 +396,16 @@ class ElementInspector extends React.Component {
       annotations = [];
     }
     return (
-      <div className='ui comments' style={this.metadataStyle} key={'ENTITY-' + entityId}>
-        <h3>
-          {displayName}
-          <i className='green small add square icon'
-             ref='addIcon'
-             data-content='Ajouter une annotation'
-             onClick={this.addAnnotation.bind(this, entityId)}/>
-        </h3>
+      <div style={this.metadataStyle} key={'ENTITY-' + entityId}>
+        <div className='ui horizontal divider header' style={this.entityNameStyle}>
+          {displayType + ' ' + displayName}
+        </div>
         {measurements.map(this.buildMeasurementDisplay.bind(this))}
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
+        <i className='green small write icon'
+           style={this.addAnnotationStyle}
+           data-content='Ajouter une annotation'
+           onClick={this.addAnnotation.bind(this, entityId)}/>
       </div>
     );
   }
@@ -362,15 +424,13 @@ class ElementInspector extends React.Component {
       icon = 'yellow warning icon';
     }
     return (
-      <div className='comment' key={'MEASURE-' + measurementId}>
-        <div className="content">
-          <a className="author">{meta.author}</a>
-          <div className="metadata">
-            <span className="date">{meta.date}</span>
-          </div>
-          <div className="text">
-            <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
-          </div>
+      <div style={this.annotationStyle} key={'MEASURE-' + measurementId}>
+        <div style={this.annotationTextStyle} className="text">
+          <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
+        </div>
+        <div style={this.annotationMetadataStyle}>
+          <a style={this.annotationAuthorStyle} className="author">{meta.author}</a>
+          <span style={this.annotationDateStyle} className="date">{meta.date}</span>
         </div>
       </div>
     );
@@ -401,16 +461,14 @@ class ElementInspector extends React.Component {
     }
 
     return (
-      <div className='comment' key={'MEASURE-' + annotationId}>
-        <div className="content">
-          <a className="author">{author}</a>
-          <div className="metadata">
-            <span className="date">{date.toLocaleDateString()}</span>
-          </div>
-          <div className="text">
-            <i>{annotationMetadata.content}</i>
-          </div>
+      <div style={this.annotationStyle} key={'MEASURE-' + annotationId}>
+        <div style={this.annotationTextStyle} className="text">
+          <i>{annotationMetadata.content}</i>
         </div>
+        <div style={this.annotationMetadataStyle}>
+          <a style={this.annotationAuthorStyle} className="author">{author}</a>
+          <span style={this.annotationDateStyle} className="date">{date.toLocaleDateString()}</span>
+          </div>
       </div>
     );
   }
@@ -431,7 +489,7 @@ class ElementInspector extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     $('.yellow.warning.icon', $(this.refs.component.getDOMNode())).popup();
-    $('.green.small.add.square.icon', $(this.refs.component.getDOMNode())).popup();
+    $('.small.write.icon', $(this.refs.component.getDOMNode())).popup();
   }
 
   componentWillUnmount() {
@@ -447,7 +505,7 @@ class ElementInspector extends React.Component {
     return <div className='ui segment container' ref='component' style={this.containerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Inspecteur
+        Propriétés
       </div>
       <div style={this.scrollerStyle}>
       {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}

@@ -175,7 +175,7 @@ class CreatePath extends AbstractTool {
       length += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
     }
 
-    ServiceMethods.createTrailOfInterest(this.state.imageUri, length, path, name);
+    ServiceMethods.createTrailOfInterest(this.state.imageUri, length, path, name, Globals.setSavedEntityInInspector);
   }
 
   begin() {
@@ -258,6 +258,7 @@ class CreatePath extends AbstractTool {
   /**
    * INTERNAL METHODS
    */
+
   adaptElementSizeToZoom(scale) {
     var tool = d3.select('.' + this.toolContainerSVGClass);
 

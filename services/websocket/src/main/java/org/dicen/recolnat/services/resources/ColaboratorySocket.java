@@ -141,7 +141,8 @@ public class ColaboratorySocket {
               } catch (JSONException ex) {
                 name = null;
               }
-              modified = ImageEditorResource.createRegionOfInterest(imageId, name, area, perimeter, vertices, userLogin);
+              result = ImageEditorResource.createRegionOfInterest(imageId, name, area, perimeter, vertices, userLogin);
+              modified = result.getModified();
               break;
             case "create-poi":
               imageId = jsonIn.getString("parent");
@@ -152,7 +153,8 @@ public class ColaboratorySocket {
               } catch (JSONException ex) {
                 name = null;
               }
-              modified = ImageEditorResource.createPointOfInterest(imageId, x, y, name, userLogin);
+              result = ImageEditorResource.createPointOfInterest(imageId, x, y, name, userLogin);
+              modified = result.getModified();
               break;
             case "create-toi":
               imageId = jsonIn.getString("parent");
@@ -163,7 +165,8 @@ public class ColaboratorySocket {
               } catch (JSONException ex) {
                 name = null;
               }
-              modified = ImageEditorResource.createTrailOfInterest(imageId, name, length, pathVertices, userLogin);
+              result = ImageEditorResource.createTrailOfInterest(imageId, name, length, pathVertices, userLogin);
+              modified = result.getModified();
               break;
             case "create-aoi":
               imageId = jsonIn.getString("parent");
@@ -174,7 +177,8 @@ public class ColaboratorySocket {
               } catch (JSONException ex) {
                 name = null;
               }
-              modified = ImageEditorResource.createAngleOfInterest(imageId, name, length, angleVertices, userLogin);
+              result = ImageEditorResource.createAngleOfInterest(imageId, name, length, angleVertices, userLogin);
+              modified = result.getModified();
               break;
             case "add-measure-standard":
               String pathId = jsonIn.getString("path");

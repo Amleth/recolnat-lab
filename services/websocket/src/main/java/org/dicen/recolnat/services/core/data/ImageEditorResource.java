@@ -28,6 +28,7 @@ import fr.recolnat.database.model.impl.PointOfInterest;
 import fr.recolnat.database.model.impl.RegionOfInterest;
 import fr.recolnat.database.model.impl.TrailOfInterest;
 import java.util.LinkedList;
+import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 
 public class ImageEditorResource {
@@ -69,7 +70,7 @@ public class ImageEditorResource {
     }
   }
 
-  public static List<String> createRegionOfInterest(String imageId, String name, Double area, Double perimeter, JSONArray polygonVertices, String user) throws JSONException, AccessForbiddenException {
+  public static ActionResult createRegionOfInterest(String imageId, String name, Double area, Double perimeter, JSONArray polygonVertices, String user) throws JSONException, AccessForbiddenException {
     List<List<Integer>> polygon = new ArrayList<List<Integer>>();
     for (int i = 0; i < polygonVertices.length(); ++i) {
       JSONArray polygonVertex = polygonVertices.getJSONArray(i);
@@ -83,7 +84,8 @@ public class ImageEditorResource {
     }
 
     // Store ROI
-    List<String> changes = new LinkedList<>();
+    ActionResult res = new ActionResult();
+//    List<String> changes = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -119,10 +121,11 @@ public class ImageEditorResource {
 
         g.commit();
 
-        changes.add(vImage.getProperty(DataModel.Properties.id));
-        changes.add(vROI.getProperty(DataModel.Properties.id));
-        changes.add(vArea.getProperty(DataModel.Properties.id));
-        changes.add(vPerim.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vROI.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vArea.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vPerim.getProperty(DataModel.Properties.id));
+        res.setResponse("id", vROI.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -134,15 +137,15 @@ public class ImageEditorResource {
       }
     }
     // Return OK
-    return changes;
+    return res;
   }
 
-  public static List<String> createPointOfInterest(String imageId, Integer x, Integer y, String name, String user) throws AccessForbiddenException {
+  public static ActionResult createPointOfInterest(String imageId, Integer x, Integer y, String name, String user) throws AccessForbiddenException, JSONException {
     if(name == null) {
       name = CreatorUtils.generateName("PoI ");
     }
     
-    List<String> changes = new LinkedList<>();
+    ActionResult res = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -164,8 +167,9 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(vImage.getProperty(DataModel.Properties.id));
-        changes.add(vPoI.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vPoI.getProperty(DataModel.Properties.id));
+        res.setResponse("id", vPoI.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -176,7 +180,7 @@ public class ImageEditorResource {
         }
       }
     }
-    return changes;
+    return res;
   }
 
   /**
@@ -235,7 +239,7 @@ public class ImageEditorResource {
     return changes;
   }
 
-  public static List<String> createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
+  public static ActionResult createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createTrailOfInterest(" + parent + ", " + name +", " + length + ", " + pathVertices + ", " + user);
     }
@@ -253,7 +257,8 @@ public class ImageEditorResource {
       path.add(coords);
     }
 
-    List<String> changes = new ArrayList<>();
+//    List<String> changes = new ArrayList<>();
+    ActionResult res = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -293,9 +298,10 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(vImage.getProperty(DataModel.Properties.id));
-        changes.add(vPath.getProperty(DataModel.Properties.id));
-        changes.add(mRefPx.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vPath.getProperty(DataModel.Properties.id));
+        res.addModifiedId(mRefPx.getProperty(DataModel.Properties.id));
+        res.setResponse("id", vPath.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -308,10 +314,10 @@ public class ImageEditorResource {
     }
 
     // Return OK
-    return changes;
+    return res;
   }
 
-  public static List<String> createAngleOfInterest(String parent, String name, Double length, JSONArray angleVertices, String user) throws JSONException, AccessForbiddenException {
+  public static ActionResult createAngleOfInterest(String parent, String name, Double length, JSONArray angleVertices, String user) throws JSONException, AccessForbiddenException {
     // Retrieve params
     List<List<Integer>> vertices = new ArrayList<>();
     for (int i = 0; i < angleVertices.length(); ++i) {
@@ -326,7 +332,7 @@ public class ImageEditorResource {
       name = CreatorUtils.generateName("AoI ");
     }
     
-    List<String> changes = new LinkedList<>();
+    ActionResult res = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -367,9 +373,10 @@ public class ImageEditorResource {
 
         g.commit();
         
-        changes.add(vImage.getProperty(DataModel.Properties.id));
-        changes.add(vAngle.getProperty(DataModel.Properties.id));
-        changes.add(mRefDeg.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vAngle.getProperty(DataModel.Properties.id));
+        res.addModifiedId(mRefDeg.getProperty(DataModel.Properties.id));
+        res.setResponse("id", vAngle.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -382,7 +389,7 @@ public class ImageEditorResource {
     }
 
     // Return OK
-    return changes;
+    return res;
   }
 
 }

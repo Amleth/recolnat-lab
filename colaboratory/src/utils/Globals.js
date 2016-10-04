@@ -9,6 +9,7 @@ import ModeActions from '../actions/ModeActions';
 import ManagerActions from '../actions/ManagerActions';
 import MetadataActions from '../actions/MetadataActions';
 import ToolActions from '../actions/ToolActions';
+import InspectorActions from '../actions/InspectorActions';
 
 import conf from '../conf/ApplicationConfiguration';
 
@@ -211,6 +212,14 @@ class GlobalFunctions {
 
   static noActiveTool() {
     window.setTimeout(ToolActions.setTool.bind(null, null), 10);
+  }
+
+  static setSavedEntityInInspector(message) {
+    if(message.clientProcessError) {
+      alert("L'enregistrement a échoué. Veuillez retenter plus tard.");
+      return;
+    }
+    window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.id]), 10);
   }
 
 }

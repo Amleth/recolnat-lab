@@ -16,6 +16,7 @@ import ToolActions from '../../actions/ToolActions';
 import Popup from '../popups/CreateRoIPopup';
 
 import ServiceMethods from '../../utils/ServiceMethods';
+import Globals from '../../utils/Globals';
 
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
@@ -268,7 +269,7 @@ class CreateRoI extends AbstractTool {
     }
     var area = Math.abs(polygonArea(polygon));
 
-    ServiceMethods.createRegionOfInterest(this.state.imageUri, area, perimeter, polygon, this.state.name);
+    ServiceMethods.createRegionOfInterest(this.state.imageUri, area, perimeter, polygon, this.state.name, Globals.setSavedEntityInInspector);
   }
 
   static getNextEdge(edges, x, y) {

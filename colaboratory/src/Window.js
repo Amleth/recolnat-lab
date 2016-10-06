@@ -72,7 +72,7 @@ class Window extends React.Component {
   constructor(props) {
     super(props);
 
-    this.menuHeight = 35;
+    this.menuHeight = 58;
     this.closeTopPaneButtonHeight = 30;
     this.leftPaneWidth = 200;
     this.rightPaneWidth = 350;
@@ -155,6 +155,7 @@ class Window extends React.Component {
 
     this.recolnatMenuStyle = {
       border: 'medium none',
+      borderBottom: '1px solid grey',
       height: this.menuHeight + 'px',
       overflow: 'hidden',
       position: 'fixed',
@@ -206,7 +207,12 @@ class Window extends React.Component {
   }
 
   receiveMessage(event) {
-    if(event.origin.indexOf('https://www.recolnat.org') == 0) {
+    if(event.origin.indexOf(conf.integration.recolnatMenuBarOrigin) == 0) {
+      if(event.data.source) {
+        if (event.data.source.indexOf('react') === 0) {
+          return;
+        }
+      }
       switch(event.data.action) {
         case 'login':
           this.redirectCASLogin();
@@ -218,13 +224,14 @@ class Window extends React.Component {
           alert('Profil utilisateur indisponible dans la démo');
           break;
         default:
-          console.log('Unknown event action ' + event.data.action);
+          //console.log('Unknown event action ' + event.data.action);
+          //console.log(JSON.stringify(event.data));
       }
     }
   }
 
   redirectCASLogin() {
-    window.location.href = 'https://cas.recolnat.org/login';
+    window.location.href = 'https://cas.recolnat.org/login?service=' + window.location.href;
   }
 
   redirectCASLogout() {
@@ -323,7 +330,7 @@ class Window extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     if(this.state.userLoggedIn) {
       var frame = this.refs.recolnatMenu.getDOMNode().contentWindow;
-      frame.postMessage({type: "user", username: userstore.getUser().login, userProfile: ''}, 'https://www.recolnat.org/menu');
+      frame.postMessage({type: "user", username: userstore.getUser().login, userProfile: ''}, conf.integration.recolnatMenuBarUrl);
     }
   }
 
@@ -344,7 +351,7 @@ class Window extends React.Component {
                   seamless="seamless"
                   scrolling="no"
                   onLoad={this.signalIframeReady.bind(this)}
-                  src='https://www.recolnat.org/menu'></iframe>
+                  src={conf.integration.recolnatMenuBarUrl}></iframe>
 
         <Modals userstore={userstore}
                 viewstore={viewstore}

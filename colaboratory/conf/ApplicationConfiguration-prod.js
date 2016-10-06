@@ -1,5 +1,9 @@
 'use strict';
 
+var Integration = {
+  recolnatMenuBarUrl: 'https://www.recolnat.org/menu'
+};
+
 var Services = {
   laboratoryRESTService: 'https://wp5prod.recolnat.org',
   laboratorySocketService: 'wss://wp5prod.recolnat.org/websockets'

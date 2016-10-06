@@ -45,38 +45,7 @@ class OrbOptions {
     ViewActions.displayMetadataAboutEntity(data.uid);
   }
 
-  static zoomToObject(d3selector, view) {
-    // Retrieve object coordinates and size in browser window
-    var object = d3.select(d3selector);
-    var winLoc = object.node().getBoundingClientRect();
-    var oldHeight = winLoc.height;
-    var oldWidth = winLoc.width;
-    var oldScale = view.scale;
 
-    // Calculate fitting area
-    var scale = 1.0;
-    if(oldHeight > oldWidth) {
-      scale = (view.height * oldScale) / (oldHeight);
-    }
-    else {
-      scale = (view.width * oldScale) / (oldWidth);
-    }
-    scale = scale*0.90;
-
-    // Leave half empty screen as margin to center the object in the viewport
-    var marginX = (view.width - oldWidth*scale/view.scale)/2;
-    var marginY = (view.height - oldHeight*scale/view.scale)/2;
-
-    // Dispatch action
-    window.setTimeout(ViewActions.updateViewport.bind(null,
-      (view.left - winLoc.left + view.leftFromWindow)*scale/view.scale + marginX,
-      (view.top - winLoc.top + view.topFromWindow)*scale/view.scale + marginY,
-      null,
-      null,
-      scale,
-      true
-    ), 10);
-  }
 
   static blink(d3Node, startAttributeValue, endAttributeValue, attributeName) {
     function repeat() {

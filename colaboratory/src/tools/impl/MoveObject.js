@@ -21,6 +21,7 @@ import OrbOptions from '../../components/context-menu/options/OrbOptions';
 import ToolConf from '../../conf/Tools-conf.js';
 
 import D3EventHandlers from '../../utils/D3EventHandlers';
+import D3ViewUtils from '../../utils/D3ViewUtils';
 import Globals from '../../utils/Globals';
 
 class MoveObject extends AbstractTool {
@@ -152,7 +153,7 @@ class MoveObject extends AbstractTool {
   // }
 
   switchToSheetInObservationMode(d) {
-    OrbOptions.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());
+    D3ViewUtils.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());
 
     // window.setTimeout(Globals.setMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
     window.setTimeout(ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);

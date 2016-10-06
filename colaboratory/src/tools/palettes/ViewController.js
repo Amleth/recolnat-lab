@@ -10,6 +10,8 @@ import ViewActions from '../../actions/ViewActions';
 
 import OrbOptions from '../../components/context-menu/options/OrbOptions';
 
+import D3ViewUtils from '../../utils/D3ViewUtils';
+
 class ViewController extends React.Component {
   constructor(props) {
     super(props);
@@ -129,7 +131,7 @@ class ViewController extends React.Component {
       return;
     }
 
-    OrbOptions.zoomToObject('#GROUP-' + linkId, this.props.viewstore.getView());
+    D3ViewUtils.zoomToObject('#GROUP-' + linkId, this.props.viewstore.getView());
   }
 
   componentDidMount() {

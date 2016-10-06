@@ -4,6 +4,7 @@
 'use strict';
 
 import React from 'react';
+import d3 from 'd3';
 
 import MetadataActions from '../../actions/MetadataActions';
 import ModalActions from '../../actions/ModalActions';
@@ -11,6 +12,7 @@ import ModalActions from '../../actions/ModalActions';
 import ModalConstants from '../../constants/ModalConstants';
 
 import Globals from '../../utils/Globals';
+import D3ViewUtils from '../../utils/D3ViewUtils';
 
 class ElementInspector extends React.Component {
   constructor(props) {
@@ -57,26 +59,38 @@ class ElementInspector extends React.Component {
       position: 'relative'
     };
 
+    this.titleStyle = {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between'
+    };
+
     this.entityNameStyle = {
       //fontSize: 'large',
-      //fontWeight: 'bold'
+      fontWeight: 'bold',
+      margin: 0
+    };
+
+    this.entityMetaStyle = {
       margin: 0
     };
 
     this.addAnnotationStyle = {
-      position: 'relative',
+      //position: 'relative',
       //right: 0,
-      bottom: '10px'
+      //bottom: '10px'
     };
 
     this.annotationStyle = {
-      marginBottom: '10px'
+      marginBottom: '-10px'
     };
 
     this.annotationMetadataStyle = {
       display: 'flex',
       flexDirection: 'row-reverse',
-      fontSize: 'x-small'
+      fontSize: 'x-small',
+      position: 'relative',
+      top: '-10px'
     };
 
     this.annotationAuthorStyle = {
@@ -153,7 +167,21 @@ class ElementInspector extends React.Component {
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
+    for(var i = 0; i < this.state.entitiesIds.length; ++i) {
+      // Stop current animation
+      D3ViewUtils.stopOutlineAnimation('AOI-' + this.state.entitiesIds[i]);
+      D3ViewUtils.stopOutlineAnimation('PATH-' + this.state.entitiesIds[i]);
+      D3ViewUtils.stopOutlineAnimation('POI-' + this.state.entitiesIds[i]);
+      D3ViewUtils.stopOutlineAnimation('ROI-' + this.state.entitiesIds[i]);
+    }
     var elements = this.props.inspecstore.getInspectorContent();
+    for(var i = 0; i < elements.length; ++i) {
+      // Start new element animation
+      D3ViewUtils.animateOutline('AOI-' + elements[i]);
+      D3ViewUtils.animateOutline('PATH-' + elements[i]);
+      D3ViewUtils.animateOutline('POI-' + elements[i]);
+      D3ViewUtils.animateOutline('ROI-' + elements[i]);
+    }
     this.setState({
       entitiesIds: elements,
       annotationsIds: [],
@@ -305,17 +333,17 @@ class ElementInspector extends React.Component {
     if(mmPerPixel) {
       switch(metadata.measureType) {
         case 101: // Perimeter
-          item.value = 'Périmètre : ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
+          item.value = 'Périmètre = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 100: // Area
-          item.value = 'Aire : ' + ((mmPerPixel * mmPerPixel) * metadata.valueInPx).toFixed(2) + ' mm²';
+          item.value = 'Aire = ' + ((mmPerPixel * mmPerPixel) * metadata.valueInPx).toFixed(2) + ' mm²';
           break;
         case 102:
           // Length
-          item.value = 'Longueur : ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
+          item.value = 'Longueur = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 103:
-          item.value = 'Angle : ' + this.convertToDMS(metadata.valueInPx);
+          item.value = 'Angle = ' + this.convertToDMS(metadata.valueInPx);
           break;
         default:
           console.warn('Unknown measure type ' + metadata.measureType);
@@ -355,8 +383,26 @@ class ElementInspector extends React.Component {
       10);
   }
 
+  centerViewOn(d3id) {
+    if(!d3id) {
+      alert('Action indisponible pour cette entité');
+      return;
+    }
+    D3ViewUtils.zoomToObject('#' + d3id, this.props.viewstore.getView());
+  }
+
+  toggleOutline(d3id) {
+    if(d3.select('#' + d3id).classed('outline')) {
+      D3ViewUtils.stopOutlineAnimation(d3id);
+    }
+    else {
+      D3ViewUtils.animateOutline(d3id);
+    }
+  }
+
   buildEntityDisplay(entityId) {
     var displayName = null;
+    var d3id = null;
     var displayType = '(?)';
     var entityMetadata = this.state.entities[entityId];
     if (entityMetadata) {
@@ -365,24 +411,41 @@ class ElementInspector extends React.Component {
     else {
       return null;
     }
+
+    var eyeIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
+    var toggleIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
+
     switch(entityMetadata.type) {
       case 'PointOfInterest':
-        displayType = '(Point)';
+        displayType = 'Point : ';
+        d3id = 'POI-' + entityId;
         break;
       case 'TrailOfInterest':
-        displayType = '(Chemin)';
+        displayType = 'Chemin : ';
+        d3id = 'PATH-' + entityId;
         break;
       case 'RegionOfInterest':
-        displayType = '(Zone)';
+        displayType = 'Zone : ';
+        d3id = 'ROI-' + entityId;
         break;
       case 'AngleOfInterest':
-        displayType = '(Angle)';
+        displayType = 'Angle : ';
+        d3id = 'AOI-' + entityId;
         break;
       case 'Image':
-        displayType = '(Image)';
+        displayType = 'Image : ';
+        eyeIconStyle.visibility = 'hidden';
+        toggleIconStyle.visibility = 'hidden';
+        break;
+      case 'Specimen':
+        displayType = 'Specimen : ';
+        eyeIconStyle.visibility = 'hidden';
+        toggleIconStyle.visibility = 'hidden';
         break;
       case 'Set':
-        displayType = '(Set)';
+        displayType = 'Set : ';
+        eyeIconStyle.visibility = 'hidden';
+        toggleIconStyle.visibility = 'hidden';
         break;
       default:
         console.warn('Unknown entity type ' + entityMetadata.type);
@@ -395,17 +458,41 @@ class ElementInspector extends React.Component {
     if(!annotations) {
       annotations = [];
     }
+
+    if(this.props.modestore.isInSetMode() || this.props.modestore.isInTabularMode()) {
+      eyeIconStyle.visibility = 'hidden';
+      toggleIconStyle.visibility = 'hidden';
+    }
     return (
       <div style={this.metadataStyle} key={'ENTITY-' + entityId}>
-        <div className='ui horizontal divider header' style={this.entityNameStyle}>
-          {displayType + ' ' + displayName}
+        <div style={this.titleStyle}>
+          <div className='text' style={this.entityNameStyle}>
+            {displayType + '' + displayName}
+          </div>
+          <div>
+            <i className='grey small crop icon'
+               style={toggleIconStyle}
+               data-content="Activer/désactiver la mise en surbrillance"
+               onClick={this.toggleOutline.bind(this, d3id)}
+            />
+          <i className='grey small eye icon'
+             style={eyeIconStyle}
+             data-content="Centrer sur l'élement"
+             onClick={this.centerViewOn.bind(this, d3id)}
+             />
+          <i className='grey small write icon'
+             style={this.addAnnotationStyle}
+             data-content='Ajouter une annotation'
+             onClick={this.addAnnotation.bind(this, entityId)}/>
+        </div>
+          </div>
+        <div className='text' style={this.entityMetaStyle}>
+          {'Création : ' + (new Date(entityMetadata.creationDate)).toLocaleString()}
         </div>
         {measurements.map(this.buildMeasurementDisplay.bind(this))}
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
-        <i className='green small write icon'
-           style={this.addAnnotationStyle}
-           data-content='Ajouter une annotation'
-           onClick={this.addAnnotation.bind(this, entityId)}/>
+
+        <div className='ui horizontal divider' ></div>
       </div>
     );
   }
@@ -423,13 +510,17 @@ class ElementInspector extends React.Component {
     if(meta.warning) {
       icon = 'yellow warning icon';
     }
+    var authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
+    if(this.props.userstore.getUser().login === meta.author) {
+      authorStyle.visibility = 'hidden';
+    }
     return (
       <div style={this.annotationStyle} key={'MEASURE-' + measurementId}>
         <div style={this.annotationTextStyle} className="text">
           <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
         </div>
         <div style={this.annotationMetadataStyle}>
-          <a style={this.annotationAuthorStyle} className="author">{meta.author}</a>
+          <a style={authorStyle} className="author">{meta.author}</a>
           <span style={this.annotationDateStyle} className="date">{meta.date}</span>
         </div>
       </div>
@@ -459,6 +550,10 @@ class ElementInspector extends React.Component {
         author = authorMetadata.name;
       }
     }
+    var authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
+    if(this.props.userstore.getUser().login === author) {
+      authorStyle.visibility = 'hidden';
+    }
 
     return (
       <div style={this.annotationStyle} key={'MEASURE-' + annotationId}>
@@ -466,9 +561,9 @@ class ElementInspector extends React.Component {
           <i>{annotationMetadata.content}</i>
         </div>
         <div style={this.annotationMetadataStyle}>
-          <a style={this.annotationAuthorStyle} className="author">{author}</a>
+          <a style={authorStyle} className="author">{author}</a>
           <span style={this.annotationDateStyle} className="date">{date.toLocaleDateString()}</span>
-          </div>
+        </div>
       </div>
     );
   }
@@ -489,7 +584,7 @@ class ElementInspector extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     $('.yellow.warning.icon', $(this.refs.component.getDOMNode())).popup();
-    $('.small.write.icon', $(this.refs.component.getDOMNode())).popup();
+    $('.small.icon', $(this.refs.component.getDOMNode())).popup();
   }
 
   componentWillUnmount() {
@@ -508,8 +603,8 @@ class ElementInspector extends React.Component {
         Propriétés
       </div>
       <div style={this.scrollerStyle}>
-      {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}
-        </div>
+        {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}
+      </div>
     </div>
   }
 }

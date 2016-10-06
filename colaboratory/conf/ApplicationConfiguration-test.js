@@ -1,7 +1,7 @@
 'use strict';
 
 var Integration = {
-  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
+  recolnatMenuBarUrl: 'https://www.recolnat.org/menu'
 };
 
 var Services = {

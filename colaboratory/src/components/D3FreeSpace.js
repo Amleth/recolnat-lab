@@ -158,7 +158,7 @@ class D3FreeSpace {
   fitViewportToData() {
     var view = this.viewstore.getView();
 
-    OrbOptions.zoomToObject('.' + Classes.ROOT_CLASS, view);
+    D3ViewUtils.zoomToObject('.' + Classes.ROOT_CLASS, view);
   }
 
   updateViewport(x, y, scale, animate) {

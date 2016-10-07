@@ -367,7 +367,7 @@ class LineMeasure extends AbstractTool {
 
     var length = Math.sqrt(Math.pow(Math.abs(d.y2) - Math.abs(d.y1), 2) + Math.pow(Math.abs(d.x2) - Math.abs(d.x1), 2));
 
-    ServiceMethods.createTrailOfInterest(d.image, length, path, name);
+    ServiceMethods.createTrailOfInterest(d.image, length, path, name, Globals.setSavedEntityInInspector);
   }
 
   static updateLineDisplay(id) {

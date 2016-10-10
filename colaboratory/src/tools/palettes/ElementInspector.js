@@ -13,6 +13,7 @@ import ModalConstants from '../../constants/ModalConstants';
 
 import Globals from '../../utils/Globals';
 import D3ViewUtils from '../../utils/D3ViewUtils';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class ElementInspector extends React.Component {
   constructor(props) {
@@ -36,6 +37,28 @@ class ElementInspector extends React.Component {
       position: 'relative',
       top: '-15px',
       left: '10px'
+    };
+
+    this.annotationInputStyle = {
+      display: 'flex',
+      flexDirection: 'column',
+      //height: 0,
+      //width: 'auto',
+      overflow: 'hidden',
+      maxHeight: 0
+      //display: 'fixed',
+      //left: 0,
+      //top: 0
+    };
+
+    this.annotationInputTitleStyle = {
+      textAlign: 'center'
+    };
+
+    this.annotationInputButtonRowStyle = {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between'
     };
 
     this.scrollerStyle = {
@@ -76,6 +99,7 @@ class ElementInspector extends React.Component {
     };
 
     this.addAnnotationStyle = {
+      cursor: 'pointer'
       //position: 'relative',
       //right: 0,
       //bottom: '10px'
@@ -90,7 +114,7 @@ class ElementInspector extends React.Component {
       flexDirection: 'row-reverse',
       fontSize: 'x-small',
       position: 'relative',
-      top: '-10px'
+      bottom: '-10px'
     };
 
     this.annotationAuthorStyle = {
@@ -159,7 +183,9 @@ class ElementInspector extends React.Component {
       entities: {},
       annotations: {},
       tags: {},
-      creators: {}
+      creators: {},
+      annotationTextInput: '',
+      newAnnotationActiveField: null
     };
   }
 
@@ -167,21 +193,21 @@ class ElementInspector extends React.Component {
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
-    for(var i = 0; i < this.state.entitiesIds.length; ++i) {
-      // Stop current animation
-      D3ViewUtils.stopOutlineAnimation('AOI-' + this.state.entitiesIds[i]);
-      D3ViewUtils.stopOutlineAnimation('PATH-' + this.state.entitiesIds[i]);
-      D3ViewUtils.stopOutlineAnimation('POI-' + this.state.entitiesIds[i]);
-      D3ViewUtils.stopOutlineAnimation('ROI-' + this.state.entitiesIds[i]);
-    }
+    //for(var i = 0; i < this.state.entitiesIds.length; ++i) {
+    //  // Stop current animation
+    //  D3ViewUtils.stopOutlineAnimation('AOI-' + this.state.entitiesIds[i]);
+    //  D3ViewUtils.stopOutlineAnimation('PATH-' + this.state.entitiesIds[i]);
+    //  D3ViewUtils.stopOutlineAnimation('POI-' + this.state.entitiesIds[i]);
+    //  D3ViewUtils.stopOutlineAnimation('ROI-' + this.state.entitiesIds[i]);
+    //}
     var elements = this.props.inspecstore.getInspectorContent();
-    for(var i = 0; i < elements.length; ++i) {
-      // Start new element animation
-      D3ViewUtils.animateOutline('AOI-' + elements[i]);
-      D3ViewUtils.animateOutline('PATH-' + elements[i]);
-      D3ViewUtils.animateOutline('POI-' + elements[i]);
-      D3ViewUtils.animateOutline('ROI-' + elements[i]);
-    }
+    //for(var i = 0; i < elements.length; ++i) {
+    //  // Start new element animation
+    //  D3ViewUtils.animateOutline('AOI-' + elements[i]);
+    //  D3ViewUtils.animateOutline('PATH-' + elements[i]);
+    //  D3ViewUtils.animateOutline('POI-' + elements[i]);
+    //  D3ViewUtils.animateOutline('ROI-' + elements[i]);
+    //}
     this.setState({
       entitiesIds: elements,
       annotationsIds: [],
@@ -189,7 +215,9 @@ class ElementInspector extends React.Component {
       creatorsIds: [],
       entities: {},
       annotations: {},
-      tags: {}
+      tags: {},
+      annotationTextInput: '',
+      newAnnotationActiveField: null
     });
 
     this.addMetadataListeners(elements, this._onEntityMetadataChange);
@@ -370,17 +398,47 @@ class ElementInspector extends React.Component {
     return [0|angle, '° ', 0|(angle<0?angle=-angle:angle)%1*60, "' ", 0|angle*60%1*60, '"'].join('');
   }
 
+
+
   addAnnotation(id) {
     if(!id) {
       alert('Aucune entité sélectionnée');
       return;
     }
-    window.setTimeout(
-      ModalActions.showModal.bind(
-        null,
-        ModalConstants.Modals.addAnnotationToEntity,
-        {entity: id}),
-      10);
+
+    //this.refs['NEW-ANNOTATION-' + id].style.height = '60px';
+    this.setState({newAnnotationActiveField: id});
+    //window.setTimeout(
+    //  ModalActions.showModal.bind(
+    //    null,
+    //    ModalConstants.Modals.addAnnotationToEntity,
+    //    {entity: id}),
+    //  10);
+  }
+
+  cancelNewAnnotation() {
+    this.setState({
+      newAnnotationActiveField: null,
+      annotationTextInput: ''
+    });
+  }
+
+  saveNewAnnotation(id) {
+    ServiceMethods.addAnnotation(id, this.state.annotationTextInput, this.onAnnotationSaveResponse.bind(this));
+
+  }
+
+  onAnnotationSaveResponse(msg) {
+    if(msg.clientProcessError) {
+      alert("Une erreur est survenue pendant l'enregistrement. Veuillez réessayer.");
+    }
+    else {
+      this.cancelNewAnnotation();
+    }
+  }
+
+  onAnnotationTextChange(e) {
+    this.setState({annotationTextInput: e.target.value});
   }
 
   centerViewOn(d3id) {
@@ -397,6 +455,24 @@ class ElementInspector extends React.Component {
     }
     else {
       D3ViewUtils.animateOutline(d3id);
+    }
+  }
+
+  showOutline(d3id) {
+    if(d3id == null) {
+      return;
+    }
+    if(!d3.select('#' + d3id).classed('outline')) {
+      D3ViewUtils.animateOutline(d3id);
+    }
+  }
+
+  hideOutline(d3id) {
+    if(d3id == null) {
+      return;
+    }
+    if(d3.select('#' + d3id).classed('outline')) {
+      D3ViewUtils.stopOutlineAnimation(d3id);
     }
   }
 
@@ -458,26 +534,41 @@ class ElementInspector extends React.Component {
     if(!annotations) {
       annotations = [];
     }
+    else {
+      annotations = _.map(entityMetadata.annotations, this.getAnnotationData.bind(this));
+      annotations = _.sortBy(annotations, Globals.getCreationDate).reverse();
+    }
 
     if(this.props.modestore.isInSetMode() || this.props.modestore.isInTabularMode()) {
       eyeIconStyle.visibility = 'hidden';
       toggleIconStyle.visibility = 'hidden';
     }
+    var annotationInputLocalStyle = JSON.parse(JSON.stringify(this.annotationInputStyle));
+    if(this.state.newAnnotationActiveField == entityId) {
+      //annotationInputLocalStyle.height = 'auto';
+      annotationInputLocalStyle.maxHeight = '500px';
+      annotationInputLocalStyle.transition = 'max-height 0.25s ease-in';
+      annotationInputLocalStyle.overflow = null;
+    }
+    else {
+      annotationInputLocalStyle.maxHeight = 0;
+      annotationInputLocalStyle.transition = 'max-height 0.15s ease-out';
+      annotationInputLocalStyle.overflow = 'hidden';
+    }
+
     return (
-      <div style={this.metadataStyle} key={'ENTITY-' + entityId}>
+      <div style={this.metadataStyle}
+           key={'ENTITY-' + entityId}
+           onMouseEnter={this.showOutline.bind(this, d3id)}
+           onMouseLeave={this.hideOutline.bind(this, d3id)}>
         <div style={this.titleStyle}>
           <div className='text' style={this.entityNameStyle}>
-            {displayType + '' + displayName}
+            {displayName}
           </div>
           <div>
-            <i className='grey small crop icon'
-               style={toggleIconStyle}
-               data-content="Activer/désactiver la mise en surbrillance"
-               onClick={this.toggleOutline.bind(this, d3id)}
-            />
           <i className='grey small eye icon'
              style={eyeIconStyle}
-             data-content="Centrer sur l'élement"
+             data-content="Centrer la paillasse sur l'élement"
              onClick={this.centerViewOn.bind(this, d3id)}
              />
           <i className='grey small write icon'
@@ -486,12 +577,23 @@ class ElementInspector extends React.Component {
              onClick={this.addAnnotation.bind(this, entityId)}/>
         </div>
           </div>
+
         <div className='text' style={this.entityMetaStyle}>
-          {'Création : ' + (new Date(entityMetadata.creationDate)).toLocaleString()}
+          {'Création : ' + (new Date(entityMetadata.creationDate)).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
+        </div>
+        <div className='ui field' style={annotationInputLocalStyle}>
+          <label style={this.annotationInputTitleStyle}>Nouvelle annotation</label>
+            <textarea rows='3'
+                      autofocus='true'
+                      value={this.state.annotationTextInput}
+                      onChange={this.onAnnotationTextChange.bind(this)}/>
+          <div style={this.annotationInputButtonRowStyle} className='ui tiny compact buttons'>
+            <button className='ui red button' onClick={this.cancelNewAnnotation.bind(this)}>Annuler</button>
+            <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>Enregistrer</button>
+          </div>
         </div>
         {measurements.map(this.buildMeasurementDisplay.bind(this))}
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
-
         <div className='ui horizontal divider' ></div>
       </div>
     );
@@ -516,19 +618,19 @@ class ElementInspector extends React.Component {
     }
     return (
       <div style={this.annotationStyle} key={'MEASURE-' + measurementId}>
-        <div style={this.annotationTextStyle} className="text">
-          <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
-        </div>
         <div style={this.annotationMetadataStyle}>
           <a style={authorStyle} className="author">{meta.author}</a>
           <span style={this.annotationDateStyle} className="date">{meta.date}</span>
+        </div>
+        <div style={this.annotationTextStyle} className="text">
+          <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
         </div>
       </div>
     );
   }
 
-  buildAnnotationDisplay(annotationId) {
-    var annotationMetadata = this.state.annotations[annotationId];
+  buildAnnotationDisplay(annotationMetadata) {
+    //var annotationMetadata = this.state.annotations[annotationId];
     if(!annotationMetadata) {
       return null;
     }
@@ -556,16 +658,20 @@ class ElementInspector extends React.Component {
     }
 
     return (
-      <div style={this.annotationStyle} key={'MEASURE-' + annotationId}>
-        <div style={this.annotationTextStyle} className="text">
-          <i>{annotationMetadata.content}</i>
-        </div>
+      <div style={this.annotationStyle} key={'MEASURE-' + annotationMetadata.uid}>
         <div style={this.annotationMetadataStyle}>
           <a style={authorStyle} className="author">{author}</a>
           <span style={this.annotationDateStyle} className="date">{date.toLocaleDateString()}</span>
         </div>
+        <div style={this.annotationTextStyle} className="text">
+          <i>{annotationMetadata.content}</i>
+        </div>
       </div>
     );
+  }
+
+  getAnnotationData(annotationId) {
+    return this.state.annotations[annotationId];
   }
 
   componentDidMount() {

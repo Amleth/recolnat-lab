@@ -145,8 +145,18 @@ class GlobalFunctions {
     return null;
   }
 
+  /**
+   * These getters are mostly used for sorting by parameter in _ functions which require a callback.
+   */
   static getName(entity) {
     return entity.name;
+  }
+
+  static getCreationDate(entity) {
+    if(!entity) {
+      return 0;
+    }
+    return entity.creationDate;
   }
 
   // static setMode(mode) {

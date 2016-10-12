@@ -42,6 +42,7 @@ class ElementInspector extends React.Component {
     this.annotationInputStyle = {
       display: 'flex',
       flexDirection: 'column',
+      backgroundColor: 'lavender',
       //height: 0,
       //width: 'auto',
       overflow: 'hidden',
@@ -53,6 +54,10 @@ class ElementInspector extends React.Component {
 
     this.annotationInputTitleStyle = {
       textAlign: 'center'
+    };
+
+    this.annotationInputTextStyle = {
+      lineHeight: 1
     };
 
     this.annotationInputButtonRowStyle = {
@@ -106,7 +111,7 @@ class ElementInspector extends React.Component {
     };
 
     this.annotationStyle = {
-      marginBottom: '-10px'
+      //marginBottom: '-10px'
     };
 
     this.annotationMetadataStyle = {
@@ -193,21 +198,9 @@ class ElementInspector extends React.Component {
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
-    //for(var i = 0; i < this.state.entitiesIds.length; ++i) {
-    //  // Stop current animation
-    //  D3ViewUtils.stopOutlineAnimation('AOI-' + this.state.entitiesIds[i]);
-    //  D3ViewUtils.stopOutlineAnimation('PATH-' + this.state.entitiesIds[i]);
-    //  D3ViewUtils.stopOutlineAnimation('POI-' + this.state.entitiesIds[i]);
-    //  D3ViewUtils.stopOutlineAnimation('ROI-' + this.state.entitiesIds[i]);
-    //}
+
     var elements = this.props.inspecstore.getInspectorContent();
-    //for(var i = 0; i < elements.length; ++i) {
-    //  // Start new element animation
-    //  D3ViewUtils.animateOutline('AOI-' + elements[i]);
-    //  D3ViewUtils.animateOutline('PATH-' + elements[i]);
-    //  D3ViewUtils.animateOutline('POI-' + elements[i]);
-    //  D3ViewUtils.animateOutline('ROI-' + elements[i]);
-    //}
+
     this.setState({
       entitiesIds: elements,
       annotationsIds: [],
@@ -581,10 +574,12 @@ class ElementInspector extends React.Component {
         <div className='text' style={this.entityMetaStyle}>
           {'Création : ' + (new Date(entityMetadata.creationDate)).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
         </div>
+        {measurements.map(this.buildMeasurementDisplay.bind(this))}
         <div className='ui field' style={annotationInputLocalStyle}>
           <label style={this.annotationInputTitleStyle}>Nouvelle annotation</label>
-            <textarea rows='3'
+            <textarea rows='2'
                       autofocus='true'
+                      style={this.annotationInputTextStyle}
                       value={this.state.annotationTextInput}
                       onChange={this.onAnnotationTextChange.bind(this)}/>
           <div style={this.annotationInputButtonRowStyle} className='ui tiny compact buttons'>
@@ -592,7 +587,6 @@ class ElementInspector extends React.Component {
             <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>Enregistrer</button>
           </div>
         </div>
-        {measurements.map(this.buildMeasurementDisplay.bind(this))}
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
         <div className='ui horizontal divider' ></div>
       </div>
@@ -618,12 +612,8 @@ class ElementInspector extends React.Component {
     }
     return (
       <div style={this.annotationStyle} key={'MEASURE-' + measurementId}>
-        <div style={this.annotationMetadataStyle}>
-          <a style={authorStyle} className="author">{meta.author}</a>
-          <span style={this.annotationDateStyle} className="date">{meta.date}</span>
-        </div>
-        <div style={this.annotationTextStyle} className="text">
-          <i>{meta.value}</i><i className={icon} data-content={meta.warning}/>
+        <div style={this.annotationTextStyle} >
+          <span>{meta.value}</span><i className={icon} data-content={meta.warning}/>
         </div>
       </div>
     );

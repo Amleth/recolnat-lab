@@ -354,37 +354,4 @@ class AddEntitiesToSetModal extends AbstractModal {
   }
 }
 
-//<div ref='cards' style={this.cardRowStyle} onWheel={this.scrollHorizontal.bind(this)}>
-//  {this.state.validatedItems.map(function(item, idx) {
-//    return <WebItem content={item} key={'WEB-ITEM-' + idx}
-//    />
-//  })}
-//</div>
-
-//<a className="item" data-tab="web">Web</a>
-
-//<div className="ui bottom attached tab segment disabled" data-tab="web">
-//  <div className='content'>
-//    <div className='description'>
-//      <div className='header'>Pour chaque image que vous voulez ajouter, entrez les informations demandées et cliquez sur Valider</div>
-//      <div className='ui form'>
-//        <div className='fields'>
-//          <div className='field required'>
-//            <label>Nom</label>
-//            <input placeholder='Nom' type='text'/>
-//          </div>
-//          <div className='field required'>
-//            <label>URL</label>
-//            <input placeholder='URL' type='text'/>
-//          </div>
-//          <div className='field'>
-//            <label>URL vignette</label>
-//            <input placeholder='URL vignette' type='text'/>
-//          </div>
-//        </div>
-//      </div>
-//    </div>
-//  </div>
-//</div>
-
 export default AddEntitiesToSetModal;

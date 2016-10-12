@@ -616,8 +616,13 @@ class D3FreeSpace {
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.aois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.rois.map(getIds));
-    Array.prototype.push.apply(
-      inspectorObjects, objectsAtEvent.images.map(getIds));
+    if(inspectorObjects.length == 0) {
+      Array.prototype.push.apply(
+        inspectorObjects, objectsAtEvent.images.map(getIds));
+    }
+    if(inspectorObjects.length == 0 && this.benchstore) {
+      inspectorObjects.push(this.benchstore.getActiveSetId());
+    }
 
     console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
 

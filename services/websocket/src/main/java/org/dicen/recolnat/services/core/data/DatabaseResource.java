@@ -25,6 +25,7 @@ import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
+import fr.recolnat.database.utils.DatabaseTester;
 import fr.recolnat.database.utils.DeleteUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import java.nio.file.AccessDeniedException;
@@ -43,22 +44,31 @@ import org.slf4j.LoggerFactory;
 public class DatabaseResource {
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
-  
+
   public static JSONObject getUserData(String userLogin) throws JSONException {
     OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
-    try {
-      OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
-      if(vUser == null) {
-        // Create user
-        vUser = CreatorUtils.createNewUserAndUserData(userLogin, g);
+    boolean retry = true;
+    while (retry) {
+      retry = false;
+      try {
+        OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
+        if (vUser == null) {
+          // Create user
+          vUser = CreatorUtils.createNewUserAndUserData(userLogin, g);
+          DatabaseTester.createTestWorkbench(vUser, g);
+          g.commit();
+        }
+        ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
+        return user.toJSON();
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown();
       }
-      ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
-      return user.toJSON();
     }
-    finally {
-      g.rollback();
-      g.shutdown();
-    }
+    return null;
   }
 
   public static JSONObject getData(String entityId, String user) throws JSONException, AccessForbiddenException {
@@ -150,7 +160,7 @@ public class DatabaseResource {
         // Grant creator rights
         AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
         g.commit();
-        
+
         changes.add(parentObjectId);
         changes.add((String) vAnnotation.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
@@ -187,7 +197,7 @@ public class DatabaseResource {
           vNewEntityVersion.setProperty(properties.getJSONObject(i).getString("key"), properties.getJSONObject(i).getString("value"));
         }
         g.commit();
-        
+
         changes.add(entityId);
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");

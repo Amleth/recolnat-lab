@@ -37,7 +37,7 @@ class Toolbox extends React.Component {
       position: 'absolute',
       left: '-20px',
       top: '-20px',
-      zIndex: -10000,
+      //zIndex: -10000,
       maxWidth: '1px',
       maxHeight: '1px',
       overflow: 'hidden'

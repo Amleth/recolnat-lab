@@ -631,6 +631,13 @@ class D3FreeSpace {
     if(objectsAtEvent.images.length > 0) {
       window.setTimeout(ViewActions.changeSelection.bind(null, objectsAtEvent.images[objectsAtEvent.images.length - 1].link, {type: TypeConstants.image}), 10);
     }
+
+
+    window.setTimeout(InspectorActions.setSetInAnnotationList.bind(null, self.benchstore.getActiveSetId()), 10);
+    if(objectsAtEvent.images.length > 0) {
+      window.setTimeout(InspectorActions.setImageInAnnotationList.bind(null, objectsAtEvent.images[0].uid), 10);
+    }
+
     d3.event.preventDefault();
   }
 

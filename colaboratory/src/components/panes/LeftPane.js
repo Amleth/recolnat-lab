@@ -24,11 +24,15 @@ class LeftPane extends React.Component {
   constructor(params) {
     super(params);
     this.containerStyle = {
-      border: 'none',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: '0 0 0 0',
-      overflow: 'none'
+      backgroundColor: '#F2F2F2',
+      height: '100%',
+      width: '100%',
+      marginTop: '10px'
+      //border: 'none',
+      //display: 'flex',
+      //flexDirection: 'column',
+      //boxShadow: '0 0 0 0'
+      //overflow: 'none'
     };
   }
 
@@ -40,15 +44,15 @@ class LeftPane extends React.Component {
         <div className='ui divider'></div>
         <ModeSwitcher modestore={this.props.modestore} />
         <SetManagerMainButtons
-        managerstore={this.props.managerstore}
-        modestore={this.props.modestore} />
+          managerstore={this.props.managerstore}
+          modestore={this.props.modestore} />
         <SetSelectorDisplay modestore={this.props.modestore}
                             userstore={this.props.userstore}
-                      managerstore={this.props.managerstore} />
+                            managerstore={this.props.managerstore} />
         <GroupSelector
-                        modestore={this.props.modestore}
-                        toolstore={this.props.toolstore}
-                        benchstore={this.props.benchstore} />
+          modestore={this.props.modestore}
+          toolstore={this.props.toolstore}
+          benchstore={this.props.benchstore} />
         <Minimap ministore={this.props.ministore}
                  viewstore={this.props.viewstore}
                  modestore={this.props.modestore}

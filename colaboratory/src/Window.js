@@ -79,8 +79,10 @@ class Window extends React.Component {
 
     this.containerStyle = {
       position: 'relative',
-      height: '100vh',
-      width: '100vw',
+      //height: '100vh',
+      //width: '100vw',
+      height: '100%',
+      width: '100%',
       backgroundColor: 'rgba(245,241,222, 1.0)'
     };
 
@@ -132,7 +134,8 @@ class Window extends React.Component {
     this.leftButtonStyle = {
       position: 'fixed',
       left: this.leftPaneWidth + 'px',
-      top: '10vh',
+      //top: '10vh',
+      top: '10%',
       zIndex: ViewConstants.zIndices.leftPaneCloseButton,
       height: '20px',
       width: '10px',
@@ -144,7 +147,8 @@ class Window extends React.Component {
     this.rightButtonStyle = {
       position: 'absolute',
       right: this.rightPaneWidth + 'px',
-      top: '10vh',
+      //top: '10vh',
+      top: '10%',
       zIndex: ViewConstants.zIndices.rightPaneCloseButton,
       height: '20px',
       width: '10px',
@@ -296,6 +300,12 @@ class Window extends React.Component {
     var height = window.innerHeight;
     var left = 0;
     //console.log('window width ' + width);
+    this.containerStyle.height = height;
+    this.containerStyle.width = width;
+
+    this.leftButtonStyle.top = height/10;
+    this.rightButtonStyle.top = height/10;
+
     if(nextState.leftSidebar) {
       width = width - this.leftPaneWidth;
       left = this.leftPaneWidth;

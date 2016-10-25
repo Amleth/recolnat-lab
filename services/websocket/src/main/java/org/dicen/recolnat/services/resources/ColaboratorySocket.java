@@ -281,6 +281,15 @@ public class ColaboratorySocket {
               break;
           }
           break;
+          case Action.ClientActionType.GET:
+            String actionDetail = jsonIn.getString("actionDetail");
+            switch(actionDetail) {
+              case "get-annotations-of-entity":
+                entityId = jsonIn.getString("entity");
+                result = DatabaseResource.getAnnotationsOfEntity(entityId, userLogin);
+              break;
+            }
+            break;
         default:
           log.error("Unhandled action type " + action);
           break;

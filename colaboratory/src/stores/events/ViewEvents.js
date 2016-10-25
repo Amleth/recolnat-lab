@@ -11,5 +11,6 @@ export default {
   FIT_SET_IN_VIEW: "VIEW_fitSetInView",
   UPDATE_LOADER: 'VIEW_updateLoader',
   SELECTION_CHANGE: 'VIEW_selectionChange',
-  INSPECTOR_CONTENT_CHANGE: 'VIEW_inspectorContentChange'
+  INSPECTOR_CONTENT_CHANGE: 'VIEW_inspectorContentChange',
+  ANNOTATION_LIST_CONTENT_CHANGE: 'VIEW_annotationListContentChange'
 };

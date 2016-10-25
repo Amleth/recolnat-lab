@@ -12,5 +12,19 @@ export default {
       actionType: InspectorConstants.ActionTypes.SET_DATA,
       data: data
     });
+  },
+
+  setImageInAnnotationList: (id) => {
+    AppDispatcher.dispatch({
+      actionType: InspectorConstants.ActionTypes.SET_IMAGE,
+      id: id
+    });
+  },
+
+  setSetInAnnotationList: (id) => {
+    AppDispatcher.dispatch({
+      actionType: InspectorConstants.ActionTypes.SET_SET,
+      id: id
+    });
   }
 }

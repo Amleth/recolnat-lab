@@ -26,5 +26,13 @@ export default {
       message: message,
       callback: callback
     })
+  },
+
+  request: (message, callback) => {
+    AppDispatcher.dispatch({
+      actionType: SocketConstants.ActionTypes.GET,
+      message: message,
+      callback: callback
+    })
   }
 }

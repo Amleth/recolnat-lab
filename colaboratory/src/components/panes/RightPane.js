@@ -9,6 +9,7 @@ import MetadataViewer from './../MetadataViewer';
 import ElementInspector from './../../tools/palettes/ElementInspector';
 import TagCloud from './../../tools/palettes/TagCloud';
 import SimpleImageDisplay from './../../tools/palettes/SimpleImageDisplay';
+import AnnotationList from './../../tools/palettes/AnnotationList';
 
 import SpecimenMetadataDisplay from './../manager/SpecimenMetadataDisplay';
 import SetMetadataDisplay from './../manager/SetMetadataDisplay';
@@ -25,22 +26,6 @@ class RightPane extends React.Component {
       height: '100%',
       width: '100%',
       marginTop: '10px'
-      //overflow: 'auto'
-    };
-
-    this.textStyle = {
-      wordBreak: 'break-all'
-    };
-
-    this.tabTitleStyle = {
-      height: '5%'
-      //padding: '5px 5px 5px 5px',
-      //margin: '0'
-    };
-
-    this.tabContentStyle = {
-      height: '95%',
-      padding: '2px 2px 2px 2px'
       //overflow: 'auto'
     };
   }
@@ -73,6 +58,12 @@ class RightPane extends React.Component {
           toolstore={this.props.toolstore}
           modestore={this.props.modestore}
           managerstore={this.props.managerstore}/>
+        <AnnotationList
+          height={200}
+          modestore={this.props.modestore}
+          inspecstore={this.props.inspecstore}
+          metastore={this.props.metastore}
+          />
         <ElementInspector
           toolstore={this.props.toolstore}
           userstore={this.props.userstore}

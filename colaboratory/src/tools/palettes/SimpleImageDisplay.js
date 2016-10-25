@@ -109,11 +109,11 @@ class SimpleImageDisplay extends React.Component {
   processReceivedMetadata(id, skipListenerCheck = false) {
     //this.props.metastore.removeMetadataUpdateListener(id, this._onMetadataReceived);
     if(!_.contains(this.state.listening, id) && !skipListenerCheck) {
-      console.log('Not listening for ' + id);
+      //console.log('Not listening for ' + id);
       return;
     }
     var metadata = this.props.metastore.getMetadataAbout(id);
-    console.log('Metadata for ' + id + " : " + JSON.stringify(metadata));
+    //console.log('Metadata for ' + id + " : " + JSON.stringify(metadata));
     if(metadata) {
       switch(metadata.type) {
         case 'Image':

@@ -18,7 +18,8 @@ export default {
       // Clients calls to subsrcibe to the logs (activity) of a specific resource.
       SUBSCRIBE_LOG: 13,
       // Client calls to unsubscribe from the logs (activity) of a specific resource.
-      UNSUBSCRIBE_LOG: 14
+      UNSUBSCRIBE_LOG: 14,
+      GET: 15
     }
   }
 };

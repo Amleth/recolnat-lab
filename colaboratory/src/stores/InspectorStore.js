@@ -16,12 +16,28 @@ class InspectorStore extends EventEmitter {
     super();
 
     this.elementsToInspect = [];
+    this.annotationListSelection = {
+      imageId: null,
+      setId: null
+    };
 
     AppDispatcher.register((action) => {
       switch (action.actionType) {
         case InspectorConstants.ActionTypes.SET_DATA:
           this.setInspectorContent(action.data);
           this.emit(ViewEvents.INSPECTOR_CONTENT_CHANGE);
+          break;
+        case InspectorConstants.ActionTypes.SET_IMAGE:
+          if(this.annotationListSelection.imageId != action.id) {
+            this.annotationListSelection.imageId = action.id;
+            this.emit(ViewEvents.ANNOTATION_LIST_CONTENT_CHANGE);
+          }
+          break;
+        case InspectorConstants.ActionTypes.SET_SET:
+          if(this.annotationListSelection.setId != action.id) {
+            this.annotationListSelection.setId = action.id;
+            this.emit(ViewEvents.ANNOTATION_LIST_CONTENT_CHANGE);
+          }
           break;
         default:
           break;
@@ -35,6 +51,18 @@ class InspectorStore extends EventEmitter {
 
   getInspectorContent() {
     return JSON.parse(JSON.stringify(this.elementsToInspect));
+  }
+
+  getAnnotationListSelection() {
+    return JSON.parse(JSON.stringify(this.annotationListSelection));
+  }
+
+  addAnnotationSelectionListener(callback) {
+    this.on(ViewEvents.ANNOTATION_LIST_CONTENT_CHANGE, callback);
+  }
+
+  removeAnnotationSelectionListener(callback) {
+    this.removeListener(ViewEvents.ANNOTATION_LIST_CONTENT_CHANGE, callback);
   }
 
   addContentChangeListener(callback) {

@@ -3,5 +3,6 @@
  */
 export default {
   METADATA_UPDATE: 'metadata_updateMetadata',
-  LAB_BENCH_READY: 'metadata_labBenchReady'
+  LAB_BENCH_READY: 'metadata_labBenchReady',
+  EXTERNAL_METADATA_UPDATE: 'metadata_externalMetadataUpdate'
 };

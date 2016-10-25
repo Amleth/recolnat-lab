@@ -54,6 +54,13 @@ class Connector extends EventEmitter {
           }
           window.setTimeout(this.sendPayloadWhenReady.bind(this, action.message), 10);
           break;
+        case SocketConstants.ActionTypes.GET:
+          this.messageCounter++;
+          action.message.messageId = this.messageCounter;
+          action.message.action = ServerConstants.ActionTypes.Send.GET;
+          this.once(this.messageCounter, action.callback);
+          window.setTimeout(this.sendPayloadWhenReady.bind(this, action.message), 10);
+          break;
         default:
           break;
       }
@@ -74,14 +81,14 @@ class Connector extends EventEmitter {
       };
 
       websocket.onopen = function (message) {
-        console.log('Client connected ' + JSON.stringify(message));
+        //console.log('Client connected ' + JSON.stringify(message));
         self.messageCounter = 0;
 
         self.ping = window.setInterval(self.sendPing.bind(self), 60000);
       };
 
       websocket.onclose = function (message) {
-        console.log('Connection closed ' + JSON.stringify(message));
+        //console.log('Connection closed ' + JSON.stringify(message));
         window.clearInterval(self.ping);
         self.user = null;
         self.idToData['user'] = null;
@@ -98,14 +105,14 @@ class Connector extends EventEmitter {
 
   receiveServerMessage(message) {
     if(message.data === "PONG") {
-      console.log('PING/PONG success');
+      //console.log('PING/PONG success');
       return;
     }
     if(message.data === 500) {
       console.error("Internal server error");
       return;
     }
-    console.log('got message ' + message.data);
+    //console.log('got message ' + message.data);
     var jsonMessage = JSON.parse(message.data);
     switch(jsonMessage.action) {
       case ServerConstants.ActionTypes.Receive.RESOURCE:
@@ -124,7 +131,7 @@ class Connector extends EventEmitter {
         this.emit(jsonMessage.id, jsonMessage);
         break;
       case ServerConstants.ActionTypes.Receive.DENIED:
-        console.log("Got DENIED from server " + message.data);
+        //console.log("Got DENIED from server " + message.data);
         jsonMessage.clientProcessError = true;
         this.emit(jsonMessage.id, jsonMessage);
         break;
@@ -142,7 +149,7 @@ class Connector extends EventEmitter {
   }
 
   subscribe(id) {
-    console.log('subscribing ' + id);
+    //console.log('subscribing ' + id);
     var message = {
       action: ServerConstants.ActionTypes.Send.SUBSCRIBE,
       id: id
@@ -184,11 +191,11 @@ class Connector extends EventEmitter {
   }
 
   addResourceListener(id, callback) {
-    console.log("Added listener for " + JSON.stringify(id));
+    //console.log("Added listener for " + JSON.stringify(id));
 
     this.on(SocketEvents.RESOURCE_UPDATED + '_' + id, callback);
 
-    console.log('listeners for ' + id + ' : ' + this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id));
+    //console.log('listeners for ' + id + ' : ' + this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id));
     if(this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 1) {
       this.subscribe(id);
     }

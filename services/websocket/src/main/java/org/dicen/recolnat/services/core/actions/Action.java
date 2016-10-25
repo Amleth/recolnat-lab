@@ -18,6 +18,8 @@ public class Action {
     public static final int SUBSCRIBE_LOG = 13;
     // Client calls to unsubscribe from the logs (activity) of a specific resource.
     public static final int UNSUBSCRIBE_LOG = 14;
+    // Client calls to receive computed information about a resource, but not subscribe to its changes
+    public static final int GET = 15;
     
   }
   

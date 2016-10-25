@@ -22,12 +22,12 @@ gulp.task('conf-dev', function() {
 //
 // DEV SERVER
 //
-gulp.task('html', function() {
-  gulp.src('./build/index.html')
+gulp.task('copy', function() {
+  gulp.src('build/*', {base: 'build/'})
     .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('build-deploy-dev', ['conf-deploy-dev', 'html'], shell.task([
+gulp.task('build-deploy-dev', ['conf-deploy-dev', 'copy'], shell.task([
   'webpack -d --config webpack.production.config.js --progress --colors'
 ]));
 
@@ -50,12 +50,8 @@ gulp.task('deploy-dev', ['build-deploy-dev'], function() {
 //
 // TEST
 //
-gulp.task('html', function() {
-  gulp.src('./build/index.html')
-    .pipe(gulp.dest('./dist'));
-});
 
-gulp.task('build-test', ['conf-test', 'html'], shell.task([
+gulp.task('build-test', ['conf-test', 'copy'], shell.task([
   'webpack -p --config webpack.production.config.js --progress --colors'
 ]));
 
@@ -76,65 +72,9 @@ gulp.task('deploy-test', ['build-test'], function() {
 });
 
 //
-// TEST DEMO
-//
-gulp.task('html', function() {
-  gulp.src('./build/index.html')
-    .pipe(gulp.dest('./dist'));
-});
-
-gulp.task('build-demo-test', ['conf-demo-test', 'html'], shell.task([
-  'webpack -d --config webpack.production.config.js --progress --colors'
-]));
-
-gulp.task('conf-demo-test', function() {
-  gulp.src('./conf/ApplicationConfiguration-demo-test.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
-
-gulp.task('deploy-demo-test', ['build-demo-test'], function() {
-  gulp.src(distSrc)
-    .pipe(sftp({
-      host: 'wp5test.mnhn.fr',
-      remotePath: '/home/cnamuser/www/demo-testing',
-      user: 'cnamuser',
-      pass: ""
-    }));
-});
-
-//
-// DEMO
-//
-gulp.task('html', function() {
-  gulp.src('./build/index.html')
-    .pipe(gulp.dest('./dist'));
-});
-
-gulp.task('build-demo', ['conf-demo', 'html'], shell.task([
-  'webpack -p --config webpack.production.config.js --progress --colors'
-]));
-
-gulp.task('conf-demo', function() {
-  gulp.src('./conf/ApplicationConfiguration-demo.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
-
-gulp.task('deploy-demo', ['build-demo'], function() {
-  gulp.src(distSrc)
-    .pipe(sftp({
-      host: 'wp5test.mnhn.fr',
-      remotePath: '/home/cnamuser/www/demo',
-      user: 'cnamuser',
-      pass: ""
-    }));
-});
-
-//
 // PROD
 //
-gulp.task('build-prod-vm', ['conf-prod-vm', 'html'], shell.task([
+gulp.task('build-prod-vm', ['conf-prod-vm', 'copy'], shell.task([
   'webpack -p --config webpack.production.config.js --progress --colors'
 ]));
 

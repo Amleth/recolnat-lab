@@ -1,6 +1,9 @@
 package org.dicen.recolnat.services.core.data;
 
+import com.orientechnologies.orient.core.command.traverse.OTraverse;
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
@@ -30,6 +33,8 @@ import fr.recolnat.database.utils.DeleteUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.codehaus.jettison.json.JSONException;
@@ -37,6 +42,7 @@ import org.codehaus.jettison.json.JSONException;
 import javax.ws.rs.core.Response;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.dicen.recolnat.services.core.actions.ResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,6 +217,159 @@ public class DatabaseResource {
     }
 
     return changes;
+  }
+
+  public static ActionResult getAnnotationsOfEntity(String entityId, String user) throws JSONException, AccessForbiddenException {
+    ActionResult res = new ActionResult();
+    JSONArray annotations = new JSONArray();
+
+    boolean retry = true;
+    while (retry) {
+      retry = false;
+      OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
+        if (!AccessRights.canRead(vUser, vEntity, g)) {
+          log.error("User does not have edit rights on entity " + entityId);
+          throw new AccessForbiddenException(user, entityId);
+        }
+        // Identify entity type and find sub-entities and their annotations
+        switch ((String) vEntity.getProperty("@class")) {
+          case DataModel.Classes.set:
+            DatabaseResource.addAnnotations(vEntity, entityId, null, null, vUser, annotations, g);
+            Iterator<Vertex> itContent = vEntity.getVertices(Direction.OUT, DataModel.Links.containsItem).iterator();
+            while (itContent.hasNext()) {
+              OrientVertex vSetContent = (OrientVertex) itContent.next();
+              if (AccessUtils.isLatestVersion(vSetContent)) {
+                if (AccessRights.canRead(vUser, vSetContent, g)) {
+                  String specimenId = (String) vSetContent.getProperty(DataModel.Properties.id);
+                  DatabaseResource.addAnnotations(vSetContent, entityId, specimenId, null, vUser, annotations, g);
+                  Iterator<Vertex> it = vSetContent.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+                  while (it.hasNext()) {
+                    OrientVertex vImage = (OrientVertex) it.next();
+                    if (AccessUtils.isLatestVersion(vImage)) {
+                      if (AccessRights.canRead(vUser, vImage, g)) {
+                        String imageId = (String) vImage.getProperty(DataModel.Properties.id);
+                        DatabaseResource.addAnnotations(vImage, entityId, specimenId, imageId, vUser, annotations, g);
+                        Iterator<Vertex> itImageElements = vImage.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
+                        while (itImageElements.hasNext()) {
+                          OrientVertex vImageElement = (OrientVertex) itImageElements.next();
+                          if (AccessUtils.isLatestVersion(vImageElement)) {
+                            if (AccessRights.canRead(vUser, vImageElement, g)) {
+                              DatabaseResource.addAnnotations(vImageElement, entityId, specimenId, imageId, vUser, annotations, g);
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            break;
+          case DataModel.Classes.specimen:
+            String specimenId = (String) vEntity.getProperty(DataModel.Properties.id);
+            DatabaseResource.addAnnotations(vEntity, entityId, specimenId, null, vUser, annotations, g);
+            Iterator<Vertex> it = vEntity.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+            while (it.hasNext()) {
+              OrientVertex vImage = (OrientVertex) it.next();
+              if (AccessUtils.isLatestVersion(vImage)) {
+                if (AccessRights.canRead(vUser, vImage, g)) {
+                  String imageId = (String) vImage.getProperty(DataModel.Properties.id);
+                  DatabaseResource.addAnnotations(vImage, entityId, specimenId, imageId, vUser, annotations, g);
+                  Iterator<Vertex> itImageElements = vImage.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
+                  while (itImageElements.hasNext()) {
+                    OrientVertex vImageElement = (OrientVertex) itImageElements.next();
+                    if (AccessUtils.isLatestVersion(vImageElement)) {
+                      if (AccessRights.canRead(vUser, vImageElement, g)) {
+                        DatabaseResource.addAnnotations(vImageElement, entityId, specimenId, imageId, vUser, annotations, g);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          case DataModel.Classes.image:
+            DatabaseResource.addAnnotations(vEntity, null, null, entityId, vUser, annotations, g);
+            Iterator<Vertex> itImageElements = vEntity.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
+            while (itImageElements.hasNext()) {
+              OrientVertex vImageElement = (OrientVertex) itImageElements.next();
+              if (AccessUtils.isLatestVersion(vImageElement)) {
+                if (AccessRights.canRead(vUser, vImageElement, g)) {
+                  DatabaseResource.addAnnotations(vImageElement, null, null, entityId, vUser, annotations, g);
+                }
+              }
+            }
+            break;
+        }
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        if (!g.isClosed()) {
+          g.rollback();
+          g.shutdown();
+        }
+      }
+    }
+
+    res.setResponse("annotations", annotations);
+    return res;
+  }
+
+  private static void addAnnotations(OrientVertex v, String parentSet, String parentSpecimen, String parentImage, OrientVertex vUser, JSONArray annotations, OrientBaseGraph g) throws JSONException {
+    Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation, DataModel.Links.hasMeasurement).iterator();
+    while (itAnnots.hasNext()) {
+      OrientVertex vAnnot = (OrientVertex) itAnnots.next();
+      if (AccessRights.canRead(vUser, vAnnot, g)) {
+        if (AccessUtils.isLatestVersion(vAnnot)) {
+          JSONObject jAnnot = new JSONObject();
+          jAnnot.put("uid", (String) vAnnot.getProperty(DataModel.Properties.id));
+          jAnnot.put("title", (String) v.getProperty(DataModel.Properties.name));
+          jAnnot.put("created", (Long) v.getProperty(DataModel.Properties.creationDate));
+          jAnnot.put("inEntity", (String) v.getProperty(DataModel.Properties.id));
+          jAnnot.put("inImage", parentImage);
+          jAnnot.put("inSpecimen", parentSpecimen);
+          jAnnot.put("inSet", parentSet);
+
+          Integer mType = (Integer) vAnnot.getProperty(DataModel.Properties.measureType);
+          if (mType == null) {
+            // This is an annotation
+            jAnnot.put("value", (String) vAnnot.getProperty(DataModel.Properties.content));
+            jAnnot.put("type", "Text");
+          } else {
+            // This is a measurement, so we need to work with value in px
+            Double pxValue = (Double) vAnnot.getProperty(DataModel.Properties.pxValue);
+            if(pxValue == 0) {
+              // This is caused by a bad versioning on older databases.
+              return;
+            }
+            jAnnot.put("value", pxValue);
+            switch ((Integer) vAnnot.getProperty(DataModel.Properties.measureType)) {
+              case 100:
+                jAnnot.put("type", "Area");
+                break;
+              case 101:
+                jAnnot.put("type", "Perimeter");
+                break;
+              case 102:
+                jAnnot.put("type", "Length");
+                break;
+              case 103:
+                jAnnot.put("type", "Angle");
+                break;
+              default:
+                jAnnot.put("type", "Unknown");
+                break;
+            }
+          }
+          annotations.put(jAnnot);
+        }
+      }
+    }
   }
 
   private static AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientBaseGraph g) throws JSONException, AccessDeniedException, AccessForbiddenException {

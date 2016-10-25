@@ -108,6 +108,7 @@ class SetDisplayItem extends React.Component {
     if(node.type === 'Set') {
       window.setTimeout(MetadataActions.setLabBenchId.bind(null, node.uid), 10);
     }
+    window.setTimeout(InspectorActions.setImageInAnnotationList.bind(null, node.uid), 10);
   }
 
   componentDidMount() {

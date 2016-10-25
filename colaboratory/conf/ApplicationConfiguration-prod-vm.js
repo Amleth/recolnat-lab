@@ -1,6 +1,7 @@
 'use strict';
 
 var Integration = {
+  recolnatMenuBarOrigin: 'https://www.recolnat.org',
   recolnatMenuBarUrl: 'https://www.recolnat.org/menu'
 };
 

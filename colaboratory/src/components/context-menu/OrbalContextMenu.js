@@ -10,6 +10,7 @@ import OrbOptions from './options/OrbOptions';
 import ViewActions from '../../actions/ViewActions';
 import MetadataActions from '../../actions/MetadataActions';
 import ManagerActions from '../../actions/ManagerActions';
+import MenuActions from '../../actions/MenuActions';
 
 import TypeConstants from '../../constants/TypeConstants';
 import ViewConstants from '../../constants/ViewConstants';
@@ -291,13 +292,13 @@ class OrbalContextMenu extends React.Component {
   }
 
   closeMenu(delay, event) {
-    //console.log('closeMenu(' + event + ','  + delay + ')');
+    console.log('closeMenu(' + delay + ')');
     // if(event.isPropagationStopped()) {
     //   return;
     // }
     if(delay) {
       // console.log('closeMenu with delay');
-      this.closeDelay = window.setTimeout(this.setState.bind(this, OrbalContextMenu.getInitialState()), delay);
+      this.closeDelay = window.setTimeout(MenuActions.displayContextMenu.bind(null, -50,-50,[]), delay);
     }
     else {
       this.setState(OrbalContextMenu.getInitialState());
@@ -305,7 +306,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   cancelCloseMenu() {
-    // console.log('cancelCloseMenu');
+     //console.log('cancelCloseMenu');
     if(this.closeDelay) {
       window.clearTimeout(this.closeDelay);
       this.closeDelay = null;
@@ -348,7 +349,7 @@ class OrbalContextMenu extends React.Component {
     var y = this.props.menustore.getClickLocation().y;
     this.menuContainerStyle.top = y-this.menuSize/2;
     this.menuContainerStyle.left = x-this.menuSize/2;
-    this.menuContainerStyle.visibility = '';
+    this.menuContainerStyle.visibility = 'visible';
 
     this.orbNWStyle.top = this.short;
     this.orbNWStyle.left = this.short;
@@ -376,8 +377,10 @@ class OrbalContextMenu extends React.Component {
   }
 
   menuIsDeactivated() {
-    console.log('menuIsDeactivated');
+    //console.log('menuIsDeactivated');
     this.menuContainerStyle.visibility = 'hidden';
+    this.menuContainerStyle.top = '-50px';
+    this.menuContainerStyle.left = '-50px';
     this.resetOrbs();
   }
 
@@ -650,10 +653,12 @@ class OrbalContextMenu extends React.Component {
     if(nextState.active && !this.state.active) {
       // Transition from closed to open
       this.menuIsActivated();
+      this.closeDelay = null;
     }
     else if(!nextState.active && this.state.active) {
       // Transition from open to closed
       this.menuIsDeactivated();
+      this.closeDelay = null;
     }
 
     if(this.state.animationData) {
@@ -699,11 +704,12 @@ class OrbalContextMenu extends React.Component {
   }
 
   render() {
+    var self = this;
     return (
       <div style={this.menuContainerStyle}
            onMouseEnter={this.cancelCloseMenu.bind(this)}
            onMouseLeave={this.closeMenu.bind(this, 500)}
-           onClick={this.closeMenu.bind(this, 0)}>
+           onClick={this.closeMenu.bind(this, 10)}>
 
         <div style={this.orbCStyle} className='ui segment'>
           {this.displayText.slice(0, 30)}

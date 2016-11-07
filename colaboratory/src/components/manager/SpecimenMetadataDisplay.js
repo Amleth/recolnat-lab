@@ -276,7 +276,7 @@ class SpecimenMetadataDisplay extends React.Component {
             <td className='left aligned' style={this.textStyle}>{this.state.harvestVerbatimLocality}</td>
           </tr>
           <tr>
-            <td className='right aligned'>Numéro inventaire</td>
+            <td className='right aligned'>N° inventaire</td>
             <td className='left aligned' style={this.textStyle}>{this.state.institutionCode} {this.state.catalogNumber}</td>
           </tr>
           <tr>

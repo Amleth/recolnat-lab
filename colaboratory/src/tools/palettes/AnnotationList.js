@@ -218,6 +218,7 @@ class AnnotationList extends React.Component {
 
       // Get set name for inSet
 
+      // End operations on this annotation
       curatedAnnotations.push(filteredAnnotation);
     }
     this.setState({annotations: _.sortBy(curatedAnnotations, Globals.getDate).reverse()});
@@ -402,6 +403,7 @@ class AnnotationList extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     $(this.refs.table.getDOMNode()).tablesort();
     $('.tooltip.title', $(this.refs.table.getDOMNode())).popup();
+    $('.button', $(this.refs.menu.getDOMNode())).popup();
   }
 
   componentWillUnmount() {
@@ -428,33 +430,47 @@ class AnnotationList extends React.Component {
         Tags et Mesures
       </div>
       <div style={this.scrollerStyle}>
-        <div style={this.menuStyle}>
+        <div style={this.menuStyle} ref='menu'>
           <div style={this.upperButtonsStyle}>
             <div style={this.buttonStyle}
+                 data-content="Mesures"
                  className={'ui tiny compact button ' + this.state.buttons.measures}>
               <img src={measureIcon} style={this.iconButtonStyle} height='20px' width='20px' />
             </div>
             <div style={this.buttonStyle}
+                 data-content="Tags"
                  className={'ui tiny compact icon button ' + this.state.buttons.tags}>
               <i className="tags icon"/>
             </div>
           </div>
           <div style={this.upperButtonsStyle}>
-            <div
+            <div style={this.buttonStyle}
               className={'ui tiny compact button ' + this.state.buttons.image}
-              onClick={this.setSubject.bind(this, 'image')}>Planche</div>
-            <div
+                 data-content="Image/Planche"
+              onClick={this.setSubject.bind(this, 'image')}>
+              <i className='file icon'  style={this.iconButtonStyle} />
+            </div>
+            <div style={this.buttonStyle}
               className={'ui tiny compact button ' + this.state.buttons.set}
-              onClick={this.setSubject.bind(this, 'set')}>Set</div>
+                 data-content="Set"
+              onClick={this.setSubject.bind(this, 'set')}>
+              <i className='folder icon'  style={this.iconButtonStyle} />
+            </div>
           </div>
           <div style={this.upperButtonsStyle}>
-            <div style={this.buttonStyle} className='ui tiny compact button'>
+            <div style={this.buttonStyle}
+                 data-content="Copier vers le presse-papiers"
+                 className='ui tiny compact button'>
               <i className='copy icon'  style={this.iconButtonStyle} />
             </div>
-            <div style={this.buttonStyle} className='ui tiny compact button'>
+            <div style={this.buttonStyle}
+                 data-content="Exporter"
+                 className='ui tiny compact button'>
               <i className='download icon' style={this.iconButtonStyle} />
             </div>
-            <div style={this.buttonStyle} className='ui tiny compact button'>
+            <div style={this.buttonStyle}
+                 data-content="Options d'affichage"
+                 className='ui tiny compact button'>
               <i style={this.iconButtonStyle} className='setting icon' />
             </div>
           </div>

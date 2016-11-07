@@ -176,6 +176,13 @@ class CreatePath extends AbstractTool {
     }
 
     ServiceMethods.createTrailOfInterest(this.state.imageUri, length, path, name, Globals.setSavedEntityInInspector);
+
+    this.setState({
+      interactionState: 0,
+      edges: [],
+      start: null,
+      end: null
+    });
   }
 
   begin() {

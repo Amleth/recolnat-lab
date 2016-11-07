@@ -118,6 +118,9 @@ public class DatabaseResource {
    * @param entityId
    * @param user
    * @return
+   * @throws org.codehaus.jettison.json.JSONException
+   * @throws fr.recolnat.database.exceptions.ResourceNotExistsException
+   * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
   public static List<String> remove(final String entityId, final String user) throws JSONException, ResourceNotExistsException, AccessForbiddenException {
     List<String> modified = new LinkedList<>();
@@ -294,12 +297,19 @@ public class DatabaseResource {
             break;
           case DataModel.Classes.image:
             DatabaseResource.addAnnotations(vEntity, null, null, entityId, vUser, annotations, g);
+            // If image is accessible, its specimen is accessible as well. However for images not tied to a specimen this cannot be provided.
+            specimenId = null;
+            Iterator<Vertex> itSpecimens = vEntity.getVertices(Direction.IN, DataModel.Links.hasImage).iterator();
+            if(itSpecimens.hasNext()) {
+              specimenId = itSpecimens.next().getProperty(DataModel.Properties.id);
+            }
+            
             Iterator<Vertex> itImageElements = vEntity.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
             while (itImageElements.hasNext()) {
               OrientVertex vImageElement = (OrientVertex) itImageElements.next();
               if (AccessUtils.isLatestVersion(vImageElement)) {
                 if (AccessRights.canRead(vUser, vImageElement, g)) {
-                  DatabaseResource.addAnnotations(vImageElement, null, null, entityId, vUser, annotations, g);
+                  DatabaseResource.addAnnotations(vImageElement, null, specimenId, entityId, vUser, annotations, g);
                 }
               }
             }

@@ -129,7 +129,7 @@ public class RecolnatImage extends AbstractObject {
       try {
         URL imageUrl = new URL(url);
         imageFile = File.createTempFile("image", ".tmp");
-        FileUtils.copyURLToFile(imageUrl, imageFile, 50, 200);
+        FileUtils.copyURLToFile(imageUrl, imageFile, 250, 1000);
         Metadata imageMetadata = ImageMetadataReader.readMetadata(imageFile);
         this.rawImageMetadata = imageMetadata;
         imageFile.delete();

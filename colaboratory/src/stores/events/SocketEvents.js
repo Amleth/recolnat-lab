@@ -4,5 +4,6 @@
 'use strict';
 
 export default {
-  RESOURCE_UPDATED: "server_resourceUpdated"
+  RESOURCE_UPDATED: "server_resourceUpdated",
+  STATUS_CHANGE: "server_statusChange"
 };

@@ -24,8 +24,9 @@ class Connector extends EventEmitter {
     this.idToData = {};
     // Counts number of messages and serves as message id for this session. Only message which have a custom answer (i.e. UPDATE) need to be id'd.
     this.messageCounter = 0;
-    // Associates a message id (from messageCounter variable) to two callbacks : success and error
-    this.messageIdToCallback = {};
+    // Contains message ids (from messageCounter) for messages which have not been answered yet.
+    this.pendingMessages = {};
+
     this.websocketServerMethod = "";
     this.websocket = null;
     this.ping = null;
@@ -49,6 +50,7 @@ class Connector extends EventEmitter {
         case SocketConstants.ActionTypes.SEND:
           this.messageCounter++;
           action.message.messageId = this.messageCounter;
+          this.pendingMessages[this.messageCounter] = 'loading';
           if(action.callback) {
             this.once(this.messageCounter, action.callback);
           }
@@ -56,6 +58,7 @@ class Connector extends EventEmitter {
           break;
         case SocketConstants.ActionTypes.GET:
           this.messageCounter++;
+          this.pendingMessages[this.messageCounter] = 'loading';
           action.message.messageId = this.messageCounter;
           action.message.action = ServerConstants.ActionTypes.Send.GET;
           this.once(this.messageCounter, action.callback);
@@ -83,8 +86,14 @@ class Connector extends EventEmitter {
       websocket.onopen = function (message) {
         //console.log('Client connected ' + JSON.stringify(message));
         self.messageCounter = 0;
+        this.pendingMessages = {};
 
         self.ping = window.setInterval(self.sendPing.bind(self), 60000);
+        // If ids are present, re-subscribe to them as it means the socket was closed prematurely
+        var ids = Object.keys(self.idToData);
+        for(var i = 0; i < ids.length; ++i) {
+          self.subscribe(ids[i]);
+        }
       };
 
       websocket.onclose = function (message) {
@@ -112,11 +121,24 @@ class Connector extends EventEmitter {
       console.error("Internal server error");
       return;
     }
-    //console.log('got message ' + message.data);
+    console.log('got message ' + message.data);
     var jsonMessage = JSON.parse(message.data);
+    if(jsonMessage.id) {
+      delete this.pendingMessages[jsonMessage.id];
+    }
+    if(jsonMessage.forbidden) {
+      this.idToData[jsonMessage.forbidden] = {
+        uid: jsonMessage.forbidden,
+        forbidden: true
+      };
+      this.emitResourceUpdate(jsonMessage.forbidden);
+      this.unsubscribe(jsonMessage.forbidden);
+      return;
+    }
     switch(jsonMessage.action) {
       case ServerConstants.ActionTypes.Receive.RESOURCE:
         var resource = jsonMessage.resource;
+
         if(resource.type === "User" && this.user === null) {
           console.log('User data received');
           this.idToData['user'] = resource;
@@ -150,8 +172,11 @@ class Connector extends EventEmitter {
 
   subscribe(id) {
     //console.log('subscribing ' + id);
+    this.messageCounter++;
+    this.pendingMessages[this.messageCounter] = 'loading';
     var message = {
       action: ServerConstants.ActionTypes.Send.SUBSCRIBE,
+      messageId: this.messageCounter,
       id: id
     };
 
@@ -186,22 +211,23 @@ class Connector extends EventEmitter {
     this.websocket.send('PING');
   }
 
+  countPendingMessages() {
+    var ids = Object.keys(this.pendingMessages);
+    return ids.length;
+  }
+
   emitResourceUpdate(id) {
     this.emit(SocketEvents.RESOURCE_UPDATED + '_' + id, this.idToData[id]);
   }
 
   addResourceListener(id, callback) {
-    //console.log("Added listener for " + JSON.stringify(id));
-
     this.on(SocketEvents.RESOURCE_UPDATED + '_' + id, callback);
-
-    //console.log('listeners for ' + id + ' : ' + this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id));
     if(this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 1) {
-      this.subscribe(id);
+      window.setTimeout(this.subscribe.bind(this, id), 10);
     }
 
     if(this.idToData[id]) {
-      this.emitResourceUpdate(id);
+      window.setTimeout(this.emitResourceUpdate.bind(this, id), 10);
     }
   }
 
@@ -210,6 +236,14 @@ class Connector extends EventEmitter {
     if(this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 0) {
       this.unsubscribe(id);
     }
+  }
+
+  addStateChangeListener(callback) {
+    this.on(SocketEvents.STATUS_CHANGE, callback);
+  }
+
+  removeStateChangeListener(callback) {
+    this.remove(SocketEvents.STATUS_CHANGE, callback);
   }
 
 }

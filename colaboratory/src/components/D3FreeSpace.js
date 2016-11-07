@@ -472,20 +472,40 @@ class D3FreeSpace {
             viewData.displays[j][key] = entityMetadata[key];
           });
 
-          for(var i = 0; i < posEntity.tois.length; ++i) {
-            posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
+          for(var i = posEntity.tois.length; i > -1; --i) {
+            if(this.benchstore.getData(posEntity.tois[i])) {
+              posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
+            }
+            else {
+              posEntity.tois.splice(i, 1);
+            }
           }
 
-          for(i = 0; i < posEntity.pois.length; ++i) {
-            posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
+          for(i = posEntity.pois.length; i > -1; --i) {
+            if(this.benchstore.getData(posEntity.pois[i])) {
+              posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
+            }
+            else {
+              posEntity.pois.splice(i, 1);
+            }
 
           }
 
-          for(i = 0; i < posEntity.rois.length; ++i) {
-            posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
+          for(i = posEntity.rois.length; i > -1 ; --i) {
+            if(this.benchstore.getData(posEntity.rois[i])) {
+              posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
+            }
+            else {
+              posEntity.rois.splice(i, 1);
+            }
           }
-          for(i = 0; i < posEntity.aois.length; ++i) {
-            posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
+          for(i = posEntity.aois.length; i > -1 ; --i) {
+            if(this.benchstore.getData(posEntity.aois[i])) {
+              posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
+            }
+            else {
+              posEntity.aois.splice(i, 1);
+            }
           }
         }
         else {

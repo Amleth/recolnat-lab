@@ -53,7 +53,12 @@ class MetadataStore extends EventEmitter {
   }
 
   metadataUpdated(metadata) {
-    this.metadata[metadata.uid] = JSON.parse(JSON.stringify(metadata));
+    if(metadata.forbidden) {
+      delete this.metadata[metadata.uid];
+    }
+    else {
+      this.metadata[metadata.uid] = JSON.parse(JSON.stringify(metadata));
+    }
     this.emitUpdateEvent(metadata.uid);
   }
 

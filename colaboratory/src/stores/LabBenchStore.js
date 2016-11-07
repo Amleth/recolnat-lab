@@ -17,16 +17,16 @@ import ViewEvents from './events/ViewEvents';
 
 import MetadataActions from '../actions/MetadataActions';
 import ViewActions from '../actions/ViewActions';
-import SocketActions from '../actions/SocketActions';
 
 import conf from '../conf/ApplicationConfiguration';
 
 class LabBenchStore extends EventEmitter {
-  constructor() {
+  constructor(socket) {
     super();
     this.activeView = null;
     this.labBench = {};
     this.ids = {};
+    this.socket = socket;
 
     // Register a reaction to an action.
     AppDispatcher.register((action) => {
@@ -36,8 +36,33 @@ class LabBenchStore extends EventEmitter {
           this.removeListeners();
           delete this.labBench;
           delete this.ids;
+
           this.labBench = {};
           this.labBench.id = action.id;
+          this.labBench.subSets = {};
+          // this one is only to avoid the cost of merging .images and .specimens for certain operations
+          this.labBench.items = {};
+          this.labBench.images = {};
+          this.labBench.specimens = {};
+          this.labBench.views = {};
+          this.labBench.aois = {};
+          this.labBench.rois = {};
+          this.labBench.pois = {};
+          this.labBench.tois = {};
+          this.labBench.measureStandards = {};
+          this.labBench.measurements = {};
+
+          this.ids = {};
+          this.ids.subSets = [];
+          this.ids.items = [];
+          this.ids.views = [];
+          this.ids.aois = [];
+          this.ids.rois = [];
+          this.ids.pois = [];
+          this.ids.tois = [];
+          this.ids.measureStandards = [];
+          this.ids.measurements = [];
+
           this.activeView = null;
           this.emit(MetadataEvents.LAB_BENCH_READY);
           break;
@@ -158,34 +183,10 @@ class LabBenchStore extends EventEmitter {
 
   loadNewBench(setId) {
     //this.allElementIds.push(setId);
-    this.ids = {};
-    this.ids.subSets = [];
-    this.ids.items = [];
-    this.ids.views = [];
-    this.ids.aois = [];
-    this.ids.rois = [];
-    this.ids.pois = [];
-    this.ids.tois = [];
-    this.ids.measureStandards = [];
-    this.ids.measurements = [];
 
-    this.labBench = {};
-    this.labBench.id = setId;
-    this.labBench.subSets = {};
-    // this one is only to avoid the cost of merging .images and .specimens for certains operations
-    this.labBench.items = {};
-    this.labBench.images = {};
-    this.labBench.specimens = {};
-    this.labBench.views = {};
-    this.labBench.aois = {};
-    this.labBench.rois = {};
-    this.labBench.pois = {};
-    this.labBench.tois = {};
-    this.labBench.measureStandards = {};
-    this.labBench.measurements = {};
     this.loading = true;
 
-    window.setTimeout(SocketActions.registerListener.bind(null, setId, this.receiveBench.bind(this)), 10);
+    this.socket.addResourceListener(setId, this.receiveBench.bind(this), 10);
   }
 
   receiveBench(resource) {
@@ -200,7 +201,7 @@ class LabBenchStore extends EventEmitter {
       console.error('Could not load set ' + this.labBench.id + ': ' + JSON.stringify(resource));
       alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
 
-      window.setTimeout(SocketActions.removeListener.bind(null, this.labBench.id, this.receiveBench.bind(this)), 10);
+      this.socket.removeResourceListener(this.labBench.id, this.receiveBench.bind(this), 10);
       this.labBench = {};
     }
 
@@ -210,7 +211,7 @@ class LabBenchStore extends EventEmitter {
   loadSubSets(linksAndIds) {
     for(var i = 0; i < linksAndIds.length; ++i) {
       if(!_.contains(this.ids.subSets, linksAndIds[i].uid)) {
-        window.setTimeout(SocketActions.registerListener.bind(null, linksAndIds[i].uid, this.subSetLoaded.bind(this)), 10);
+        this.socket.addResourceListener(linksAndIds[i].uid, this.subSetLoaded.bind(this), 10);
         this.ids.subSets.push(linksAndIds[i].uid);
       }
     }
@@ -218,7 +219,13 @@ class LabBenchStore extends EventEmitter {
 
   subSetLoaded(resource) {
     if(resource) {
-      this.labBench.subSets[resource.uid] = resource;
+      if(resource.forbidden) {
+        delete this.labBench.subSets[resource.uid];
+        this.ids.subSets.splice(this.ids.subSets.indexOf(resource.uid), 1);
+      }
+      else {
+        this.labBench.subSets[resource.uid] = resource;
+      }
     }
     else {
       console.error('Could not load sub-set ' + JSON.stringify(resource));
@@ -228,16 +235,22 @@ class LabBenchStore extends EventEmitter {
 
   loadView(id) {
     if(!_.contains(this.ids.views, id)) {
-      window.setTimeout(SocketActions.registerListener.bind(null, id, this.viewLoaded.bind(this)), 10);
+      this.socket.addResourceListener(id, this.viewLoaded.bind(this), 10);
       this.ids.views.push(id);
     }
   }
 
   viewLoaded(view) {
     if(view) {
-      this.labBench.views[view.uid] = view;
-      this.activeView = view.uid;
-      this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
+      if(view.forbidden) {
+        delete this.labBench.views[view.uid];
+        this.ids.views.splice(this.ids.views.indexOf(view.uid), 1);
+      }
+      else {
+        this.labBench.views[view.uid] = view;
+        this.activeView = view.uid;
+        this.emit(ViewEvents.ACTIVE_VIEW_CHANGE);
+      }
     }
     else {
       console.error('Could not load view ' + JSON.stringify(view));
@@ -246,9 +259,12 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadItems(ids) {
+    console.log(JSON.stringify(ids));
+    console.log(JSON.stringify(this.labBench));
+    console.log(JSON.stringify(this.ids));
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.items, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.itemLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.itemLoaded.bind(this), 10);
         this.ids.items.push(ids[i]);
       }
     }
@@ -257,34 +273,48 @@ class LabBenchStore extends EventEmitter {
   itemLoaded(item) {
     this.labBench.items[item.uid] = item;
     if(item) {
-      switch (item.type) {
-        case 'Image':
-          this.labBench.images[item.uid] = item;
-          if (item.aois.length > 0) {
-            this.loadAoIs(item.aois);
-          }
-          if (item.rois.length > 0) {
-            this.loadRoIs(item.rois);
-          }
-          if (item.pois.length > 0) {
-            this.loadPoIs(item.pois);
-          }
-          if (item.tois.length > 0) {
-            this.loadToIs(item.tois);
-          }
-          if (item.scales.length > 0) {
-            this.loadMeasureStandards(item.scales);
-          }
-          window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
-          break;
-        case 'Specimen':
-          this.labBench.specimens[item.uid] = item;
-          if (item.images.length > 0) {
-            this.loadItems(item.images);
-          }
-          break;
-        default:
-          break;
+      if(item.forbidden) {
+        if(this.labBench.images[item.uid]) {
+          delete this.labBench.images[item.uid];
+          delete this.labBench.items[item.uid];
+          this.ids.items.splice(this.ids.items.indexOf(item.uid), 1);
+        }
+        if(this.labBench.specimens[item.uid]) {
+          delete this.labBench.specimens[item.uid];
+          delete this.labBench.items[item.uid];
+          this.ids.items.splice(this.ids.items.indexOf(item.uid), 1);
+        }
+      }
+      else {
+        switch (item.type) {
+          case 'Image':
+            this.labBench.images[item.uid] = item;
+            if (item.aois.length > 0) {
+              this.loadAoIs(item.aois);
+            }
+            if (item.rois.length > 0) {
+              this.loadRoIs(item.rois);
+            }
+            if (item.pois.length > 0) {
+              this.loadPoIs(item.pois);
+            }
+            if (item.tois.length > 0) {
+              this.loadToIs(item.tois);
+            }
+            if (item.scales.length > 0) {
+              this.loadMeasureStandards(item.scales);
+            }
+            window.setTimeout(ViewActions.loadImage.bind(null, item.thumbnail), 10);
+            break;
+          case 'Specimen':
+            this.labBench.specimens[item.uid] = item;
+            if (item.images.length > 0) {
+              this.loadItems(item.images);
+            }
+            break;
+          default:
+            break;
+        }
       }
     }
     else {
@@ -296,7 +326,7 @@ class LabBenchStore extends EventEmitter {
   loadAoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.aois, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.aoiLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.aoiLoaded.bind(this), 10);
         this.ids.aois.push(ids[i]);
       }
     }
@@ -304,9 +334,15 @@ class LabBenchStore extends EventEmitter {
 
   aoiLoaded(aoi) {
     if(aoi) {
-      this.labBench.aois[aoi.uid] = aoi;
-      if(aoi.measurements.length > 0) {
-        this.loadMeasurements(aoi.measurements);
+      if(aoi.forbidden) {
+        delete this.labBench.aois[aoi.uid];
+        this.ids.aois.splice(this.ids.aois.indexOf(aoi.uid), 1);
+      }
+      else {
+        this.labBench.aois[aoi.uid] = aoi;
+        if (aoi.measurements.length > 0) {
+          this.loadMeasurements(aoi.measurements);
+        }
       }
     }
     else {
@@ -318,7 +354,7 @@ class LabBenchStore extends EventEmitter {
   loadRoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.rois, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.roiLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.roiLoaded.bind(this), 10);
         this.ids.rois.push(ids[i]);
       }
     }
@@ -326,9 +362,15 @@ class LabBenchStore extends EventEmitter {
 
   roiLoaded(roi) {
     if(roi) {
-      this.labBench.rois[roi.uid] = roi;
-      if (roi.measurements.length > 0) {
-        this.loadMeasurements(roi.measurements);
+      if(roi.forbidden) {
+        delete this.labBench.rois[roi.uid];
+        this.ids.rois.splice(this.ids.rois.indexOf(roi.uid), 1);
+      }
+      else {
+        this.labBench.rois[roi.uid] = roi;
+        if (roi.measurements.length > 0) {
+          this.loadMeasurements(roi.measurements);
+        }
       }
     }
     else {
@@ -340,7 +382,7 @@ class LabBenchStore extends EventEmitter {
   loadPoIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.pois, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.poiLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.poiLoaded.bind(this), 10);
         this.ids.pois.push(ids[i]);
       }
     }
@@ -348,7 +390,13 @@ class LabBenchStore extends EventEmitter {
 
   poiLoaded(poi) {
     if(poi) {
-      this.labBench.pois[poi.uid] = poi;
+      if(poi.forbidden) {
+        delete this.labBench.pois[poi.uid];
+        this.ids.pois.splice(this.ids.pois.indexOf(poi.uid), 1);
+      }
+      else {
+        this.labBench.pois[poi.uid] = poi;
+      }
     }
     else {
       console.error('Could not load PoI ' + JSON.stringify(poi));
@@ -359,7 +407,7 @@ class LabBenchStore extends EventEmitter {
   loadToIs(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.tois, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i],this.toiLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.toiLoaded.bind(this), 10);
         this.ids.tois.push(ids[i]);
       }
     }
@@ -367,9 +415,15 @@ class LabBenchStore extends EventEmitter {
 
   toiLoaded(toi) {
     if(toi) {
-      this.labBench.tois[toi.uid] = toi;
-      if (toi.measurements.length > 0) {
-        this.loadMeasurements(toi.measurements);
+      if(toi.forbidden) {
+        delete this.labBench.tois[toi.uid];
+        this.ids.tois.splice(this.ids.tois.indexOf(toi.uid), 1);
+      }
+      else {
+        this.labBench.tois[toi.uid] = toi;
+        if (toi.measurements.length > 0) {
+          this.loadMeasurements(toi.measurements);
+        }
       }
     }
     else {
@@ -381,7 +435,7 @@ class LabBenchStore extends EventEmitter {
   loadMeasureStandards(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.measureStandards, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.standardLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.standardLoaded.bind(this), 10);
         this.ids.measureStandards.push(ids[i]);
       }
     }
@@ -389,7 +443,13 @@ class LabBenchStore extends EventEmitter {
 
   standardLoaded(standard) {
     if(standard) {
-      this.labBench.measureStandards[standard.uid] = standard;
+      if(standard.forbidden) {
+        delete this.labBench.measureStandards[standard.uid];
+        this.ids.measureStandards.splice(this.ids.measureStandards.indexOf(standard.uid), 1);
+      }
+      else {
+        this.labBench.measureStandards[standard.uid] = standard;
+      }
     }
     else {
       console.error('Could not load measure standard ' + JSON.stringify(standard));
@@ -400,7 +460,7 @@ class LabBenchStore extends EventEmitter {
   loadMeasurements(ids) {
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.measurements, ids[i])) {
-        window.setTimeout(SocketActions.registerListener.bind(null, ids[i], this.measurementLoaded.bind(this)), 10);
+        this.socket.addResourceListener(ids[i], this.measurementLoaded.bind(this), 10);
         this.ids.measurements.push(ids[i]);
       }
     }
@@ -408,7 +468,13 @@ class LabBenchStore extends EventEmitter {
 
   measurementLoaded(measurement) {
     if(measurement) {
-      this.labBench.measurements[measurement.uid] = measurement;
+      if(measurement.forbidden) {
+        delete this.labBench.measurements[measurement.uid];
+        this.ids.measurements.splice(this.ids.measurements.indexOf(measurement.uid), 1);
+      }
+      else {
+        this.labBench.measurements[measurement.uid] = measurement;
+      }
     }
     else {
       console.error('Could not load measurement ' + JSON.stringify(item));
@@ -418,52 +484,52 @@ class LabBenchStore extends EventEmitter {
 
   removeListeners() {
     if(this.labBench.id) {
-      window.setTimeout(SocketActions.removeListener.bind(null, this.labBench.id, this.receiveBench.bind(this)), 10);
+      this.socket.removeResourceListener(this.labBench.id, this.receiveBench.bind(this), 10);
     }
     if(this.ids) {
       if(this.ids.subSets) {
         for (var i = 0; i < this.ids.subSets.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.subSets[i], this.subSetLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.subSets[i], this.subSetLoaded.bind(this), 10);
         }
       }
       if(this.ids.items) {
         for (i = 0; i < this.ids.items.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.items[i], this.itemLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.items[i], this.itemLoaded.bind(this), 10);
         }
       }
       if(this.ids.views) {
         for (i = 0; i < this.ids.views.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.views[i], this.viewLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.views[i], this.viewLoaded.bind(this), 10);
         }
       }
       if(this.ids.aois) {
         for (i = 0; i < this.ids.aois.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.aois[i], this.aoiLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.aois[i], this.aoiLoaded.bind(this), 10);
         }
       }
       if(this.ids.rois) {
         for (i = 0; i < this.ids.rois.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.rois[i], this.roiLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.rois[i], this.roiLoaded.bind(this), 10);
         }
       }
       if(this.ids.pois) {
         for (i = 0; i < this.ids.pois.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.pois[i], this.poiLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.pois[i], this.poiLoaded.bind(this), 10);
         }
       }
       if(this.ids.tois) {
         for (i = 0; i < this.ids.tois.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.tois[i], this.toiLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.tois[i], this.toiLoaded.bind(this), 10);
         }
       }
       if(this.ids.measureStandards) {
         for (i = 0; i < this.ids.measureStandards.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.measureStandards[i], this.standardLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.measureStandards[i], this.standardLoaded.bind(this), 10);
         }
       }
       if(this.ids.measurements) {
         for (i = 0; i < this.ids.measurements.length; ++i) {
-          window.setTimeout(SocketActions.removeListener.bind(null, this.ids.measurements[i], this.measurementLoaded.bind(this)), 10);
+          this.socket.removeResourceListener(this.ids.measurements[i], this.measurementLoaded.bind(this), 10);
         }
       }
     }

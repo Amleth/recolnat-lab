@@ -40,21 +40,21 @@ import InterStoreCommunicationsController from './utils/InterStoreCommunications
 
 import conf from './conf/ApplicationConfiguration';
 
-const ministore = new MinimapStore();
-const viewstore = new ViewStore();
-const toolstore = new ToolStore();
-const userstore = new UserStore();
-const menustore = new MenuStore();
-const managerstore = new ManagerStore();
-const imagestore = new ImageStore();
-const metastore = new MetadataStore();
-const modalstore = new ModalStore();
-const benchstore = new LabBenchStore();
-const basketstore = new BasketStore();
-const modestore = new ModeStore();
-const inspecstore = new InspectorStore();
-const dragstore = new DragNDropStore();
 const socket = new WebSocketConnector();
+const ministore = new MinimapStore(socket);
+const viewstore = new ViewStore(socket);
+const toolstore = new ToolStore(socket);
+const userstore = new UserStore(socket);
+const menustore = new MenuStore(socket);
+const managerstore = new ManagerStore(socket);
+const imagestore = new ImageStore(socket);
+const metastore = new MetadataStore(socket);
+const modalstore = new ModalStore(socket);
+const benchstore = new LabBenchStore(socket);
+const basketstore = new BasketStore(socket);
+const modestore = new ModeStore(socket);
+const inspecstore = new InspectorStore(socket);
+const dragstore = new DragNDropStore(socket);
 const controller = new InterStoreCommunicationsController({
   ministore: ministore,
   viewstore: viewstore,

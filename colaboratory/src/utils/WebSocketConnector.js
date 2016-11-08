@@ -203,7 +203,7 @@ class Connector extends EventEmitter {
       }
     }
     else {
-      console.error("Websocket not connected");
+      console.warning("Websocket not connected");
     }
   }
 

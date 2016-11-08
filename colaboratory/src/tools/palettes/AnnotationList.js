@@ -4,6 +4,9 @@
 'use strict';
 
 import React from 'react';
+//import select from 'select';
+import Clipboard from 'clipboard';
+import downloadCSV from 'download-csv';
 
 import Globals from '../../utils/Globals';
 
@@ -84,6 +87,14 @@ class AnnotationList extends React.Component {
       textAlign: 'center'
     };
 
+    this.cellLfAlignStyle = {
+      padding: 0,
+      lineHeight: 1.2,
+      //paddingLeft: 0,
+      //paddingRight: 0,
+      textAlign: 'left'
+    };
+
     this._onModeChange = () => {
       const setModeVisibility = () => this.setState({
         isVisibleInCurrentMode: this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode() || this.props.modestore.isInSetMode()
@@ -151,6 +162,9 @@ class AnnotationList extends React.Component {
       if(this.state.annotations[i].inSpecimen) {
         this.props.metastore.removeMetadataUpdateListener(this.state.annotations[i].inImage, this.updateMeasures.bind(this));
       }
+      if(this.state.annotations[i].inEntity) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.annotations[i].inEntity, this.updateMeasures.bind(this));
+      }
     }
 
     this.setState({annotations: []});
@@ -163,6 +177,9 @@ class AnnotationList extends React.Component {
       var rawAnnotation = listOfAnnotations.data.annotations[i];
       var filteredAnnotation = JSON.parse(JSON.stringify(rawAnnotation));
 
+      if(filteredAnnotation.inEntity) {
+        this.props.metastore.addMetadataUpdateListener(filteredAnnotation.inEntity, this.updateMeasures.bind(this));
+      }
       // Convert stuff from px to mm by retrieving the EXIF data of an image.
       var mmPerPixel = null;
       if(filteredAnnotation.inImage) {
@@ -341,20 +358,138 @@ class AnnotationList extends React.Component {
     this.setState({annotations: annotations});
   }
 
+  /**
+   * If nothing is selected, copy everything
+   * @returns {string}
+   */
+  formatSelectionForClipboardCopy() {
+    var annotationsToCopy = [];
+    for(var i = 0; i < this.state.annotations.length; ++i) {
+      if(this.state.annotations[i].selected) {
+        var annotation = JSON.parse(JSON.stringify(this.state.annotations[i]));
+        annotationsToCopy.push(annotation);
+      }
+    }
+    if(annotationsToCopy.length === 0) {
+      annotationsToCopy = JSON.parse(JSON.stringify(this.state.annotations));
+    }
+
+
+    var text = 'Type\tTitre\tValeur\tPlanche\n';
+    for(var i = 0; i < annotationsToCopy.length; ++i) {
+      var annotation = annotationsToCopy[i];
+      switch(annotation.type) {
+        case 'Text':
+          continue;
+        case 'Unknown':
+          console.warning('Unknown annotation type for ' + JSON.stringify(annotation));
+          continue;
+        case 'Area':
+          text += 'aire\t';
+          break;
+        case 'Perimeter':
+          text += 'périmètre\t';
+          break;
+        case 'Length':
+          text += 'longueur\t';
+          break;
+        case 'Angle':
+          text += 'angle\t';
+          break;
+        default:
+          break;
+      }
+      text += annotation.title + '\t' + annotation.displayValue + '\t' + annotation.barcode + '\n';
+    }
+
+    return text;
+  }
+
+  exportAsCSV() {
+    var columnTitles = {
+      type: 'type',
+      title: 'title',
+      value: 'value',
+      barcode: 'inventory n°',
+      created: 'creation date',
+      setName: 'set',
+      imageName: 'image title',
+      specimenDisplayName: 'preferred specimen name',
+      coordinates: 'coordinates (origin in bottom left corner)',
+      linkToExplore: 'Explore page'
+    };
+    var columns = [];
+
+    var annotationsToExport = [];
+    for(var i = 0; i < this.state.annotations.length; ++i) {
+      if(this.state.annotations[i].selected) {
+        var annotation = JSON.parse(JSON.stringify(this.state.annotations[i]));
+        annotationsToExport.push(annotation);
+      }
+    }
+    if(annotationsToExport.length === 0) {
+      annotationsToExport = JSON.parse(JSON.stringify(this.state.annotations));
+    }
+
+    for(var i = 0; i < annotationsToExport.length; ++i) {
+      var annotation = annotationsToExport[i];
+      var entityData = this.props.metastore.getMetadataAbout(annotation.inEntity);
+      var imageData = this.props.metastore.getMetadataAbout(annotation.inImage);
+      var setData = this.props.metastore.getMetadataAbout(annotation.inSet);
+      var specimenData = this.props.metastore.getMetadataAbout(annotation.inSpecimen);
+      var vertices = [];
+      if(entityData.polygonVertices) {
+        console.log(entityData.polygonVertices);
+        var polygonVertices = JSON.parse(entityData.polygonVertices);
+        for(var j = 0; j < polygonVertices.length; ++j) {
+          var vertex = polygonVertices[j];
+          vertices.push([imageData.width - vertex[0], imageData.height - vertex[1]]);
+        }
+      }
+      console.log(JSON.stringify(vertices));
+      var data = {
+        type: annotation.type,
+        title: annotation.title,
+        value: annotation.displayValue,
+        barcode: annotation.barcode,
+        created: new Date(annotation.created),
+        setName: setData.name,
+        imageName: imageData.name,
+        specimenDisplayName: specimenData.name,
+        coordinates: '"' + JSON.stringify(vertices) + '"'
+      };
+
+      columns.push(data);
+    }
+
+    downloadCSV(columns, columnTitles);
+  }
+
   buildAnnotationRow(annotation) {
     var titleCell = null;
+    var barcodeCell = null;
     var selectionIcon = null;
-    if(annotation.title.length > 30) {
-      titleCell = <td style={this.cellStyle} className='tooltip title' data-content={annotation.title} data-sort-value={annotation.title}>{annotation.title.substring(0,30) + '...'}</td>;
+    if(annotation.title.length > 15) {
+      titleCell = <td style={this.cellLfAlignStyle} className='tooltip title' data-content={annotation.title} data-sort-value={annotation.title}>{annotation.title.substring(0,15) + '...'}</td>;
     }
     else {
-      titleCell = <td style={this.cellStyle} data-sort-value={annotation.title}>{annotation.title}</td>;
+      titleCell = <td style={this.cellLfAlignStyle} data-sort-value={annotation.title}>{annotation.title}</td>;
     }
     if(annotation.selected) {
       selectionIcon = <i className='ui checkmark box icon' onClick={this.unselect.bind(this, annotation.uid)}/>;
     }
     else {
       selectionIcon = <i className='ui square outline icon' onClick={this.select.bind(this, annotation.uid)}/>;
+    }
+
+    if(annotation.barcode) {
+      if (annotation.barcode.length > 10) {
+        barcodeCell = <td style={this.cellStyle} className='tooltip title' data-content={annotation.barcode}
+                          data-sort-value={annotation.barcode}>{'...' + annotation.barcode.substring(annotation.barcode.length - 10)}</td>
+      }
+      else {
+        barcodeCell = <td style={this.cellStyle} data-sort-value={annotation.barcode}>{annotation.barcode}</td>;
+      }
     }
 
     return(
@@ -365,7 +500,7 @@ class AnnotationList extends React.Component {
         <td style={this.cellStyle} data-sort-value={annotation.type}>{annotation.displayType}</td>
         {titleCell}
         <td style={this.cellStyle} data-sort-value={annotation.value}>{annotation.displayValue}</td>
-        <td style={this.cellStyle} data-sort-value={annotation.barcode}>{annotation.barcode}</td>
+        {barcodeCell}
         <td style={this.cellStyle}><i className='ui eye icon' /></td>
       </tr>
     )
@@ -404,6 +539,11 @@ class AnnotationList extends React.Component {
     $(this.refs.table.getDOMNode()).tablesort();
     $('.tooltip.title', $(this.refs.table.getDOMNode())).popup();
     $('.button', $(this.refs.menu.getDOMNode())).popup();
+
+    //var copyText = this.copySelected();
+    new Clipboard(this.refs.copyButton.getDOMNode(), {
+      text: this.formatSelectionForClipboardCopy.bind(this)
+    });
   }
 
   componentWillUnmount() {
@@ -431,7 +571,7 @@ class AnnotationList extends React.Component {
       </div>
       <div style={this.scrollerStyle}>
         <div style={this.menuStyle} ref='menu'>
-          <div style={this.upperButtonsStyle}>
+          <div style={this.upperButtonsStyle} className='ui buttons'>
             <div style={this.buttonStyle}
                  data-content="Mesures"
                  className={'ui tiny compact button ' + this.state.buttons.measures}>
@@ -443,7 +583,7 @@ class AnnotationList extends React.Component {
               <i className="tags icon"/>
             </div>
           </div>
-          <div style={this.upperButtonsStyle}>
+          <div style={this.upperButtonsStyle} className='ui buttons'>
             <div style={this.buttonStyle}
               className={'ui tiny compact button ' + this.state.buttons.image}
                  data-content="Image/Planche"
@@ -460,11 +600,13 @@ class AnnotationList extends React.Component {
           <div style={this.upperButtonsStyle}>
             <div style={this.buttonStyle}
                  data-content="Copier vers le presse-papiers"
+                 ref='copyButton'
                  className='ui tiny compact button'>
               <i className='copy icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
                  data-content="Exporter"
+                 onClick={this.exportAsCSV.bind(this)}
                  className='ui tiny compact button'>
               <i className='download icon' style={this.iconButtonStyle} />
             </div>
@@ -483,9 +625,9 @@ class AnnotationList extends React.Component {
             <thead>
             <tr>
               <th className='one wide disabled' style={this.cellStyle}>{selectAllIcon}</th>
-              <th className='one wide' style={this.cellStyle}>Type</th>
-              <th className='six wide' style={this.cellStyle}>Titre</th>
-              <th className='three wide' style={this.cellStyle}>Valeur</th>
+              <th className='one wide' style={this.cellStyle}></th>
+              <th className='five wide' style={this.cellLfAlignStyle}>Titre</th>
+              <th className='four wide' style={this.cellStyle}>Valeur</th>
               <th className='four wide' style={this.cellStyle}>Planche</th>
               <th className='one wide disabled' style={this.cellStyle}></th>
             </tr>

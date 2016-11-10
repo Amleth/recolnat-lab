@@ -669,6 +669,13 @@ class ElementInspector extends React.Component {
     this.props.inspecstore.addContentChangeListener(this._onSelectionChange);
   }
 
+  componentWillReceiveProps(props) {
+    if(props.height != this.props.height) {
+      this.containerStyle.height = props.height;
+      this.scrollerStyle.height = props.height-35;
+    }
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.containerStyle.display = '';

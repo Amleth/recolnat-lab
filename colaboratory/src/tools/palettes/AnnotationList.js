@@ -546,6 +546,13 @@ class AnnotationList extends React.Component {
     this.props.inspecstore.addAnnotationSelectionListener(this._onEntitySelected);
   }
 
+  componentWillReceiveProps(props) {
+    if(props.height != this.props.height) {
+      this.containerStyle.height = props.height;
+      this.scrollerStyle.height = props.height-35;
+    }
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.containerStyle.display = null;
@@ -647,7 +654,7 @@ class AnnotationList extends React.Component {
             </div>
             <div style={this.buttonStyle}
                  data-content="Options d'affichage"
-                 className='ui tiny compact button'>
+                 className='ui tiny compact button disabled'>
               <i style={this.iconButtonStyle} className='setting icon' />
             </div>
           </div>

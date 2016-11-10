@@ -172,6 +172,13 @@ class SimpleImageDisplay extends React.Component {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
   }
 
+  componentWillReceiveProps(props) {
+    if(props.height != this.props.height) {
+      this.componentStyle.height = props.height;
+      this.scrollerStyle.height = props.height-35;
+    }
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if (nextState.isVisibleInCurrentMode) {
       this.componentStyle.display = '';

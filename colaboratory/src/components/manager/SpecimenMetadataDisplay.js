@@ -293,6 +293,13 @@ class SpecimenMetadataDisplay extends React.Component {
     this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
+  componentWillReceiveProps(props) {
+    if(props.height != this.props.height) {
+      this.containerStyle.height = props.height;
+      this.scrollerStyle.height = props.height-35;
+    }
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.containerStyle.display = '';

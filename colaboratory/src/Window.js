@@ -437,6 +437,7 @@ class Window extends React.Component {
           <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
           <div style={this.columnRightSideStyle}>
             <RightPane
+              visibleHeight={window.innerHeight - this.menuHeight}
               userstore={userstore}
               viewstore={viewstore}
               toolstore={toolstore}

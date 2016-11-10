@@ -346,6 +346,12 @@ class MetadataViewer extends React.Component {
     this.props.modestore.addModeChangeListener(this._onModeChange);
   }
 
+  componentWillReceiveProps(props) {
+    if(props.height != this.props.height) {
+      this.placeholderStyle.height = props.height;
+    }
+  }
+
   componentWillUpdate(nextProps, nextState) {
     if(nextState.isVisibleInCurrentMode) {
       this.tableStyle.display = '';

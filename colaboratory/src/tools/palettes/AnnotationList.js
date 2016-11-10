@@ -9,6 +9,7 @@ import Clipboard from 'clipboard';
 import downloadCSV from 'download-csv';
 
 import Globals from '../../utils/Globals';
+import D3ViewUtils from '../../utils/D3ViewUtils';
 
 import measureIcon from '../../images/measure.svg';
 import polylineIcon from '../../images/polyline.png';
@@ -465,6 +466,29 @@ class AnnotationList extends React.Component {
     downloadCSV(columns, columnTitles);
   }
 
+  zoomOnElement(entityId) {
+    var meta = this.props.metastore.getMetadataAbout(entityId);
+    if(!meta) {
+      return;
+    }
+    switch(meta.type) {
+      case 'RegionOfInterest':
+        D3ViewUtils.zoomToObject('#ROI-' + entityId, this.props.viewstore.getView());
+        break;
+      case 'TrailOfInterest':
+        D3ViewUtils.zoomToObject('#PATH-' + entityId, this.props.viewstore.getView());
+        break;
+      case 'PointOfInterest':
+        D3ViewUtils.zoomToObject('#POI-' + entityId, this.props.viewstore.getView());
+        break;
+      case 'AngleOfInterest':
+        D3ViewUtils.zoomToObject('#AOI-' + entityId, this.props.viewstore.getView());
+        break;
+      default:
+        console.warn('Annotation type not handled: ' + meta.type);
+    }
+  }
+
   buildAnnotationRow(annotation) {
     var titleCell = null;
     var barcodeCell = null;
@@ -484,12 +508,21 @@ class AnnotationList extends React.Component {
 
     if(annotation.barcode) {
       if (annotation.barcode.length > 10) {
-        barcodeCell = <td style={this.cellStyle} className='tooltip title' data-content={annotation.barcode}
-                          data-sort-value={annotation.barcode}>{'...' + annotation.barcode.substring(annotation.barcode.length - 10)}</td>
+        barcodeCell = <td style={this.cellStyle}
+                          className='tooltip title'
+                          data-content={annotation.barcode}
+                          data-sort-value={annotation.barcode}>
+          {'...' + annotation.barcode.substring(annotation.barcode.length - 10)}
+        </td>
       }
       else {
         barcodeCell = <td style={this.cellStyle} data-sort-value={annotation.barcode}>{annotation.barcode}</td>;
       }
+    }
+
+    var eyeIconStyle = JSON.parse(JSON.stringify(this.cellStyle));
+    if(!this.props.modestore.isInObservationMode() && !this.props.modestore.isInOrganisationMode()) {
+      eyeIconStyle.visibility = 'hidden';
     }
 
     return(
@@ -497,11 +530,13 @@ class AnnotationList extends React.Component {
         <td style={this.cellStyle}>
           {selectionIcon}
         </td>
-        <td style={this.cellStyle} data-sort-value={annotation.type}>{annotation.displayType}</td>
+        <td style={this.cellStyle}
+            data-sort-value={annotation.type}>{annotation.displayType}</td>
         {titleCell}
-        <td style={this.cellStyle} data-sort-value={annotation.value}>{annotation.displayValue}</td>
+        <td style={this.cellStyle}
+            data-sort-value={annotation.value}>{annotation.displayValue}</td>
         {barcodeCell}
-        <td style={this.cellStyle}><i className='ui eye icon' /></td>
+        <td style={eyeIconStyle}><i className='ui eye icon' onClick={this.zoomOnElement.bind(this, annotation.inEntity)}/></td>
       </tr>
     )
   }

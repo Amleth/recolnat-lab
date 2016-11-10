@@ -63,6 +63,7 @@ class RightPane extends React.Component {
           modestore={this.props.modestore}
           inspecstore={this.props.inspecstore}
           metastore={this.props.metastore}
+          viewstore={this.props.viewstore}
           />
         <ElementInspector
           toolstore={this.props.toolstore}

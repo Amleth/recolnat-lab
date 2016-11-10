@@ -55,6 +55,7 @@ class Connector extends EventEmitter {
             this.once(this.messageCounter, action.callback);
           }
           window.setTimeout(this.sendPayloadWhenReady.bind(this, action.message), 10);
+          this.emit(SocketEvents.STATUS_CHANGE);
           break;
         case SocketConstants.ActionTypes.GET:
           this.messageCounter++;
@@ -63,6 +64,7 @@ class Connector extends EventEmitter {
           action.message.action = ServerConstants.ActionTypes.Send.GET;
           this.once(this.messageCounter, action.callback);
           window.setTimeout(this.sendPayloadWhenReady.bind(this, action.message), 10);
+          this.emit(SocketEvents.STATUS_CHANGE);
           break;
         default:
           break;
@@ -86,7 +88,7 @@ class Connector extends EventEmitter {
       websocket.onopen = function (message) {
         //console.log('Client connected ' + JSON.stringify(message));
         self.messageCounter = 0;
-        this.pendingMessages = {};
+        self.pendingMessages = {};
 
         self.ping = window.setInterval(self.sendPing.bind(self), 60000);
         // If ids are present, re-subscribe to them as it means the socket was closed prematurely
@@ -94,6 +96,7 @@ class Connector extends EventEmitter {
         for(var i = 0; i < ids.length; ++i) {
           self.subscribe(ids[i]);
         }
+        self.emit(SocketEvents.STATUS_CHANGE);
       };
 
       websocket.onclose = function (message) {
@@ -125,6 +128,7 @@ class Connector extends EventEmitter {
     var jsonMessage = JSON.parse(message.data);
     if(jsonMessage.id) {
       delete this.pendingMessages[jsonMessage.id];
+      this.emit(SocketEvents.STATUS_CHANGE);
     }
     if(jsonMessage.forbidden) {
       this.idToData[jsonMessage.forbidden] = {
@@ -174,6 +178,7 @@ class Connector extends EventEmitter {
     //console.log('subscribing ' + id);
     this.messageCounter++;
     this.pendingMessages[this.messageCounter] = 'loading';
+    this.emit(SocketEvents.STATUS_CHANGE);
     var message = {
       action: ServerConstants.ActionTypes.Send.SUBSCRIBE,
       messageId: this.messageCounter,
@@ -203,7 +208,7 @@ class Connector extends EventEmitter {
       }
     }
     else {
-      console.warning("Websocket not connected");
+      console.warn("Websocket not connected");
     }
   }
 

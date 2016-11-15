@@ -156,7 +156,12 @@ class GlobalFunctions {
     if(!entity) {
       return 0;
     }
-    return entity.creationDate;
+    if(entity.creationDate) {
+      return entity.creationDate;
+    }
+    else if(entity.created) {
+      return entity.created;
+    }
   }
 
   // static setMode(mode) {

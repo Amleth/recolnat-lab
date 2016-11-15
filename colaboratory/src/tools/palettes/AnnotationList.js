@@ -104,8 +104,45 @@ class AnnotationList extends React.Component {
     };
 
     this._onMetadataUpdate = (id) => {
-      const processMetadata = (id) => this.props.metastore.getAnnotationsOfEntity(id, this.processAnnotations.bind(this));
+      const processMetadata = (id) => {
+        var meta = this.props.metastore.getMetadataAbout(id);
+        if(!meta) {
+          return;
+        }
+        if(this.state.data[id]) {
+          if (JSON.stringify(meta) === JSON.stringify(this.state.data[id])) {
+            return;
+          }
+        }
+        switch(meta.type) {
+          case 'Set':
+            this.receiveSet(id);
+            break;
+          case 'Specimen':
+            this.receiveSpecimen(id);
+            break;
+          case 'Image':
+            this.receiveImage(id);
+            break;
+          case 'PointOfInterest':
+          case 'TrailOfInterest':
+          case 'AngleOfInterest':
+          case 'RegionOfInterest':
+            this.receiveAnchor(id);
+            break;
+          case 'Annotation':
+            this.receiveAnnotation(id);
+            break;
+          default:
+            console.warn('No handler for ' + meta.type);
+        }
+      };
       return processMetadata.apply(this, [id]);
+    };
+
+    this._onExternalMetadataUpdate = (id) => {
+      const receiveExtMetadata = (id) => this.receiveSourceMetadata(id);
+      return receiveExtMetadata.apply(this, [id]);
     };
 
     this._onEntitySelected = () => {
@@ -126,198 +163,331 @@ class AnnotationList extends React.Component {
         set: 'disabled'
       },
       data: {},
+      extData: {},
       annotations: [],
       tags: {}
     };
   }
 
   updateSelection(selection) {
-    this.removeListeners();
+    this.setState({selectedSetId: selection.setId, selectedImageId: selection.imageId});
 
-    var meta = null;
     switch(this.state.subject) {
       case 'image':
+        this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.imageId, this._onMetadataUpdate);
-        this.props.metastore.getAnnotationsOfEntity(selection.imageId, this.processAnnotations.bind(this));
+        window.setTimeout(this._onMetadataUpdate.bind(this, selection.imageId), 100);
         break;
       case 'set':
+        this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.setId, this._onMetadataUpdate);
-        this.props.metastore.getAnnotationsOfEntity(selection.setId, this.processAnnotations.bind(this));
+        window.setTimeout(this.receiveSet.bind(this, selection.setId), 100);
         break;
       default:
         console.warning('Unknown subject ' + this.state.subject);
         return;
     }
+  }
 
-    this.setState({selectedSetId: selection.setId, selectedImageId: selection.imageId});
+  receiveSet(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    var data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
+    if(this.state.subject === 'set') {
+      var ids = _.keys(data);
+      var itemIds = meta.items.map(i => i.uid);
+      var newIds = _.without(itemIds, ids);
+      for (var i = 0; i < newIds.length; ++i) {
+        if (!data[newIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+          data[newIds[i]] = null;
+          window.setTimeout(this.receiveItem.bind(this, newIds[i]), 100);
+        }
+      }
+    }
+
+    this.setState({data: data});
+  }
+
+  receiveItem(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    switch(meta.type) {
+      case 'Image':
+        this.receiveImage(id);
+        break;
+      case 'Specimen':
+        this.receiveSpecimen(id);
+        break;
+      default:
+        console.warn('No handler for type ' + meta.type);
+    }
+  }
+
+  receiveSpecimen(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    var data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
+    if(this.state.subject === 'set' || this.state.subject === 'image' && this.state.selectedImageId === id) {
+      var ids = _.keys(data);
+      var newIds = _.without(meta.images, ids);
+      for (var i = 0; i < newIds.length; ++i) {
+        if (!data[newIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+          data[newIds[i]] = null;
+          window.setTimeout(this.receiveImage.bind(this, newIds[i]), 100);
+        }
+      }
+    }
+    if(this.state.subject === 'image') {
+      var newSetIds = _.without(meta.inSets, ids);
+      for (var i = 0; i < newSetIds.length; ++i) {
+        if (!data[newSetIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newSetIds[i], this._onMetadataUpdate);
+          data[newSetIds[i]] = null;
+          window.setTimeout(this.receiveSet.bind(this, newSetIds[i]), 100);
+        }
+      }
+    }
+
+    // Get barcode for inSpecimen data
+    this.props.metastore.addExternalMetadataUpdateListener(id, this._onExternalMetadataUpdate);
+
+    this.setState({data: data});
+  }
+
+  receiveImage(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    var data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
+
+    var ids = _.keys(data);
+
+    var itemIds = _.union(meta.pois, meta.rois, meta.aois, meta.tois);
+    var newIds = _.without(itemIds, ids);
+    for (var i = 0; i < newIds.length; ++i) {
+      if(!data[newIds[i]]) {
+        this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+        data[newIds[i]] = null;
+        window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+      }
+    }
+
+    if(this.state.subject === 'image' && this.state.selectedImageId === id) {
+      var newSpecimenIds = _.without(meta.specimens, ids);
+      for (var i = 0; i < newSpecimenIds.length; ++i) {
+        if(!data[newSpecimenIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newSpecimenIds[i], this._onMetadataUpdate);
+          data[newSpecimenIds[i]] = null;
+          window.setTimeout(this.receiveSpecimen.bind(this, newSpecimenIds[i]), 100);
+        }
+      }
+    }
+
+    this.setState({data: data});
+  }
+
+  receiveAnchor(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    var data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
+    var ids = _.keys(data);
+
+    var newIds = _.without(meta.measurements, ids);
+    for (var i = 0; i < newIds.length; ++i) {
+      if(!data[newIds[i]]) {
+        this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+        data[newIds[i]] = null;
+        window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+      }
+    }
+
+    this.setState({data: data});
+  }
+
+  receiveAnnotation(id) {
+    var meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    var data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
+    this.setState({data: data});
+  }
+
+  receiveSourceMetadata(id) {
+    var meta = this.props.metastore.getExternalMetadata(id);
+    if(this.state.extData[id]) {
+      if (JSON.stringify(meta) === JSON.stringify(this.state.extData[id])) {
+        return;
+      }
+    }
+    var extData = JSON.parse(JSON.stringify(this.state.extData));
+    extData[id] = meta;
+    this.setState({extData: extData});
   }
 
   removeListeners() {
     this.props.metastore.removeMetadataUpdateListener(this.state.selectedImageId, this._onMetadataUpdate);
     this.props.metastore.removeMetadataUpdateListener(this.state.selectedSetId, this._onMetadataUpdate);
+
+    var ids = _.keys(this.state.data);
+    for(var i = 0; i < ids.length; ++i) {
+      this.props.metastore.removeMetadataUpdateListener(ids[i], this._onMetadataUpdate);
+    }
+
     for(var i = 0; i < this.state.annotations.length; ++i) {
-      //this.props.metastore.removeMetadataUpdateListener(this.state.annotations[i], this._onMetadataUpdate);
-      if(this.state.annotations[i].inSpecimen) {
-        this.props.metastore.removeExternalMetadataUpdateListener(this.state.annotations[i].inSpecimen, this.updateBarcodes.bind(this));
+      this.props.metastore.removeExternalMetadataUpdateListener(this.state.annotations[i].inSpecimen, this._onExternalMetadataUpdate);
+    }
+
+    this.setState({annotations: [], data: {}, extData: {}});
+  }
+
+  createAnnotations(state) {
+    var annotations = _.chain(state.data)
+      .pick(d => d !== null)
+      .pick(d => d.type === 'Annotation' && d.valueInPx !== 0)
+      .map(a => JSON.parse(JSON.stringify(a)))
+      .each((a, idx, list) => this.enrichAnnotation(a, state), [this])
+      .sortBy(Globals.getCreationDate)
+      .value()
+      .reverse();
+    return annotations;
+  }
+
+  enrichAnnotation(annotation, state) {
+    if(!state.data || !annotation) {
+      return;
+    }
+    annotation.inEntity = annotation.parents[0];
+    if(!annotation.inEntity) {
+      return;
+    }
+
+    if(!state.data[annotation.inEntity]) {
+      return;
+    }
+    annotation.inImage = state.data[annotation.inEntity].parents[0];
+    if(!annotation.inImage) {
+      return;
+    }
+
+    if(!state.data[annotation.inImage]) {
+      return;
+    }
+    annotation.inSpecimen = state.data[annotation.inImage].specimens[0];
+    if(!annotation.inSpecimen) {
+      return;
+    }
+
+    if(!state.data[annotation.inSpecimen]) {
+      return;
+    }
+    annotation.inSet = state.data[annotation.inSpecimen].inSets[0];
+    if(!annotation.inSet) {
+      return;
+    }
+
+    if(annotation.inSpecimen) {
+      var data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
+      if(data === 'loading') {
+        annotation.barcode = 'Chargement...';
       }
-      if(this.state.annotations[i].inSpecimen) {
-        this.props.metastore.removeMetadataUpdateListener(this.state.annotations[i].inImage, this.updateMeasures.bind(this));
+      else if(data) {
+        annotation.barcode = data.institutioncode + ' ' + data.catalognumber;
       }
-      if(this.state.annotations[i].inEntity) {
-        this.props.metastore.removeMetadataUpdateListener(this.state.annotations[i].inEntity, this.updateMeasures.bind(this));
+      else {
+        annotation.barcode = 'Indisponible';
       }
     }
 
-    this.setState({annotations: []});
-  }
 
-  processAnnotations(listOfAnnotations) {
-    console.log(JSON.stringify(listOfAnnotations));
-    var curatedAnnotations = [];
-    for(var i = 0; i < listOfAnnotations.data.annotations.length; ++i) {
-      var rawAnnotation = listOfAnnotations.data.annotations[i];
-      var filteredAnnotation = JSON.parse(JSON.stringify(rawAnnotation));
+    var anchorData = state.data[annotation.inEntity];
+    if(anchorData) {
+      annotation.name = anchorData.name;
+    }
 
-      if(filteredAnnotation.inEntity) {
-        this.props.metastore.addMetadataUpdateListener(filteredAnnotation.inEntity, this.updateMeasures.bind(this));
-      }
-      // Convert stuff from px to mm by retrieving the EXIF data of an image.
-      var mmPerPixel = null;
-      if(filteredAnnotation.inImage) {
-        //ViewActions.loadImage(filteredAnnotation.imageUrl, this.updateMeasures().bind(this));
-        this.props.metastore.addMetadataUpdateListener(filteredAnnotation.inImage, this.updateMeasures.bind(this));
-        var imageMetadata = this.props.metastore.getMetadataAbout(filteredAnnotation.inImage);
-        mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
-      }
-      switch(filteredAnnotation.type) {
-        case 'Text':
-          continue;
-        case 'Unknown':
-          console.warning('Unknown annotation type for ' + JSON.stringify(filteredAnnotation));
-          continue;
-          break;
-        case 'Area':
+    annotation.displayDate = new Date(annotation.created);
+
+    var mmPerPixel = Globals.getEXIFScalingData(state.data[annotation.inImage]);
+    if(annotation.measureType) {
+      switch(annotation.measureType) {
+        case 100: // Area
           if(mmPerPixel) {
-            filteredAnnotation.displayValue = (filteredAnnotation.value * mmPerPixel * mmPerPixel).toFixed(2) + ' mm²';
+            annotation.displayValue = (annotation.valueInPx * mmPerPixel * mmPerPixel).toFixed(2) + ' mm²';
           }
           else {
-            filteredAnnotation.displayValue = (filteredAnnotation.value).toFixed(2) + ' px²';
+            annotation.displayValue = (annotation.valueInPx).toFixed(2) + ' px²';
           }
-          filteredAnnotation.displayType = <img src={areaIcon} height='15px' width='15px' />;
+          annotation.displayType = <img src={areaIcon} height='15px' width='15px' />;
+          annotation.display = true;
           break;
-        case 'Perimeter':
+        case 101: // Perimeter
           if(mmPerPixel) {
-            filteredAnnotation.displayValue = (filteredAnnotation.value * mmPerPixel).toFixed(2) + ' mm';
+            annotation.displayValue = (annotation.valueInPx * mmPerPixel).toFixed(2) + ' mm';
           }
           else {
-            filteredAnnotation.displayValue = (filteredAnnotation.value).toFixed(2) + ' px';
+            annotation.displayValue = (annotation.valueInPx).toFixed(2) + ' px';
           }
-          filteredAnnotation.displayType = <img src={perimeterIcon} height='15px' width='15px' />;
+          annotation.displayType = <img src={perimeterIcon} height='15px' width='15px' />;
+          annotation.display = true;
           break;
-        case 'Length':
+        case 102: // Length
           if(mmPerPixel) {
-            filteredAnnotation.displayValue = (filteredAnnotation.value * mmPerPixel).toFixed(2) + ' mm';
+            annotation.displayValue = (annotation.valueInPx * mmPerPixel).toFixed(2) + ' mm';
           }
           else {
-            filteredAnnotation.displayValue = (filteredAnnotation.value).toFixed(2) + ' px';
+            annotation.displayValue = (annotation.valueInPx).toFixed(2) + ' px';
           }
-          filteredAnnotation.displayType = <img src={polylineIcon} height='15px' width='15px' />;
+          annotation.displayType = <img src={polylineIcon} height='15px' width='15px' />;
+          annotation.display = true;
           break;
-        case 'Angle':
-          filteredAnnotation.displayValue = filteredAnnotation.value.toFixed(2) + ' °';
-          filteredAnnotation.displayType = <img src={angleIcon} height='15px' width='15px' />;
+        case 103: // Angle
+          annotation.displayValue = annotation.valueInPx.toFixed(2) + ' °';
+          annotation.displayType = <img src={angleIcon} height='15px' width='15px' />;
+          annotation.display = true;
           break;
         default:
+          console.warn('Unknown measure type ' + annotation.measureType);
+          annotation.display = false;
           break;
       }
-
-      // Get barcode for inSpecimen data
-      this.props.metastore.addExternalMetadataUpdateListener(filteredAnnotation.inSpecimen, this.updateBarcodes.bind(this));
-
-      // Get set name for inSet
-
-      // End operations on this annotation
-      curatedAnnotations.push(filteredAnnotation);
     }
-    this.setState({annotations: _.sortBy(curatedAnnotations, Globals.getDate).reverse()});
-  }
-
-  updateMeasures() {
-    var annotations = this.state.annotations;
-    //var annotations = JSON.parse(JSON.stringify(this.state.annotations));
-    for(var i = 0; i < annotations.length; ++i) {
-      if(annotations[i].inImage) {
-        var imageMetadata = this.props.metastore.getMetadataAbout(annotations[i].inImage);
-        var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
-        switch(annotations[i].type) {
-          case 'Text':
-            continue;
-          case 'Unknown':
-            console.warning('Unknown annotation type for ' + JSON.stringify(annotations[i]));
-            continue;
-            break;
-          case 'Area':
-            if(mmPerPixel) {
-              annotations[i].displayValue = (annotations[i].value * mmPerPixel * mmPerPixel).toFixed(2) + ' mm²';
-            }
-            else {
-              annotations[i].displayValue = (annotations[i].value).toFixed(2) + ' px²';
-            }
-            break;
-          case 'Perimeter':
-            if(mmPerPixel) {
-              annotations[i].displayValue = (annotations[i].value * mmPerPixel).toFixed(2) + ' mm';
-            }
-            else {
-              annotations[i].displayValue = (annotations[i].value).toFixed(2) + ' px';
-            }
-            break;
-          case 'Length':
-            if(mmPerPixel) {
-              annotations[i].displayValue = (annotations[i].value * mmPerPixel).toFixed(2) + ' mm';
-            }
-            else {
-              annotations[i].displayValue = (annotations[i].value).toFixed(2) + ' px';
-            }
-            break;
-          case 'Angle':
-            annotations[i].displayValue = annotations[i].value.toFixed(2) + ' °';
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
-    this.setState({annotations: annotations});
-  }
-
-  updateBarcodes() {
-    //var annotations = JSON.parse(JSON.stringify(this.state.annotations));
-    var annotations = this.state.annotations;
-    for(var i = 0; i < annotations.length; ++i) {
-      if(annotations[i].inSpecimen) {
-        var data = this.props.metastore.getExternalMetadata(annotations[i].inSpecimen);
-        if(data) {
-          annotations[i].barcode = data.institutioncode + ' ' + data.catalognumber;
-        }
-      }
-    }
-
-    this.setState({annotations: annotations});
   }
 
   setSubject(subject) {
+    if(subject === this.state.subject) {
+      return;
+    }
     this.removeListeners();
 
     switch(subject) {
       case 'image':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedImageId, this._onMetadataUpdate);
-        this.props.metastore.getAnnotationsOfEntity(this.state.selectedImageId, this.processAnnotations.bind(this));
+        window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedImageId), 100);
         break;
       case 'set':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedSetId, this._onMetadataUpdate);
-        this.props.metastore.getAnnotationsOfEntity(this.state.selectedSetId, this.processAnnotations.bind(this));
+        window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedSetId), 100);
         break;
       default:
         console.warning('Unknown subject ' + subject);
@@ -400,7 +570,7 @@ class AnnotationList extends React.Component {
         default:
           break;
       }
-      text += annotation.title + '\t' + annotation.displayValue + '\t' + annotation.barcode + '\n';
+      text += annotation.name + '\t' + annotation.displayValue + '\t' + annotation.barcode + '\n';
     }
 
     return text;
@@ -409,12 +579,12 @@ class AnnotationList extends React.Component {
   exportAsCSV() {
     var columnTitles = {
       type: 'type',
-      title: 'title',
+      name: 'name',
       value: 'value',
       barcode: 'inventory n°',
       created: 'creation date',
       setName: 'set',
-      imageName: 'image title',
+      imageName: 'image name',
       specimenDisplayName: 'preferred specimen name',
       coordinates: 'coordinates (origin in bottom left corner)',
       linkToExplore: 'Explore page'
@@ -450,10 +620,10 @@ class AnnotationList extends React.Component {
       console.log(JSON.stringify(vertices));
       var data = {
         type: annotation.type,
-        title: annotation.title,
+        name: annotation.name,
         value: annotation.displayValue,
         barcode: annotation.barcode,
-        created: new Date(annotation.created),
+        created: annotation.displayDate,
         setName: setData.name,
         imageName: imageData.name,
         specimenDisplayName: specimenData.name,
@@ -490,15 +660,22 @@ class AnnotationList extends React.Component {
   }
 
   buildAnnotationRow(annotation) {
+    if (!annotation.display) {
+      return null;
+    }
     var titleCell = null;
     var barcodeCell = null;
     var selectionIcon = null;
-    if(annotation.title.length > 15) {
-      titleCell = <td style={this.cellLfAlignStyle} className='tooltip title' data-content={annotation.title} data-sort-value={annotation.title}>{annotation.title.substring(0,15) + '...'}</td>;
+    if (annotation.name) {
+      if (annotation.name.length > 15) {
+        titleCell = <td style={this.cellLfAlignStyle} className='tooltip title' data-content={annotation.name}
+                        data-sort-value={annotation.name}>{annotation.name.substring(0, 15) + '...'}</td>;
+      }
+      else {
+        titleCell = <td style={this.cellLfAlignStyle} data-sort-value={annotation.name}>{annotation.name}</td>;
+      }
     }
-    else {
-      titleCell = <td style={this.cellLfAlignStyle} data-sort-value={annotation.title}>{annotation.title}</td>;
-    }
+
     if(annotation.selected) {
       selectionIcon = <i className='ui checkmark box icon' onClick={this.unselect.bind(this, annotation.uid)}/>;
     }
@@ -534,7 +711,7 @@ class AnnotationList extends React.Component {
             data-sort-value={annotation.type}>{annotation.displayType}</td>
         {titleCell}
         <td style={this.cellStyle}
-            data-sort-value={annotation.value}>{annotation.displayValue}</td>
+            data-sort-value={annotation.valueInPx}>{annotation.displayValue}</td>
         {barcodeCell}
         <td style={eyeIconStyle}><i className='ui eye icon' onClick={this.zoomOnElement.bind(this, annotation.inEntity)}/></td>
       </tr>
@@ -567,6 +744,10 @@ class AnnotationList extends React.Component {
     nextState.buttons.image += nextState.subject == 'image'? ' active': '';
     nextState.buttons.set += nextState.subject == 'set'? ' active': '';
 
+    console.log('updatding state');
+
+    nextState.annotations = this.createAnnotations(nextState);
+
     if(nextState.annotations.length == 0) {
       this.tableStyle.display = 'none';
       this.nothingStyle.display = '';
@@ -589,6 +770,7 @@ class AnnotationList extends React.Component {
   }
 
   componentWillUnmount() {
+    this.removeListeners();
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeAnnotationSelectionListener(this._onEntitySelected);
   }
@@ -627,15 +809,15 @@ class AnnotationList extends React.Component {
           </div>
           <div style={this.upperButtonsStyle} className='ui buttons'>
             <div style={this.buttonStyle}
-              className={'ui tiny compact button ' + this.state.buttons.image}
+                 className={'ui tiny compact button ' + this.state.buttons.image}
                  data-content="Image/Planche"
-              onClick={this.setSubject.bind(this, 'image')}>
+                 onClick={this.setSubject.bind(this, 'image')}>
               <i className='file icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
-              className={'ui tiny compact button ' + this.state.buttons.set}
+                 className={'ui tiny compact button ' + this.state.buttons.set}
                  data-content="Set"
-              onClick={this.setSubject.bind(this, 'set')}>
+                 onClick={this.setSubject.bind(this, 'set')}>
               <i className='folder icon'  style={this.iconButtonStyle} />
             </div>
           </div>

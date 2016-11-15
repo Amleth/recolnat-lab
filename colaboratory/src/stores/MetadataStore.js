@@ -125,7 +125,10 @@ class MetadataStore extends EventEmitter {
 
   addExternalMetadataUpdateListener(id, callback) {
     if(id) {
-      this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
+      if(!this.externalMetadata[id]) {
+        this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
+      }
+
       if(this.externalMetadata[id]) {
         if(this.externalMetadata[id] !== 'loading') {
           window.setTimeout(this.emitExternalMetadataUpdateEvent.bind(this, id), 10);

@@ -37,6 +37,7 @@ import fr.recolnat.database.model.impl.RecolnatImage;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.Iterator;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ public class SetResource {
     if (log.isDebugEnabled()) {
       log.debug("Parent set id is " + parentSetId);
     }
-    
+
     ActionResult result = new ActionResult();
 //    List<String> changes = new LinkedList<>();
     boolean retry = true;
@@ -127,7 +128,7 @@ public class SetResource {
         result.addModifiedId(vParentSet.getProperty(DataModel.Properties.id));
         result.addModifiedId(vSet.getProperty(DataModel.Properties.id));
         result.addModifiedId(vView.getProperty(DataModel.Properties.id));
-        
+
         result.setResponse("parentSet", vParentSet.getProperty(DataModel.Properties.id));
         result.setResponse("subSet", vSet.getProperty(DataModel.Properties.id));
         result.setResponse("link", eParentToChildLink.getProperty(DataModel.Properties.id));
@@ -157,7 +158,7 @@ public class SetResource {
 
         List<String> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g);
         g.commit();
-        
+
         changes.addAll(deleted);
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -314,7 +315,7 @@ public class SetResource {
     return changes;
   }
 
-  public static ActionResult importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException,  InterruptedException, ResourceNotExistsException {
+  public static ActionResult importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException, InterruptedException, ResourceNotExistsException {
     String imageUrl = null;
     ActionResult result = new ActionResult();
 //    List<String> changes = new ArrayList<>();
@@ -331,72 +332,89 @@ public class SetResource {
           throw new AccessForbiddenException(user, setId);
         }
 
-          OrientVertex vSpecimen = null;
-          OrientVertex vOriginalSource = AccessUtils.getOriginalSource(recolnatSpecimenUuid, g);
-          if (vOriginalSource == null) {
-            // Create source, specimen, link both
-            vOriginalSource = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenUuid, DataModel.Globals.Sources.RECOLNAT, DataModel.Globals.SourceDataTypes.SPECIMEN, g);
+        OrientVertex vSpecimen = null;
+        OrientVertex vOriginalSource = AccessUtils.getOriginalSource(recolnatSpecimenUuid, g);
+        if (vOriginalSource == null) {
+          // Create source, specimen, link both
+          vOriginalSource = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenUuid, DataModel.Globals.Sources.RECOLNAT, DataModel.Globals.SourceDataTypes.SPECIMEN, g);
+          vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
+          UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
+          AccessRights.grantPublicAccessRights(vOriginalSource, DataModel.Enums.AccessRights.READ, g);
+          AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
+          g.commit();
+        } else {
+          vSpecimen = AccessUtils.getSpecimenFromOriginalSource(vOriginalSource, g);
+          if (vSpecimen == null) {
             vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
             UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
-            AccessRights.grantPublicAccessRights(vOriginalSource, DataModel.Enums.AccessRights.READ, g);
             AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
-            g.commit(); 
-          } else {
-            vSpecimen = AccessUtils.getSpecimenFromOriginalSource(vOriginalSource, g);
-            if (vSpecimen == null) {
-              vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
-              UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
-              AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
-              g.commit();
-            }
+            g.commit();
           }
-          
-          result.addModifiedId((String) vOriginalSource.getProperty(DataModel.Properties.id));
-          result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
-          // Check if all images are on the main tree of the specimen
-          for (int i = 0; i < images.length(); ++i) {
-            JSONObject image = images.getJSONObject(i);
-            imageUrl = image.getString("url");
-            String thumbUrl = image.getString("thumburl");
-            OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
-            if (vImage == null) {
-//              String metadataUrlString = "https://mediatheque.mnhn.fr/service/public/media/" + imageUrl.substring(imageUrl.lastIndexOf("/"));
-//              GetMethod get = new GetMethod(metadataUrlString);
-//              JSONObject metadata = new JSONObject(get.getResponseBodyAsString());
-//              JSONObject metadata = ImageMetadataDownloader.downloadImageMetadata(imageUrl);
-//              int width = metadata.getInt("width"); 
-//              int height = metadata.getInt("height");
-              BufferedImage img = ImageIO.read(new URL(imageUrl));
-              int width = img.getWidth();
-              int height = img.getHeight();
-              vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, width, height, thumbUrl, g);
-              g.commit();
-              
-              result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
-            }
-          }
-          // Make branch of specimen tree
-          vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
-          vSpecimen.setProperties(DataModel.Properties.name, specimenName);
+        }
 
-          // Link specimen to set
-          OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
-          g.commit();
-          
-          result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
-        
+        result.addModifiedId((String) vOriginalSource.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
+        // Check if all images are on the main tree of the specimen
+        HttpClient client = new HttpClient();
+        for (int i = 0; i < images.length(); ++i) {
+          JSONObject image = images.getJSONObject(i);
+          imageUrl = image.getString("url");
+          String thumbUrl = image.getString("thumburl");
+          OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
+          if (vImage == null) {
+            Integer height, width = null;
+            try {
+              String metadataUrlString = "https://mediatheque.mnhn.fr/service/public/media" + imageUrl.substring(imageUrl.lastIndexOf("/"));
+              if(log.isDebugEnabled()) {
+                log.debug("GETting " + metadataUrlString);
+              }
+              GetMethod get = new GetMethod(metadataUrlString);
+              client.executeMethod(get);
+              String response = get.getResponseBodyAsString();
+              get.releaseConnection();
+              if(log.isDebugEnabled()) {
+                log.debug("Received response " + response);
+              }
+              JSONObject metadata = new JSONObject(response);
+
+              width = metadata.getInt("width");
+              height = metadata.getInt("height");
+            } catch (IOException | JSONException | NullPointerException ex) {
+              log.warn("No metadata available for https://mediatheque.mnhn.fr/service/public/media" + imageUrl.substring(imageUrl.lastIndexOf("/")));
+              log.warn("Falling back to image download.");
+              BufferedImage img = ImageIO.read(new URL(imageUrl));
+              width = img.getWidth();
+              height = img.getHeight();
+            }
+
+            vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, width, height, thumbUrl, g);
+            g.commit();
+
+            result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+          }
+        }
+        // Make branch of specimen tree
+        vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
+        vSpecimen.setProperties(DataModel.Properties.name, specimenName);
+
+        // Link specimen to set
+        OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
+        g.commit();
+
+        result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
+
         result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
         result.setResponse("recolnatUuid", recolnatSpecimenUuid);
-        
+
         JSONArray jImages = new JSONArray();
         Iterator<Vertex> itImages = vSpecimen.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
-        while(itImages.hasNext()) {
+        while (itImages.hasNext()) {
           OrientVertex vImage = (OrientVertex) itImages.next();
-          if(AccessUtils.isLatestVersion(vImage)) {
-              if(AccessRights.canRead(vUser, vImage, g)) {
-                RecolnatImage image = new RecolnatImage(vImage, vUser, g);
-                jImages.put(image.toJSON());
-              }
+          if (AccessUtils.isLatestVersion(vImage)) {
+            if (AccessRights.canRead(vUser, vImage, g)) {
+              RecolnatImage image = new RecolnatImage(vImage, vUser, g);
+              jImages.put(image.toJSON());
+            }
           }
         }
         result.setResponse("images", jImages);
@@ -414,7 +432,7 @@ public class SetResource {
         }
       }
     }
-    
+
     return result;
   }
 
@@ -431,27 +449,27 @@ public class SetResource {
           throw new AccessForbiddenException(user, setId);
         }
 
-          // If image exists on main branch, branch it, otherwise create it and then branch it
-          OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
-          if (vImage == null) {
-            // Get image height and width
-            BufferedImage img = ImageIO.read(new URL(imageUrl));
-            vImage = CreatorUtils.createImage(imageName, imageUrl, img.getWidth(), img.getHeight(), imageUrl, g);
-            AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
-            g.commit();
-            
-            changes.add((String) vImage.getProperty(DataModel.Properties.id));
-          }
-
-          vImage = BranchUtils.branchSubTree(vImage, vUser, g);
-          vImage.setProperty(DataModel.Properties.name, imageName);
-
-          UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
-          AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
-
+        // If image exists on main branch, branch it, otherwise create it and then branch it
+        OrientVertex vImage = AccessUtils.getImageMainBranch(imageUrl, g);
+        if (vImage == null) {
+          // Get image height and width
+          BufferedImage img = ImageIO.read(new URL(imageUrl));
+          vImage = CreatorUtils.createImage(imageName, imageUrl, img.getWidth(), img.getHeight(), imageUrl, g);
+          AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
           g.commit();
+
           changes.add((String) vImage.getProperty(DataModel.Properties.id));
-          changes.add((String) vSet.getProperty(DataModel.Properties.id));        
+        }
+
+        vImage = BranchUtils.branchSubTree(vImage, vUser, g);
+        vImage.setProperty(DataModel.Properties.name, imageName);
+
+        UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
+        AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
+
+        g.commit();
+        changes.add((String) vImage.getProperty(DataModel.Properties.id));
+        changes.add((String) vSet.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;

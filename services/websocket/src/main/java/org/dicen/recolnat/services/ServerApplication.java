@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import org.apache.commons.lang.time.DateUtils;
 import org.dicen.recolnat.services.configuration.Authentication;
@@ -57,10 +58,21 @@ public class ServerApplication {
     Map serverConf = (Map) conf.get("server");
     Integer srvPort = (Integer) serverConf.get("port");
     
+    // configure logging
+    Map logConf = (Map) conf.get("logging");
+    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", (String) logConf.get("level"));
+    Map fineLoggersConf = (Map) logConf.get("loggers");
+    for(Object logClass : fineLoggersConf.keySet()) {
+      log.info((String) logClass + " set to " + (String) fineLoggersConf.get(logClass));
+      System.setProperty("org.slf4j.simpleLogger.log." + (String) logClass, (String) fineLoggersConf.get(logClass));
+    }
+    
+    // Start server
     final Server server = new Server("localhost", srvPort, "/websockets", null, ColaboratorySocket.class);
 
     server.start();
     
+    // Configure periodic backup
     Timer backupTimer = new Timer();
     SimpleDateFormat dateParser = new SimpleDateFormat("u-HH:mm");
     

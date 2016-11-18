@@ -223,4 +223,10 @@ export default class ServiceMethods {
 
     window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
   }
+
+  static sendFeedback(message) {
+    message.action = ServerConstants.ActionTypes.Send.FEEDBACK;
+
+    window.setTimeout(SocketActions.send.bind(null, message, undefined), 10);
+  }
 };

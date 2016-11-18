@@ -16,6 +16,7 @@ export default {
     login: 'MODAL_login',
     confirmDelete: 'MODAL_confirmDelete',
     addAnnotationToEntity: 'MODAL_addAnnotationToEntity',
-    testRunnerModal: 'MODAL_testRunnerModal'
+    testRunnerModal: 'MODAL_testRunnerModal',
+    feedback: 'MODAL_feedback'
   }
 };

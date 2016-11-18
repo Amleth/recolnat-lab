@@ -13,6 +13,7 @@ import ConfirmDeleteModal from './modals/ConfirmDelete';
 import AddAnnotationToEntity from './modals/AddAnnotationToEntity';
 import CreateAndFillSet from './modals/CreateAndFillSet';
 import TestRunnerModal from './modals/TestRunnerModal';
+import FeedbackForm from './modals/FeedbackForm';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -71,6 +72,7 @@ class ManagerModals extends React.Component {
       <AddAnnotationToEntity modalstore={this.props.modalstore}
       />
       <TestRunnerModal modalstore={this.props.modalstore} />
+      <FeedbackForm modalstore={this.props.modalstore} />
     </div>
   }
 }

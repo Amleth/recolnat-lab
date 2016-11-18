@@ -16,6 +16,7 @@ import polylineIcon from '../../images/polyline.png';
 import angleIcon from '../../images/angle.svg';
 import perimeterIcon from '../../images/perimeter.svg';
 import areaIcon from '../../images/area.svg';
+import pointIcon from '../../images/poi.svg';
 
 class AnnotationList extends React.Component {
   constructor(props) {
@@ -365,7 +366,7 @@ class AnnotationList extends React.Component {
   createAnnotations(state) {
     var annotations = _.chain(state.data)
       .pick(d => d !== null)
-      .pick(d => d.type === 'Annotation' && d.valueInPx !== 0)
+      .pick(d => (d.type === 'Annotation' && d.valueInPx !== 0) || d.type === 'PointOfInterest')
       .map(a => JSON.parse(JSON.stringify(a)))
       .each((a, idx, list) => this.enrichAnnotation(a, state), [this])
       .sortBy(Globals.getCreationDate)
@@ -378,6 +379,11 @@ class AnnotationList extends React.Component {
     if(!state.data || !annotation) {
       return;
     }
+
+    if(annotation.type === 'PointOfInterest') {
+      return this.enrichPoIAnnotation(annotation, state);
+    }
+
     annotation.inEntity = annotation.parents[0];
     if(!annotation.inEntity) {
       return;
@@ -426,7 +432,7 @@ class AnnotationList extends React.Component {
       annotation.name = anchorData.name;
     }
 
-    annotation.displayDate = new Date(annotation.created);
+    annotation.displayDate = new Date(annotation.creationDate);
 
     var mmPerPixel = Globals.getEXIFScalingData(state.data[annotation.inImage]);
     if(annotation.measureType) {
@@ -472,6 +478,56 @@ class AnnotationList extends React.Component {
           break;
       }
     }
+  }
+
+  enrichPoIAnnotation(annotation, state) {
+    annotation.inEntity = annotation.uid;
+    if(!annotation.inEntity) {
+      return;
+    }
+
+    if(!state.data[annotation.inEntity]) {
+      return;
+    }
+    annotation.inImage = annotation.parents[0];
+    if(!annotation.inImage) {
+      return;
+    }
+
+    if(!state.data[annotation.inImage]) {
+      return;
+    }
+    annotation.inSpecimen = state.data[annotation.inImage].specimens[0];
+    if(!annotation.inSpecimen) {
+      return;
+    }
+
+    if(!state.data[annotation.inSpecimen]) {
+      return;
+    }
+    annotation.inSet = state.data[annotation.inSpecimen].inSets[0];
+    if(!annotation.inSet) {
+      return;
+    }
+
+    if(annotation.inSpecimen) {
+      var data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
+      if(data === 'loading') {
+        annotation.barcode = 'Chargement...';
+      }
+      else if(data) {
+        annotation.barcode = data.institutioncode + ' ' + data.catalognumber;
+      }
+      else {
+        annotation.barcode = 'Indisponible';
+      }
+    }
+
+    annotation.displayValue = '';
+    annotation.display = true;
+    annotation.displayType = <img src={pointIcon} height='15px' width='15px' />;
+    annotation.displayDate = new Date(annotation.creationDate);
+
   }
 
   setSubject(subject) {
@@ -602,6 +658,10 @@ class AnnotationList extends React.Component {
       annotationsToExport = JSON.parse(JSON.stringify(this.state.annotations));
     }
 
+    var setName;
+    var encoder = new TextEncoder();
+    var decoder = new TextDecoder("utf-8");
+
     for(var i = 0; i < annotationsToExport.length; ++i) {
       var annotation = annotationsToExport[i];
       var entityData = this.props.metastore.getMetadataAbout(annotation.inEntity);
@@ -610,30 +670,32 @@ class AnnotationList extends React.Component {
       var specimenData = this.props.metastore.getMetadataAbout(annotation.inSpecimen);
       var vertices = [];
       if(entityData.polygonVertices) {
-        console.log(entityData.polygonVertices);
+        //console.log(entityData.polygonVertices);
         var polygonVertices = JSON.parse(entityData.polygonVertices);
         for(var j = 0; j < polygonVertices.length; ++j) {
           var vertex = polygonVertices[j];
           vertices.push([imageData.width - vertex[0], imageData.height - vertex[1]]);
         }
       }
-      console.log(JSON.stringify(vertices));
+      //console.log(JSON.stringify(vertices));
       var data = {
-        type: annotation.type,
-        name: annotation.name,
-        value: annotation.displayValue,
-        barcode: annotation.barcode,
-        created: annotation.displayDate,
-        setName: setData.name,
-        imageName: imageData.name,
-        specimenDisplayName: specimenData.name,
-        coordinates: '"' + JSON.stringify(vertices) + '"'
+        type: '"' + decoder.decode(encoder.encode(annotation.type)) + '"',
+        name: '"' + decoder.decode(encoder.encode(annotation.name)) + '"',
+        value: '"' + decoder.decode(encoder.encode(annotation.displayValue)) + '"',
+        barcode: '"' + decoder.decode(encoder.encode(annotation.barcode)) + '"',
+        created: '"' + decoder.decode(encoder.encode(annotation.displayDate)) + '"',
+        setName: '"' + decoder.decode(encoder.encode(setData.name)) + '"',
+        imageName: '"' + decoder.decode(encoder.encode(imageData.name)) + '"',
+        specimenDisplayName: '"' + decoder.decode(encoder.encode(specimenData.name)) + '"',
+        coordinates: '"' + decoder.decode(encoder.encode(JSON.stringify(vertices))) + '"'
       };
+      setName = setData.name;
 
       columns.push(data);
     }
 
-    downloadCSV(columns, columnTitles);
+    var date = new Date();
+    downloadCSV(columns, columnTitles, setName + "-export-" + date.getFullYear() + "" + (date.getMonth() + 1) + "" + date.getDay() + "" + date.getHours() + "" + date.getMinutes() + "" + date.getSeconds() + ".csv");
   }
 
   zoomOnElement(entityId) {
@@ -744,7 +806,7 @@ class AnnotationList extends React.Component {
     nextState.buttons.image += nextState.subject == 'image'? ' active': '';
     nextState.buttons.set += nextState.subject == 'set'? ' active': '';
 
-    console.log('updatding state');
+    //console.log('updatding state');
 
     nextState.annotations = this.createAnnotations(nextState);
 

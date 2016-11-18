@@ -8,7 +8,15 @@ package org.dicen.recolnat.services.core.data;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.logbook.Log;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +28,13 @@ public class UserProfileResource {
 
   private final static Logger log = LoggerFactory.getLogger(UserProfileResource.class);
 
+  private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
+
   /**
    * Returns the actions made by the user or user group.
    *
-   * @param requestedUser May contain user login (may be a group), begin date, end date
-   * identification
+   * @param requestedUser May contain user login (may be a group), begin date,
+   * end date identification
    * @param beginDate
    * @param endDate
    * @param user
@@ -33,27 +43,37 @@ public class UserProfileResource {
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
   public String getRecentActivity(String requestedUser, Long beginDate, Long endDate, String user) throws JSONException, AccessForbiddenException {
-    if(beginDate == null) {
+    if (beginDate == null) {
       beginDate = Long.MIN_VALUE;
     }
-    
-    if(endDate == null) {
+
+    if (endDate == null) {
       endDate = Long.MAX_VALUE;
     }
-    
-    if(log.isDebugEnabled()) {
+
+    if (log.isDebugEnabled()) {
       log.debug("begin=" + beginDate + " end=" + endDate);
     }
-    
+
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
-        Log l = new Log(requestedUser, beginDate, endDate, user, g);
-        return l.toJSON().toString();
+      Log l = new Log(requestedUser, beginDate, endDate, user, g);
+      return l.toJSON().toString();
     } finally {
       g.rollback();
       g.shutdown();
     }
   }
-  
-  
+
+  public static void postFeedback(String feedbackType, String message, Boolean rsvp, String userLogin) throws IOException, JSONException {
+    File output = new File("./feedback/" + userLogin + "-" + dateFormat.format(new Date()));
+    FileUtils.touch(output);
+
+    FileUtils.writeStringToFile(output, feedbackType + System.getProperty("line.separator"));
+    FileUtils.writeStringToFile(output, message + System.getProperty("line.separator"), true);
+    if (rsvp) {
+      FileUtils.writeStringToFile(output, "RSVP" + System.getProperty("line.separator"), true);
+    }
+  }
+
 }

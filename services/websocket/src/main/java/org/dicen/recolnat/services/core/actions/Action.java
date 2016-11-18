@@ -20,7 +20,8 @@ public class Action {
     public static final int UNSUBSCRIBE_LOG = 14;
     // Client calls to receive computed information about a resource, but not subscribe to its changes
     public static final int GET = 15;
-    
+    // Client calls to post a feedback message from a user, no response is expected
+    public static final int FEEDBACK = 16;
   }
   
   public static class ServerActionType {

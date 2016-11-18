@@ -43,6 +43,10 @@ class AbstractModal extends React.Component {
 
   }
 
+  shouldModalClose() {
+    return true;
+  }
+
   componentDidMount() {
     this.props.modalstore.addModalChangeListener(this._onModalChanged);
   }
@@ -58,7 +62,8 @@ class AbstractModal extends React.Component {
     if(this.state.active && !prevState.active) {
       $(this.refs.modal.getDOMNode()).modal({
         onHide: this.cancel,
-        observeChanges: true
+        observeChanges: true,
+        onApprove: this.shouldModalClose.bind(this)
       }).modal('show');
     }
   }

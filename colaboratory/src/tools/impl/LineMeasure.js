@@ -121,7 +121,7 @@ class LineMeasure extends AbstractTool {
       };
     }
     for(var i = 0; i < scaleIds.length; ++i) {
-      console.log(JSON.stringify(this.props.benchstore.getData(scaleIds[i])));
+      //console.log(JSON.stringify(this.props.benchstore.getData(scaleIds[i])));
       scales[scaleIds[i]] = this.props.benchstore.getData(scaleIds[i]);
     }
 

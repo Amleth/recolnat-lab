@@ -35,7 +35,7 @@ class ToolStore extends EventEmitter {
           this.emit(ToolEvents.CHANGE_TOOL_EVENT);
           break;
         case ToolConstants.ActionTypes.TOOL_REGISTER:
-          console.log("Tool registered with ToolStore: " + action.name);
+          //console.log("Tool registered with ToolStore: " + action.name);
           this.register(action.name, action.onClickCallback, action.component);
           break;
         case ToolConstants.ActionTypes.TOOL_RUN:

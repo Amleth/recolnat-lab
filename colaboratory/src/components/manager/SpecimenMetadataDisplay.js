@@ -199,7 +199,7 @@ class SpecimenMetadataDisplay extends React.Component {
               scNameAuth = determination.taxon.scientificNameAuthorship;
             }
             if(determination.identificationverificationstatus == 1) {
-              console.log('determination1=' + JSON.stringify(determination));
+              //console.log('determination1=' + JSON.stringify(determination));
               determinationStatusWarning = null;
               break;
             }

@@ -138,7 +138,7 @@ class CreatePath extends AbstractTool {
             }, 100);
           }
           else {
-            console.log("Whoops. This vertex is in too many edges. How unexpected.");
+            console.error("Whoops. This vertex is in too many edges. How unexpected.");
           }
         }
       }

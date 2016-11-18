@@ -163,7 +163,7 @@ class CreateRoI extends AbstractTool {
   }
 
   adaptElementSizetoZoom(scale) {
-    console.log('adaptElementSizetoZoom');
+    //console.log('adaptElementSizetoZoom');
     var tool = d3.select('.' + CreateRoI.classes().selfSvgClass);
 
     tool.selectAll('.blackLine')
@@ -553,7 +553,7 @@ class CreateRoI extends AbstractTool {
   }
 
   rightClick(self, d) {
-    console.log('right click');
+    //console.log('right click');
     d3.event.stopPropagation();
     d3.event.preventDefault();
     self.closePolygon.call(self);

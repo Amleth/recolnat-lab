@@ -116,7 +116,7 @@ class CreateAndFillSet extends AbstractModal {
         if(items.length > 0) {
           window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des données dans le nouveau set... "), 10);
 
-          console.log(JSON.stringify(message));
+          //console.log(JSON.stringify(message));
 
           window.setTimeout(ManagerActions.select.bind(null, message.data.subSet, 'Set', name, message.data.parentSet, message.data.link), 10);
           window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, message.data.parentSet, message.data.subSet), 10);

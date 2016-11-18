@@ -72,7 +72,7 @@ class MetadataTable extends React.Component {
   }
 
   buildDisplayTableBody() {
-    console.log(JSON.stringify(this.state.metadata));
+    //console.log(JSON.stringify(this.state.metadata));
     return <tbody>{this.state.metadata.map(function(elt, index) {
       return <tr key={'META-' + index}><td className='ui right aligned' >{elt.key}</td><td style={self.textStyle} className='ui left aligned'>{elt.value}</td></tr>;
     })}</tbody>;

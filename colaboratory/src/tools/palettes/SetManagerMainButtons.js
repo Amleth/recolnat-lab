@@ -71,7 +71,7 @@ class SetManagerMainButtons extends React.Component {
       alert("Vous devez sélectionner un set avant");
       return;
     }
-    console.log('request view to set active set ' + setId);
+    //console.log('request view to set active set ' + setId);
     window.setTimeout(ViewActions.setActiveSet.bind(null, setId), 10);
     window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
   }

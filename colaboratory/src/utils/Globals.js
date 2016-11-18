@@ -236,7 +236,6 @@ class GlobalFunctions {
     }
     window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.id]), 10);
   }
-
 }
 
 export default GlobalFunctions;

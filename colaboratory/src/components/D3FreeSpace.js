@@ -276,7 +276,7 @@ class D3FreeSpace {
         var url = D3ViewUtils.getImageUrlFromQuality(d, quality);
         visibleImagesAfter.push(url);
         if(!_.contains(self.visibleImages, url)) {
-          console.log('loading image ' + url);
+          //console.log('loading image ' + url);
           self.loadImage(d);
         }
       }
@@ -644,7 +644,7 @@ class D3FreeSpace {
       inspectorObjects.push(this.benchstore.getActiveSetId());
     }
 
-    console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
+    //console.log('inspectorObjects=' + JSON.stringify(inspectorObjects));
 
     window.setTimeout(InspectorActions.setInspectorData.bind(null, inspectorObjects), 10);
 

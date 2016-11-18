@@ -158,8 +158,8 @@ class SetDisplay extends React.Component {
       items = _.sortBy(items, Globals.getName);
     }
 
-    console.log('call from ' + this.props.set.uid);
-    console.log('call from ' + this.state.displayName);
+    //console.log('call from ' + this.props.set.uid);
+    //console.log('call from ' + this.state.displayName);
     this.setState({items: items, subSets: subSets});
   }
 
@@ -236,14 +236,14 @@ class SetDisplay extends React.Component {
   addMetadataUpdateListeners(s) {
     if(s.subsets) {
       for (var i = 0; i < s.subsets.length; ++i) {
-        console.log('mount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+        //console.log('mount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
         this.props.metastore.addMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
 
     if(s.items) {
       for (i = 0; i < s.items.length; ++i) {
-        console.log('mount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+        //console.log('mount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
         this.props.metastore.addMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
@@ -252,14 +252,14 @@ class SetDisplay extends React.Component {
   removeMetadataUpdateListeners(s) {
     if(s.subsets) {
       for (var i = 0; i < s.subsets.length; ++i) {
-        console.log('unmount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+        //console.log('unmount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
         this.props.metastore.removeMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
 
     if(s.items) {
       for (i = 0; i < s.items.length; ++i) {
-        console.log('unmount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+        //console.log('unmount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
         this.props.metastore.removeMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
@@ -300,9 +300,9 @@ class SetDisplay extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(prevProps.set.hash != this.props.set.hash) {
-      console.log('previous hash ' + prevProps.set.hash);
-      console.log('next hash ' + this.props.set.hash);
-      console.log('existing component receives new props with new hash');
+      //console.log('previous hash ' + prevProps.set.hash);
+      //console.log('next hash ' + this.props.set.hash);
+      //console.log('existing component receives new props with new hash');
       this.removeMetadataUpdateListeners(prevProps.set);
       this.addMetadataUpdateListeners(this.props.set);
       this.itemOrSubSetUpdated();
@@ -310,7 +310,7 @@ class SetDisplay extends React.Component {
   }
 
   componentWillUnmount() {
-    console.log('unmounting ' + this.props.set.uid);
+    //console.log('unmounting ' + this.props.set.uid);
     //this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
     //this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
     this.removeMetadataUpdateListeners(this.props.set);

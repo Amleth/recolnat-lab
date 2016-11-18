@@ -100,7 +100,7 @@ class ManagerStore extends EventEmitter {
             console.error('Unprocessable action content ' + JSON.stringify(action));
             break;
           }
-          console.log('setting selection in set ' + setIdx + ' to ' + itemId);
+          //console.log('setting selection in set ' + setIdx + ' to ' + itemId);
           this.setSelected(setIdx, itemId);
           this.emit(ManagerEvents.SET_SELECTED_NODE);
           break;

@@ -24,12 +24,12 @@ class D3EventHandlers {
   }
 
   static startImageResize(d) {
-    console.log('resize start');
+    //console.log('resize start');
     d3.event.sourceEvent.preventDefault();
     d3.event.sourceEvent.stopPropagation();
     d.newHeight = d.height;
     d.newWidth = d.width;
-    console.log(JSON.stringify(d));
+    //console.log(JSON.stringify(d));
     d3.select('#OVER-' + d.link)
       .append('rect')
       .attr('id', 'RESIZE_WINDOW')
@@ -57,8 +57,8 @@ class D3EventHandlers {
   }
 
   static fixImageSize(d) {
-    console.log('resize end(' + d.newHeight + ')');
-    console.log('s dH/h=' + d.newHeight* d.displayHeight/ d.height);
+    //console.log('resize end(' + d.newHeight + ')');
+    //console.log('s dH/h=' + d.newHeight* d.displayHeight/ d.height);
 
     var link = d.link;
     var view = d.view;

@@ -125,10 +125,19 @@ class AddEntitiesToSetModal extends AbstractModal {
 
       var itemData = this.props.basketstore.getBasketItem(itemId);
       //console.log('uuid=' + itemUuid);
+      var name = '';
+      if(itemData.scientificname) {
+        name = itemData.scientificname;
+      } else if(itemData.catalognumber) {
+        name = itemData.catalognumber;
+      }
+      else {
+        name = "Spécimen " + items[i];
+      }
       specimens.push({
         recolnatSpecimenUuid: itemUuid,
         images: itemData.image,
-        name: itemData.scientificname
+        name: name
       });
     }
 
@@ -217,6 +226,7 @@ class AddEntitiesToSetModal extends AbstractModal {
 
     for(var s = 0; s < specimens.length; ++s) {
       ServiceMethods.importRecolnatSpecimen(this.state.parentId, specimens[s].name, specimens[s].recolnatSpecimenUuid, specimens[s].images, onResponse.bind(this));
+      console.log('expedited ' + s  + "/" + specimens.length);
     }
   }
 
@@ -250,7 +260,7 @@ class AddEntitiesToSetModal extends AbstractModal {
     var self = this;
     $('.menu .item', $(this.refs.modal.getDOMNode())).tab({
       onLoad: function(path) {
-        console.log(path);
+        //console.log(path);
         $(self.refs.modal.getDOMNode()).modal('refresh');
         window.setTimeout(self.setState.bind(self, {source: path}), 10);
       }

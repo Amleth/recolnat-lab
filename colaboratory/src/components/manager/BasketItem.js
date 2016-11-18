@@ -56,7 +56,8 @@ class BasketItem extends React.Component {
 
     this.state = {
       isSelected: props.basketstore.isInBasketSelection(props.content.id),
-      modalSrc: null
+      modalSrc: null,
+      thumbnail: null
     };
   }
 
@@ -83,6 +84,10 @@ class BasketItem extends React.Component {
     //}
   }
 
+  imageLoaded(image) {
+    this.setState({thumbnail: image.src});
+  }
+
   changeSelected() {
     BasketActions.changeBasketSelectionState(this.props.content.id, !this.state.isSelected);
   }
@@ -91,41 +96,46 @@ class BasketItem extends React.Component {
     BasketActions.removeItemFromBasket(this.props.content.id);
   }
 
+  componentDidMount() {
+    var src = BasketItem.itemSourceImage(this.props.content);
+    ViewActions.loadImage(src, this.imageLoaded.bind(this));
+  }
+
   componentWillUpdate(nextProps, nextState) {
     nextState.isSelected = nextProps.basketstore.isInBasketSelection(nextProps.content.id);
   }
 
   componentDidUpdate(prevProps, prevState) {
     //var self = this;
-    if(this.state.modalSrc && !prevState.modalSrc) {
-      // Show modal only after image has loaded successfully. Otherwise the modal will not be scrollable and the bottom of the image will not be visible.
-      if(!this.refs.image.getDOMNode().src) {
-        $(this.refs.loadingModal.getDOMNode()).modal({
-          onHidden: function () {
-            //self.setState({modalSrc: null});
-          }
-        }).modal('show');
-      }
+    //if(this.state.modalSrc && !prevState.modalSrc) {
+    //  // Show modal only after image has loaded successfully. Otherwise the modal will not be scrollable and the bottom of the image will not be visible.
+    //  if(!this.refs.image.getDOMNode().src) {
+    //    $(this.refs.loadingModal.getDOMNode()).modal({
+    //      onHidden: function () {
+    //        //self.setState({modalSrc: null});
+    //      }
+    //    }).modal('show');
+    //  }
+    //
+    //  var showImageCallback = function(image) {
+    //    //if(this.state.modalSrc) {
+    //    //  var self = this;
+    //    //this.refs.image.getDOMNode().height = image.naturalHeight;
+    //    //this.refs.image.getDOMNode().width = image.naturalWidth;
+    //      this.refs.image.getDOMNode().src = image.src;
+    //      $(this.refs.loadingModal.getDOMNode()).modal('hide');
+    //      $(this.refs.imageModal.getDOMNode()).modal({
+    //        onHidden: function () {
+    //          self.refs.image.getDOMNode().src = null;
+    //          self.setState({modalSrc: null});
+    //        }
+    //      }).modal('show');
+    //    //}
+    //  };
 
-      var showImageCallback = function(image) {
-        //if(this.state.modalSrc) {
-          var self = this;
-        //this.refs.image.getDOMNode().height = image.naturalHeight;
-        //this.refs.image.getDOMNode().width = image.naturalWidth;
-          this.refs.image.getDOMNode().src = image.src;
-          $(this.refs.loadingModal.getDOMNode()).modal('hide');
-          $(this.refs.imageModal.getDOMNode()).modal({
-            onHidden: function () {
-              self.refs.image.getDOMNode().src = null;
-              self.setState({modalSrc: null});
-            }
-          }).modal('show');
-        //}
-      };
-
-      window.setTimeout(
-        ViewActions.loadImage.bind(null, this.state.modalSrc, showImageCallback.bind(this)),
-        10);
+      //window.setTimeout(
+      //  ViewActions.loadImage.bind(null, this.state.modalSrc, showImageCallback.bind(this)),
+      //  10);
       //$(this.refs.loadingModal.getDOMNode()).modal({
       //  onHidden: function() {
       //    self.refs.image.getDOMNode().onload = null;
@@ -140,7 +150,7 @@ class BasketItem extends React.Component {
       //    }
       //  }).modal('show');
       //};
-    }
+    //}
   }
 
   render() {
@@ -185,7 +195,7 @@ class BasketItem extends React.Component {
           </div>
         </div>
         <input className='ui checkbox' style={this.checkboxStyle} type='checkbox' checked={this.state.isSelected} onChange={this.changeSelected.bind(this)}/>
-        <img src={BasketItem.itemSourceImage(this.props.content)} style={this.imageStyle}/>
+        <img src={this.state.thumbnail} style={this.imageStyle}/>
       </div>
     </div>;
   }

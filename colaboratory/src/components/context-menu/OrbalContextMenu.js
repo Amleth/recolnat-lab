@@ -292,7 +292,7 @@ class OrbalContextMenu extends React.Component {
   }
 
   closeMenu(delay, event) {
-    console.log('closeMenu(' + delay + ')');
+    //console.log('closeMenu(' + delay + ')');
     // if(event.isPropagationStopped()) {
     //   return;
     // }

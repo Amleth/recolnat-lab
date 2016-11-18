@@ -7,6 +7,10 @@ import React from 'react';
 
 import ContextMenu from './context-menu/MainMenu';
 
+import ModalActions from '../actions/ModalActions';
+
+import ModalConstants from '../constants/ModalConstants';
+
 class MainMenu extends React.Component {
   constructor(props) {
     super(props);
@@ -64,6 +68,9 @@ class MainMenu extends React.Component {
         <div className='header' style={this.headerStyle}>Le Collaboratoire</div>
         <div className='item' style={this.optionStyle}>
           <span className='text'>Version 0.9.1</span>
+        </div>
+        <div className='item' onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.feedback, null, null, null)} style={this.optionStyle}>
+          <span className='text'>Formulaire de contact</span>
         </div>
       </div>
     </div>

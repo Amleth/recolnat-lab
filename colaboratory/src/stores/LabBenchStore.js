@@ -32,7 +32,7 @@ class LabBenchStore extends EventEmitter {
     AppDispatcher.register((action) => {
       switch (action.actionType) {
         case MetadataConstants.ActionTypes.SET_LAB_BENCH:
-          console.log('setting bench ' + action.id);
+          //console.log('setting bench ' + action.id);
           this.removeListeners();
           delete this.labBench;
           delete this.ids;
@@ -259,9 +259,9 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadItems(ids) {
-    console.log(JSON.stringify(ids));
-    console.log(JSON.stringify(this.labBench));
-    console.log(JSON.stringify(this.ids));
+    //console.log(JSON.stringify(ids));
+    //console.log(JSON.stringify(this.labBench));
+    //console.log(JSON.stringify(this.ids));
     for(var i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.items, ids[i])) {
         this.socket.addResourceListener(ids[i], this.itemLoaded.bind(this), 10);

@@ -83,6 +83,7 @@ var SocketActions = {
   addMeasureStandard: "add-measure-standard",
   createSet: "create-set",
   deleteFromSet: "delete-element-from-set",
+  deleteFromView: "delete-element-from-view",
   link: "link",
   copy: "copy",
   cutPaste: "cutpaste",

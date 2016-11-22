@@ -4,24 +4,18 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
-import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.model.impl.AbstractObject;
-import fr.recolnat.database.model.impl.SetView;
 import java.util.ArrayList;
 import java.util.Date;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +60,8 @@ public class DeleteUtils {
       log.debug("New vertex version created");
     }
     // Get the updated version of the link from parent using nextVerionId and remove it
-    eLink = AccessUtils.getEdgeById(linkId, graph);
+//    eLink = AccessUtils.getEdgeById(linkId, graph);
+    eLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), graph);
     if (log.isDebugEnabled()) {
       log.debug(eLink.toString());
     }
@@ -130,6 +125,39 @@ public class DeleteUtils {
       }
       modified.add((String) vNewView.getProperty(DataModel.Properties.id));
     }
+    return modified;
+  }
+  
+  public static List<String> unlinkItemFromView(String linkId, OrientVertex vUser, OrientBaseGraph g) throws ObsoleteDataException, AccessForbiddenException {
+    List<String> modified = new LinkedList<>();
+    OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
+    if (eLink == null) {
+      throw new ObsoleteDataException(linkId);
+    }
+    OrientVertex vView = eLink.getVertex(Direction.OUT);
+    OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
+
+    if (!DeleteUtils.canUserDeleteVertex(vView, vUser, g)) {
+      throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vView.getProperty(DataModel.Properties.id));
+    }
+    
+    // Create new version of the parent
+    String userId = (String) vUser.getProperty(DataModel.Properties.id);
+    OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vView, userId, g);
+    
+    // Get the updated version of the link from parent using nextVerionId and remove it
+//    eLink = AccessUtils.getEdgeById(linkId, g);
+    if (log.isDebugEnabled()) {
+      log.debug(eLink.toString());
+    }
+    eLink = AccessUtils.getEdgeById((String) eLink.getProperty(DataModel.Properties.nextVersionId), g);
+    if (log.isDebugEnabled()) {
+      log.debug(eLink.toString());
+    }
+    eLink.remove();
+    modified.add((String) vNewParent.getProperty(DataModel.Properties.id));
+    modified.add((String) vChildItemOrSet.getProperty(DataModel.Properties.id));
+    
     return modified;
   }
 

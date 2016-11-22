@@ -23,6 +23,11 @@ class Inbox extends React.Component {
     };
 
     this._onLabBenchLoaded = () => {
+      const subscribeToView = () => this.subscribeToView();
+      return subscribeToView.apply(this);
+    };
+
+    this._onViewUpdated = () => {
       const calculateUnplacedEntities = () => this.calculateUnplacedEntities();
       return calculateUnplacedEntities.apply(this);
     };
@@ -34,6 +39,7 @@ class Inbox extends React.Component {
 
     this.state = {
       viewId: null,
+      entityIds: [],
       open: false,
       active: false,
       selected: 0,
@@ -41,36 +47,65 @@ class Inbox extends React.Component {
     };
   }
 
-  calculateUnplacedEntities() {
-    var labBench = this.props.benchstore.getLabBench();
+  removeListeners(removeViewListener, removeEntityListeners) {
+    if(this.state.viewId && removeViewListener) {
+      this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onLabBenchLoaded);
+    }
+
+    if(removeEntityListeners) {
+      for (var i = 0; i < this.state.entityIds.length; ++i) {
+        this.props.metastore.removeMetadataUpdateListener(this.state.entityIds[i], this._onUnplacedEntityMetadataUpdate);
+      }
+    }
+  }
+
+  subscribeToView() {
     var viewId = this.props.benchstore.getActiveViewId();
     if(!viewId) {
+      this.removeListeners(true, true);
+      this.setState({viewId: null, entityIds: [], open: false, active: false, content: []});
+      return;
+    }
+    if(viewId === this.state.viewId) {
+      return;
+    }
+    this.props.metastore.addMetadataUpdateListener(viewId, this._onViewUpdated);
+
+    this.setState({viewId: viewId, entityIds: [], open: false, active: false, content: []});
+  }
+
+  calculateUnplacedEntities() {
+    var labBench = this.props.benchstore.getLabBench();
+    var viewData = this.props.metastore.getMetadataAbout(this.state.viewId);
+    if(!this.state.viewId) {
       return;
     }
     if(!labBench.images) {
       return;
     }
+    if(!viewData) {
+      return;
+    }
+    this.removeListeners(false, true);
+
     var imageIds = Object.keys(labBench.images);
-    var viewData = this.props.benchstore.getActiveViewData();
     var displayedImageIds = viewData.displays.map(function(display) {
       return display.entity;
     });
     var undisplayedImageIds = _.difference(imageIds, displayedImageIds);
 
-    this.setState({viewId: viewId, active: false, open: false, content: []});
+    this.setState({active: false, open: false, content: [], entityIds: undisplayedImageIds});
 
     // Download metadata for unplaced entities
     for(var i = 0; i < undisplayedImageIds.length; ++i) {
       this.props.metastore.addMetadataUpdateListener(undisplayedImageIds[i], this._onUnplacedEntityMetadataUpdate);
-      window.setTimeout(this._onUnplacedEntityMetadataUpdate.bind(this, undisplayedImageIds[i]), 50);
+      window.setTimeout(this._onUnplacedEntityMetadataUpdate.bind(this, undisplayedImageIds[i]), 10);
     }
   }
 
   addEntityMetadata(id) {
-    //console.log('addEntityMetadata');
-    this.props.metastore.removeMetadataUpdateListener(id, this._onUnplacedEntityMetadataUpdate);
     var metadata = this.props.metastore.getMetadataAbout(id);
-    var content = this.state.content;
+    var content = JSON.parse(JSON.stringify(this.state.content));
     content.push(metadata);
     this.setState({content: content});
   }

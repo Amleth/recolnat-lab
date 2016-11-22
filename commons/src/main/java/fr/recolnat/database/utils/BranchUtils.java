@@ -17,8 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Creates a fork of the given start element and all of its auto-forkable sub-elements. 
- * Grants user write access on all nodes of the resulting tree.
+ * Creates a fork of the given start element and all of its auto-forkable
+ * sub-elements. Grants user write access on all nodes of the resulting tree.
+ *
  * @author dmitri
  */
 public class BranchUtils {
@@ -176,7 +177,7 @@ public class BranchUtils {
     AccessRights.grantAccessRights(vUser, vBranch, DataModel.Enums.AccessRights.WRITE, g);
     return vBranch;
   }
-  
+
   public static boolean isMainBranch(OrientVertex v, OrientBaseGraph g) {
     // NPE means database is screwed up, node is missing branch status
     return v.getProperty(DataModel.Properties.branch).equals(DataModel.Globals.BRANCH_MAIN);
@@ -298,21 +299,53 @@ public class BranchUtils {
 
     return vStudyFork;
   }
-  
+
   public static OrientVertex getMainBranchAncestor(OrientVertex v, OrientBaseGraph g) {
-    if(BranchUtils.isMainBranch(v, g)) {
+    if (BranchUtils.isMainBranch(v, g)) {
       return v;
     }
     Iterator<Vertex> itForkAncestors = v.getVertices(Direction.IN, DataModel.Links.isForkedAs).iterator();
-    while(itForkAncestors.hasNext()) {
+    while (itForkAncestors.hasNext()) {
       OrientVertex vAncestor = (OrientVertex) itForkAncestors.next();
       OrientVertex vMainAncestor = BranchUtils.getMainBranchAncestor(vAncestor, g);
-      if(vMainAncestor != null) {
+      if (vMainAncestor != null) {
         return vMainAncestor;
       }
     }
-    
+
     log.error("No main branch ancestor found for element " + v.toString() + " This must never happen!");
+    return null;
+  }
+
+  /**
+   * Check if a given source has a forked specimen in the given set.
+   *
+   * @param vOriginalSource
+   * @param vSet
+   * @param vUser
+   * @param g
+   * @return Vertex of the specimen or null if not found or not writable by
+   * user.
+   */
+  public static OrientVertex isSourceForkedInSet(OrientVertex vOriginalSource, OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g) {
+    OrientVertex vSpecimen = AccessUtils.getSpecimenFromOriginalSource(vOriginalSource, g);
+    log.debug("Got specimen from original source " + vSpecimen.toString());
+    // Specimen is main branch and should have public access, theoretically
+    Iterator<Vertex> itForkedSpecimens = vSpecimen.getVertices(Direction.OUT, DataModel.Links.isForkedAs).iterator();
+    while (itForkedSpecimens.hasNext()) {
+      OrientVertex vForkedSpecimen = (OrientVertex) itForkedSpecimens.next();
+      log.debug("Specimen forked as " + vForkedSpecimen.toString());
+      if (vForkedSpecimen.getEdges(vSet, Direction.IN, DataModel.Links.containsItem).iterator().hasNext()) {
+        log.debug("Specimen is in set " + vForkedSpecimen.toString());
+        if (AccessRights.canWrite(vUser, vForkedSpecimen, g)) {
+          log.debug("Specimen can be written by user " + vForkedSpecimen.toString());
+          if (AccessUtils.isLatestVersion(vForkedSpecimen)) {
+            log.debug("Specimen is latest version " + vForkedSpecimen.toString());
+            return vForkedSpecimen;
+          }
+        }
+      }
+    }
     return null;
   }
 }

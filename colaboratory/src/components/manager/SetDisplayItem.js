@@ -72,14 +72,14 @@ class SetDisplayItem extends React.Component {
       case 'Specimen':
         objectsAtEvent.specimens.push({
           parent: this.props.parentSetId,
-          link: entity.linkToParent,
+          link: entity.link,
           data: entity
         });
         break;
       case 'Image':
         objectsAtEvent.images.push({
           parent: this.props.parentSetId,
-          link: entity.linkToParent,
+          link: entity.link,
           data: entity
         });
         break;

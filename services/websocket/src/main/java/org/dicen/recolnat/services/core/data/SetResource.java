@@ -334,6 +334,7 @@ public class SetResource {
 
         OrientVertex vSpecimen = null;
         OrientVertex vOriginalSource = AccessUtils.getOriginalSource(recolnatSpecimenUuid, g);
+
         if (vOriginalSource == null) {
           // Create source, specimen, link both
           vOriginalSource = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenUuid, DataModel.Globals.Sources.RECOLNAT, DataModel.Globals.SourceDataTypes.SPECIMEN, g);
@@ -350,6 +351,7 @@ public class SetResource {
             AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
             g.commit();
           }
+
         }
 
         result.addModifiedId((String) vOriginalSource.getProperty(DataModel.Properties.id));
@@ -365,14 +367,14 @@ public class SetResource {
             Integer height, width = null;
             try {
               String metadataUrlString = "https://mediatheque.mnhn.fr/service/public/media" + imageUrl.substring(imageUrl.lastIndexOf("/"));
-              if(log.isDebugEnabled()) {
+              if (log.isDebugEnabled()) {
                 log.debug("GETting " + metadataUrlString);
               }
               GetMethod get = new GetMethod(metadataUrlString);
               client.executeMethod(get);
               String response = get.getResponseBodyAsString();
               get.releaseConnection();
-              if(log.isDebugEnabled()) {
+              if (log.isDebugEnabled()) {
                 log.debug("Received response " + response);
               }
               JSONObject metadata = new JSONObject(response);
@@ -393,13 +395,19 @@ public class SetResource {
             result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
           }
         }
-        // Make branch of specimen tree
-        vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
-        vSpecimen.setProperties(DataModel.Properties.name, specimenName);
 
-        // Link specimen to set
-        OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
-        g.commit();
+        OrientVertex vForkedSpecimen = BranchUtils.isSourceForkedInSet(vOriginalSource, vSet, vUser, g);
+        if (vForkedSpecimen == null) {
+          // Make branch of specimen tree
+          vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
+          vSpecimen.setProperties(DataModel.Properties.name, specimenName);
+
+          // Link specimen to set
+          OrientEdge eLink = UpdateUtils.link(vSet, vSpecimen, DataModel.Links.containsItem, user, g);
+          g.commit();
+        } else {
+          vSpecimen = vForkedSpecimen;
+        }
 
         result.addModifiedId((String) vSpecimen.getProperty(DataModel.Properties.id));
 

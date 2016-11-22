@@ -162,6 +162,10 @@ public class MessageProcessorThread implements Runnable {
                 String linkId = jsonIn.getString("link");
                 modified = SetResource.deleteElementFromSet(linkId, userLogin);
                 break;
+              case "delete-element-from-view": 
+                String displayLinkId = jsonIn.getString("link");
+                modified = ViewResource.deleteElementFromView(displayLinkId, userLogin);
+                break;
               case "link":
                 elementToCopyId = jsonIn.getString("target");
                 futureParentId = jsonIn.getString("destination");
@@ -290,6 +294,7 @@ public class MessageProcessorThread implements Runnable {
         session.getAsyncRemote().sendText(inputError.toString());
       }
     } catch (JSONException | InterruptedException ex) {
+      log.error("Internal server error", ex);
       this.sendInternalServerError(session);
     }
   }

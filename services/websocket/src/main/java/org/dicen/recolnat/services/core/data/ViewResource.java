@@ -10,9 +10,11 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
+import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
+import fr.recolnat.database.utils.DeleteUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -118,6 +120,31 @@ public class ViewResource {
         
         changes.add(viewId);
         changes.add(entityId);
+      } catch (OConcurrentModificationException e) {
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown();
+      }
+    }
+
+    return changes;
+  }
+  
+  public static List<String> deleteElementFromView(String linkViewToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
+    List<String> changes = new LinkedList<>();
+
+    boolean retry = true;
+    while (retry) {
+      retry = false;
+      OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        // Permissions checked internally
+        List<String> deleted = DeleteUtils.unlinkItemFromView(linkViewToElementId, vUser, g);
+        g.commit();
+
+        changes.addAll(deleted);
       } catch (OConcurrentModificationException e) {
         retry = true;
       } finally {

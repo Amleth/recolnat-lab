@@ -49,7 +49,18 @@ class ConfirmDelete extends AbstractModal {
 
   unlink() {
     var data = this.props.modalstore.getTargetData();
-    ServiceMethods.deleteElementFromSet(data.link, this.receiveMessage.bind(this));
+    console.log(JSON.stringify(data));
+    switch(data.actionType) {
+      case 'unlink-from-view':
+        ServiceMethods.deleteElementFromView(data.link, this.receiveMessage.bind(this));
+        break;
+      case 'unlink-from-set':
+        ServiceMethods.deleteElementFromSet(data.link, this.receiveMessage.bind(this));
+        break;
+      default:
+        console.warn('No handler for ' + data.actionType);
+    }
+
   }
 
   render() {

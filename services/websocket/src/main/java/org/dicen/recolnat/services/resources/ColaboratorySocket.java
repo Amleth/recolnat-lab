@@ -135,6 +135,9 @@ public class ColaboratorySocket {
           case "delete-element-from-set":
             heavyExecutor.submit(t);
             return;
+          case "delete-element-from-view":
+            heavyExecutor.submit(t);
+            return;
           case "link":
             lightExecutor.submit(t);
             return;

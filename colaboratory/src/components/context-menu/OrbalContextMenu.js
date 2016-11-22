@@ -18,6 +18,7 @@ import ViewConstants from '../../constants/ViewConstants';
 import EditPoI from '../../tools/editors/EditPoI';
 
 import D3ViewUtils from '../../utils/D3ViewUtils';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class OrbalContextMenu extends React.Component {
   constructor(props) {
@@ -504,7 +505,9 @@ class OrbalContextMenu extends React.Component {
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.notAvailable.bind(null);
         if(metadata.deletable) {
-          this.southAction = OrbOptions.remove.bind(null, metadata,
+          this.southAction = OrbOptions.unlinkFromView.bind(null,
+            {link: this.state.activeItemLinkId,
+            actionType: 'unlink-from-view'},
             function (err) {
               console.error(err);
             },
@@ -540,10 +543,10 @@ class OrbalContextMenu extends React.Component {
         this.northEastAction = OrbOptions.notAvailable.bind(null);
         this.southWestAction = OrbOptions.notAvailable.bind(null);
         if(metadata.deletable) {
-          var data = {
-            link: this.state.activeItemLinkId
-          };
-          this.southAction = OrbOptions.unlinkFromSet.bind(null, data,
+          this.southAction = OrbOptions.unlinkFromSet.bind(null, {
+              link: this.state.activeItemLinkId,
+              actionType: 'unlink-from-set'
+            },
             function (err) {
               console.error(err);
             },
@@ -582,7 +585,8 @@ class OrbalContextMenu extends React.Component {
         this.southWestAction = OrbOptions.notAvailable.bind(null);
         if(metadata.deletable) {
           this.southAction = OrbOptions.unlinkFromSet.bind(null, {
-              link: this.state.activeItemLinkId
+              link: this.state.activeItemLinkId,
+              actionType: 'unlink-from-set'
             },
             function (err) {
               console.error(err);

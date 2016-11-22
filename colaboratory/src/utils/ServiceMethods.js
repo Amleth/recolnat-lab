@@ -93,6 +93,16 @@ export default class ServiceMethods {
     window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
   }
 
+  static deleteElementFromView(linkId, callback = undefined) {
+    var message = {
+      action: ServerConstants.ActionTypes.Send.UPDATE,
+      actionDetail: conf.socket.deleteFromView,
+      link: linkId
+    };
+
+    window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
+  }
+
   static linkParentToChild(parent, child, callback = undefined) {
     var message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,

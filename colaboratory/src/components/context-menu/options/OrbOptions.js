@@ -29,6 +29,10 @@ class OrbOptions {
     ModalActions.showModal(ModalConstants.Modals.confirmDelete, data, successCallback, errorCallback);
   }
 
+  static unlinkFromView(data, errorCallback = null, successCallback = null) {
+    ModalActions.showModal(ModalConstants.Modals.confirmDelete, data, successCallback, errorCallback);
+  }
+
   static edit(data) {
 
   }

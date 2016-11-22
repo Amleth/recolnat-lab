@@ -166,12 +166,13 @@ class AnnotationList extends React.Component {
       data: {},
       extData: {},
       annotations: [],
+      selection: {},
       tags: {}
     };
   }
 
   updateSelection(selection) {
-    this.setState({selectedSetId: selection.setId, selectedImageId: selection.imageId});
+    this.setState({selectedSetId: selection.setId, selectedImageId: selection.imageId, selection: {}});
 
     switch(this.state.subject) {
       case 'image':
@@ -432,6 +433,8 @@ class AnnotationList extends React.Component {
       annotation.name = anchorData.name;
     }
 
+    annotation.selected = state.selection[annotation.uid];
+
     annotation.displayDate = new Date(annotation.creationDate);
 
     var mmPerPixel = Globals.getEXIFScalingData(state.data[annotation.inImage]);
@@ -523,6 +526,7 @@ class AnnotationList extends React.Component {
       }
     }
 
+    annotation.selected = state.selection[annotation.uid];
     annotation.displayValue = '';
     annotation.display = true;
     annotation.displayType = <img src={pointIcon} height='15px' width='15px' />;
@@ -553,36 +557,27 @@ class AnnotationList extends React.Component {
   }
 
   select(id) {
-    var annotations = this.state.annotations;
-    for(var i = 0; i < annotations.length; ++i) {
-      if(annotations[i].uid === id) {
-        annotations[i].selected = true;
-        break;
-      }
-    }
+    var selection = JSON.parse(JSON.stringify(this.state.selection));
+    selection[id] = true;
 
-    this.setState({annotations: annotations});
+    this.setState({selection: selection});
   }
 
   unselect(id) {
-    var annotations = this.state.annotations;
-    for(var i = 0; i < annotations.length; ++i) {
-      if(annotations[i].uid === id) {
-        annotations[i].selected = false;
-        break;
-      }
-    }
+    var selection = JSON.parse(JSON.stringify(this.state.selection));
+    selection[id] = false;
 
-    this.setState({annotations: annotations});
+    this.setState({selection: selection});
   }
 
   toggleSelectAll(isSelected) {
     var annotations = this.state.annotations;
+    var selection = {};
     for(var i = 0; i < annotations.length; ++i) {
-      annotations[i].selected = isSelected;
+      selection[annotations[i].uid] = isSelected;
     }
 
-    this.setState({annotations: annotations});
+    this.setState({selection: selection});
   }
 
   /**

@@ -444,8 +444,9 @@ public class SetResource {
     return result;
   }
 
-  public static List<String> importExternalImage(String setId, String imageUrl, String imageName, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException {
-    List<String> changes = new LinkedList<>();
+  public static ActionResult importExternalImage(String setId, String imageUrl, String imageName, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException {
+//    List<String> changes = new LinkedList<>();
+    ActionResult result = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -466,18 +467,27 @@ public class SetResource {
           AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
           g.commit();
 
-          changes.add((String) vImage.getProperty(DataModel.Properties.id));
+          result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
         }
 
-        vImage = BranchUtils.branchSubTree(vImage, vUser, g);
-        vImage.setProperty(DataModel.Properties.name, imageName);
-
-        UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
-        AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
-
+        // If image is already in set, return the existing image, otherwise fork a new one
+        OrientVertex vForkedImage = BranchUtils.isImageForkedInSet(vImage, vSet, vUser, g);
+        if (vForkedImage == null) {
+          vImage = BranchUtils.branchSubTree(vImage, vUser, g);
+          vImage.setProperty(DataModel.Properties.name, imageName);
+          
+          UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
+//          AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
+        } else {
+          vImage = vForkedImage;
+        }
         g.commit();
-        changes.add((String) vImage.getProperty(DataModel.Properties.id));
-        changes.add((String) vSet.getProperty(DataModel.Properties.id));
+        
+        result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
+        
+        RecolnatImage img = new RecolnatImage(vImage, vUser, g);
+        result.setResponse("image", img.toJSON());
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -490,7 +500,7 @@ public class SetResource {
       }
     }
 
-    return changes;
+    return result;
   }
 
 }

@@ -24,6 +24,7 @@ class LabBenchStore extends EventEmitter {
   constructor(socket) {
     super();
     this.activeView = null;
+    this.firstLoad = true;
     this.labBench = {};
     this.ids = {};
     this.socket = socket;
@@ -62,6 +63,8 @@ class LabBenchStore extends EventEmitter {
           this.ids.tois = [];
           this.ids.measureStandards = [];
           this.ids.measurements = [];
+
+          this.firstLoad = true;
 
           this.activeView = null;
           this.emit(MetadataEvents.LAB_BENCH_READY);
@@ -536,55 +539,61 @@ class LabBenchStore extends EventEmitter {
   }
 
   onLoadingDone() {
-    var totalLoaded = 1 +
-      _.size(this.labBench.subSets) +
-      _.size(this.labBench.items) +
-      _.size(this.labBench.views) +
-      _.size(this.labBench.rois) +
-      _.size(this.labBench.aois) +
-      _.size(this.labBench.pois) +
-      _.size(this.labBench.tois) +
-      _.size(this.labBench.measureStandards) +
-      _.size(this.labBench.measurements);
+    if(this.firstLoad) {
+      var totalLoaded = 1 +
+        _.size(this.labBench.subSets) +
+        _.size(this.labBench.items) +
+        _.size(this.labBench.views) +
+        _.size(this.labBench.rois) +
+        _.size(this.labBench.aois) +
+        _.size(this.labBench.pois) +
+        _.size(this.labBench.tois) +
+        _.size(this.labBench.measureStandards) +
+        _.size(this.labBench.measurements);
 
-    var totalToLoad = 1 +
-      this.ids.subSets.length +
-      this.ids.items.length +
-      this.ids.views.length +
-      this.ids.rois.length +
-      this.ids.aois.length +
-      this.ids.pois.length +
-      this.ids.tois.length +
-      this.ids.measureStandards.length +
-      this.ids.measurements.length;
+      var totalToLoad = 1 +
+        this.ids.subSets.length +
+        this.ids.items.length +
+        this.ids.views.length +
+        this.ids.rois.length +
+        this.ids.aois.length +
+        this.ids.pois.length +
+        this.ids.tois.length +
+        this.ids.measureStandards.length +
+        this.ids.measurements.length;
 
-    //var loadingText = <div><p>Chargement en cours...</p> +
-    //  'Sous-sets ' + _.size(this.labBench.subSets) + '/' + this.ids.subSets.length + '\n' +
-    //  'Spécimens&Images ' + _.size(this.labBench.items) + '/' + this.ids.items.length + '\n' +
-    //  'Vues ' + _.size(this.labBench.views) + '/' + this.ids.views.length + '\n' +
-    //  'Zones ' + _.size(this.labBench.rois) + '/' + this.ids.rois.length + '\n' +
-    //  'Angles ' + _.size(this.labBench.aois) + '/' + this.ids.aois.length + '\n' +
-    //  'Points ' + _.size(this.labBench.pois) + '/' + this.ids.pois.length + '\n' +
-    //  'Chemins ' + _.size(this.labBench.tois) + '/' + this.ids.tois.length + '\n' +
-    //  'Mesures ' + _.size(this.labBench.measurements) + '/' + this.ids.measurements.length + '\n' +
-    //  'Étalons ' + _.size(this.labBench.measureStandards) + '/' + this.ids.measureStandards.length</div>
+      //var loadingText = <div><p>Chargement en cours...</p> +
+      //  'Sous-sets ' + _.size(this.labBench.subSets) + '/' + this.ids.subSets.length + '\n' +
+      //  'Spécimens&Images ' + _.size(this.labBench.items) + '/' + this.ids.items.length + '\n' +
+      //  'Vues ' + _.size(this.labBench.views) + '/' + this.ids.views.length + '\n' +
+      //  'Zones ' + _.size(this.labBench.rois) + '/' + this.ids.rois.length + '\n' +
+      //  'Angles ' + _.size(this.labBench.aois) + '/' + this.ids.aois.length + '\n' +
+      //  'Points ' + _.size(this.labBench.pois) + '/' + this.ids.pois.length + '\n' +
+      //  'Chemins ' + _.size(this.labBench.tois) + '/' + this.ids.tois.length + '\n' +
+      //  'Mesures ' + _.size(this.labBench.measurements) + '/' + this.ids.measurements.length + '\n' +
+      //  'Étalons ' + _.size(this.labBench.measureStandards) + '/' + this.ids.measureStandards.length</div>
 
-    var loadingText = <div>Chargement en cours...<br/>
-      <p>Sous-sets {_.size(this.labBench.subSets)}/{this.ids.subSets.length}<br />
-        Spécimens&Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
-        Vues {_.size(this.labBench.views)}/{this.ids.views.length}<br />
-        Zones {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
-        Angles {_.size(this.labBench.aois)}/{this.ids.aois.length}<br />
-        Points {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
-        Chemins {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
-        Mesures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
-        Étalons {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
-    </div>;
+      var loadingText = <div>Chargement en cours...<br/>
+        <p>Sous-sets {_.size(this.labBench.subSets)}/{this.ids.subSets.length}<br />
+          Spécimens&Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
+          Vues {_.size(this.labBench.views)}/{this.ids.views.length}<br />
+          Zones {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
+          Angles {_.size(this.labBench.aois)}/{this.ids.aois.length}<br />
+          Points {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
+          Chemins {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
+          Mesures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
+          Étalons {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
+      </div>;
 
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, loadingText), 10);
-    //window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Chargement en cours... ' + totalLoaded + ' / ' + totalToLoad), 10);
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, loadingText), 10);
+      //window.setTimeout(ViewActions.changeLoaderState.bind(null, 'Chargement en cours... ' + totalLoaded + ' / ' + totalToLoad), 10);
+    }
+
     if(this.isLoaded()) {
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 50);
+      if(this.firstLoad) {
+        this.firstLoad = false;
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 50);
+      }
       this.emit(MetadataEvents.LAB_BENCH_READY);
     }
   }
@@ -628,6 +637,7 @@ class LabBenchStore extends EventEmitter {
         if(!this.isDataComplete(this.ids.measurements, this.labBench.measurements)) {
           return false;
         }
+
         return true;
       }
       if (!this.labBench.id) {

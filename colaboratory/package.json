@@ -26,7 +26,7 @@
     "download-csv": "^1.0.3",
     "exif": "^0.4.0",
     "exif-js": "^2.1.1",
-    "fast-csv": "^0.6.0",
+    "fast-csv": "^2.3.0",
     "file-loader": "*",
     "filereader-stream": "^0.2.0",
     "flux": "^2.0.1",

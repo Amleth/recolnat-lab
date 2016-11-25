@@ -12,6 +12,7 @@ export default {
   Modals: {
     createSet: 'MODAL_createSet',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
+    addToSet: 'MODAL_addToSet',
     createAndFillSet: 'MODAL_createAndFillSet',
     login: 'MODAL_login',
     confirmDelete: 'MODAL_confirmDelete',

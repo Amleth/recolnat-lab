@@ -14,6 +14,7 @@ import AddAnnotationToEntity from './modals/AddAnnotationToEntity';
 import CreateAndFillSet from './modals/CreateAndFillSet';
 import TestRunnerModal from './modals/TestRunnerModal';
 import FeedbackForm from './modals/FeedbackForm';
+import AddToSet from './modals/AddToSet';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -61,6 +62,13 @@ class ManagerModals extends React.Component {
                         basketstore={this.props.basketstore}
                      managerstore={this.props.managerstore} />
       <AddEntitiesToSetModal modalstore={this.props.modalstore}
+                             metastore={this.props.metastore}
+                             managerstore={this.props.managerstore}
+                             viewstore={this.props.viewstore}
+                             benchstore={this.props.benchstore}
+                             basketstore={this.props.basketstore}
+                             modestore={this.props.modestore} />
+      <AddToSet modalstore={this.props.modalstore}
                              metastore={this.props.metastore}
                              managerstore={this.props.managerstore}
                              viewstore={this.props.viewstore}

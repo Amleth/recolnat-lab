@@ -44,7 +44,7 @@ class AbstractModal extends React.Component {
   }
 
   shouldModalClose() {
-    return true;
+    return false;
   }
 
   componentDidMount() {

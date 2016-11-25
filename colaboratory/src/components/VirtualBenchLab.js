@@ -111,7 +111,7 @@ class VirtualBenchLab extends React.Component {
         <Popup toolstore={this.props.toolstore}/>
         <div style={this.importSheetButtonStyle}
         data-content='Importer des images' ref='import' className='ui container'>
-          <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {parent: this.props.benchstore.getActiveSetId()})}
+          <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {parent: this.props.benchstore.getActiveSetId()})}
           className='ui small green button' ><i className='ui small add icon'/></a>
         </div>
         <OrbalContextMenu

@@ -182,15 +182,15 @@ class AddEntitiesToSetModal extends AbstractModal {
             var viewId = this.props.benchstore.getActiveViewId();
 
             var view = this.props.viewstore.getView();
-            var x = view.left + view.width / 2;
-            var y = view.top + view.height / 2;
+            var x = (-view.left + view.width / 2)/view.scale;
+            var y = (-view.top + view.height / 2)/view.scale;
             for(var j = 0; j < importedEntities.length; ++j) {
               var linkedEntity = importedEntities[j];
               for(var k = 0; k < linkedEntity.images.length; ++k) {
                 var image = linkedEntity.images[k];
                 imagesToPlace++;
                 ServiceMethods.place(viewId, image.uid, x, y, onEntityPlaced.bind(this));
-                x = x+image.width + 100;
+                x = x+image.width + 100/view.scale;
               }
             }
           }
@@ -318,7 +318,7 @@ class AddEntitiesToSetModal extends AbstractModal {
             <div className="ui positive right labeled icon button"
                  onClick={this.create.bind(this, false)}>
               <div className='ui text'>
-                Ajouter au set
+                Créer set
               </div>
               <i className="checkmark icon"></i>
             </div>

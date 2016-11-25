@@ -140,11 +140,15 @@ class Inbox extends React.Component {
     window.setTimeout(function() {
       ViewActions.changeLoaderState("Placement en cours.")}, 10);
 
-    var x = this.props.viewstore.getView().left;
-    var y = this.props.viewstore.getView().top;
+    var view = this.props.viewstore.getView();
+
+    var x = (-view.left + view.width / 2)/view.scale;
+    var y = (-view.top + view.height / 2)/view.scale;
     var viewId = this.state.viewId;
+    this.imagesToPlace = this.state.content.length;
+    this.imagesPlaced = 0;
     for(var i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(this, viewId));
 
       x = x + this.state.content[i].width + 100;
     }
@@ -160,6 +164,8 @@ class Inbox extends React.Component {
     var x = this.props.viewstore.getView().left;
     var y = this.props.viewstore.getView().top;
     var viewId = this.state.viewId;
+    this.imagesToPlace = this.state.content.length;
+    this.imagesPlaced = 0;
     for(var i = 0; i < this.state.content.length; ++i) {
       ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
       y = y + this.state.content[i].height + 200;
@@ -187,6 +193,8 @@ class Inbox extends React.Component {
       this.state.content[4]? this.state.content[4].width : 0
     );
     var viewId = this.state.viewId;
+    this.imagesToPlace = this.state.content.length;
+    this.imagesPlaced = 0;
     for(var i = 0; i < this.state.content.length; ++i) {
       ServiceMethods.place(viewId, this.state.content[i].uid, x, y, Inbox.imagePlaced.bind(null, viewId));
 
@@ -212,9 +220,12 @@ class Inbox extends React.Component {
     }
   }
 
-  static imagePlaced() {
-    //window.setTimeout(MetadataActions.updateLabBenchFrom.bind(null, viewId), 10);
-    window.setTimeout(ViewActions.fitView, 750);
+  imagePlaced() {
+    this.imagesPlaced++;
+    if(this.imagesPlaced === this.imagesToPlace) {
+      window.setTimeout(ViewActions.fitView, 750);
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
+    }
   }
 
   componentDidMount() {

@@ -348,4 +348,19 @@ public class BranchUtils {
     }
     return null;
   }
+  
+  public static OrientVertex isImageForkedInSet(OrientVertex vImage, OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g) {
+    Iterator<Vertex> itForkedImages = vImage.getVertices(Direction.OUT, DataModel.Links.isForkedAs).iterator();
+    while(itForkedImages.hasNext()) {
+      OrientVertex vForkedImage = (OrientVertex) itForkedImages.next();
+      if(vForkedImage.getEdges(vSet, Direction.IN, DataModel.Links.isForkedAs).iterator().hasNext()) {
+        if(AccessRights.canWrite(vUser, vForkedImage, g)) {
+          if(AccessUtils.isLatestVersion(vForkedImage)) {
+            return vForkedImage;
+          }
+        }
+      }
+    }
+    return null;
+  }
 }

@@ -62,7 +62,8 @@ class SetManagerMainButtons extends React.Component {
   }
 
   showModal() {
-    window.setTimeout(ModalActions.showModal.bind(null, ModalConstants.Modals.createAndFillSet), 10);
+    //var setId = this.props.managerstore.getSelected().id;
+    window.setTimeout(ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {parent: null}), 10);
   }
 
   loadActiveSet() {

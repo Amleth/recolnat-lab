@@ -213,24 +213,31 @@ class SetDisplay extends React.Component {
   }
 
   showAddToSetModal() {
-    if(this.props.index === 0) {
-      window.setTimeout(
-        ModalActions.showModal.bind(null, ModalConstants.Modals.createAndFillSet, {
-          parent: this.props.set.uid,
-          index: this.props.index
-        })
-        , 10
-      );
-    }
-    else {
-      window.setTimeout(
-        ModalActions.showModal.bind(null, ModalConstants.Modals.addEntitiesToSet, {
-          parent: this.props.set.uid,
-          index: this.props.index
-        })
-        , 10
-      );
-    }
+    window.setTimeout(
+      ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {
+        parent: this.props.set.uid,
+        index: this.props.index
+      })
+      , 10
+    );
+    //if(this.props.index === 0) {
+    //  window.setTimeout(
+    //    ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {
+    //      parent: this.props.set.uid,
+    //      index: this.props.index
+    //    })
+    //    , 10
+    //  );
+    //}
+    //else {
+    //  window.setTimeout(
+    //    ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {
+    //      parent: this.props.set.uid,
+    //      index: this.props.index
+    //    })
+    //    , 10
+    //  );
+    //}
   }
 
   addMetadataUpdateListeners(s) {

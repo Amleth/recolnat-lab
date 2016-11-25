@@ -193,7 +193,8 @@ public class MessageProcessorThread implements Runnable {
                 parentSetId = jsonIn.getString("set");
                 String url = jsonIn.getString("url");
                 name = jsonIn.getString("name");
-                modified = SetResource.importExternalImage(parentSetId, url, name, userLogin);
+                result = SetResource.importExternalImage(parentSetId, url, name, userLogin);
+                modified = result.getModified();
                 break;
               case "place":
                 viewId = jsonIn.getString("view");

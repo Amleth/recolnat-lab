@@ -5,6 +5,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 import org.apache.commons.lang.NotImplementedException;
 
@@ -248,14 +249,14 @@ public class CreatorUtils {
    * @param g
    * @return 
    */
-  public static OrientVertex createNewUserAndUserData(String loginName, OrientBaseGraph g) {
+  public static OrientVertex createNewUserAndUserData(String loginName, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     OrientVertex vUser = CreatorUtils.createUser(loginName, g);
     OrientVertex vRootSet = CreatorUtils.createSet("Racine des sets", DataModel.Globals.ROOT_SET_ROLE, g);
     OrientVertex vDefaultView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
-    UpdateUtils.addCreator(vRootSet, vUser, g);
-    UpdateUtils.addCreator(vDefaultView, vUser, g);
-    AccessRights.grantAccessRights(vUser, vRootSet, DataModel.Enums.AccessRights.WRITE, g);
-    AccessRights.grantAccessRights(vUser, vDefaultView, DataModel.Enums.AccessRights.WRITE, g);
+    UpdateUtils.addCreator(vRootSet, vUser, g, rightsDb);
+    UpdateUtils.addCreator(vDefaultView, vUser, g, rightsDb);
+    AccessRights.grantAccessRights(vUser, vRootSet, DataModel.Enums.AccessRights.WRITE, rightsDb);
+    AccessRights.grantAccessRights(vUser, vDefaultView, DataModel.Enums.AccessRights.WRITE, rightsDb);
     
     UpdateUtils.link(vUser, vRootSet, DataModel.Links.hasCoreSet, loginName, g);
     UpdateUtils.link(vRootSet, vDefaultView, DataModel.Links.hasView, (String) vUser.getProperty(DataModel.Properties.id), g);
@@ -314,7 +315,7 @@ public class CreatorUtils {
     return specimen;
   }
   
-  public static OrientVertex createStudy(String name, OrientVertex creator, OrientBaseGraph g) {
+  public static OrientVertex createStudy(String name, OrientVertex creator, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     OrientVertex study = g.addVertex("class:" + DataModel.Classes.study);
     
     study.setProperties(DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
@@ -322,8 +323,8 @@ public class CreatorUtils {
           DataModel.Properties.name, name,
           DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
     
-    UpdateUtils.addCreator(study, creator, g);
-    AccessRights.grantAccessRights(creator, study, DataModel.Enums.AccessRights.WRITE, g);
+    UpdateUtils.addCreator(study, creator, g, rightsDb);
+    AccessRights.grantAccessRights(creator, study, DataModel.Enums.AccessRights.WRITE, rightsDb);
     
     UpdateUtils.link(creator, study, DataModel.Links.studies, (String) creator.getProperty(DataModel.Properties.id), g);
     

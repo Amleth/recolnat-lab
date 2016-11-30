@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
@@ -40,7 +41,7 @@ public class DeleteUtils {
    * @param graph
    * @return
    */
-  public static List<String> unlinkItemFromSet(String linkId, OrientVertex vUser, OrientBaseGraph graph) throws AccessForbiddenException, ObsoleteDataException {
+  public static List<String> unlinkItemFromSet(String linkId, OrientVertex vUser, OrientBaseGraph graph, RightsManagementDatabase rightsDb) throws AccessForbiddenException, ObsoleteDataException {
     List<String> modified = new LinkedList<>();
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, graph);
     if (eLink == null) {
@@ -49,7 +50,7 @@ public class DeleteUtils {
     OrientVertex vParentSet = eLink.getVertex(Direction.OUT);
     OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
 
-    if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph)) {
+    if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vParentSet.getProperty(DataModel.Properties.id));
     }
     // Create new version of the parent
@@ -128,7 +129,7 @@ public class DeleteUtils {
     return modified;
   }
   
-  public static List<String> unlinkItemFromView(String linkId, OrientVertex vUser, OrientBaseGraph g) throws ObsoleteDataException, AccessForbiddenException {
+  public static List<String> unlinkItemFromView(String linkId, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws ObsoleteDataException, AccessForbiddenException {
     List<String> modified = new LinkedList<>();
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
     if (eLink == null) {
@@ -137,7 +138,7 @@ public class DeleteUtils {
     OrientVertex vView = eLink.getVertex(Direction.OUT);
     OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
 
-    if (!DeleteUtils.canUserDeleteVertex(vView, vUser, g)) {
+    if (!DeleteUtils.canUserDeleteVertex(vView, vUser, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vView.getProperty(DataModel.Properties.id));
     }
     
@@ -169,7 +170,7 @@ public class DeleteUtils {
    * anything)
    * @param g
    */
-  private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientBaseGraph g) {
+  private static boolean unlinkItemFromSet(OrientEdge eLink, OrientVertex vChildItemOrSet, OrientVertex vParentSet, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     if (log.isDebugEnabled()) {
       log.debug("unlinkItemFromSet(" + eLink.toString() + "," + vChildItemOrSet.toString() + ", " + vParentSet.toString() + ", " + vUser.toString() + ")");
     }
@@ -211,7 +212,7 @@ public class DeleteUtils {
     }
 
     // Child must be deleted as well, therefore process all of its children in turn
-    if (!DeleteUtils.canUserDeleteVertex(vChildItemOrSet, vUser, g)) {
+    if (!DeleteUtils.canUserDeleteVertex(vChildItemOrSet, vUser, g, rightsDb)) {
       // Either user cannot delete child, or child is of a non-deletable type.
       // Removal has deleted everything that could be deleted, therefore success.
       return true;
@@ -225,7 +226,7 @@ public class DeleteUtils {
       // If the edge is no longer relevant (not the most up to date version), ignore it
       if (childEdge.getProperty(DataModel.Properties.nextVersionId) == null) {
         OrientVertex vChildChildItemOrSet = childEdge.getVertex(Direction.IN);
-        DeleteUtils.unlinkItemFromSet(childEdge, vChildChildItemOrSet, vNewChildItemOrSet, vUser, g);
+        DeleteUtils.unlinkItemFromSet(childEdge, vChildChildItemOrSet, vNewChildItemOrSet, vUser, g, rightsDb);
       }
     }
     // The new version without the original link has no parents, therefore it must be deleted along with its orphaned children.
@@ -245,11 +246,11 @@ public class DeleteUtils {
    * @param g
    * @return
    */
-  public static List<String> delete(String id, OrientVertex user, OrientBaseGraph g) throws ResourceNotExistsException, AccessForbiddenException {
+  public static List<String> delete(String id, OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws ResourceNotExistsException, AccessForbiddenException {
     List<String> deleted = new ArrayList<>();
     OrientVertex vElt = AccessUtils.getNodeById(id, g);
     if (vElt != null) {
-      if (DeleteUtils.canUserDeleteSubGraph(vElt, user, g)) {
+      if (DeleteUtils.canUserDeleteSubGraph(vElt, user, g, rightsDb)) {
         // Simply creates a new version of this Vertex which is not linked to anything, therefore inaccessible without rollbacks.
         deleted = DeleteUtils.deleteVertex(vElt, user, g);
       } 
@@ -259,7 +260,7 @@ public class DeleteUtils {
     OrientEdge eElt = AccessUtils.getEdgeById(id, g);
     if (eElt != null) {
       // Check if user can delete this edge
-      if (DeleteUtils.canUserDeleteEdge((OrientEdge) eElt, user, g)) {
+      if (DeleteUtils.canUserDeleteEdge((OrientEdge) eElt, user, g, rightsDb)) {
         // Clone both ends of the edge and remove the edge.
         deleted = DeleteUtils.deleteEdge((OrientEdge) eElt, user, g);
       } 
@@ -390,8 +391,8 @@ public class DeleteUtils {
     return modified;
   }
 
-  public static boolean canUserDeleteSubGraph(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g) {
-    if (!DeleteUtils.canUserDeleteVertex(vObject, vUser, g)) {
+  public static boolean canUserDeleteSubGraph(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    if (!DeleteUtils.canUserDeleteVertex(vObject, vUser, g, rightsDb)) {
       return false;
     }
     // Check rights : user must be able to WRITE; vertex must not be shared with anyone; children (annotations, measures) must not be shared and will be deleted
@@ -418,7 +419,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vMessage = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vMessage)) {
-            if (!DeleteUtils.canUserDeleteVertex(vMessage, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteVertex(vMessage, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -470,7 +471,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vCoreSet = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vCoreSet)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vCoreSet, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vCoreSet, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -503,7 +504,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vAnnotation = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vAnnotation)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -513,7 +514,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vDiscussion)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -526,7 +527,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vAnnotation = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vAnnotation)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -536,7 +537,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vDiscussion)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -549,7 +550,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vAnnotation = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vAnnotation)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -559,7 +560,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vDiscussion)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -571,7 +572,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vAnnotation = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vAnnotation)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vAnnotation, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -581,7 +582,7 @@ public class DeleteUtils {
         while (itLinks.hasNext()) {
           OrientVertex vDiscussion = (OrientVertex) itLinks.next();
           if (AccessUtils.isLatestVersion(vDiscussion)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g)) {
+            if (!DeleteUtils.canUserDeleteSubGraph(vDiscussion, vUser, g, rightsDb)) {
               return false;
             }
           }
@@ -617,20 +618,20 @@ public class DeleteUtils {
     }
   }
 
-  private static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g) {
+  private static boolean canUserDeleteVertex(OrientVertex vObject, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     // If a vertex has a newer version, it cannot be deleted (no forks in graph)
     if (!AccessUtils.isLatestVersion(vObject)) {
       return false;
     }
 
     // Check user's access rights
-    if (!AccessRights.canWrite(vUser, vObject, g)) {
+    if (!AccessRights.canWrite(vUser, vObject, g, rightsDb)) {
       // User requires WRITE permission to delete
       return false;
     }
 
     // Does the public have access to the vertex?
-    if (AccessRights.canPublicRead(vObject, g)) {
+    if (AccessRights.canPublicRead(vObject, g, rightsDb)) {
       return false;
     }
 
@@ -641,7 +642,7 @@ public class DeleteUtils {
       if (vAccessor.equals(vUser)) {
         continue;
       }
-      if (AccessRights.canRead(vAccessor, vObject, g)) {
+      if (AccessRights.canRead(vAccessor, vObject, g, rightsDb)) {
 //        if (vAccessor.getProperty(DataModel.Properties.id).equals(DataModel.Globals.PUBLIC_GROUP_ID)) {
 //          // Object shared with general public
 //          return false;
@@ -656,7 +657,7 @@ public class DeleteUtils {
     return true;
   }
 
-  public static boolean canUserDeleteEdge(OrientEdge edge, OrientVertex user, OrientBaseGraph g) {
+  public static boolean canUserDeleteEdge(OrientEdge edge, OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     // The answer depends on user rights on one side of the edge, or both.
     switch (edge.getLabel()) {
       case DataModel.Links.createdBy:
@@ -665,19 +666,19 @@ public class DeleteUtils {
         return false;
       case DataModel.Links.hasAnnotation:
         // Same as deleting the annotation (must have access rights to annotation and annotation must not be shared)
-        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.containsSubSet:
         // Same as deleting sets, must have rights on parent
-        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.OUT), user, g);
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.OUT), user, g, rightsDb);
       case DataModel.Links.containsItem:
         // Same as deleting sets, must have rights on parent
-        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.OUT), user, g);
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.OUT), user, g, rightsDb);
       case DataModel.Links.hasDefinition:
         // Definition of tagging cannot be changed. However the tagging itself can be deleted.
         return false;
       case DataModel.Links.hasMessage:
         // Similar to deleting the message from the thread.
-        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.hasNewerVersion:
         // Rollback only permitted to admin anyway
         return false;
@@ -685,10 +686,10 @@ public class DeleteUtils {
         return false;
       case DataModel.Links.definedAsMeasureStandard:
         // Similar to deleting the scaling data itself
-        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteSubGraph(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.isMemberOfGroup:
         // Group administrator (any user with WRITE on target) may remove link
-        if (DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g)) {
+        if (DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g, rightsDb)) {
           return true;
         }
         // User may remove link for himself (user has WRITE on source=self)
@@ -698,16 +699,16 @@ public class DeleteUtils {
         return false;
       case DataModel.Links.isTagged:
         // Must have rights on the tag (edge target)
-        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.toi:
         // Must have rights on the trailOfInterest
-        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.poi:
         // Must have rights on the point
-        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g, rightsDb);
       case DataModel.Links.roi:
         // Must have rights on the region
-        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g);
+        return DeleteUtils.canUserDeleteVertex(edge.getVertex(Direction.IN), user, g, rightsDb);
       default:
         log.error("Unknown edge label " + edge.getLabel() + " for edge " + edge.toString());
         return false;

@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.model.DataModel.Enums;
@@ -48,10 +49,10 @@ public class RecolnatImage extends AbstractObject {
   
   private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
   
-  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vImage, vUser, g);
+  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vImage, vUser, g, rightsDb);
     
-    if (!AccessRights.canRead(vUser, vImage, g)) {
+    if (!AccessRights.canRead(vUser, vImage, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vImage.getProperty(DataModel.Properties.id));
     }
     
@@ -65,7 +66,7 @@ public class RecolnatImage extends AbstractObject {
     while (itSpecimens.hasNext()) {
       OrientVertex vSpecimen = (OrientVertex) itSpecimens.next();
       if (AccessUtils.isLatestVersion(vSpecimen)) {
-        if (AccessRights.canRead(vUser, vSpecimen, g)) {
+        if (AccessRights.canRead(vUser, vSpecimen, g, rightsDb)) {
           this.specimensReferencingThisImage.add((String) vSpecimen.getProperty(DataModel.Properties.id));
         }
       }
@@ -75,7 +76,7 @@ public class RecolnatImage extends AbstractObject {
     while (itRois.hasNext()) {
       OrientVertex vRoi = (OrientVertex) itRois.next();
       if (AccessUtils.isLatestVersion(vRoi)) {
-        if (AccessRights.canRead(vUser, vRoi, g)) {
+        if (AccessRights.canRead(vUser, vRoi, g, rightsDb)) {
           this.regionsOfInterest.add((String) vRoi.getProperty(DataModel.Properties.id));
         }
       }
@@ -85,7 +86,7 @@ public class RecolnatImage extends AbstractObject {
     while (itAois.hasNext()) {
       OrientVertex vAoi = (OrientVertex) itAois.next();
       if (AccessUtils.isLatestVersion(vAoi)) {
-        if (AccessRights.canRead(vUser, vAoi, g)) {
+        if (AccessRights.canRead(vUser, vAoi, g, rightsDb)) {
           this.anglesOfInterest.add((String) vAoi.getProperty(DataModel.Properties.id));
         }
       }
@@ -95,7 +96,7 @@ public class RecolnatImage extends AbstractObject {
     while (itPois.hasNext()) {
       OrientVertex vPoi = (OrientVertex) itPois.next();
       if (AccessUtils.isLatestVersion(vPoi)) {
-        if (AccessRights.canRead(vUser, vPoi, g)) {
+        if (AccessRights.canRead(vUser, vPoi, g, rightsDb)) {
           this.pointsOfInterest.add((String) vPoi.getProperty(DataModel.Properties.id));
         }
       }
@@ -105,16 +106,16 @@ public class RecolnatImage extends AbstractObject {
     Iterator<Vertex> itTois = vImage.getVertices(Direction.OUT, DataModel.Links.toi).iterator();
     while (itTois.hasNext()) {
       OrientVertex vTrail = (OrientVertex) itTois.next();
-      if (AccessRights.isLatestVersionAndHasRights(vUser, vTrail, Enums.AccessRights.READ, g)) {
+      if (AccessRights.isLatestVersionAndHasRights(vUser, vTrail, Enums.AccessRights.READ, g, rightsDb)) {
         this.trailsOfInterest.add((String) vTrail.getProperty(DataModel.Properties.id));
         Iterator<Vertex> itTrailMeasurements = vTrail.getVertices(Direction.OUT, DataModel.Links.hasMeasurement).iterator();
         while (itTrailMeasurements.hasNext()) {
           OrientVertex trailMeasurement = (OrientVertex) itTrailMeasurements.next();
-          if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g)) {
+          if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g, rightsDb)) {
             Iterator<Vertex> itStandards = trailMeasurement.getVertices(Direction.OUT, DataModel.Links.definedAsMeasureStandard).iterator();
             while (itStandards.hasNext()) {
               OrientVertex vStandard = (OrientVertex) itStandards.next();
-              if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g)) {
+              if (AccessRights.isLatestVersionAndHasRights(vUser, trailMeasurement, Enums.AccessRights.READ, g, rightsDb)) {
                 this.measureStandards.add((String) vStandard.getProperty(DataModel.Properties.id));
               }
             }
@@ -146,7 +147,7 @@ public class RecolnatImage extends AbstractObject {
       }
     }
     
-    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vImage, vUser, g);
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vImage, vUser, g, rightsDb);
   }
   
   @Override

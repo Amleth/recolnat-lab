@@ -11,6 +11,7 @@ export default {
   },
   Modals: {
     createSet: 'MODAL_createSet',
+    organiseSet: 'MODAL_organiseSet',
     addEntitiesToSet: 'MODAL_addEntitiesToSet',
     addToSet: 'MODAL_addToSet',
     createAndFillSet: 'MODAL_createAndFillSet',

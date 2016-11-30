@@ -12,6 +12,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 import java.util.Date;
 import java.util.Iterator;
@@ -26,19 +27,38 @@ public class AccessRights {
 
   private static final Logger log = LoggerFactory.getLogger(AccessRights.class);
 
-  public static DataModel.Enums.AccessRights getAccessRights(@NotNull OrientVertex user, @NotNull OrientVertex node, OrientBaseGraph graph) {
+  public static DataModel.Enums.AccessRights getAccessRights(@NotNull OrientVertex user, @NotNull OrientVertex node, OrientBaseGraph graph, RightsManagementDatabase rightsDb) {
     DataModel.Enums.AccessRights ret = DataModel.Enums.AccessRights.NONE;
 
     // If node and user are same, user HAS access rights to his own node
     try {
-    if (user.getProperty(DataModel.Properties.id).equals(node.getProperty(DataModel.Properties.id))) {
-      return DataModel.Enums.AccessRights.WRITE;
-    }
-    }
-    catch(NullPointerException ex) {
+      if (user.getProperty(DataModel.Properties.id).equals(node.getProperty(DataModel.Properties.id))) {
+        return DataModel.Enums.AccessRights.WRITE;
+      }
+    } catch (NullPointerException ex) {
       log.error("Caught NPE with user=" + user + " node=" + node);
     }
+    
+    if(log.isDebugEnabled()) {
+    log.debug("Checking access rights for " + (String) user.getProperty(DataModel.Properties.login) + " over " + (String) node.getProperty(DataModel.Properties.id));
+    }
+    ret = rightsDb.getAccessRights((String) user.getProperty(DataModel.Properties.login), (String) node.getProperty(DataModel.Properties.id));
+    if(ret.value() > DataModel.Enums.AccessRights.NONE.value()) {
+      return ret;
+    }
+    if(log.isDebugEnabled()) {
+    log.debug("No personal rights found, trying public rights");
+    }
+    
+    ret = rightsDb.getAccessRights("PUBLIC", (String) node.getProperty(DataModel.Properties.id));
+    if(ret.value() > DataModel.Enums.AccessRights.NONE.value()) {
+      return ret;
+    }
+    if(log.isDebugEnabled()) {
+    log.debug("No public rights found, trying legacy methods");
+    }
 
+    // The following is legacy rights checking, if value above is non, check in old graphs
     // Check personal access rights
     Edge e = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, true, graph);
     if (e != null) {
@@ -54,29 +74,12 @@ public class AccessRights {
 
     // Check public access rights
     Integer publicAccessRights = node.getProperty(DataModel.Properties.publicAccess);
-    if(publicAccessRights != null) {
+    if (publicAccessRights != null) {
       ret = DataModel.Enums.AccessRights.fromInt(publicAccessRights);
-      if(ret == DataModel.Enums.AccessRights.WRITE) {
+      if (ret == DataModel.Enums.AccessRights.WRITE) {
         return ret;
       }
     }
-//    OrientVertex vPublic = AccessUtils.getPublic(graph);
-//    if (vPublic == null) {
-//      log.error("User PUBLIC does not exist in database.");
-//    } 
-//    else {
-//      e = AccessUtils.getEdgeBetweenVertices(vPublic, node, DataModel.Links.hasAccessRights, true, graph);
-//      if (e != null) {
-//        // Public has access rights
-//        int accessRight = e.getProperty(DataModel.Properties.accessRights);
-//        ret = DataModel.Enums.AccessRights.fromInt(accessRight);
-//      }
-//
-//      if (ret == DataModel.Enums.AccessRights.WRITE) {
-//        // Highest rights available. No point in checking elsewhere.
-//        return ret;
-//      }
-//    }
 
     // Check group access rights
     Iterator<Edge> itMemberships = user.getEdges(Direction.OUT, DataModel.Links.isMemberOfGroup).iterator();
@@ -93,27 +96,32 @@ public class AccessRights {
 
     return ret;
   }
-  
-  public static boolean canRead(OrientVertex vUser, OrientVertex vNode, OrientBaseGraph g) {
-    if(AccessRights.getAccessRights(vUser, vNode, g).value() >= DataModel.Enums.AccessRights.READ.value()) {
+
+  public static boolean canRead(OrientVertex vUser, OrientVertex vNode, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    if (AccessRights.getAccessRights(vUser, vNode, g, rightsDb).value() >= DataModel.Enums.AccessRights.READ.value()) {
       return true;
     }
     return false;
   }
-  
-  public static boolean canWrite(@NotNull OrientVertex vUser, @NotNull OrientVertex vNode, OrientBaseGraph g) {
-    if(AccessRights.getAccessRights(vUser, vNode, g).value() >= DataModel.Enums.AccessRights.WRITE.value()) {
+
+  public static boolean canWrite(@NotNull OrientVertex vUser, @NotNull OrientVertex vNode, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    if (AccessRights.getAccessRights(vUser, vNode, g, rightsDb).value() >= DataModel.Enums.AccessRights.WRITE.value()) {
       return true;
     }
     return false;
   }
-  
-  public static boolean canPublicRead(OrientVertex vNode, OrientBaseGraph g) {
+
+  public static boolean canPublicRead(OrientVertex vNode, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    if(rightsDb.getAccessRights("PUBLIC", (String) vNode.getProperty(DataModel.Properties.id)).value() > DataModel.Enums.AccessRights.NONE.value()) {
+      return true;
+    }
+    
+    // Legacy checks
     Integer publicAccessRights = vNode.getProperty(DataModel.Properties.publicAccess);
-    if(publicAccessRights == null) {
+    if (publicAccessRights == null) {
       return false;
     }
-    if(publicAccessRights >= DataModel.Enums.AccessRights.READ.value()) {
+    if (publicAccessRights >= DataModel.Enums.AccessRights.READ.value()) {
       return true;
     }
     return false;
@@ -131,32 +139,38 @@ public class AccessRights {
    * @pre Current user is allowed to change access rights for accessor and node
    * @return
    */
-  public static OrientEdge grantAccessRights(OrientVertex accessor, OrientVertex node, DataModel.Enums.AccessRights rights, OrientBaseGraph graph) {
-    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(accessor, node, DataModel.Links.hasAccessRights, true, graph);
-    if (edge == null) {
-      edge = graph.addEdge("class:" + DataModel.Links.hasAccessRights, accessor, node, DataModel.Links.hasAccessRights);
-      edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
-      edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+  public static void grantAccessRights(OrientVertex accessor, OrientVertex node, DataModel.Enums.AccessRights rights, RightsManagementDatabase rightsDb) {
+    if(log.isDebugEnabled()) {
+      log.debug("grantAccessRights user=" + (String) accessor.getProperty(DataModel.Properties.login) + " node=" + (String) node.getProperty(DataModel.Properties.id) + " rights=" + rights.name());
     }
+    rightsDb.setAccessRights((String) accessor.getProperty(DataModel.Properties.login), (String) node.getProperty(DataModel.Properties.id), rights);
+//    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(accessor, node, DataModel.Links.hasAccessRights, true, graph);
+//    if (edge == null) {
+//      edge = graph.addEdge("class:" + DataModel.Links.hasAccessRights, accessor, node, DataModel.Links.hasAccessRights);
+//      edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
+//      edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
+//    }
+//
+//    edge.setProperty(DataModel.Properties.accessRights, rights.value());
+//    return edge;
+  }
 
-    edge.setProperty(DataModel.Properties.accessRights, rights.value());
-    return edge;
-  }
-  
-  public static void grantPublicAccessRights(OrientVertex node, DataModel.Enums.AccessRights rights, OrientBaseGraph graph) {
-    node.setProperty(DataModel.Properties.publicAccess, rights.value());
+  public static void grantPublicAccessRights(OrientVertex node, DataModel.Enums.AccessRights rights, RightsManagementDatabase rightsDb) {
+    rightsDb.setAccessRights("PUBLIC", (String) node.getProperty(DataModel.Properties.id), rights);
+//    node.setProperty(DataModel.Properties.publicAccess, rights.value());
   }
 
-  public static void revokeAccessRights(OrientVertex user, OrientVertex node, OrientBaseGraph graph) {
-    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, true, graph);
-    if (edge != null) {
-      edge.remove();
-    }
+  public static void revokeAccessRights(OrientVertex user, OrientVertex node, OrientBaseGraph graph, RightsManagementDatabase rightsDb) {
+    rightsDb.setAccessRights((String) user.getProperty(DataModel.Properties.login), (String) node.getProperty(DataModel.Properties.id), DataModel.Enums.AccessRights.NONE);
+//    OrientEdge edge = AccessUtils.getEdgeBetweenVertices(user, node, DataModel.Links.hasAccessRights, true, graph);
+//    if (edge != null) {
+//      edge.remove();
+//    }
   }
-  
-  public static boolean isLatestVersionAndHasRights(OrientVertex user, OrientVertex node, DataModel.Enums.AccessRights level, OrientBaseGraph g) {
-    if(AccessUtils.isLatestVersion(node)) {
-      if(AccessRights.getAccessRights(user, node, g).value() >= level.value()) {
+
+  public static boolean isLatestVersionAndHasRights(OrientVertex user, OrientVertex node, DataModel.Enums.AccessRights level, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    if (AccessUtils.isLatestVersion(node)) {
+      if (AccessRights.getAccessRights(user, node, g, rightsDb).value() >= level.value()) {
         return true;
       }
     }

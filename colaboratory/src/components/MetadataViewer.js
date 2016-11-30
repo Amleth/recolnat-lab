@@ -146,7 +146,7 @@ class MetadataViewer extends React.Component {
         loadingLocation: true});
     }
 
-    window.setTimeout(this._onImageMetadataUpdated, 50);
+    //window.setTimeout(this._onImageMetadataUpdated, 50);
   }
 
   displayImageMetadata() {
@@ -176,7 +176,7 @@ class MetadataViewer extends React.Component {
 
     this.setState({coLabImageMetadata: metadata, specimenCoLabId: specimenId, loading: loading});
 
-    window.setTimeout(this._onSpecimenMetadataUpdated, 50);
+    //window.setTimeout(this._onSpecimenMetadataUpdated, 50);
   }
 
   displaySpecimenMetadata() {
@@ -193,7 +193,7 @@ class MetadataViewer extends React.Component {
       this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onSourceMetadataUpdated);
     }
 
-    window.setTimeout(this._onSourceMetadataUpdated, 50);
+    //window.setTimeout(this._onSourceMetadataUpdated, 50);
   }
 
   displayOriginalSourceMetadata() {

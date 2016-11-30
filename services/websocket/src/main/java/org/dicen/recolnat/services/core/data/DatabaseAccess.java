@@ -4,6 +4,7 @@ import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import fr.recolnat.database.RightsManagementDatabase;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +35,8 @@ public class DatabaseAccess {
 
   public static OrientGraphFactory readerFactory = null;
   public static OrientGraphFactory writerFactory = null;
+  
+  public static RightsManagementDatabase rightsDb = null;
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseAccess.class);
 
@@ -48,6 +51,10 @@ public class DatabaseAccess {
 //    DatabaseAccess.factory = new OrientGraphFactory("remote:" + host + ":" + port + "/" + dbName, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
     DatabaseAccess.readerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
     DatabaseAccess.writerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
+  }
+  
+  public static void configureRightsDatabase(String dbPath) {
+    rightsDb = new RightsManagementDatabase(dbPath);
   }
 
   /**
@@ -96,7 +103,8 @@ public class DatabaseAccess {
     log.info("Beginning database backup.");
     FileOutputStream backupFile = null;
     ODatabase database = DatabaseAccess.readerFactory.getDatabase();
-    String backupFilePath = DatabaseAccess.backupDir + "/" + database.getName() +"-" + dateFormat.format(new Date());
+    String formattedDate = dateFormat.format(new Date());
+    String backupFilePath = DatabaseAccess.backupDir + "/" + database.getName() +"-" + formattedDate;
     try {
       backupFile = new FileOutputStream(backupFilePath);
       Map<String, Object> options = new HashMap<>();
@@ -114,6 +122,9 @@ public class DatabaseAccess {
         log.warn("Backup failed. Tried to close null file " + backupFilePath);
       }
     }
+    
+    String uacBackupFilePath = DatabaseAccess.backupDir + "/" + database.getName() + "-UAC-" + formattedDate;
+    rightsDb.backup(uacBackupFilePath);
     
     log.info("Database backup finished.");
   }

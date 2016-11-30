@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -27,9 +28,9 @@ public class Tag extends AbstractObject {
   private String definition;
   private String resource;
   
-  public Tag(OrientVertex vTag, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vTag, vUser, g);
-    if (!AccessRights.canRead(vUser, vTag, g)) {
+  public Tag(OrientVertex vTag, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vTag, vUser, g, rightsDb);
+    if (!AccessRights.canRead(vUser, vTag, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vTag.getProperty(DataModel.Properties.id));
     }
     
@@ -37,7 +38,7 @@ public class Tag extends AbstractObject {
     while(itDefinitions.hasNext()) {
       OrientVertex vDefinition = (OrientVertex) itDefinitions.next();
       if(AccessUtils.isLatestVersion(vDefinition)) {
-        if(AccessRights.canRead(vUser, vDefinition, g)) {
+        if(AccessRights.canRead(vUser, vDefinition, g, rightsDb)) {
           this.definition = (String) vDefinition.getProperty(DataModel.Properties.id);
           break;
         }
@@ -48,13 +49,13 @@ public class Tag extends AbstractObject {
     while(itResources.hasNext()) {
       OrientVertex vResource = (OrientVertex) itResources.next();
       if(AccessUtils.isLatestVersion(vResource)) {
-        if(AccessRights.canRead(vUser, vResource, g)) {
+        if(AccessRights.canRead(vUser, vResource, g, rightsDb)) {
           this.resource = (String) vResource.getProperty(DataModel.Properties.id);
         }
       }
     }
     
-    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vTag, vUser, g);
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vTag, vUser, g, rightsDb);
   }
   
   @Override

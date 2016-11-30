@@ -11,6 +11,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -24,6 +25,8 @@ import java.util.Set;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -35,18 +38,23 @@ public class StudySet extends AbstractObject {
   private final Set<LinkedEntity> subSetIds = new HashSet<>();
   private final Set<LinkedEntity> itemIds = new HashSet<>();
   private String viewId = null;
+  
+  private static final Logger log = LoggerFactory.getLogger(StudySet.class);
 
 //  private String id;
 //  private String linkId = null;
 //  private final String type = "bag";
 //  private String name;
-  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vSet, vUser, g);
-    if (!AccessRights.canRead(vUser, vSet, g)) {
+  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vSet, vUser, g, rightsDb);
+    if (!AccessRights.canRead(vUser, vSet, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSet.getProperty(DataModel.Properties.id));
     }
 
-    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vSet, vUser, g);
+    if(log.isDebugEnabled()) {
+      log.debug("User can access entity " + vSet.getId());
+    }
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vSet, vUser, g, rightsDb);
 //    this.name = (String) vSet.getProperty(DataModel.Properties.name);
 //    this.id = (String) vSet.getProperty(DataModel.Properties.id);
 
@@ -57,7 +65,7 @@ public class StudySet extends AbstractObject {
       if (AccessUtils.isLatestVersion(eParentLink)) {
         OrientVertex vParent = eParentLink.getVertex(Direction.OUT);
         if (AccessUtils.isLatestVersion(vParent)) {
-          if (AccessRights.canRead(vUser, vParent, g)) {
+          if (AccessRights.canRead(vUser, vParent, g, rightsDb)) {
             this.parentIds.add(
                 new LinkedEntity(
                     (String) vParent.getProperty(DataModel.Properties.id),
@@ -75,7 +83,7 @@ public class StudySet extends AbstractObject {
       if (AccessUtils.isLatestVersion(eSubSetLink)) {
         OrientVertex vSubset = eSubSetLink.getVertex(Direction.IN);
         if (AccessUtils.isLatestVersion(vSubset)) {
-          if (AccessRights.canRead(vUser, vSubset, g)) {
+          if (AccessRights.canRead(vUser, vSubset, g, rightsDb)) {
             this.subSetIds.add(
                 new LinkedEntity(
                     (String) vSubset.getProperty(DataModel.Properties.id),
@@ -93,7 +101,7 @@ public class StudySet extends AbstractObject {
       if (AccessUtils.isLatestVersion(eChildLink)) {
         OrientVertex vChild = eChildLink.getVertex(Direction.IN);
         if (AccessUtils.isLatestVersion(vChild)) {
-          if (AccessRights.canRead(vUser, vChild, g)) {
+          if (AccessRights.canRead(vUser, vChild, g, rightsDb)) {
             this.itemIds.add(
                 new LinkedEntity(
                     (String) vChild.getProperty(DataModel.Properties.id),
@@ -108,7 +116,7 @@ public class StudySet extends AbstractObject {
     // @TODO V1, process all views and view creation
     OrientVertex vView = AccessUtils.findLatestVersion(vSet.getVertices(Direction.OUT, DataModel.Links.hasView).iterator(), g);
     if (vView != null) {
-      if (AccessRights.canRead(vUser, vView, g)) {
+      if (AccessRights.canRead(vUser, vView, g, rightsDb)) {
         this.viewId = vView.getProperty(DataModel.Properties.id);
       }
     }

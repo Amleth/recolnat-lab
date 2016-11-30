@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -28,9 +29,9 @@ import org.codehaus.jettison.json.JSONObject;
 public class TagDefinition extends AbstractObject {
   private final Set<String> tags = new HashSet<>();
 
-  public TagDefinition(OrientVertex vDefinition, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vDefinition, vUser, g);
-    if(!AccessRights.canRead(vUser, vDefinition, g)) {
+  public TagDefinition(OrientVertex vDefinition, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vDefinition, vUser, g, rightsDb);
+    if(!AccessRights.canRead(vUser, vDefinition, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vDefinition.getProperty(DataModel.Properties.id));
     }
     
@@ -38,7 +39,7 @@ public class TagDefinition extends AbstractObject {
     while(itTags.hasNext()) {
       OrientVertex vTag = (OrientVertex) itTags.next();
       if(AccessUtils.isLatestVersion(vTag)) {
-        if(AccessRights.canRead(vUser, vTag, g)) {
+        if(AccessRights.canRead(vUser, vTag, g, rightsDb)) {
           tags.add((String) vTag.getProperty(DataModel.Properties.id));
         }
       }

@@ -77,6 +77,15 @@ class SetManagerMainButtons extends React.Component {
     window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
   }
 
+  splitSet() {
+    var setId = this.props.managerstore.getSelected().id;
+    if(!setId) {
+      alert("Vous devez sélectionner un set avant");
+      return;
+    }
+    window.setTimeout(ModalActions.showModal.bind(null, ModalConstants.Modals.organiseSet, {id: setId}), 10);
+  }
+
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.managerstore.addSelectionChangeListener(this._onSetSelectionChange);
@@ -119,6 +128,14 @@ class SetManagerMainButtons extends React.Component {
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
               set sélectionné sur paillasse
+            </div>
+          </div>
+          <div className={'ui compact button ' + this.state.openButton} onClick={this.splitSet.bind(this)}>
+            <div className='ui text'>
+              Réorganiser
+            </div>
+            <div className='ui text' style={this.buttonSubTextStyle}>
+              le contenu du set sélectionné
             </div>
           </div>
         </div>

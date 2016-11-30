@@ -322,7 +322,7 @@ class OrbalContextMenu extends React.Component {
 
     this.setState({active: this.state.active && keepActive, activeItemId: id, activeItemLinkId: link, activeItemIndex: index});
 
-    window.setTimeout(this._onActiveItemMetadataUpdated, 50);
+    //window.setTimeout(this._onActiveItemMetadataUpdated, 50);
   }
 
   previousItem(event) {

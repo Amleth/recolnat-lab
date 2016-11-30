@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -46,8 +47,8 @@ public class Action implements Comparable<Action> {
 
   }
 
-  public Action(OrientVertex v, Edge e, OrientVertex linkedVertex, OrientVertex user, OrientBaseGraph g) throws AccessDeniedException, TransformException {
-    if (AccessRights.getAccessRights(user, v, g).value() < DataModel.Enums.AccessRights.READ.value()) {
+  public Action(OrientVertex v, Edge e, OrientVertex linkedVertex, OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessDeniedException, TransformException {
+    if (AccessRights.getAccessRights(user, v, g, rightsDb).value() < DataModel.Enums.AccessRights.READ.value()) {
       throw new AccessDeniedException("User not allowed to access vertex");
     }
     String edgeClass = e.getLabel();

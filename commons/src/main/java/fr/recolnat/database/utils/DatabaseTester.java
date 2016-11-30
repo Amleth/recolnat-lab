@@ -2,6 +2,7 @@ package fr.recolnat.database.utils;
 
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 
 /**
@@ -9,7 +10,7 @@ import fr.recolnat.database.model.DataModel;
  */
 public class DatabaseTester {
 
-  public static void createTestWorkbench(OrientVertex user, OrientBaseGraph g) {
+  public static void createTestWorkbench(OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
 //    OrientVertex user = CreatorUtils.createUser("Robert LeRouge", g);
       String userId = user.getProperty(DataModel.Properties.id);
       OrientVertex rootSet = (OrientVertex) AccessUtils.getCoreSet(user, g);
@@ -46,21 +47,21 @@ public class DatabaseTester {
       UpdateUtils.showItemInView(2000, 6000, ophiloImage, defaultView, user, g);
 
 //      UpdateUtils.addCreator(sampleStudy, user, g);
-      UpdateUtils.addCreator(sampleSet, user, g);
-      UpdateUtils.addCreator(defaultView, user, g);
-      UpdateUtils.addCreator(scirpusSpecimen, user, g);
-      UpdateUtils.addCreator(festucaSpecimen, user, g);
-      UpdateUtils.addCreator(scirpusImage, user, g);
-      UpdateUtils.addCreator(festucaImage, user, g);
-      UpdateUtils.addCreator(ophiloImage, user, g);
+      UpdateUtils.addCreator(sampleSet, user, g, rightsDb);
+      UpdateUtils.addCreator(defaultView, user, g, rightsDb);
+      UpdateUtils.addCreator(scirpusSpecimen, user, g, rightsDb);
+      UpdateUtils.addCreator(festucaSpecimen, user, g, rightsDb);
+      UpdateUtils.addCreator(scirpusImage, user, g, rightsDb);
+      UpdateUtils.addCreator(festucaImage, user, g, rightsDb);
+      UpdateUtils.addCreator(ophiloImage, user, g, rightsDb);
       
 //      AccessRights.grantAccessRights(user, sampleStudy, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, sampleSet, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, defaultView, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, scirpusSpecimen, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, festucaSpecimen, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, ophiloImage, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, festucaImage, DataModel.Enums.AccessRights.WRITE, g);
-      AccessRights.grantAccessRights(user, scirpusImage, DataModel.Enums.AccessRights.WRITE, g);
+      AccessRights.grantAccessRights(user, sampleSet, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, defaultView, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, scirpusSpecimen, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, festucaSpecimen, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, ophiloImage, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, festucaImage, DataModel.Enums.AccessRights.WRITE, rightsDb);
+      AccessRights.grantAccessRights(user, scirpusImage, DataModel.Enums.AccessRights.WRITE, rightsDb);
   }
 }

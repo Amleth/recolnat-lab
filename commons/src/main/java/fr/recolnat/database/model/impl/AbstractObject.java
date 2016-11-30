@@ -11,6 +11,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -45,7 +46,7 @@ public class AbstractObject {
 
   }
 
-  public AbstractObject(OrientElement e, OrientVertex vUser, OrientBaseGraph g) {
+  public AbstractObject(OrientElement e, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     if (log.isTraceEnabled()) {
       log.trace("----- BEGIN OBJECT PROPERTIES -----");
     }
@@ -77,7 +78,7 @@ public class AbstractObject {
       while (itAnnots.hasNext()) {
         OrientVertex vAnnotation = (OrientVertex) itAnnots.next();
         if (AccessUtils.isLatestVersion(vAnnotation)) {
-          if (AccessRights.canRead(vUser, vAnnotation, g)) {
+          if (AccessRights.canRead(vUser, vAnnotation, g, rightsDb)) {
             this.annotations.add((String) vAnnotation.getProperty(DataModel.Properties.id));
           }
         }

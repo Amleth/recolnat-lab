@@ -157,9 +157,10 @@ class MetadataStore extends EventEmitter {
         this.metadataIds[id] = id;
         window.setTimeout(SocketActions.registerListener.bind(null, id, this.metadataUpdated.bind(this)), 10);
       }
-      //else {
-      //  window.setTimeout(this.emitUpdateEvent.bind(this, id), 10);
-      //}
+      else {
+        // Metadata was already available, just callback
+        window.setTimeout(function() {callback(id)}, 10);
+      }
     }
     else {
       this.on(MetadataEvents.METADATA_UPDATE, callback);

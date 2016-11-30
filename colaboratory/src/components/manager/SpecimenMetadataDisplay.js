@@ -83,7 +83,7 @@ class SpecimenMetadataDisplay extends React.Component {
     }
     this.props.metastore.addMetadataUpdateListener(id, this.receiveMetadata.bind(this));
     this.setState({id: id});
-    window.setTimeout(this.receiveMetadata.bind(this), 50);
+    //window.setTimeout(this.receiveMetadata.bind(this), 50);
   }
 
   receiveMetadata() {
@@ -105,7 +105,7 @@ class SpecimenMetadataDisplay extends React.Component {
       }
 
       this.setState({metadata: metadata});
-      window.setTimeout(this._onOriginalSourceMetadataAvailable.bind(this, metadata.originalSource), 50);
+      //window.setTimeout(this._onOriginalSourceMetadataAvailable.bind(this, metadata.originalSource), 50);
     }
   }
 

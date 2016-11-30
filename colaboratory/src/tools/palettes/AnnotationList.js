@@ -178,12 +178,12 @@ class AnnotationList extends React.Component {
       case 'image':
         this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.imageId, this._onMetadataUpdate);
-        window.setTimeout(this._onMetadataUpdate.bind(this, selection.imageId), 100);
+        //window.setTimeout(this._onMetadataUpdate.bind(this, selection.imageId), 100);
         break;
       case 'set':
         this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.setId, this._onMetadataUpdate);
-        window.setTimeout(this.receiveSet.bind(this, selection.setId), 100);
+        //window.setTimeout(this.receiveSet.bind(this, selection.setId), 100);
         break;
       default:
         console.warning('Unknown subject ' + this.state.subject);
@@ -207,7 +207,7 @@ class AnnotationList extends React.Component {
         if (!data[newIds[i]]) {
           this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
           data[newIds[i]] = null;
-          window.setTimeout(this.receiveItem.bind(this, newIds[i]), 100);
+          //window.setTimeout(this.receiveItem.bind(this, newIds[i]), 100);
         }
       }
     }
@@ -247,7 +247,7 @@ class AnnotationList extends React.Component {
         if (!data[newIds[i]]) {
           this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
           data[newIds[i]] = null;
-          window.setTimeout(this.receiveImage.bind(this, newIds[i]), 100);
+          //window.setTimeout(this.receiveImage.bind(this, newIds[i]), 100);
         }
       }
     }
@@ -257,7 +257,7 @@ class AnnotationList extends React.Component {
         if (!data[newSetIds[i]]) {
           this.props.metastore.addMetadataUpdateListener(newSetIds[i], this._onMetadataUpdate);
           data[newSetIds[i]] = null;
-          window.setTimeout(this.receiveSet.bind(this, newSetIds[i]), 100);
+          //window.setTimeout(this.receiveSet.bind(this, newSetIds[i]), 100);
         }
       }
     }
@@ -285,7 +285,7 @@ class AnnotationList extends React.Component {
       if(!data[newIds[i]]) {
         this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
         data[newIds[i]] = null;
-        window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+        //window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
       }
     }
 
@@ -295,7 +295,7 @@ class AnnotationList extends React.Component {
         if(!data[newSpecimenIds[i]]) {
           this.props.metastore.addMetadataUpdateListener(newSpecimenIds[i], this._onMetadataUpdate);
           data[newSpecimenIds[i]] = null;
-          window.setTimeout(this.receiveSpecimen.bind(this, newSpecimenIds[i]), 100);
+          //window.setTimeout(this.receiveSpecimen.bind(this, newSpecimenIds[i]), 100);
         }
       }
     }
@@ -318,7 +318,7 @@ class AnnotationList extends React.Component {
       if(!data[newIds[i]]) {
         this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
         data[newIds[i]] = null;
-        window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+        //window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
       }
     }
 
@@ -543,11 +543,11 @@ class AnnotationList extends React.Component {
     switch(subject) {
       case 'image':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedImageId, this._onMetadataUpdate);
-        window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedImageId), 100);
+        //window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedImageId), 100);
         break;
       case 'set':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedSetId, this._onMetadataUpdate);
-        window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedSetId), 100);
+        //window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedSetId), 100);
         break;
       default:
         console.warning('Unknown subject ' + subject);

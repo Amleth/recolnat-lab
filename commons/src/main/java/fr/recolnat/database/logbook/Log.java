@@ -9,6 +9,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -38,11 +39,11 @@ public class Log {
 
   }
 
-  public Log(String focus, Long begin, Long end, String user, OrientBaseGraph g) throws AccessForbiddenException {
+  public Log(String focus, Long begin, Long end, String user, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
     OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
     OrientVertex vTarget = (OrientVertex) AccessUtils.getNodeById(focus, g);
     // @TODO find a check to see if 'actor' is a valid actor (perhaps SocialEntity ?)
-    if (AccessRights.getAccessRights(vUser, vTarget, g).value() < DataModel.Enums.AccessRights.READ.value()) {
+    if (AccessRights.getAccessRights(vUser, vTarget, g, rightsDb).value() < DataModel.Enums.AccessRights.READ.value()) {
       throw new AccessForbiddenException(user, focus);
     }
     this.focus = focus;
@@ -52,7 +53,7 @@ public class Log {
       Edge e = itLinks.next();
       OrientVertex linkedEntity = (OrientVertex) e.getVertex(Direction.IN);
       try {
-        Action a = new Action(vTarget, e, linkedEntity, vUser, g);
+        Action a = new Action(vTarget, e, linkedEntity, vUser, g, rightsDb);
         if(a.isInInterval(begin, end)) {
           actorActions.add(a);
         }
@@ -66,7 +67,7 @@ public class Log {
       Edge e = itLinks.next();
       OrientVertex linkedEntity = (OrientVertex) e.getVertex(Direction.OUT);
       try {
-        Action a = new Action(vTarget, e, linkedEntity, vUser, g);
+        Action a = new Action(vTarget, e, linkedEntity, vUser, g, rightsDb);
         if(a.isInInterval(begin, end)) {
           actorActions.add(a);
         }
@@ -82,7 +83,7 @@ public class Log {
       OrientVertex inEntity = (OrientVertex) e.getVertex(Direction.IN);
       OrientVertex outEntity = (OrientVertex) e.getVertex(Direction.OUT);
       try {
-        Action a = new Action(inEntity, e, outEntity, vUser, g);
+        Action a = new Action(inEntity, e, outEntity, vUser, g, rightsDb);
         if(a.isInInterval(begin, end)) {
           actorActions.add(a);
         }

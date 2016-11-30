@@ -41,7 +41,7 @@ public class ImageEditorResource {
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex vImage = (OrientVertex) AccessUtils.getNodeById(id, g);
-      img = new RecolnatImage(vImage, vUser, g);
+      img = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
       return img.toJSON();
     } catch (JSONException e) {
       log.error("Unable to convert object to JSON for id " + id);
@@ -59,7 +59,7 @@ public class ImageEditorResource {
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex vSpecimen = (OrientVertex) AccessUtils.getNodeById(id, g);
-      Specimen spec = new Specimen(vSpecimen, vUser, g);
+      Specimen spec = new Specimen(vSpecimen, vUser, g, DatabaseAccess.rightsDb);
       return spec.toJSON();
     } catch (JSONException e) {
       log.error("Unable to convert object to JSON for id " + id);
@@ -95,14 +95,14 @@ public class ImageEditorResource {
         String userId = vUser.getProperty(DataModel.Properties.id);
         OrientVertex vImage = AccessUtils.getNodeById(imageId, g);
         // Check write rights
-        if (!AccessRights.canWrite(vUser, vImage, g)) {
+        if (!AccessRights.canWrite(vUser, vImage, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, imageId);
         }
 
         // Create region of interest
         OrientVertex vROI = CreatorUtils.createRegionOfInterest(name, polygon, g);
-        UpdateUtils.addCreator(vROI, vUser, g);
-        AccessRights.grantAccessRights(vUser, vROI, DataModel.Enums.AccessRights.WRITE, g);
+        UpdateUtils.addCreator(vROI, vUser, g, DatabaseAccess.rightsDb);
+        
 
         // Link region to parent
         UpdateUtils.linkRegionOfInterestToImage(vImage, vROI, userId, g);
@@ -110,16 +110,18 @@ public class ImageEditorResource {
         // Create measurements
         OrientVertex vArea = CreatorUtils.createMeasurement(area, DataModel.Enums.Measurement.AREA, g);
         OrientVertex vPerim = CreatorUtils.createMeasurement(perimeter, DataModel.Enums.Measurement.PERIMETER, g);
-        UpdateUtils.addCreator(vArea, vUser, g);
-        UpdateUtils.addCreator(vPerim, vUser, g);
-        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, g);
-        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, g);
-
+        UpdateUtils.addCreator(vArea, vUser, g, DatabaseAccess.rightsDb);
+        UpdateUtils.addCreator(vPerim, vUser, g, DatabaseAccess.rightsDb);
+        
         // Link measurements to polygon
         UpdateUtils.link(vROI, vArea, DataModel.Links.hasMeasurement, userId, g);
         UpdateUtils.link(vROI, vPerim, DataModel.Links.hasMeasurement, userId, g);
 
         g.commit();
+        
+        AccessRights.grantAccessRights(vUser, vROI, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
+        AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
+        AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
         res.addModifiedId(vROI.getProperty(DataModel.Properties.id));
@@ -154,18 +156,20 @@ public class ImageEditorResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vImage = AccessUtils.getNodeById(imageId, g);
         // Check write rights
-        if (!AccessRights.canWrite(vUser, vImage, g)) {
+        if (!AccessRights.canWrite(vUser, vImage, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, imageId);
         }
         // Create point of interest
         OrientVertex vPoI = CreatorUtils.createPointOfInterest(x, y, name, g);
-        UpdateUtils.addCreator(vPoI, vUser, g);
-        AccessRights.grantAccessRights(vUser, vPoI, DataModel.Enums.AccessRights.WRITE, g);
+        UpdateUtils.addCreator(vPoI, vUser, g, DatabaseAccess.rightsDb);
+        
 
         // Link point of interest to image
         UpdateUtils.linkPointOfInterestToImage(vImage, vPoI, (String) vUser.getProperty(DataModel.Properties.id), g);
 
         g.commit();
+        
+        AccessRights.grantAccessRights(vUser, vPoI, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
         
         res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
         res.addModifiedId(vPoI.getProperty(DataModel.Properties.id));
@@ -204,7 +208,7 @@ public class ImageEditorResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vMeasurement = AccessUtils.getNodeById(measurementId, g);
         // User must have write rights on image
-        if (!AccessRights.canWrite(vUser, vMeasurement, g)) {
+        if (!AccessRights.canWrite(vUser, vMeasurement, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, measurementId);
         }
 
@@ -212,12 +216,14 @@ public class ImageEditorResource {
         OrientVertex vStandard = CreatorUtils.createMeasureStandard(value, unit, name, g);
 
         // Link standard to creator user
-        UpdateUtils.addCreator(vStandard, vUser, g);
+        UpdateUtils.addCreator(vStandard, vUser, g, DatabaseAccess.rightsDb);
         // Link standard to trail and image
         UpdateUtils.linkMeasureStandard(vStandard, vMeasurement, vUser, g);
-        // Grant creator rights
-        AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, g);
         g.commit();
+        
+        // Grant creator rights
+        AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
+        
         
         changes.add(vMeasurement.getProperty(DataModel.Properties.id));
         changes.add(vStandard.getProperty(DataModel.Properties.id));
@@ -267,7 +273,7 @@ public class ImageEditorResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vImage = AccessUtils.getNodeById(parent, g);
         // Check write rights on image
-        if (!AccessRights.canWrite(vUser, vImage, g)) {
+        if (!AccessRights.canWrite(vUser, vImage, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, parent);
         }
 
@@ -280,8 +286,8 @@ public class ImageEditorResource {
         OrientVertex mRefPx = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.LENGTH, g);
 
         // Link user to trailOfInterest & measure as creator
-        UpdateUtils.addCreator(vPath, vUser, g);
-        UpdateUtils.addCreator(mRefPx, vUser, g);
+        UpdateUtils.addCreator(vPath, vUser, g, DatabaseAccess.rightsDb);
+        UpdateUtils.addCreator(mRefPx, vUser, g, DatabaseAccess.rightsDb);
 
         // Link measure to trailOfInterest
         UpdateUtils.link(vPath, mRefPx, DataModel.Links.hasMeasurement, userId, g);
@@ -289,14 +295,16 @@ public class ImageEditorResource {
 
         // Link trailOfInterest to parent entity
         UpdateUtils.linkTrailOfInterestToImage(vImage, vPath, userId, g);
+        
+        g.commit();
 
         // Grant creator rights on trailOfInterest
-        AccessRights.grantAccessRights(vUser, vPath, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, vPath, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         // Grant creator rights on measure
-        AccessRights.grantAccessRights(vUser, mRefPx, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, mRefPx, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
-        g.commit();
+        
         
         res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
         res.addModifiedId(vPath.getProperty(DataModel.Properties.id));
@@ -342,7 +350,7 @@ public class ImageEditorResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vImage = AccessUtils.getNodeById(parent, g);
         // Check write rights on image
-        if (!AccessRights.canWrite(vUser, vImage, g)) {
+        if (!AccessRights.canWrite(vUser, vImage, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, parent);
         }
 
@@ -355,8 +363,8 @@ public class ImageEditorResource {
         OrientVertex mRefDeg = CreatorUtils.createMeasurement(length, DataModel.Enums.Measurement.ANGLE, g);
 
         // Link user to angleOfInterest & measure as creator
-        UpdateUtils.addCreator(vAngle, vUser, g);
-        UpdateUtils.addCreator(mRefDeg, vUser, g);
+        UpdateUtils.addCreator(vAngle, vUser, g, DatabaseAccess.rightsDb);
+        UpdateUtils.addCreator(mRefDeg, vUser, g, DatabaseAccess.rightsDb);
 
         // Link measure to angleOfInterest
         UpdateUtils.link(vAngle, mRefDeg, DataModel.Links.hasMeasurement, userId, g);
@@ -364,14 +372,16 @@ public class ImageEditorResource {
 
         // Link angleOfInterest to parent entity
         UpdateUtils.linkAngleOfInterestToImage(vImage, vAngle, userId, g);
+        
+        g.commit();
 
         // Grant creator rights on angleOfInterest
-        AccessRights.grantAccessRights(vUser, vAngle, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, vAngle, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         // Grant creator rights on measure
-        AccessRights.grantAccessRights(vUser, mRefDeg, DataModel.Enums.AccessRights.WRITE, g);
+        AccessRights.grantAccessRights(vUser, mRefDeg, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
-        g.commit();
+        
         
         res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
         res.addModifiedId(vAngle.getProperty(DataModel.Properties.id));

@@ -15,6 +15,7 @@ import CreateAndFillSet from './modals/CreateAndFillSet';
 import TestRunnerModal from './modals/TestRunnerModal';
 import FeedbackForm from './modals/FeedbackForm';
 import AddToSet from './modals/AddToSet';
+import OrganiseSet from './modals/OrganiseSet';
 
 class ManagerModals extends React.Component {
   constructor(props) {
@@ -81,6 +82,9 @@ class ManagerModals extends React.Component {
       />
       <TestRunnerModal modalstore={this.props.modalstore} />
       <FeedbackForm modalstore={this.props.modalstore} />
+      <OrganiseSet metastore={this.props.metastore}
+                   benchstore={this.props.benchstore}
+                   modalstore={this.props.modalstore} />
     </div>
   }
 }

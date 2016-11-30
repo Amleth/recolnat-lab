@@ -97,7 +97,7 @@ class SimpleImageDisplay extends React.Component {
       case 'Specimen':
       case 'Set':
         this.props.metastore.addMetadataUpdateListener(selection.id, this._onMetadataReceived);
-        this.processReceivedMetadata(selection.id, true);
+        //this.processReceivedMetadata(selection.id, true);
         break;
       default:
         this.setState({selectionTitle: "Pré-visionneuse d'images"});
@@ -127,7 +127,7 @@ class SimpleImageDisplay extends React.Component {
           for(var i = 0; i < metadata.images.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.images[i], this._onMetadataReceived);
             listening.push(metadata.images[i]);
-            this.processReceivedMetadata(metadata.images[i], true);
+            //this.processReceivedMetadata(metadata.images[i], true);
           }
           this.setState({listening: listening});
           break;
@@ -138,7 +138,7 @@ class SimpleImageDisplay extends React.Component {
             this.props.metastore.addMetadataUpdateListener(metadata.items[i].uid, this._onMetadataReceived);
             listening.push(metadata.items[i].uid);
             metaToUpdate.push(metadata.items[i].uid);
-            this.processReceivedMetadata(metadata.items[i].uid, true);
+            //this.processReceivedMetadata(metadata.items[i].uid, true);
           }
           this.setState({listening: listening});
           break;

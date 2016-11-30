@@ -74,8 +74,14 @@ public class MessageProcessorThread implements Runnable {
           case Action.ClientActionType.SUBSCRIBE:
             entityId = jsonIn.getString("id");
             // Get resource data, and check the user has access
-            JSONObject entityData = DatabaseResource.getData(entityId, userLogin);
-            this.subscribe(session, entityId);
+            JSONObject entityData = null;
+            if(entityId.equals("user")) {
+              entityData = DatabaseResource.getUserData(userLogin);
+              this.subscribe(session, entityData.getString("uid"));
+            } else {
+              entityData = DatabaseResource.getData(entityId, userLogin);
+              this.subscribe(session, entityId);
+            }
             this.sendResource(entityData, session);
             break;
           case Action.ClientActionType.UNSUBSCRIBE:

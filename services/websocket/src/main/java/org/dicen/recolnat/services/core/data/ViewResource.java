@@ -39,10 +39,10 @@ public class ViewResource {
           OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
           OrientVertex vView = AccessUtils.getView(viewId, g);
           OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
-          if (!AccessRights.canWrite(vUser, vView, g)) {
+          if (!AccessRights.canWrite(vUser, vView, g, DatabaseAccess.rightsDb)) {
             throw new AccessForbiddenException(user, viewId);
           }
-          if (!AccessRights.canRead(vUser, vEntity, g)) {
+          if (!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
             throw new AccessForbiddenException(user, entityId);
           }
 
@@ -71,10 +71,10 @@ public class ViewResource {
       OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
       OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
 
-      if (!AccessRights.canWrite(vUser, vView, g)) {
+      if (!AccessRights.canWrite(vUser, vView, g, DatabaseAccess.rightsDb)) {
         throw new AccessForbiddenException(user, viewId);
       }
-      if (!AccessRights.canRead(vUser, vEntity, g)) {
+      if (!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
         throw new AccessForbiddenException(user, entityId);
       }
 
@@ -108,10 +108,10 @@ public class ViewResource {
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
         OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
 
-        if (!AccessRights.canWrite(vUser, vView, g)) {
+        if (!AccessRights.canWrite(vUser, vView, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, viewId);
         }
-        if (!AccessRights.canRead(vUser, vEntity, g)) {
+        if (!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, entityId);
         }
 
@@ -141,7 +141,7 @@ public class ViewResource {
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         // Permissions checked internally
-        List<String> deleted = DeleteUtils.unlinkItemFromView(linkViewToElementId, vUser, g);
+        List<String> deleted = DeleteUtils.unlinkItemFromView(linkViewToElementId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
 
         changes.addAll(deleted);

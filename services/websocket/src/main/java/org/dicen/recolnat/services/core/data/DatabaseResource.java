@@ -60,11 +60,11 @@ public class DatabaseResource {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(userLogin, g);
         if (vUser == null) {
           // Create user
-          vUser = CreatorUtils.createNewUserAndUserData(userLogin, g);
-          DatabaseTester.createTestWorkbench(vUser, g);
+          vUser = CreatorUtils.createNewUserAndUserData(userLogin, g, DatabaseAccess.rightsDb);
+          DatabaseTester.createTestWorkbench(vUser, g, DatabaseAccess.rightsDb);
           g.commit();
         }
-        ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g);
+        ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g, DatabaseAccess.rightsDb);
         return user.toJSON();
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -78,15 +78,21 @@ public class DatabaseResource {
   }
 
   public static JSONObject getData(String entityId, String user) throws JSONException, AccessForbiddenException {
+    if(log.isDebugEnabled()) {
+      log.debug("Entering getData " + entityId + ", " + user);
+    }
     JSONObject entity = new JSONObject();
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex v = (OrientVertex) AccessUtils.getNodeById(entityId, g);
       if (v != null) {
-        if (!AccessRights.canRead(vUser, v, g)) {
+        if (!AccessRights.canRead(vUser, v, g, DatabaseAccess.rightsDb)) {
           log.info("User " + user + " is not authorized to access data " + entityId);
           throw new AccessForbiddenException(user, entityId);
+        }
+        if(log.isDebugEnabled()) {
+      log.debug("Accessing vertex metadata for " + entityId + ", " + user);
         }
         entity = DatabaseResource.getVertexMetadata(v, vUser, g).toJSON();
 
@@ -132,7 +138,7 @@ public class DatabaseResource {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
 
         // Checking deletability is relegated to the method
-        modified = DeleteUtils.delete(entityId, vUser, g);
+        modified = DeleteUtils.delete(entityId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -156,7 +162,7 @@ public class DatabaseResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(parentObjectId, g);
         // Check write rights
-        if (!AccessRights.canWrite(vUser, vEntity, g)) {
+        if (!AccessRights.canWrite(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
           log.info("User not allowed to add annotation to " + parentObjectId);
           throw new AccessForbiddenException(user, parentObjectId);
         }
@@ -165,10 +171,11 @@ public class DatabaseResource {
         // Link annotation to polygon
         UpdateUtils.linkAnnotationToEntity(vAnnotation, vEntity, (String) vUser.getProperty(DataModel.Properties.id), g);
         // Link annotation to creator user
-        UpdateUtils.addCreator(vAnnotation, vUser, g);
-        // Grant creator rights
-        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, g);
+        UpdateUtils.addCreator(vAnnotation, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
+        
+        // Grant creator rights
+        AccessRights.grantAccessRights(vUser, vAnnotation, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         changes.add(parentObjectId);
         changes.add((String) vAnnotation.getProperty(DataModel.Properties.id));
@@ -196,7 +203,7 @@ public class DatabaseResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
         // Check write rights
-        if (!AccessRights.canWrite(vUser, vEntity, g)) {
+        if (!AccessRights.canWrite(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
           log.error("User does not have edit rights on entity " + entityId);
           throw new AccessForbiddenException(user, entityId);
         }
@@ -233,7 +240,7 @@ public class DatabaseResource {
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
-        if (!AccessRights.canRead(vUser, vEntity, g)) {
+        if (!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
           log.error("User does not have edit rights on entity " + entityId);
           throw new AccessForbiddenException(user, entityId);
         }
@@ -245,21 +252,21 @@ public class DatabaseResource {
             while (itContent.hasNext()) {
               OrientVertex vSetContent = (OrientVertex) itContent.next();
               if (AccessUtils.isLatestVersion(vSetContent)) {
-                if (AccessRights.canRead(vUser, vSetContent, g)) {
+                if (AccessRights.canRead(vUser, vSetContent, g, DatabaseAccess.rightsDb)) {
                   String specimenId = (String) vSetContent.getProperty(DataModel.Properties.id);
                   DatabaseResource.addAnnotations(vSetContent, entityId, specimenId, null, vUser, annotations, g);
                   Iterator<Vertex> it = vSetContent.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
                   while (it.hasNext()) {
                     OrientVertex vImage = (OrientVertex) it.next();
                     if (AccessUtils.isLatestVersion(vImage)) {
-                      if (AccessRights.canRead(vUser, vImage, g)) {
+                      if (AccessRights.canRead(vUser, vImage, g, DatabaseAccess.rightsDb)) {
                         String imageId = (String) vImage.getProperty(DataModel.Properties.id);
                         DatabaseResource.addAnnotations(vImage, entityId, specimenId, imageId, vUser, annotations, g);
                         Iterator<Vertex> itImageElements = vImage.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
                         while (itImageElements.hasNext()) {
                           OrientVertex vImageElement = (OrientVertex) itImageElements.next();
                           if (AccessUtils.isLatestVersion(vImageElement)) {
-                            if (AccessRights.canRead(vUser, vImageElement, g)) {
+                            if (AccessRights.canRead(vUser, vImageElement, g, DatabaseAccess.rightsDb)) {
                               DatabaseResource.addAnnotations(vImageElement, entityId, specimenId, imageId, vUser, annotations, g);
                             }
                           }
@@ -279,14 +286,14 @@ public class DatabaseResource {
             while (it.hasNext()) {
               OrientVertex vImage = (OrientVertex) it.next();
               if (AccessUtils.isLatestVersion(vImage)) {
-                if (AccessRights.canRead(vUser, vImage, g)) {
+                if (AccessRights.canRead(vUser, vImage, g, DatabaseAccess.rightsDb)) {
                   String imageId = (String) vImage.getProperty(DataModel.Properties.id);
                   DatabaseResource.addAnnotations(vImage, entityId, specimenId, imageId, vUser, annotations, g);
                   Iterator<Vertex> itImageElements = vImage.getVertices(Direction.OUT, DataModel.Links.aoi, DataModel.Links.roi, DataModel.Links.poi, DataModel.Links.toi).iterator();
                   while (itImageElements.hasNext()) {
                     OrientVertex vImageElement = (OrientVertex) itImageElements.next();
                     if (AccessUtils.isLatestVersion(vImageElement)) {
-                      if (AccessRights.canRead(vUser, vImageElement, g)) {
+                      if (AccessRights.canRead(vUser, vImageElement, g, DatabaseAccess.rightsDb)) {
                         DatabaseResource.addAnnotations(vImageElement, entityId, specimenId, imageId, vUser, annotations, g);
                       }
                     }
@@ -308,7 +315,7 @@ public class DatabaseResource {
             while (itImageElements.hasNext()) {
               OrientVertex vImageElement = (OrientVertex) itImageElements.next();
               if (AccessUtils.isLatestVersion(vImageElement)) {
-                if (AccessRights.canRead(vUser, vImageElement, g)) {
+                if (AccessRights.canRead(vUser, vImageElement, g, DatabaseAccess.rightsDb)) {
                   DatabaseResource.addAnnotations(vImageElement, null, specimenId, entityId, vUser, annotations, g);
                 }
               }
@@ -334,7 +341,7 @@ public class DatabaseResource {
     Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation, DataModel.Links.hasMeasurement).iterator();
     while (itAnnots.hasNext()) {
       OrientVertex vAnnot = (OrientVertex) itAnnots.next();
-      if (AccessRights.canRead(vUser, vAnnot, g)) {
+      if (AccessRights.canRead(vUser, vAnnot, g, DatabaseAccess.rightsDb)) {
         if (AccessUtils.isLatestVersion(vAnnot)) {
           JSONObject jAnnot = new JSONObject();
           jAnnot.put("uid", (String) vAnnot.getProperty(DataModel.Properties.id));
@@ -386,34 +393,34 @@ public class DatabaseResource {
     String cl = v.getProperty("@class");
     switch (cl) {
       case DataModel.Classes.set:
-        return new StudySet(v, vUser, g);
+        return new StudySet(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.originalSource:
-        return new OriginalSource(v, vUser, g);
+        return new OriginalSource(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.angleOfInterest:
-        return new AngleOfInterest(v, vUser, g);
+        return new AngleOfInterest(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.pointOfInterest:
-        return new PointOfInterest(v, vUser, g);
+        return new PointOfInterest(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.regionOfInterest:
-        return new RegionOfInterest(v, vUser, g);
+        return new RegionOfInterest(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.trailOfInterest:
-        return new TrailOfInterest(v, vUser, g);
+        return new TrailOfInterest(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.annotation:
-        return new Annotation(v, vUser, g);
+        return new Annotation(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.image:
-        return new RecolnatImage(v, vUser, g);
+        return new RecolnatImage(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.measureStandard:
-        return new MeasureStandard(v, vUser, g);
+        return new MeasureStandard(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.study:
-        return new Study(v, vUser, g);
+        return new Study(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.specimen:
-        return new Specimen(v, vUser, g);
+        return new Specimen(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.setView:
-        return new SetView(v, vUser, g);
+        return new SetView(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.user:
-        return new ColaboratoryUser(vUser, vUser, g);
+        return new ColaboratoryUser(vUser, vUser, g, DatabaseAccess.rightsDb);
       default:
         log.warn("No specific handler for extracting metadata from vertex class " + cl);
-        return new AbstractObject(v, vUser, g);
+        return new AbstractObject(v, vUser, g, DatabaseAccess.rightsDb);
     }
   }
 
@@ -422,7 +429,7 @@ public class DatabaseResource {
     switch (cl) {
       default:
         log.warn("No specific handler for extracting metadata from edge class " + cl);
-        return new AbstractObject(e, vUser, g);
+        return new AbstractObject(e, vUser, g, DatabaseAccess.rightsDb);
     }
   }
 }

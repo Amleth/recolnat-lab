@@ -31,6 +31,7 @@ public class ServerApplication {
     InputStream input = new FileInputStream(new File(configurationFileName));
     Map conf = (Map) yaml.load(input);
     Map dbConf = (Map) conf.get("database");
+    String rightsDbPath = (String) dbConf.get("pathToUserAccessDatabase");
     String dbPath = (String) dbConf.get("dbPath");
     String dbUser = (String) dbConf.get("dbUser");
     String dbPass = (String) dbConf.get("password");
@@ -41,6 +42,7 @@ public class ServerApplication {
     Integer minPool = (Integer) dbConf.get("minConnectorPoolSize");
     Integer maxPool = (Integer) dbConf.get("maxConnectorPoolSize");
     DatabaseAccess.configure(dbPath, dbUser, dbPass, minPool, maxPool, dbBackupDirectory);
+    DatabaseAccess.configureRightsDatabase(rightsDbPath);
     
     Map authConf = (Map) conf.get("authentication");
     Map cas = (Map) authConf.get("cas");
@@ -93,6 +95,7 @@ public class ServerApplication {
       public void run() {
         server.stop();
         backupTimer.cancel();
+        DatabaseAccess.rightsDb.shutdown();
       }
     });
     

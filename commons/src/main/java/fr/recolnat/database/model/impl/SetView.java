@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -33,10 +34,10 @@ public class SetView extends AbstractObject {
   
   private final Logger log = LoggerFactory.getLogger(SetView.class);
 
-  public SetView(OrientVertex vView, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vView, vUser, g);
+  public SetView(OrientVertex vView, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vView, vUser, g, rightsDb);
 
-    if (!AccessRights.canRead(vUser, vView, g)) {
+    if (!AccessRights.canRead(vUser, vView, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vView.getProperty(DataModel.Properties.id));
     }
 
@@ -46,7 +47,7 @@ public class SetView extends AbstractObject {
       if (AccessUtils.isLatestVersion(eDisplay)) {
         OrientVertex vDisplayedEntity = eDisplay.getVertex(Direction.IN);
         if (AccessUtils.isLatestVersion(vDisplayedEntity)) {
-          if (AccessRights.canRead(vUser, vDisplayedEntity, g)) {
+          if (AccessRights.canRead(vUser, vDisplayedEntity, g, rightsDb)) {
             this.displayedEntities.add(new PositionedEntity(eDisplay, vDisplayedEntity, vView, g));
           }
         }

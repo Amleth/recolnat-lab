@@ -57,7 +57,7 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
     }
     this.props.metastore.addMetadataUpdateListener(id, this.receiveMetadata.bind(this));
     this.setState({id: id});
-    window.setTimeout(this.receiveMetadata.bind(this, id), 50);
+    //window.setTimeout(this.receiveMetadata.bind(this, id), 50);
   }
 
   receiveMetadata() {

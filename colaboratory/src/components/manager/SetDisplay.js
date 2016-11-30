@@ -312,7 +312,7 @@ class SetDisplay extends React.Component {
       //console.log('existing component receives new props with new hash');
       this.removeMetadataUpdateListeners(prevProps.set);
       this.addMetadataUpdateListeners(this.props.set);
-      this.itemOrSubSetUpdated();
+      //this.itemOrSubSetUpdated();
     }
   }
 

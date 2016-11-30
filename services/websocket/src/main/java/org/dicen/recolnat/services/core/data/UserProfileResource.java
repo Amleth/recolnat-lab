@@ -57,7 +57,7 @@ public class UserProfileResource {
 
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
-      Log l = new Log(requestedUser, beginDate, endDate, user, g);
+      Log l = new Log(requestedUser, beginDate, endDate, user, g, DatabaseAccess.rightsDb);
       return l.toJSON().toString();
     } finally {
       g.rollback();

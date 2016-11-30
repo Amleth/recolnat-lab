@@ -58,10 +58,10 @@ public class SetResource {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
       if (setId == null) {
         OrientVertex vCoreSet = AccessUtils.getCoreSet(vUser, g);
-        set = new StudySet(vCoreSet, vUser, g);
+        set = new StudySet(vCoreSet, vUser, g, DatabaseAccess.rightsDb);
       } else {
         OrientVertex vSet = AccessUtils.getNodeById(setId, g);
-        set = new StudySet(vSet, vUser, g);
+        set = new StudySet(vSet, vUser, g, DatabaseAccess.rightsDb);
       }
     } finally {
       g.rollback();
@@ -107,22 +107,35 @@ public class SetResource {
         }
 
         // Check permissions
-        if (!AccessRights.canWrite(vUser, vParentSet, g)) {
+        if (!AccessRights.canWrite(vUser, vParentSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, (String) vParentSet.getProperty(DataModel.Properties.id));
         }
 
         // Create new set & default view
         OrientVertex vSet = CreatorUtils.createSet(name, DataModel.Globals.SET_ROLE, g);
         OrientVertex vView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
+        g.commit();
 
-        // Add new set to parent
-        OrientEdge eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
-        UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
+        boolean retry1 = true;
+        OrientEdge eParentToChildLink = null;
+        while (retry1) {
+          retry1 = false;
+          try {
+            vParentSet.reload();
+            vParentSet = AccessUtils.findLatestVersion(vParentSet);
+            // Add new set to parent
+            eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
+            UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
+            g.commit();
+          } catch (OConcurrentModificationException e) {
+            log.warn("Database busy, retrying internal operation");
+            retry1 = true;
+          }
+        }
 
         // Grant creator rights on new set & default view
-        AccessRights.grantAccessRights(vUser, vSet, DataModel.Enums.AccessRights.WRITE, g);
-        AccessRights.grantAccessRights(vUser, vView, DataModel.Enums.AccessRights.WRITE, g);
-        g.commit();
+        AccessRights.grantAccessRights(vUser, vSet, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
+        AccessRights.grantAccessRights(vUser, vView, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         // Build return object
         result.addModifiedId(vParentSet.getProperty(DataModel.Properties.id));
@@ -156,7 +169,7 @@ public class SetResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         // Permissions checked internally
 
-        List<String> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g);
+        List<String> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
 
         changes.addAll(deleted);
@@ -184,10 +197,10 @@ public class SetResource {
         OrientVertex vSet = AccessUtils.getSet(futureParentId, g);
 
         // Check access rights
-        if (!AccessRights.canWrite(vUser, vSet, g)) {
+        if (!AccessRights.canWrite(vUser, vSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, futureParentId);
         }
-        if (!AccessRights.canRead(vUser, vTarget, g)) {
+        if (!AccessRights.canRead(vUser, vTarget, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, elementToCopyId);
         }
 
@@ -225,12 +238,12 @@ public class SetResource {
         OrientVertex vTarget = AccessUtils.getNodeById(elementToCopyId, g);
 
         // User must have write rights on destination, all other rights irrelevant as we are forking
-        if (!AccessRights.canWrite(vUser, vDestination, g)) {
+        if (!AccessRights.canWrite(vUser, vDestination, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, futureParentId);
         }
 
         // Create a fork of the sub-tree starting at elementToCopy
-        OrientVertex vNewTarget = BranchUtils.branchSubTree(vTarget, vUser, g);
+        OrientVertex vNewTarget = BranchUtils.branchSubTree(vTarget, vUser, g, DatabaseAccess.rightsDb);
         OrientEdge link = null;
         switch ((String) vNewTarget.getProperty("@class")) {
           case DataModel.Classes.set:
@@ -274,17 +287,17 @@ public class SetResource {
         OrientVertex vCurrentParentSet = eLinkCurrent.getVertex(Direction.OUT);
 
         // Check rights: WRITE current, WRITE future, READ target
-        if (!AccessRights.canWrite(vUser, vCurrentParentSet, g)) {
+        if (!AccessRights.canWrite(vUser, vCurrentParentSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, (String) vCurrentParentSet.getProperty(DataModel.Properties.id));
         }
-        if (!AccessRights.canWrite(vUser, vFutureParentSet, g)) {
+        if (!AccessRights.canWrite(vUser, vFutureParentSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, (String) vFutureParentSet.getProperty(DataModel.Properties.id));
         }
-        if (!AccessRights.canRead(vUser, vTargetItemOrSet, g)) {
+        if (!AccessRights.canRead(vUser, vTargetItemOrSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, (String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
         }
 
-        changes = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g);
+        changes = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
 
         vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
 
@@ -328,7 +341,7 @@ public class SetResource {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vSet = AccessUtils.getSet(setId, g);
 //        OrientVertex vPublic = AccessUtils.getPublic(g);
-        if (!AccessRights.canWrite(vUser, vSet, g)) {
+        if (!AccessRights.canWrite(vUser, vSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, setId);
         }
 
@@ -340,15 +353,15 @@ public class SetResource {
           vOriginalSource = CreatorUtils.createOriginalSourceEntity(recolnatSpecimenUuid, DataModel.Globals.Sources.RECOLNAT, DataModel.Globals.SourceDataTypes.SPECIMEN, g);
           vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
           UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
-          AccessRights.grantPublicAccessRights(vOriginalSource, DataModel.Enums.AccessRights.READ, g);
-          AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
+          AccessRights.grantPublicAccessRights(vOriginalSource, DataModel.Enums.AccessRights.READ, DatabaseAccess.rightsDb);
+          AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, DatabaseAccess.rightsDb);
           g.commit();
         } else {
           vSpecimen = AccessUtils.getSpecimenFromOriginalSource(vOriginalSource, g);
           if (vSpecimen == null) {
             vSpecimen = CreatorUtils.createSpecimen(specimenName, g);
             UpdateUtils.addOriginalSource(vSpecimen, vOriginalSource, vUser, g);
-            AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, g);
+            AccessRights.grantPublicAccessRights(vSpecimen, DataModel.Enums.AccessRights.READ, DatabaseAccess.rightsDb);
             g.commit();
           }
 
@@ -389,17 +402,17 @@ public class SetResource {
               height = img.getHeight();
             }
 
-            vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, width, height, thumbUrl, g);
+            vImage = UpdateUtils.addImageToSpecimen(vSpecimen, imageUrl, width, height, thumbUrl, g, DatabaseAccess.rightsDb);
             g.commit();
 
             result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
           }
         }
 
-        OrientVertex vForkedSpecimen = BranchUtils.isSourceForkedInSet(vOriginalSource, vSet, vUser, g);
+        OrientVertex vForkedSpecimen = BranchUtils.isSourceForkedInSet(vOriginalSource, vSet, vUser, g, DatabaseAccess.rightsDb);
         if (vForkedSpecimen == null) {
           // Make branch of specimen tree
-          vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g);
+          vSpecimen = BranchUtils.branchSubTree(vSpecimen, vUser, g, DatabaseAccess.rightsDb);
           vSpecimen.setProperties(DataModel.Properties.name, specimenName);
 
           // Link specimen to set
@@ -419,8 +432,8 @@ public class SetResource {
         while (itImages.hasNext()) {
           OrientVertex vImage = (OrientVertex) itImages.next();
           if (AccessUtils.isLatestVersion(vImage)) {
-            if (AccessRights.canRead(vUser, vImage, g)) {
-              RecolnatImage image = new RecolnatImage(vImage, vUser, g);
+            if (AccessRights.canRead(vUser, vImage, g, DatabaseAccess.rightsDb)) {
+              RecolnatImage image = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
               jImages.put(image.toJSON());
             }
           }
@@ -454,7 +467,7 @@ public class SetResource {
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vSet = AccessUtils.getSet(setId, g);
-        if (!AccessRights.canWrite(vUser, vSet, g)) {
+        if (!AccessRights.canWrite(vUser, vSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, setId);
         }
 
@@ -464,29 +477,29 @@ public class SetResource {
           // Get image height and width
           BufferedImage img = ImageIO.read(new URL(imageUrl));
           vImage = CreatorUtils.createImage(imageName, imageUrl, img.getWidth(), img.getHeight(), imageUrl, g);
-          AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
+          AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, DatabaseAccess.rightsDb);
           g.commit();
 
           result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
         }
 
         // If image is already in set, return the existing image, otherwise fork a new one
-        OrientVertex vForkedImage = BranchUtils.isImageForkedInSet(vImage, vSet, vUser, g);
+        OrientVertex vForkedImage = BranchUtils.isImageForkedInSet(vImage, vSet, vUser, g, DatabaseAccess.rightsDb);
         if (vForkedImage == null) {
-          vImage = BranchUtils.branchSubTree(vImage, vUser, g);
+          vImage = BranchUtils.branchSubTree(vImage, vUser, g, DatabaseAccess.rightsDb);
           vImage.setProperty(DataModel.Properties.name, imageName);
-          
+
           UpdateUtils.addItemToSet(vImage, vSet, vUser, g);
 //          AccessRights.grantAccessRights(vUser, vImage, DataModel.Enums.AccessRights.WRITE, g);
         } else {
           vImage = vForkedImage;
         }
         g.commit();
-        
+
         result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
         result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
-        
-        RecolnatImage img = new RecolnatImage(vImage, vUser, g);
+
+        RecolnatImage img = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
         result.setResponse("image", img.toJSON());
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");

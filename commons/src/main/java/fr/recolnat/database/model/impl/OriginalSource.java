@@ -7,6 +7,7 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -16,8 +17,8 @@ import org.codehaus.jettison.json.JSONObject;
  */
 public class OriginalSource extends AbstractObject {
   
-  public OriginalSource(OrientVertex vOriginalSource, OrientVertex vUser, OrientBaseGraph g) {
-    super(vOriginalSource, vUser, g);
+  public OriginalSource(OrientVertex vOriginalSource, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
+    super(vOriginalSource, vUser, g, rightsDb);
   }
   
   @Override

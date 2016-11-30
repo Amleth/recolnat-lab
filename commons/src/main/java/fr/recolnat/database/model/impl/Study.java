@@ -8,6 +8,7 @@ package fr.recolnat.database.model.impl;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
@@ -24,16 +25,16 @@ import org.codehaus.jettison.json.JSONObject;
 public class Study extends AbstractObject {
   private StudySet coreSet;
   
-  public Study(OrientVertex vStudy, OrientVertex vUser, OrientBaseGraph g) throws AccessForbiddenException {
-    super(vStudy, vUser, g);
-    if(!AccessRights.canRead(vUser, vStudy, g)) {
+  public Study(OrientVertex vStudy, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+    super(vStudy, vUser, g, rightsDb);
+    if(!AccessRights.canRead(vUser, vStudy, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vStudy.getProperty(DataModel.Properties.id));
     }
     
-    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vStudy, vUser, g);
+    this.userCanDelete = DeleteUtils.canUserDeleteSubGraph(vStudy, vUser, g, rightsDb);
     
     OrientVertex vCoreSet = AccessUtils.findLatestVersion(vStudy.getVertices(Direction.OUT, DataModel.Links.hasCoreSet).iterator(), g);
-    this.coreSet = new StudySet(vCoreSet, vUser, g);
+    this.coreSet = new StudySet(vCoreSet, vUser, g, rightsDb);
   }
   
   @Override

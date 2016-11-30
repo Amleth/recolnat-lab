@@ -214,7 +214,7 @@ class ElementInspector extends React.Component {
     });
 
     this.addMetadataListeners(elements, this._onEntityMetadataChange);
-    window.setTimeout(this._onEntityMetadataChange, 50);
+    //window.setTimeout(this._onEntityMetadataChange, 50);
   }
 
   addMetadataListeners(ids, callback) {
@@ -262,7 +262,7 @@ class ElementInspector extends React.Component {
       annotationsIds: annotationsIds
     });
 
-    window.setTimeout(this._onAnnotationMetadataChange, 50);
+    //window.setTimeout(this._onAnnotationMetadataChange, 50);
   }
 
   processAnnotationMetadata() {
@@ -293,7 +293,7 @@ class ElementInspector extends React.Component {
       creatorsIds: creatorIds
     });
 
-    window.setTimeout(this._onCreatorMetadataChange, 50);
+    //window.setTimeout(this._onCreatorMetadataChange, 50);
   }
 
   processCreatorMetadata() {

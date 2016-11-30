@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.model.DataModel;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,7 +39,7 @@ public class UpdateUtils {
     Iterator<Edge> itEdges = vToUpdate.getEdges(Direction.IN).iterator();
     while (itEdges.hasNext()) {
       OrientEdge oldEdge = (OrientEdge) itEdges.next();
-      if (oldEdge.getLabel().equals(DataModel.Links.hasNewerVersion)) {
+      if (oldEdge.getLabel().equals(DataModel.Links.hasNewerVersion) || oldEdge.getLabel().equals(DataModel.Links.hasAccessRights)) {
         // Do NOT copy edge from previous version
         continue;
       }
@@ -66,7 +67,7 @@ public class UpdateUtils {
       if (log.isDebugEnabled()) {
         log.debug("createNewVertexVersion::Copying outgoing edge " + oldEdge.toString());
       }
-      if (oldEdge.getLabel().equals(DataModel.Links.hasNewerVersion)) {
+      if (oldEdge.getLabel().equals(DataModel.Links.hasNewerVersion) || oldEdge.getLabel().equals(DataModel.Links.hasAccessRights)) {
         // Do NOT copy edge from previous version
         continue;
       }
@@ -112,12 +113,12 @@ public class UpdateUtils {
     return newEdge;
   }
 
-  public static OrientEdge addCreator(OrientVertex item, OrientVertex creator, OrientBaseGraph graph) {
+  public static OrientEdge addCreator(OrientVertex item, OrientVertex creator, OrientBaseGraph graph, RightsManagementDatabase rightsDb) {
     OrientEdge edge = graph.addEdge("class:" + DataModel.Links.createdBy, item, creator, DataModel.Links.createdBy);
     edge.setProperty(DataModel.Properties.id, CreatorUtils.newEdgeUUID(graph));
     edge.setProperty(DataModel.Properties.creationDate, (new Date()).getTime());
 
-    AccessRights.grantAccessRights(creator, item, DataModel.Enums.AccessRights.WRITE, graph);
+    AccessRights.grantAccessRights(creator, item, DataModel.Enums.AccessRights.WRITE, rightsDb);
     return edge;
   }
 
@@ -165,7 +166,7 @@ public class UpdateUtils {
    * @param g
    * @return The newly added image on the main branch.
    */
-  public static OrientVertex addImageToSpecimen(OrientVertex vSpecimen, String imageUrl, int width, int height, String thumbUrl, OrientBaseGraph g) {
+  public static OrientVertex addImageToSpecimen(OrientVertex vSpecimen, String imageUrl, int width, int height, String thumbUrl, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
     // See if image exists and is linked to specimen
 //    Iterator<Vertex> itImageCandidates = g.getVertices(DataModel.Classes.image, 
 //        new String[] {
@@ -198,7 +199,7 @@ public class UpdateUtils {
     OrientVertex vImage = CreatorUtils.createImage(name, imageUrl, width, height, thumbUrl, g);
     UpdateUtils.link(vSpecimen, vImage, DataModel.Links.hasImage, DataModel.Globals.PUBLIC_GROUP_ID, g);
 //    AccessRights.grantAccessRights(vPublic, vImage, DataModel.Enums.AccessRights.WRITE, g);
-    AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, g);
+    AccessRights.grantPublicAccessRights(vImage, DataModel.Enums.AccessRights.READ, rightsDb);
 
     return vImage;
   }

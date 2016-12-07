@@ -1,12 +1,14 @@
 'use strict';
 
 var Integration = {
+  recolnatMenuBarOrigin: 'https://wp5test.recolnat.org',
   recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
 };
 
 var Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory'
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory',
+  downloadsBaseURL: 'https://wp5test.recolnat.org/exports/'
 };
 
 var Endpoints = {
@@ -83,6 +85,7 @@ var SocketActions = {
   addMeasureStandard: "add-measure-standard",
   createSet: "create-set",
   deleteFromSet: "delete-element-from-set",
+  deleteFromView: "delete-element-from-view",
   link: "link",
   copy: "copy",
   cutPaste: "cutpaste",
@@ -94,8 +97,10 @@ var SocketActions = {
   createStudy: "create-study",
   remove: 'remove',
   addAnnotation: 'add-annotation',
-  editProperties: 'edit-properties'
+  editProperties: 'edit-properties',
+  listUserDownloads: 'list-user-downloads',
+  prepareSetForDownload: 'prepare-set-for-download'
 };
 
 
-export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

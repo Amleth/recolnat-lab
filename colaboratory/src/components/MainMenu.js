@@ -54,12 +54,20 @@ class MainMenu extends React.Component {
     };
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidMount() {
     $(this.refs.dropdown.getDOMNode()).dropdown({
       action: 'hide',
-      direction: 'downward'
+      direction: 'downward',
+      onShow: this.setState.bind(this, {})
     });
   }
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   $(this.refs.dropdown.getDOMNode()).dropdown({
+  //     action: 'hide',
+  //     direction: 'downward'
+  //   });
+  // }
 
   render() {
     return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
@@ -71,6 +79,9 @@ class MainMenu extends React.Component {
         </div>
         <div className='item' onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.feedback, null, null, null)} style={this.optionStyle}>
           <span className='text'>Formulaire de contact</span>
+        </div>
+        <div className={'item'} onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.downloadSet, null, null, null)} style={this.optionStyle}>
+          <span className='text'>Téléchargements</span>
         </div>
       </div>
     </div>

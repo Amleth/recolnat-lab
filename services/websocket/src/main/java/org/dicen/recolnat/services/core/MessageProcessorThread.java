@@ -27,6 +27,7 @@ import org.dicen.recolnat.services.core.data.SetResource;
 import org.dicen.recolnat.services.core.data.UserProfileResource;
 import org.dicen.recolnat.services.core.data.ViewResource;
 import org.dicen.recolnat.services.resources.ColaboratorySocket;
+import static org.dicen.recolnat.services.resources.ColaboratorySocket.log;
 import static org.dicen.recolnat.services.resources.ColaboratorySocket.mapAccessLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +37,19 @@ import org.slf4j.LoggerFactory;
  * @author dmitri
  */
 public class MessageProcessorThread implements Runnable {
-
+  
   private static final Logger log = LoggerFactory.getLogger(MessageProcessorThread.class);
-
+  
   private JSONObject jsonIn = null;
   private Session session = null;
   private String userLogin = null;
-
+  
   public MessageProcessorThread(Session session, JSONObject message, String userLogin) {
     this.jsonIn = message;
     this.session = session;
     this.userLogin = userLogin;
   }
-
+  
   @Override
   public void run() {
     Integer messageId;
@@ -57,7 +58,7 @@ public class MessageProcessorThread implements Runnable {
     } catch (JSONException ex) {
       messageId = null;
     }
-
+    
     try {
       try {
         int action = jsonIn.getInt("action");
@@ -69,13 +70,13 @@ public class MessageProcessorThread implements Runnable {
         JSONObject payload;
         String elementToCopyId, futureParentId;
         Integer x, y;
-
+        
         switch (action) {
           case Action.ClientActionType.SUBSCRIBE:
             entityId = jsonIn.getString("id");
             // Get resource data, and check the user has access
             JSONObject entityData = null;
-            if(entityId.equals("user")) {
+            if (entityId.equals("user")) {
               entityData = DatabaseResource.getUserData(userLogin);
               this.subscribe(session, entityData.getString("uid"));
             } else {
@@ -168,7 +169,7 @@ public class MessageProcessorThread implements Runnable {
                 String linkId = jsonIn.getString("link");
                 modified = SetResource.deleteElementFromSet(linkId, userLogin);
                 break;
-              case "delete-element-from-view": 
+              case "delete-element-from-view":
                 String displayLinkId = jsonIn.getString("link");
                 modified = ViewResource.deleteElementFromView(displayLinkId, userLogin);
                 break;
@@ -250,8 +251,29 @@ public class MessageProcessorThread implements Runnable {
                 entityId = jsonIn.getString("entity");
                 result = DatabaseResource.getAnnotationsOfEntity(entityId, userLogin);
                 break;
+              case "list-user-downloads":
+                result = SetResource.listUserDownloads(userLogin);
+                break;
             }
             break;
+          case Action.ClientActionType.ORDER:
+            updateType = jsonIn.getString("actionDetail");
+            switch (updateType) {
+              case "prepare-set-for-download":
+                entityId = jsonIn.getString("set");
+                new Thread(() -> {
+                  try {
+                    SetResource.prepareDownload(entityId, userLogin);
+                  } catch (AccessForbiddenException ex) {
+                    log.error("Prepare downloads thread failed", ex);
+                  }
+                }).start();
+                break;
+              default:
+                log.error("Unhandled ORDER sub-type " + updateType);
+                break;
+            }
+            return;
           case Action.ClientActionType.FEEDBACK:
             String type = jsonIn.getString("type");
             String messageText = jsonIn.getString("text");
@@ -305,20 +327,20 @@ public class MessageProcessorThread implements Runnable {
       this.sendInternalServerError(session);
     }
   }
-
+  
   private void sendResource(JSONObject resource, Session session) throws JSONException {
     JSONObject response = new JSONObject();
     response.put("action", Action.ServerActionType.RESOURCE);
     response.put("resource", resource);
     response.put("timestamp", new Date().getTime());
-
+    
     if (log.isDebugEnabled()) {
       log.debug("Sending resource on subscription " + response.toString());
     }
-
+    
     session.getAsyncRemote().sendText(response.toString());
   }
-
+  
   private void broadcastModifications(Collection<String> resourcesModified) throws IOException, JSONException {
     for (String resourceId : resourcesModified) {
       ColaboratorySocket.mapAccessLock.lock();
@@ -333,13 +355,13 @@ public class MessageProcessorThread implements Runnable {
               log.error("Session " + sessionId + " is listed as listening to a resource but is not mapped to an existing session");
               continue;
             }
-
+            
             String userLogin = ColaboratorySocket.sessionIdToUser.get(sessionId);
             JSONObject message = new JSONObject();
-
+            
             try {
               JSONObject metadata = DatabaseResource.getData(resourceId, userLogin);
-
+              
               message.put("action", Action.ServerActionType.RESOURCE);
               message.put("timestamp", new Date().getTime());
               message.put("resource", metadata);
@@ -347,7 +369,7 @@ public class MessageProcessorThread implements Runnable {
               message.put("forbidden", resourceId);
               message.put("action", Action.ServerActionType.RESOURCE);
             }
-
+            
             session.getAsyncRemote().sendText(message.toString());
           }
         }
@@ -356,7 +378,7 @@ public class MessageProcessorThread implements Runnable {
       }
     }
   }
-
+  
   private boolean subscribe(Session session, String entityId) {
     ColaboratorySocket.mapAccessLock.lock();
     try {
@@ -367,7 +389,7 @@ public class MessageProcessorThread implements Runnable {
     }
     return true;
   }
-
+  
   private boolean unsubscribe(Session session, String entityId) {
     ColaboratorySocket.mapAccessLock.lock();
     try {
@@ -379,7 +401,7 @@ public class MessageProcessorThread implements Runnable {
           itSess.remove();
         }
       }
-
+      
       mapping = (Collection) ColaboratorySocket.sessionIdToResources.get(session.getId());
       Iterator<String> itResources = mapping.iterator();
       while (itResources.hasNext()) {
@@ -393,7 +415,7 @@ public class MessageProcessorThread implements Runnable {
     }
     return true;
   }
-
+  
   private void sendInternalServerError(Session session) {
     session.getAsyncRemote().sendText("500");
   }

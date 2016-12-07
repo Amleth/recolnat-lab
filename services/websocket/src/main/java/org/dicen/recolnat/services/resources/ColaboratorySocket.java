@@ -187,10 +187,24 @@ public class ColaboratorySocket {
           case "get-annotations-of-entity":
             roExecutor.submit(t);
             return;
+          case "list-user-downloads":
+            roExecutor.submit(t);
+            return;
         }
         break;
       case Action.ClientActionType.FEEDBACK:
         roExecutor.submit(t);
+        return;
+      case Action.ClientActionType.ORDER:
+        updateType = jsonIn.getString("actionDetail");
+        switch(updateType) {
+          case "prepare-set-for-download":
+            roExecutor.submit(t);
+            break;
+          default:
+            log.error("Unhandled ORDER sub-type " + updateType);
+            break;
+        }
         return;
       default:
         log.error("Unhandled action type " + action);

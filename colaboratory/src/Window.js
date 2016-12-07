@@ -380,6 +380,7 @@ class Window extends React.Component {
         <MainMenu top={this.menuHeight}
                   width={this.leftPaneWidth}
                   userstore={userstore}
+                  benchstore={benchstore}
                   viewstore={viewstore}
                   toolstore={toolstore}
                   menustore={menustore}

@@ -239,4 +239,14 @@ export default class ServiceMethods {
 
     window.setTimeout(SocketActions.send.bind(null, message, undefined), 10);
   }
+
+  static prepareSetDownload(setId, callback = undefined) {
+    let message = {
+      action: ServerConstants.ActionTypes.Send.ORDER,
+      actionDetail: conf.socket.prepareSetForDownload,
+      set: setId
+    };
+
+    window.setTimeout(SocketActions.send.bind(null, message, undefined), 10);
+  }
 };

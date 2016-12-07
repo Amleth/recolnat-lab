@@ -20,7 +20,8 @@ export default {
       // Client calls to unsubscribe from the logs (activity) of a specific resource.
       UNSUBSCRIBE_LOG: 14,
       GET: 15,
-      FEEDBACK: 16
+      FEEDBACK: 16,
+      ORDER: 17
     }
   }
 };

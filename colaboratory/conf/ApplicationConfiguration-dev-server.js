@@ -7,7 +7,8 @@ var Integration = {
 
 var Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory'
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory',
+  downloadsBaseURL: 'https://wp5test.recolnat.org/exports/'
 };
 
 var Endpoints = {
@@ -96,8 +97,10 @@ var SocketActions = {
   createStudy: "create-study",
   remove: 'remove',
   addAnnotation: 'add-annotation',
-  editProperties: 'edit-properties'
+  editProperties: 'edit-properties',
+  listUserDownloads: 'list-user-downloads',
+  prepareSetForDownload: 'prepare-set-for-download'
 };
 
 
-export default {wss: Services.laboratorySocketService, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

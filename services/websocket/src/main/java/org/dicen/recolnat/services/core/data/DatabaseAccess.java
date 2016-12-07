@@ -4,6 +4,7 @@ import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import fr.recolnat.database.ExportsDatabase;
 import fr.recolnat.database.RightsManagementDatabase;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,6 +38,7 @@ public class DatabaseAccess {
   public static OrientGraphFactory writerFactory = null;
   
   public static RightsManagementDatabase rightsDb = null;
+  public static ExportsDatabase exportsDb = null;
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseAccess.class);
 
@@ -55,6 +57,10 @@ public class DatabaseAccess {
   
   public static void configureRightsDatabase(String dbPath) {
     rightsDb = new RightsManagementDatabase(dbPath);
+  }
+  
+  public static void configureExportsDatabase(String dbPath) {
+    exportsDb = new ExportsDatabase(dbPath);
   }
 
   /**
@@ -99,7 +105,7 @@ public class DatabaseAccess {
     }
   }
   
-  public static void backup() {
+  public static void backup() throws IOException {
     log.info("Beginning database backup.");
     FileOutputStream backupFile = null;
     ODatabase database = DatabaseAccess.readerFactory.getDatabase();
@@ -125,6 +131,9 @@ public class DatabaseAccess {
     
     String uacBackupFilePath = DatabaseAccess.backupDir + "/" + database.getName() + "-UAC-" + formattedDate;
     rightsDb.backup(uacBackupFilePath);
+    
+    String exportBackupFilePath = DatabaseAccess.backupDir + "/" + database.getName() + "-EXPORTS-" + formattedDate;
+    rightsDb.backup(exportBackupFilePath);
     
     log.info("Database backup finished.");
   }

@@ -21,6 +21,8 @@ class ViewController extends React.Component {
     };
 
     this.buttonStyle = {
+      display: 'flex',
+      justifyContent: 'center',
       fontFamily: 'Roboto Condensed',
       fontWeight: '300'
     };

@@ -19,6 +19,7 @@ export default {
     confirmDelete: 'MODAL_confirmDelete',
     addAnnotationToEntity: 'MODAL_addAnnotationToEntity',
     testRunnerModal: 'MODAL_testRunnerModal',
-    feedback: 'MODAL_feedback'
+    feedback: 'MODAL_feedback',
+    downloadSet: 'MODAL_downloadSet'
   }
 };

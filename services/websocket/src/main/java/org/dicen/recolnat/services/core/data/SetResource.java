@@ -34,12 +34,29 @@ import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import fr.recolnat.database.model.impl.RecolnatImage;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.FileUtils;
+import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.actions.ActionResult;
+import org.dicen.recolnat.services.core.format.DateFormatUtils;
+import org.glassfish.grizzly.utils.BufferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -514,6 +531,123 @@ public class SetResource {
     }
 
     return result;
+  }
+  
+  public static ActionResult listUserDownloads(String user) throws JSONException {
+    ActionResult ret = new ActionResult();
+    List<String[]> files = DatabaseAccess.exportsDb.listUserExports(user);
+    JSONArray jFiles = new JSONArray();
+    for(String[] file : files) {
+      log.debug("User " + user + " has file " + file[0]);
+      jFiles.put(file[0]);
+    }
+    
+    ret.setResponse("files", jFiles);
+    
+    return ret;
+  }
+
+  public static void prepareDownload(String setId, String user) throws AccessForbiddenException {
+    // Get set data, download images
+    boolean retry = true;
+    List<File> images = new LinkedList<>();
+    String setName = "";
+
+    while (retry) {
+      retry = false;
+      OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
+      try {
+        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
+        OrientVertex vSet = AccessUtils.getSet(setId, g);
+        if (!AccessRights.canRead(vUser, vSet, g, DatabaseAccess.rightsDb)) {
+          throw new AccessForbiddenException(user, setId);
+        }
+        Iterator<Vertex> itItems = vSet.getVertices(Direction.OUT, DataModel.Links.containsItem).iterator();
+        while (itItems.hasNext()) {
+          SetResource.getImagesOfItem((OrientVertex) itItems.next(), images, vUser, g);
+        }
+        setName = vSet.getProperty(DataModel.Properties.name);
+      } catch (OConcurrentModificationException e) {
+        log.warn("Database busy, retrying operation");
+        retry = true;
+      } finally {
+        g.rollback();
+        g.shutdown();
+      }
+    }
+    
+    if(!images.isEmpty()) {
+      String zipFileName = Configuration.Exports.DIRECTORY + "/" + user + "-" + setName + "-" + DateFormatUtils.export.format(new Date()) + ".zip";
+      File zipFile = new File(zipFileName);
+      
+      try {
+        zipFile.createNewFile();
+        ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+        
+        final int BUFFER = 2048;
+        byte data[] = new byte[BUFFER];
+        
+        for(File f : images) {
+          log.info("Compressing " + f.getName());
+          FileInputStream fis = new FileInputStream(f);
+          ZipEntry entry = new ZipEntry(f.getName());
+          zos.putNextEntry(entry);
+          int count = 0;
+          while((count = fis.read(data)) != -1) {
+            log.info("Compressed " + count);
+            zos.write(data);
+          }
+          zos.closeEntry();
+          fis.close();
+          f.delete();
+        }
+        zos.close();
+      } catch (FileNotFoundException ex) {
+        log.error("Destination zip file not created " + zipFileName);
+        return;
+      } catch (IOException ex) {
+        log.error("Error with file " + zipFileName, ex);
+        return;
+      }
+      
+      // Add file to list of stuff ready to export
+      DatabaseAccess.exportsDb.addUserExport(user, zipFile.getName(), zipFile.getName());
+    }
+  }
+
+  private static void getImagesOfItem(OrientVertex vItem, List<File> accumulator, OrientVertex vUser, OrientBaseGraph g) {
+    switch ((String) vItem.getProperty("@class")) {
+      case DataModel.Classes.specimen:
+        Iterator<Vertex> itImages = vItem.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
+        while (itImages.hasNext()) {
+          SetResource.getImagesOfItem((OrientVertex) itImages.next(), accumulator, vUser, g);
+        }
+        break;
+      case DataModel.Classes.image:
+        String imageUrlString = vItem.getProperty(DataModel.Properties.imageUrl);
+        File imageFile;
+        try {
+          imageFile = File.createTempFile(vItem.getProperty(DataModel.Properties.name), ".jpg");
+        } catch (IOException ex) {
+          log.error("Could not create temporary file.");
+          return;
+        }
+
+        try {
+          URL imageUrl = new URL(imageUrlString);
+          FileUtils.copyURLToFile(imageUrl, imageFile, 60 * 1000, 60 * 1000);
+          accumulator.add(imageFile);
+        } catch (MalformedURLException ex) {
+          log.warn("URL is invalid. File will not be downloaded " + imageUrlString);
+          imageFile.delete();
+        } catch (IOException ex) {
+          log.warn("Error opening stream to URL. File will not be downloaded " + imageUrlString);
+          imageFile.delete();
+        }
+        break;
+      default:
+        log.warn("No handler for class " + (String) vItem.getProperty("@class"));
+    }
   }
 
 }

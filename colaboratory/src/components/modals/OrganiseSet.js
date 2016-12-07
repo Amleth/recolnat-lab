@@ -266,7 +266,10 @@ class OrganiseSet extends AbstractModal {
           </div>
 
           <div className='ui text'>
-            Résultat du regroupement : {this.state.newSets.length} sets seront crées dans {this.state.setDisplayName}
+            <div className='ui orange message'>
+              Attention, cette opération prend plusieurs minutes sur un petit set (10 entités) et ne doit pas être interrompue. Prévoyez la nuit sur de gros sets.
+            </div>
+            Résultat du regroupement : {Object.keys(this.state.newSets).length} sets seront crées dans {this.state.setDisplayName}
             {Object.keys(this.state.newSets).map(function(newSetName) {
               var setData = self.state.newSets[newSetName];
               return <div>{newSetName} contiendra {setData.length} entités.</div>

@@ -18,10 +18,12 @@ public class Action {
     public static final int SUBSCRIBE_LOG = 13;
     // Client calls to unsubscribe from the logs (activity) of a specific resource.
     public static final int UNSUBSCRIBE_LOG = 14;
-    // Client calls to receive computed information about a resource, but not subscribe to its changes
+    // Client calls to receive computed information about a resource, but not subscribe to its changes (for example list of downloads)
     public static final int GET = 15;
     // Client calls to post a feedback message from a user, no response is expected
     public static final int FEEDBACK = 16;
+    // Client wants to run a task which will not finish quickly (e.g. prepare files for download).
+    public static final int ORDER = 17;
   }
   
   public static class ServerActionType {

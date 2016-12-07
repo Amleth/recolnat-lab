@@ -5,7 +5,11 @@
  */
 package org.dicen.recolnat.services.core.backup;
 
+import java.io.IOException;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 
 /**
@@ -16,6 +20,11 @@ public class BackupTask extends TimerTask {
 
   @Override
   public void run() {
-    DatabaseAccess.backup();
+    try {
+      DatabaseAccess.backup();
+      DatabaseAccess.exportsDb.cleanup(Configuration.Exports.DIRECTORY);
+    } catch (IOException ex) {
+      Logger.getLogger(BackupTask.class.getName()).log(Level.SEVERE, null, ex);
+    }
   }
 }

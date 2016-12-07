@@ -531,7 +531,6 @@ class AnnotationList extends React.Component {
     annotation.display = true;
     annotation.displayType = <img src={pointIcon} height='15px' width='15px' />;
     annotation.displayDate = new Date(annotation.creationDate);
-
   }
 
   setSubject(subject) {

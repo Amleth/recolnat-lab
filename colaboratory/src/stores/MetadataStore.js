@@ -52,6 +52,12 @@ class MetadataStore extends EventEmitter {
     }, callback), 10);
   }
 
+  listUserDownloads(callback) {
+    window.setTimeout(SocketActions.request.bind(null, {
+      actionDetail: 'list-user-downloads',
+    }, callback), 10)
+  }
+
   metadataUpdated(metadata) {
     if(metadata.forbidden) {
       delete this.metadata[metadata.uid];

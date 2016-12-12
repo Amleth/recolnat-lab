@@ -1,5 +1,6 @@
 package org.dicen.recolnat.services;
 
+import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -19,6 +20,7 @@ public class ServerApplication {
   private static final Logger log = LoggerFactory.getLogger(ServerApplication.class);
 
   public static void main(String[] args) throws Exception {
+    OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(-1);
     
     String configurationFileName = args[0];
     Configuration.loadConfiguration(configurationFileName);

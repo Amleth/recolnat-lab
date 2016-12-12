@@ -148,13 +148,13 @@ public class ColaboratorySocket {
             heavyExecutor.submit(t);
             return;
           case "import-recolnat-specimen":
-            heavyExecutor.submit(t);
+            lightExecutor.submit(t);
             return;
           case "import-external-image":
-            heavyExecutor.submit(t);
+            lightExecutor.submit(t);
             return;
           case "place":
-            heavyExecutor.submit(t);
+            lightExecutor.submit(t);
             return;
           case "move":
             lightExecutor.submit(t);

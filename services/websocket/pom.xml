@@ -14,7 +14,7 @@
         <jersey.version>1.19</jersey.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <orientdb.version>2.2.0</orientdb.version>
+        <orientdb.version>2.2.13</orientdb.version>
     </properties>
 
     <dependencies>

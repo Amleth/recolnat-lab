@@ -90,8 +90,7 @@ class CreatePath extends AbstractTool {
           else if (count == 2) {
             // ac
             window.setTimeout(function () {
-              ToolActions.updateTooltipData("Impossible de commencer une ligne ici. Veuillez cliquer sur un point" +
-                " au début ou à la fin du chemin existant.");
+              ToolActions.updateTooltipData(this.props.userstore.getText('newPathCannotStart'));
             }, 100);
           }
           else {
@@ -134,7 +133,7 @@ class CreatePath extends AbstractTool {
           else if (count == 2) {
             // bc
             window.setTimeout(function () {
-              ToolActions.updateTooltipData("Impossible de faire passer le chemin par ce point.");
+              ToolActions.updateTooltipData(this.props.userstore.getText('newPathVertexError'));
             }, 100);
           }
           else {
@@ -150,18 +149,18 @@ class CreatePath extends AbstractTool {
 
   save() {
     if(this.state.name.length < 1) {
-      alert('Le nom est obligatoire');
+      alert(this.props.userstore.getText('nameMandatory'));
       return null;
     }
     // Create polyline representation of this path.
-    var path = [];
-    var length = 0;
-    var name = this.state.name;
-    var x = null;
-    var y = null;
-    var edges = this.state.edges;
+    let path = [];
+    let length = 0;
+    let name = this.state.name;
+    let x = null;
+    let y = null;
+    let edges = this.state.edges;
     while(edges.length > 0) {
-      var edge = Globals.getNextEdge(x, y, edges, 5);
+      let edge = Globals.getNextEdge(x, y, edges, 5);
 
       // Check if this vertex is not already part of the previous edge
       if(edge.start.x !== x && edge.start.y !== y) {
@@ -187,7 +186,7 @@ class CreatePath extends AbstractTool {
 
   begin() {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPath.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathTooltip')), 10);
 
     var self = this;
 
@@ -234,9 +233,7 @@ class CreatePath extends AbstractTool {
     var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
-    window.setTimeout(function() {
-      ToolActions.updateTooltipData(ToolConf.newPath.tooltip);
-    }, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathTooltip')), 10);
   }
 
   finish() {
@@ -317,17 +314,10 @@ class CreatePath extends AbstractTool {
         self.nextInteractionState.call(this, self);
       }
     });
-
-    //d3.select("." + Classes.ROOT_CLASS).on('contextmenu', function(d, i) {
-    //  d3.event.stopPropagation();
-    //  d3.event.preventDefault();
-    //  self.nextInteractionState.call(this, self)
-    //});
   }
 
   deactivateEnter() {
     d3.select("body").on('keyup', null);
-    //d3.select("." + Classes.ROOT_CLASS).on('contextmenu', null);
   }
 
   nextInteractionState(self) {
@@ -406,27 +396,6 @@ class CreatePath extends AbstractTool {
           .call(this.drag);
       }
     }
-
-    //for(var i = 0 ; i < this.state.edges.length; ++i) {
-    //  var edge = this.state.edges[i];
-    //  var circle = toolDisplayGroup.append('circle');
-    //  circle
-    //    .attr("cx", edge.start.x)
-    //    .attr("cy", edge.start.y)
-    //    .attr("r", 6/view.scale)
-    //    .attr('stroke-width', 3/view.scale)
-    //    .attr('stroke', 'white')
-    //    .attr("fill", "black");
-    //  if(this.state.interactionState == 1) {
-    //    circle.datum({x: edge.start.x, y: edge.start.y})
-    //      .attr("x", function(d) {return d.x;})
-    //      .attr("y", function(d) {return d.y;})
-    //      .style('cursor', '-webkit-grab')
-    //      .style('cursor', 'grab')
-    //      .call(this.drag);
-    //  }
-    //}
-
 
     if(this.state.interactionState == 1) {
       // Append the last circle, which marks the end of the trail
@@ -570,6 +539,7 @@ class CreatePath extends AbstractTool {
    * REACT API
    */
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
@@ -593,13 +563,11 @@ class CreatePath extends AbstractTool {
       .style('pointer-events', 'auto');
 
       if(prevState.interactionState != 1) {
-        window.setTimeout(function() {
-          ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour la scinder en deux.");}, 10);
+        window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('createPathTooltip0')), 10);
       }
     }
     else if(this.state.interactionState == 0 && this.state.start && !prevState.start) {
-      window.setTimeout(function() {
-        ToolActions.updateTooltipData("Cliquez sur l'image active pour créer un nouveau point et le relier au point précédent. Clic droit ou ENTREE pour terminer l'ajout de points ou cliquez sur le premier point pour fermer le tracé");}, 50);
+      window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('createPathTooltip1')), 50);
     }
   }
 
@@ -609,7 +577,7 @@ class CreatePath extends AbstractTool {
         style={this.buttonStyle}
         className='ui button compact'
         onClick={this.setMode}
-        data-content="Créer un nouveau chemin">
+        data-content={this.props.userstore.getText('createNewPath')}>
         <img src={icon} style={this.iconStyle} height='20px' width='20px' />
       </button>
     );

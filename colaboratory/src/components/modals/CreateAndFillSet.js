@@ -174,7 +174,8 @@ class CreateAndFillSet extends AbstractModal {
           </div>
         <div className='header'>Ajouter les {this.props.basketstore.getBasketSelection().length} planches sélectionnées dans le panier au set {this.state.nameInput}
         </div>
-        <Basket basketstore={this.props.basketstore} />
+        <Basket basketstore={this.props.basketstore}
+                userstore={this.props.userstore}/>
       </div>
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>

@@ -73,7 +73,8 @@ class BasketStore extends EventEmitter {
 
   reloadBasket() {
     if(!this.basketReady) {
-      alert('Le panier est indisponible, réessayez dans quelques secondes');
+      window.setTimeout(this.reloadBasket.bind(this), 500);
+      // alert('Le panier est indisponible, réessayez dans quelques secondes');
       return;
     }
 

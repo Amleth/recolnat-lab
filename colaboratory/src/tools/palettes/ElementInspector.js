@@ -199,7 +199,7 @@ class ElementInspector extends React.Component {
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
 
-    var elements = this.props.inspecstore.getInspectorContent();
+    let elements = this.props.inspecstore.getInspectorContent();
 
     this.setState({
       entitiesIds: elements,
@@ -218,23 +218,23 @@ class ElementInspector extends React.Component {
   }
 
   addMetadataListeners(ids, callback) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       this.props.metastore.addMetadataUpdateListener(ids[i], callback);
     }
   }
 
   clearMetadataListeners(ids, callback) {
-    for(var k = 0; k < ids.length; ++k) {
+    for(let k = 0; k < ids.length; ++k) {
       this.props.metastore.removeMetadataUpdateListener(ids[k], callback);
     }
   }
 
   processEntityMetadata() {
-    var metadatas = {};
-    var annotationsIds = [];
+    let metadatas = {};
+    let annotationsIds = [];
 
-    for(var i = 0; i < this.state.entitiesIds.length; ++i) {
-      var metadata = this.props.metastore.getMetadataAbout(this.state.entitiesIds[i]);
+    for(let i = 0; i < this.state.entitiesIds.length; ++i) {
+      let metadata = this.props.metastore.getMetadataAbout(this.state.entitiesIds[i]);
       if(metadata) {
         metadatas[this.state.entitiesIds[i]] = metadata;
         if(metadata.annotations) {
@@ -250,7 +250,7 @@ class ElementInspector extends React.Component {
     }
 
     annotationsIds = _.uniq(annotationsIds);
-    var newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
+    let newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
     //var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
     //console.log('New annotations ids: ' + JSON.stringify(newAnnotationIds));
 
@@ -266,10 +266,10 @@ class ElementInspector extends React.Component {
   }
 
   processAnnotationMetadata() {
-    var annotations = {};
-    var creatorIds = [];
-    for(var i = 0; i < this.state.annotationsIds.length; ++i) {
-      var metadata = this.props.metastore.getMetadataAbout(this.state.annotationsIds[i]);
+    let annotations = {};
+    let creatorIds = [];
+    for(let i = 0; i < this.state.annotationsIds.length; ++i) {
+      let metadata = this.props.metastore.getMetadataAbout(this.state.annotationsIds[i]);
       if(metadata) {
         annotations[metadata.uid] = metadata;
         if(metadata.creator) {
@@ -282,7 +282,7 @@ class ElementInspector extends React.Component {
     }
 
     creatorIds = _.uniq(creatorIds);
-    var newCreatorIds = _.difference(creatorIds, this.state.creatorsIds);
+    let newCreatorIds = _.difference(creatorIds, this.state.creatorsIds);
     //var removedCreatorIds = _.difference(this.state.creatorsIds, creatorIds);
 
     //this.clearMetadataListeners(removedCreatorIds);
@@ -297,9 +297,9 @@ class ElementInspector extends React.Component {
   }
 
   processCreatorMetadata() {
-    var creators = {};
-    for(var i = 0; i < this.state.creatorsIds.length; ++i) {
-      var metadata = this.props.metastore.getMetadataAbout(this.state.creatorsIds[i]);
+    let creators = {};
+    for(let i = 0; i < this.state.creatorsIds.length; ++i) {
+      let metadata = this.props.metastore.getMetadataAbout(this.state.creatorsIds[i]);
       if(metadata) {
         creators[metadata.uid] = metadata;
       }
@@ -314,7 +314,7 @@ class ElementInspector extends React.Component {
   }
 
   annotationToMetaDisplay(metadata) {
-    var item = {
+    let item = {
       date: new Date(),
       value: metadata.content
     };
@@ -322,10 +322,10 @@ class ElementInspector extends React.Component {
     item.date = item.date.toLocaleDateString();
 
     if(!metadata.creator) {
-      item.author = 'Système ReColNat';
+      item.author = this.props.userstore.getText('recolnatSystem');
     }
     else {
-      var authorMetadata = this.state.creators[metadata.creator];
+      let authorMetadata = this.state.creators[metadata.creator];
       if(authorMetadata) {
         item.author = authorMetadata.name;
       }
@@ -335,36 +335,36 @@ class ElementInspector extends React.Component {
   }
 
   measurementToMetaDisplay(metadata) {
-    var item = {
+    let item = {
       date: new Date()
     };
     item.date.setTime(metadata.creationDate);
     item.date = item.date.toLocaleDateString();
     // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
-    var entityId = metadata.parents[0];
+    let entityId = metadata.parents[0];
     if(!entityId) {
       return null;
     }
-    var imageId = this.state.entities[entityId].parents[0];
+    let imageId = this.state.entities[entityId].parents[0];
     if(!imageId) {
       return null;
     }
-    var imageMetadata = this.props.metastore.getMetadataAbout(imageId);
-    var mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+    let imageMetadata = this.props.metastore.getMetadataAbout(imageId);
+    let mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
     if(mmPerPixel) {
       switch(metadata.measureType) {
         case 101: // Perimeter
-          item.value = 'Périmètre = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
+          item.value = this.props.userstore.getText('perimeter') + ' = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 100: // Area
-          item.value = 'Aire = ' + ((mmPerPixel * mmPerPixel) * metadata.valueInPx).toFixed(2) + ' mm²';
+          item.value = this.props.userstore.getText('area') + ' = ' + ((mmPerPixel * mmPerPixel) * metadata.valueInPx).toFixed(2) + ' mm²';
           break;
         case 102:
           // Length
-          item.value = 'Longueur = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
+          item.value = this.props.userstore.getText('length') + ' = ' + (mmPerPixel * metadata.valueInPx).toFixed(2) + ' mm';
           break;
         case 103:
-          item.value = 'Angle = ' + this.convertToDMS(metadata.valueInPx);
+          item.value = this.props.userstore.getText('angle') + ' = ' + this.convertToDMS(metadata.valueInPx);
           break;
         default:
           console.warn('Unknown measure type ' + metadata.measureType);
@@ -372,13 +372,13 @@ class ElementInspector extends React.Component {
     }
     else {
       item.value = metadata.valueInPx.toFixed(2) + ' px';
-      item.warning = 'Aucun étalon disponible pour la conversion';
+      item.warning = this.props.userstore.getText('noStandardAvailable');
     }
     if(!metadata.creator) {
-      item.author = 'Système ReColNat';
+      item.author = this.props.userstore.getText('recolnatSystem');
     }
     else {
-      var authorMetadata = this.state.creators[metadata.creator];
+      let authorMetadata = this.state.creators[metadata.creator];
       if(authorMetadata) {
         item.author = authorMetadata.name;
       }
@@ -395,18 +395,11 @@ class ElementInspector extends React.Component {
 
   addAnnotation(id) {
     if(!id) {
-      alert('Aucune entité sélectionnée');
+      alert('Internal Error: no entity selected');
       return;
     }
 
-    //this.refs['NEW-ANNOTATION-' + id].style.height = '60px';
     this.setState({newAnnotationActiveField: id});
-    //window.setTimeout(
-    //  ModalActions.showModal.bind(
-    //    null,
-    //    ModalConstants.Modals.addAnnotationToEntity,
-    //    {entity: id}),
-    //  10);
   }
 
   cancelNewAnnotation() {
@@ -418,12 +411,11 @@ class ElementInspector extends React.Component {
 
   saveNewAnnotation(id) {
     ServiceMethods.addAnnotation(id, this.state.annotationTextInput, this.onAnnotationSaveResponse.bind(this));
-
   }
 
   onAnnotationSaveResponse(msg) {
     if(msg.clientProcessError) {
-      alert("Une erreur est survenue pendant l'enregistrement. Veuillez réessayer.");
+      alert(this.props.userstore.getText('operationFailedNetwork'));
     }
     else {
       this.cancelNewAnnotation();
@@ -436,7 +428,7 @@ class ElementInspector extends React.Component {
 
   centerViewOn(d3id) {
     if(!d3id) {
-      alert('Action indisponible pour cette entité');
+      alert('Internal error: action unavailable for this entity');
       return;
     }
     D3ViewUtils.zoomToObject('#' + d3id, this.props.viewstore.getView());
@@ -470,10 +462,10 @@ class ElementInspector extends React.Component {
   }
 
   buildEntityDisplay(entityId) {
-    var displayName = null;
-    var d3id = null;
-    var displayType = '(?)';
-    var entityMetadata = this.state.entities[entityId];
+    let displayName = null;
+    let d3id = null;
+    let displayType = '(?)';
+    let entityMetadata = this.state.entities[entityId];
     if (entityMetadata) {
       displayName = entityMetadata.name;
     }
@@ -481,49 +473,49 @@ class ElementInspector extends React.Component {
       return null;
     }
 
-    var eyeIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
-    var toggleIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
+    let eyeIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
+    let toggleIconStyle = JSON.parse(JSON.stringify(this.addAnnotationStyle));
 
     switch(entityMetadata.type) {
       case 'PointOfInterest':
-        displayType = 'Point : ';
+        displayType = this.props.userstore.getText('vertex') + ' : ';
         d3id = 'POI-' + entityId;
         break;
       case 'TrailOfInterest':
-        displayType = 'Chemin : ';
+        displayType = this.props.userstore.getText('trail') + ' : ';
         d3id = 'PATH-' + entityId;
         break;
       case 'RegionOfInterest':
-        displayType = 'Zone : ';
+        displayType = this.props.userstore.getText('region') + ' : ';
         d3id = 'ROI-' + entityId;
         break;
       case 'AngleOfInterest':
-        displayType = 'Angle : ';
+        displayType = this.props.userstore.getText('angle') + ' : ';
         d3id = 'AOI-' + entityId;
         break;
       case 'Image':
-        displayType = 'Image : ';
+        displayType = this.props.userstore.getText('image') + ' : ';
         eyeIconStyle.visibility = 'hidden';
         toggleIconStyle.visibility = 'hidden';
         break;
       case 'Specimen':
-        displayType = 'Specimen : ';
+        displayType = this.props.userstore.getText('specimen') + ' : ';
         eyeIconStyle.visibility = 'hidden';
         toggleIconStyle.visibility = 'hidden';
         break;
       case 'Set':
-        displayType = 'Set : ';
+        displayType = this.props.userstore.getText('set') + ' : ';
         eyeIconStyle.visibility = 'hidden';
         toggleIconStyle.visibility = 'hidden';
         break;
       default:
         console.warn('Unknown entity type ' + entityMetadata.type);
     }
-    var measurements = entityMetadata.measurements;
+    let measurements = entityMetadata.measurements;
     if(!measurements) {
       measurements = [];
     }
-    var annotations = entityMetadata.annotations;
+    let annotations = entityMetadata.annotations;
     if(!annotations) {
       annotations = [];
     }
@@ -536,7 +528,7 @@ class ElementInspector extends React.Component {
       eyeIconStyle.visibility = 'hidden';
       toggleIconStyle.visibility = 'hidden';
     }
-    var annotationInputLocalStyle = JSON.parse(JSON.stringify(this.annotationInputStyle));
+    let annotationInputLocalStyle = JSON.parse(JSON.stringify(this.annotationInputStyle));
     if(this.state.newAnnotationActiveField == entityId) {
       //annotationInputLocalStyle.height = 'auto';
       annotationInputLocalStyle.maxHeight = '500px';
@@ -561,30 +553,30 @@ class ElementInspector extends React.Component {
           <div>
           <i className='grey small eye icon'
              style={eyeIconStyle}
-             data-content="Centrer la paillasse sur l'élement"
+             data-content={this.props.userstore.getText('zoomOnEntity')}
              onClick={this.centerViewOn.bind(this, d3id)}
              />
           <i className='grey small write icon'
              style={this.addAnnotationStyle}
-             data-content='Ajouter une annotation'
+             data-content={this.props.userstore.getText('addAnAnnotation')}
              onClick={this.addAnnotation.bind(this, entityId)}/>
         </div>
           </div>
 
         <div className='text' style={this.entityMetaStyle}>
-          {'Création : ' + (new Date(entityMetadata.creationDate)).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
+          {this.props.userstore.getText('creationDate') + ' : ' + (new Date(entityMetadata.creationDate)).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
         </div>
         {measurements.map(this.buildMeasurementDisplay.bind(this))}
         <div className='ui field' style={annotationInputLocalStyle}>
-          <label style={this.annotationInputTitleStyle}>Nouvelle annotation</label>
+          <label style={this.annotationInputTitleStyle}>{this.props.userstore.getText('newAnnotation')}</label>
             <textarea rows='2'
                       autofocus='true'
                       style={this.annotationInputTextStyle}
                       value={this.state.annotationTextInput}
                       onChange={this.onAnnotationTextChange.bind(this)}/>
           <div style={this.annotationInputButtonRowStyle} className='ui tiny compact buttons'>
-            <button className='ui red button' onClick={this.cancelNewAnnotation.bind(this)}>Annuler</button>
-            <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>Enregistrer</button>
+            <button className='ui red button' onClick={this.cancelNewAnnotation.bind(this)}>{this.props.userstore.getText('cancel')}</button>
+            <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>{this.annotationInputTitleStyle}>{this.props.userstore.getText('save')}</button>
           </div>
         </div>
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
@@ -594,19 +586,19 @@ class ElementInspector extends React.Component {
   }
 
   buildMeasurementDisplay(measurementId) {
-    var measurementMetadata = this.state.annotations[measurementId];
+    let measurementMetadata = this.state.annotations[measurementId];
     if(!measurementMetadata) {
       return null;
     }
-    var meta = this.measurementToMetaDisplay(measurementMetadata);
+    let meta = this.measurementToMetaDisplay(measurementMetadata);
     if(!meta) {
       return null;
     }
-    var icon = '';
+    let icon = '';
     if(meta.warning) {
       icon = 'yellow warning icon';
     }
-    var authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
+    let authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
     if(this.props.userstore.getUser().login === meta.author) {
       authorStyle.visibility = 'hidden';
     }
@@ -624,25 +616,25 @@ class ElementInspector extends React.Component {
     if(!annotationMetadata) {
       return null;
     }
-    var meta = this.annotationToMetaDisplay(annotationMetadata);
+    let meta = this.annotationToMetaDisplay(annotationMetadata);
     if(!meta) {
       return null;
     }
 
-    var date = new Date();
+    let date = new Date();
     date.setTime(annotationMetadata.creationDate);
 
-    var author = '';
+    let author = '';
     if(!annotationMetadata.creator) {
-      author = 'Système ReColNat';
+      author = this.props.userstore.getText('recolnatSystem');
     }
     else {
-      var authorMetadata = this.state.creators[annotationMetadata.creator];
+      let authorMetadata = this.state.creators[annotationMetadata.creator];
       if(authorMetadata) {
         author = authorMetadata.name;
       }
     }
-    var authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
+    let authorStyle = JSON.parse(JSON.stringify(this.annotationAuthorStyle));
     if(this.props.userstore.getUser().login === author) {
       authorStyle.visibility = 'hidden';
     }
@@ -667,6 +659,7 @@ class ElementInspector extends React.Component {
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.inspecstore.addContentChangeListener(this._onSelectionChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillReceiveProps(props) {
@@ -691,6 +684,7 @@ class ElementInspector extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
@@ -703,7 +697,7 @@ class ElementInspector extends React.Component {
     return <div className='ui segment container' ref='component' style={this.containerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Propriétés
+        {this.props.userstore.getText('properties')}
       </div>
       <div style={this.scrollerStyle}>
         {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}

@@ -231,7 +231,8 @@ class GlobalFunctions {
 
   static setSavedEntityInInspector(message) {
     if(message.clientProcessError) {
-      alert("L'enregistrement a échoué. Veuillez retenter plus tard.");
+      console.error("Save failed.");
+      // alert("L'enregistrement a échoué. Veuillez retenter plus tard.");
       return;
     }
     window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.id]), 10);

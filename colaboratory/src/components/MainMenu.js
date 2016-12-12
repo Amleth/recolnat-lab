@@ -5,9 +5,8 @@
 
 import React from 'react';
 
-import ContextMenu from './context-menu/MainMenu';
-
 import ModalActions from '../actions/ModalActions';
+import UserActions from '../actions/UserActions';
 
 import ModalConstants from '../constants/ModalConstants';
 
@@ -55,6 +54,7 @@ class MainMenu extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     $(this.refs.dropdown.getDOMNode()).dropdown({
       action: 'hide',
       direction: 'downward',
@@ -62,26 +62,39 @@ class MainMenu extends React.Component {
     });
   }
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   $(this.refs.dropdown.getDOMNode()).dropdown({
-  //     action: 'hide',
-  //     direction: 'downward'
-  //   });
-  // }
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+  }
 
   render() {
     return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
       <i className='circular inverted blue sidebar icon' style={this.enableEventsStyle}/>
       <div className='menu'  style={this.enableEventsStyle}>
-        <div className='header' style={this.headerStyle}>Le Collaboratoire</div>
+        <div className='header' style={this.headerStyle}>
+          {this.props.userstore.getText('collaboratory')}
+        </div>
         <div className='item' style={this.optionStyle}>
-          <span className='text'>Version 0.9.1</span>
+          <span className='text'>
+            {this.props.userstore.getText('version')} 0.9.3 (beta)
+          </span>
         </div>
         <div className='item' onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.feedback, null, null, null)} style={this.optionStyle}>
-          <span className='text'>Formulaire de contact</span>
+          <span className='text'>
+            {this.props.userstore.getText('contactForm')}
+            </span>
         </div>
         <div className={'item'} onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.downloadSet, null, null, null)} style={this.optionStyle}>
-          <span className='text'>Téléchargements</span>
+          <span className='text'>
+            {this.props.userstore.getText('downloads')}
+            </span>
+        </div>
+        <div className='dropdown item' style={this.optionStyle}>
+          {this.props.userstore.getText('languages')}
+          <i className='dropdown icon' />
+          <div className='menu'>
+            <a className='item'  style={this.optionStyle} onClick={UserActions.setLanguage.bind(null, 'en')}><i className='gb flag' />English</a>
+            <a className='item'  style={this.optionStyle} onClick={UserActions.setLanguage.bind(null, 'fr')}><i className='fr flag' />Français</a>
+          </div>
         </div>
       </div>
     </div>

@@ -94,22 +94,27 @@ class Toolbox extends React.Component {
         <div className='ui three buttons' style={this.buttonRowsStyle}>
           <LineMeasure
             toolstore={this.props.toolstore}
+            userstore={this.props.userstore}
             benchstore={this.props.benchstore}
             viewstore={this.props.viewstore} />
           <CreateAngle
             viewstore={this.props.viewstore}
+            userstore={this.props.userstore}
             toolstore={this.props.toolstore} />
         </div>
         <div className='ui three buttons' style={this.buttonRowsStyle}>
           <CreatePointOfInterest
             toolstore={this.props.toolstore}
+            userstore={this.props.userstore}
             viewstore={this.props.viewstore} />
           <CreatePath
             viewstore={this.props.viewstore}
             benchstore={this.props.benchstore}
+            userstore={this.props.userstore}
             toolstore={this.props.toolstore} />
           <CreateRoI
             viewstore={this.props.viewstore}
+            userstore={this.props.userstore}
             toolstore={this.props.toolstore} />
         </div>
       </div>

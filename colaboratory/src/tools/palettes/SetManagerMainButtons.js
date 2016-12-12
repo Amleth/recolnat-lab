@@ -67,9 +67,9 @@ class SetManagerMainButtons extends React.Component {
   }
 
   loadActiveSet() {
-    var setId = this.props.managerstore.getSelected().id;
+    let setId = this.props.managerstore.getSelected().id;
     if(!setId) {
-      alert("Vous devez sélectionner un set avant");
+      alert("Internal error: no set selected");
       return;
     }
     //console.log('request view to set active set ' + setId);
@@ -78,15 +78,16 @@ class SetManagerMainButtons extends React.Component {
   }
 
   splitSet() {
-    var setId = this.props.managerstore.getSelected().id;
+    let setId = this.props.managerstore.getSelected().id;
     if(!setId) {
-      alert("Vous devez sélectionner un set avant");
+      alert("Internal error: no set selected");
       return;
     }
     window.setTimeout(ModalActions.showModal.bind(null, ModalConstants.Modals.organiseSet, {id: setId}), 10);
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.managerstore.addSelectionChangeListener(this._onSetSelectionChange);
   }
@@ -101,6 +102,7 @@ class SetManagerMainButtons extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.managerstore.removeSelectionChangeListener(this._onSetSelectionChange);
   }
@@ -110,32 +112,32 @@ class SetManagerMainButtons extends React.Component {
       <div className='ui container segment' style={this.containerStyle}>
         <div className='ui blue tiny basic label'
              style={this.labelStyle}>
-          Actions
+          {this.props.userstore.getText('actions')}
         </div>
         <div className='ui fluid buttons'
         style={this.buttonColumnStyle}>
           <div className='ui green compact button' onClick={this.showModal.bind(this)}>
             <div className='ui text'>
-              Nouveau set
+              {this.props.userstore.getText('newSet')}
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
-              à partir de votre panier Explore
+              {this.props.userstore.getText('fromBasketSubtitle')}
             </div>
           </div>
           <div className={'ui compact button ' + this.state.openButton} onClick={this.loadActiveSet.bind(this)}>
             <div className='ui text'>
-              Ouvrir
+              {this.props.userstore.getText('open')}
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
-              set sélectionné sur paillasse
+              {this.props.userstore.getText('selectedSet')}
             </div>
           </div>
           <div className={'ui compact button ' + this.state.openButton} onClick={this.splitSet.bind(this)}>
             <div className='ui text'>
-              Réorganiser
+              {this.props.userstore.getText('organise')}
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>
-              le contenu du set sélectionné
+              {this.props.userstore.getText('selectedSetContent')}
             </div>
           </div>
         </div>

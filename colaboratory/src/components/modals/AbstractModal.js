@@ -48,6 +48,7 @@ class AbstractModal extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modalstore.addModalChangeListener(this._onModalChanged);
   }
 
@@ -69,6 +70,7 @@ class AbstractModal extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modalstore.removeModalChangeListener(this._onModalChanged);
   }
 }

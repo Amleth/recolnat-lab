@@ -44,7 +44,7 @@ class StudyMetadataDisplay extends AbstractMetadataDisplay {
         </thead>
         <tbody>
         <tr>
-          <td className='ui right aligned' >Date de création</td>
+          <td className='ui right aligned' >{this.props.userstore.getText('creationDate')}</td>
           <td className='ui left aligned' style={this.textStyle}>{new Date(this.state.date).toLocaleDateString()}</td>
         </tr>
         </tbody>

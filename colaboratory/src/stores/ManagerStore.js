@@ -74,8 +74,8 @@ class ManagerStore extends EventEmitter {
           this.emit(ManagerEvents.SET_SELECTED_NODE);
           break;
         case ManagerConstants.ActionTypes.SET_ACTIVE_ENTITY_IN_SET:
-          var setIdx = null;
-          var itemId = null;
+          let setIdx = null;
+          let itemId = null;
           if(action.parentSetId) {
             // Find indices
             this.displayedSets.forEach(function(s, idx) {
@@ -119,13 +119,6 @@ class ManagerStore extends EventEmitter {
       this.requestGraphAround(user.coreSet, 'Set', 0, true);
     }
   }
-
-  //receiveCoreSetUpdate(coreSet) {
-  //  this.userCoreSet = JSON.parse(JSON.stringify(coreSet));
-  //  this.setIdToPosition[coreSet.uid] = 0;
-  //  this.displayedSets[0] = coreSet;
-  //  this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
-  //}
 
   getCoreSet() {
     return JSON.parse(JSON.stringify(this.userCoreSet));

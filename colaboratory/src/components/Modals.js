@@ -5,13 +5,9 @@
 
 import React from 'react';
 
-import ModalConstants from '../constants/ModalConstants';
-
-import AddEntitiesToSetModal from './modals/AddEntitiesToSetModal';
 import LoginModal from './modals/LoginModal';
 import ConfirmDeleteModal from './modals/ConfirmDelete';
 import AddAnnotationToEntity from './modals/AddAnnotationToEntity';
-import CreateAndFillSet from './modals/CreateAndFillSet';
 import TestRunnerModal from './modals/TestRunnerModal';
 import FeedbackForm from './modals/FeedbackForm';
 import AddToSet from './modals/AddToSet';
@@ -60,34 +56,31 @@ class ManagerModals extends React.Component {
   render() {
     return <div style={this.containerStyle}>
       <LoginModal userstore={this.props.userstore} />
-      <CreateAndFillSet modalstore={this.props.modalstore}
-                        basketstore={this.props.basketstore}
-                     managerstore={this.props.managerstore} />
-      <AddEntitiesToSetModal modalstore={this.props.modalstore}
-                             metastore={this.props.metastore}
-                             managerstore={this.props.managerstore}
-                             viewstore={this.props.viewstore}
-                             benchstore={this.props.benchstore}
-                             basketstore={this.props.basketstore}
-                             modestore={this.props.modestore} />
       <AddToSet modalstore={this.props.modalstore}
-                             metastore={this.props.metastore}
-                             managerstore={this.props.managerstore}
-                             viewstore={this.props.viewstore}
-                             benchstore={this.props.benchstore}
-                             basketstore={this.props.basketstore}
-                             modestore={this.props.modestore} />
+                metastore={this.props.metastore}
+                managerstore={this.props.managerstore}
+                viewstore={this.props.viewstore}
+                benchstore={this.props.benchstore}
+                basketstore={this.props.basketstore}
+                userstore={this.props.userstore}
+                modestore={this.props.modestore} />
       <ConfirmDeleteModal modalstore={this.props.modalstore}
+                          userstore={this.props.userstore}
                           metastore={this.props.metastore} />
       <AddAnnotationToEntity modalstore={this.props.modalstore}
+                             userstore={this.props.userstore}
       />
-      <TestRunnerModal modalstore={this.props.modalstore} />
-      <FeedbackForm modalstore={this.props.modalstore} />
+      <TestRunnerModal modalstore={this.props.modalstore}
+                       userstore={this.props.userstore}/>
+      <FeedbackForm modalstore={this.props.modalstore}
+                    userstore={this.props.userstore}/>
       <OrganiseSet metastore={this.props.metastore}
                    benchstore={this.props.benchstore}
+                   userstore={this.props.userstore}
                    modalstore={this.props.modalstore} />
       <DownloadSetImages metastore={this.props.metastore}
                          benchstore={this.props.benchstore}
+                         userstore={this.props.userstore}
                          modalstore={this.props.modalstore}/>
     </div>
   }

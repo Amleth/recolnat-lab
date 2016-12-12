@@ -37,19 +37,19 @@ class AddAnnotationToEntity extends AbstractModal {
 
   addAnnotation() {
     if(this.state.annotationTextInput.length < 1) {
-      alert('Le texte est obligatoire');
+      alert(this.props.userstore.getText('textIsMandatory'));
       return;
     }
 
-    var self = this;
-    var onSuccess = function(data) {
+    let self = this;
+    let onSuccess = function(data) {
       window.setTimeout(self.props.modalstore.runSuccessCallback(data), 10);
       self.cancel();
     };
 
-    var onError = function(data) {
+    let onError = function(data) {
       window.setTimeout(self.props.modalstore.runErrorCallback(data), 10);
-      alert("L'ajout a échoué suite à un problème réseau. Veuillez rééessayer plus tard");
+      alert(this.props.userstore.getText('operationFailedNetwork'));
     };
 
     ServiceMethods.addAnnotation( this.props.modalstore.getTargetData().entity, this.state.annotationTextInput, onSuccess, onError);
@@ -64,13 +64,13 @@ class AddAnnotationToEntity extends AbstractModal {
     return <div className="ui small modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Nouvelle annotation
+        {this.props.userstore.getText('newAnnotation')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="description">
           <div className='ui form'>
             <div className='field'>
-              <label>Texte de l'annotation</label>
+              <label>{this.props.userstore.getText('newAnnotationText')}</label>
             <textarea rows='6'
                       autofocus='true'
                       value={this.state.annotationTextInput}
@@ -81,11 +81,11 @@ class AddAnnotationToEntity extends AbstractModal {
       </div>
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-          Annuler
+          {this.props.userstore.getText('cancel')}
         </div>
         <div className="ui positive right labeled icon button"
              onClick={this.addAnnotation.bind(this)}>
-          Ajouter annotation
+          {this.props.userstore.getText('addAnnotation')}
           <i className="checkmark icon"></i>
         </div>
       </div>

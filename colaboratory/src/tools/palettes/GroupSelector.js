@@ -65,24 +65,24 @@ class GroupSelector extends React.Component {
       listOfImages: [],
       isListOpen: false,
       selectedImageIdx: -1,
-      selectedImageName: 'Choisissez une image'
+      selectedImageName: this.props.userstore.getText('selectAnImage')
     };
   }
 
   getViewImages() {
-    var viewData = this.props.benchstore.getActiveViewData();
-    var images = [];
+    let viewData = this.props.benchstore.getActiveViewData();
+    let images = [];
     if(viewData) {
-      for(var i = 0; i < viewData.displays.length; ++i) {
-        var displayedEntity = JSON.parse(JSON.stringify(viewData.displays[i]));
-        var imageId = displayedEntity.entity;
-        var data = this.props.benchstore.getData(imageId);
+      for(let i = 0; i < viewData.displays.length; ++i) {
+        let displayedEntity = JSON.parse(JSON.stringify(viewData.displays[i]));
+        let imageId = displayedEntity.entity;
+        let data = this.props.benchstore.getData(imageId);
         if(!data) {
           continue;
         }
-        var keys = Object.keys(data);
-        for(var j = 0; j < keys.length; ++j) {
-          var key = keys[j];
+        let keys = Object.keys(data);
+        for(let j = 0; j < keys.length; ++j) {
+          let key = keys[j];
           displayedEntity[key] = data[key];
         }
         images.push(displayedEntity);
@@ -100,20 +100,20 @@ class GroupSelector extends React.Component {
       this.setState({
         listOfImages: images,
         selectedImageIdx: -1,
-        selectedImageName: 'Choisissez une image',
+        selectedImageName: this.props.userstore.getText('selectAnImage'),
         viewId: this.props.benchstore.getActiveViewId()
       });
     }
   }
 
   changeActiveImage() {
-    var imageId = this.props.toolstore.getSelectedImageId();
+    let imageId = this.props.toolstore.getSelectedImageId();
     if(!imageId) {
-      this.setState({selectedImageIdx: -1, selectedImageName: 'Choisissez une image'});
+      this.setState({selectedImageIdx: -1, selectedImageName: this.props.userstore.getText('selectAnImage')});
       return;
     }
 
-    for(var i = 0; i < this.state.listOfImages.length; ++i) {
+    for(let i = 0; i < this.state.listOfImages.length; ++i) {
       if(this.state.listOfImages[i].link == imageId) {
         this.setState({selectedImageIdx: i, selectedImageName: this.state.listOfImages[i].name});
         return;
@@ -156,6 +156,7 @@ class GroupSelector extends React.Component {
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.addSelectionChangeListener(this._onSelectionChange);
     this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -169,7 +170,7 @@ class GroupSelector extends React.Component {
 
     if(nextState.selectedImageIdx != this.state.selectedImageIdx) {
       if(nextState.selectedImageIdx < 0) {
-        nextState.selectedImageName = 'Choisissez une image';
+        nextState.selectedImageName = this.props.userstore.getText('selectAnImage');
         window.setTimeout(
         MinimapActions.initMinimap.bind(null, null, null, null, null, null), 10);
       }
@@ -198,6 +199,7 @@ class GroupSelector extends React.Component {
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.removeSelectionChangeListener(this._onSelectionChange);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -205,7 +207,7 @@ class GroupSelector extends React.Component {
     return <div className='ui container segment' style={this.compactSegmentStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Groupes & Images
+        {this.props.userstore.getText('groupsAndImages')}
       </div>
       <div className='ui tiny fluid buttons'>
         <div className='ui icon button'
@@ -239,7 +241,7 @@ class GroupSelector extends React.Component {
         </div>
         <div style={this.openListStyle} className='ui divided link list'>
           {this.state.listOfImages.map(function(image, index) {
-            var style = {};
+            let style = {};
             if(index == self.state.selectedImageIdx) {
               style = self.selectedOptionStyle;
             }

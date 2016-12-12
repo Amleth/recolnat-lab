@@ -188,7 +188,7 @@ class Window extends React.Component {
       rightSidebar: true,
       leftSidebarIcon: 'left',
       rightSidebarIcon: 'right',
-      activeSetName: "Pas d'étude chargée"
+      activeSetName: userstore.getText('noSetLoaded')
     };
 
     this._onUserLogIn = () => {
@@ -226,7 +226,7 @@ class Window extends React.Component {
           this.redirectCASLogout();
           break;
         case 'profile':
-          alert('Profil utilisateur indisponible dans la démo');
+          alert(userstore.getText('operationNotAvailableInVersion'));
           break;
         default:
           //console.log('Unknown event action ' + event.data.action);
@@ -265,24 +265,6 @@ class Window extends React.Component {
     this.setState({});
   }
 
-  componentWillMount() {
-    var locationParts = window.location.href.split(/[?#]/);
-    if(locationParts.length > 1) {
-      window.location.href = locationParts[0];
-    }
-  }
-
-  componentDidMount() {
-    userstore.addUserLogInListener(this._onUserLogIn);
-    userstore.addUserLogOutListener(this._onUserLogOut);
-    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null), 10);
-    window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, this.leftPaneWidth), 10);
-    window.addEventListener('resize', this.handleResize.bind(this));
-    // Add recolnat-menu listeners
-    window.addEventListener("message", this.receiveMessage.bind(this));
-    window.addEventListener('keyup', this.displayTestModal.bind(this));
-  }
-
   displayTestModal(event) {
     //console.log('key pressed ' + event.keyCode);
     if(event.ctrlKey && event.altKey && event.keyCode === 84) {
@@ -296,10 +278,29 @@ class Window extends React.Component {
     this.setState({menuIframe: true});
   }
 
+  componentWillMount() {
+    var locationParts = window.location.href.split(/[?#]/);
+    if(locationParts.length > 1) {
+      window.location.href = locationParts[0];
+    }
+  }
+
+  componentDidMount() {
+    userstore.addUserLogInListener(this._onUserLogIn);
+    userstore.addUserLogOutListener(this._onUserLogOut);
+    userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null), 10);
+    window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, this.leftPaneWidth), 10);
+    window.addEventListener('resize', this.handleResize.bind(this));
+    // Add recolnat-menu listeners
+    window.addEventListener("message", this.receiveMessage.bind(this));
+    window.addEventListener('keyup', this.displayTestModal.bind(this));
+  }
+
   componentWillUpdate(nextProps, nextState) {
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-    var left = 0;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let left = 0;
     //console.log('window width ' + width);
     this.containerStyle.height = height;
     this.containerStyle.width = width;
@@ -348,6 +349,7 @@ class Window extends React.Component {
   componentWillUnmount() {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
+    userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
@@ -391,13 +393,15 @@ class Window extends React.Component {
                   managerstore={managerstore} />
         <OrbalContextMenu
           menustore={menustore}
+          userstore={userstore}
           ministore={ministore}
           metastore={metastore}
           benchstore={benchstore}
           viewstore={viewstore}
           toolstore={toolstore}
         />
-        <WebSocketStatus socket={socket} />
+        <WebSocketStatus socket={socket}
+                         userstore={userstore}/>
 
         <div>
           <div style={this.columnLeftSideStyle}>

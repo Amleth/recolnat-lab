@@ -90,7 +90,6 @@ class EditPoI {
   }
 
   static moveAbortedByServer() {
-    alert('Le déplacement a été refusé par le serveur');
     //window.setTimeout(MetadataActions.updateLabBenchFrom, 10);
   }
 }

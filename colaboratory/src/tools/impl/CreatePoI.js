@@ -68,10 +68,9 @@ class CreatePoI extends AbstractTool {
 
   save() {
     if(!this.state.x || !this.state.y) {
-      alert("Les coordonnées ne sont pas valides : x=" + this.state.x + " y=" + this.state.y);
+      alert(this.props.userstore.getInterpolatedText('invalidCoordinates', [this.state.x, this.state.y]));
       return;
     }
-    //alert("Enregistrement du point aux coordonnées " + this.state.x + "," + this.state.y + " en cours");
 
     ServiceMethods.createPointOfInterest(this.state.imageUri, this.state.x, this.state.y, this.state.name, Globals.setSavedEntityInInspector);
   }
@@ -83,7 +82,7 @@ class CreatePoI extends AbstractTool {
     />;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPointOfInterestTooltip')), 10);
 
 
     var self = this;
@@ -116,7 +115,7 @@ class CreatePoI extends AbstractTool {
     />;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newPointOfInterest.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPointOfInterestTooltip')), 10);
 
     this.clearSVG();
     this.setState({x: null, y: null, displayX: null, displayY: null, imageUri: null, imageLinkUri: null, name: ''});
@@ -155,9 +154,7 @@ class CreatePoI extends AbstractTool {
       this.setState({x: x, y: y});
     }
     else {
-      window.setTimeout(function() {
-          ToolActions.updateTooltipData("Le point doit se situer à l'intérieur de l'image active");},
-        50);
+      window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('vertexOutsideImageError')), 50);
     }
   }
 
@@ -185,11 +182,6 @@ class CreatePoI extends AbstractTool {
     vertex
       .attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + viewProps.sizeOfTextAndObjects/view.scale + ')');
 
-    //vertex
-    //  .select('rect')
-    //  .attr("x", -25)
-    //  .attr("y", -55);
-
     vertex.select('image')
       .attr("x", -30)
       .attr("y", -100);
@@ -213,6 +205,7 @@ class CreatePoI extends AbstractTool {
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
     ToolActions.registerTool(ToolConf.newPointOfInterest.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentDidUpdate() {
@@ -238,6 +231,7 @@ class CreatePoI extends AbstractTool {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.finish();
     this.props.viewstore.removeViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
   }
@@ -248,7 +242,7 @@ class CreatePoI extends AbstractTool {
               ref='button'
               onClick={this.setMode}
               style={this.buttonStyle}
-              data-content="Marquer un point remarquable de l'image sélectionnée">
+              data-content={this.props.userstore.getText('newPointOfInterestTooltip1')}>
         <i className='ui large marker icon'></i>
       </button>
     );

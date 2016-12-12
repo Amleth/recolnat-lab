@@ -329,7 +329,8 @@ class AddEntitiesToSetModal extends AbstractModal {
             <div className='description'>
               <div className='header'>Ajouter les {this.props.basketstore.getBasketSelection().length} planches sélectionnées dans le panier au set {this.state.displayName}
               </div>
-              <Basket basketstore={this.props.basketstore}/>
+              <Basket basketstore={this.props.basketstore}
+              userstore={this.props.userstore}/>
             </div>
           </div>
           <div className="actions" style={this.actionBarStyle}>

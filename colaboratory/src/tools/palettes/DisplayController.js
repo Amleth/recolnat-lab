@@ -51,8 +51,8 @@ class DisplayController extends React.Component {
       hiddenColors: []
     };
 
-    for(var i = 0; i < this.state.colors.length; ++i) {
-      var color = this.state.colors[i].color;
+    for(let i = 0; i < this.state.colors.length; ++i) {
+      let color = this.state.colors[i].color;
       this.state.colors[i].poiButtonStyle = {
         opacity: 1.0,
         height: '45px',

@@ -37,6 +37,7 @@ class ModeSwitcher extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.addModeChangeListener(this._onModeChange);
     $('.blue.item', $(this.refs.component.getDOMNode())).popup({
       position: 'bottom right'
@@ -44,28 +45,29 @@ class ModeSwitcher extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
     return <div className='ui icon menu' ref='component'>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.SET)}
-         data-content='Sets'
+         data-content={this.props.userstore.getText('setManager')}
          onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.SET)}>
         <i className='sitemap icon' />
       </a>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.OBSERVATION)}
-         data-content='Observation'
+         data-content={this.props.userstore.getText('observation')}
          onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION)}>
         <i className='eye icon' />
       </a>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.ORGANISATION)}
-         data-content='Agencement'
+         data-content={this.props.userstore.getText('organisation')}
          onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.ORGANISATION)}>
         <i className='cubes icon' />
       </a>
       <a className={'blue item disabled ' + this.isActive(ModeConstants.Modes.TABULAR)}
-         data-content='Tabulaire (indisponible dans la version actuelle)'>
+         data-content={this.props.userstore.getText('tabular') + this.props.userstore.getText('unavailableInCurrentVersion')}>
         <i className='grid layout icon' />
       </a>
     </div>

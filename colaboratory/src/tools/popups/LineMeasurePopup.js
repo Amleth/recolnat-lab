@@ -74,12 +74,12 @@ class LineMeasurePopup extends React.Component {
   }
 
   getScales() {
-    var scales = {};
+    let scales = {};
     d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).each(function(d) {
       //console.log('item ' + JSON.stringify(d));
-      var scaleIds = Object.keys(d.scales);
+      let scaleIds = Object.keys(d.scales);
       //console.log(JSON.stringify(scaleIds));
-      for(var i = 0; i < scaleIds.length; ++i) {
+      for(let i = 0; i < scaleIds.length; ++i) {
         scales[scaleIds[i]] = (d.scales[scaleIds[i]]);
       }
     });
@@ -92,6 +92,7 @@ class LineMeasurePopup extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.setState({scales: this.getScales()});
   }
 
@@ -111,22 +112,35 @@ class LineMeasurePopup extends React.Component {
         this.props.setScaleCallback(null);
       }
       else {
-            this.props.setScaleCallback(this.state.scale);
+        this.props.setScaleCallback(this.state.scale);
       }
     }
+  }
+
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
     return(
       <div style={this.containerStyle} className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
-          <div style={this.titleStyle}>Règle</div>
-          <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
+          <div style={this.titleStyle}>{this.props.userstore.getText('newMeasure')}</div>
+          <i className='ui remove icon'
+             style={this.closeIconStyle}
+             onClick={Globals.noActiveTool} />
         </div>
         <Tooltip toolstore={this.props.toolstore} />
-        <div className='title'>Etalon</div>
-        <select className='ui compact inline scrolling dropdown' value={this.state.scale} style={this.optionStyle} onChange={this.setScale.bind(this)}>
-          <option value="null">Aucun</option>
+        <div className='title'>
+          {this.props.userstore.getText('measureStandard')}
+        </div>
+        <select className='ui compact inline scrolling dropdown'
+                value={this.state.scale}
+                style={this.optionStyle}
+                onChange={this.setScale.bind(this)}>
+          <option value="null">
+            {this.props.userstore.getText('nothing')}
+          </option>
           {this.state.scales.map(function(scale) {
             return <option value={scale.uid} key={scale.uid}>{scale.name}</option>;
           })}

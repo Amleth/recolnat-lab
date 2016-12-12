@@ -76,7 +76,7 @@ class SimpleImageDisplay extends React.Component {
 
     this.state = {
       isVisibleInCurrentMode: true,
-      selectionTitle: "Pré-visionneuse d'images",
+      selectionTitle: this.props.userstore.getText('imagePreviewer'),
       imagesOfSelection: [],
       imageUrl: null,
       listening: []
@@ -84,7 +84,7 @@ class SimpleImageDisplay extends React.Component {
   }
 
   removeListeners() {
-    for(var i = 0; i < this.state.listening.length; ++i) {
+    for(let i = 0; i < this.state.listening.length; ++i) {
       this.props.metastore.removeMetadataUpdateListener(this.state.listening[i], this._onMetadataReceived);
     }
   }
@@ -100,7 +100,7 @@ class SimpleImageDisplay extends React.Component {
         //this.processReceivedMetadata(selection.id, true);
         break;
       default:
-        this.setState({selectionTitle: "Pré-visionneuse d'images"});
+        this.setState({selectionTitle: this.props.userstore.getText('imagePreviewer')});
         return;
     }
     this.setState({selectionTitle: selection.name});
@@ -112,19 +112,19 @@ class SimpleImageDisplay extends React.Component {
       //console.log('Not listening for ' + id);
       return;
     }
-    var metadata = this.props.metastore.getMetadataAbout(id);
+    let metadata = this.props.metastore.getMetadataAbout(id);
     //console.log('Metadata for ' + id + " : " + JSON.stringify(metadata));
     if(metadata) {
       switch(metadata.type) {
         case 'Image':
-          var keyedImages = _.indexBy(this.state.imagesOfSelection, function(image){return image.uid});
+          let keyedImages = _.indexBy(this.state.imagesOfSelection, function(image){return image.uid});
           keyedImages[metadata.uid] = metadata;
           this.setState({
             imagesOfSelection: _.sortBy(_.values(keyedImages), Globals.getName)});
           break;
         case 'Specimen':
-          var listening = JSON.parse(JSON.stringify(this.state.listening));
-          for(var i = 0; i < metadata.images.length; ++i) {
+          let listening = JSON.parse(JSON.stringify(this.state.listening));
+          for(let i = 0; i < metadata.images.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.images[i], this._onMetadataReceived);
             listening.push(metadata.images[i]);
             //this.processReceivedMetadata(metadata.images[i], true);
@@ -132,9 +132,9 @@ class SimpleImageDisplay extends React.Component {
           this.setState({listening: listening});
           break;
         case 'Set':
-          var listening = JSON.parse(JSON.stringify(this.state.listening));
-          var metaToUpdate = [];
-          for(var i = 0; i < metadata.items.length; ++i) {
+          listening = JSON.parse(JSON.stringify(this.state.listening));
+          let metaToUpdate = [];
+          for(let i = 0; i < metadata.items.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.items[i].uid, this._onMetadataReceived);
             listening.push(metadata.items[i].uid);
             metaToUpdate.push(metadata.items[i].uid);
@@ -154,8 +154,8 @@ class SimpleImageDisplay extends React.Component {
   }
 
   loadParentSet() {
-    var sets = this.props.managerstore.getSets();
-    var id = sets[sets.length-1].uid;
+    let sets = this.props.managerstore.getSets();
+    let id = sets[sets.length-1].uid;
     if(id) {
       window.setTimeout(ViewActions.setActiveSet.bind(null, id), 10);
       // window.setTimeout(ManagerActions.toggleSetManagerVisibility.bind(null,false),20);
@@ -168,6 +168,7 @@ class SimpleImageDisplay extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
   }
@@ -192,6 +193,7 @@ class SimpleImageDisplay extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
     this.removeListeners();
@@ -203,7 +205,7 @@ class SimpleImageDisplay extends React.Component {
     return <div className='ui segment container' style={this.componentStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Aperçu
+        {this.props.userstore.getText('preview')}
       </div>
       <div style={this.scrollerStyle}>
       <div className='ui small header centered segment'
@@ -211,7 +213,7 @@ class SimpleImageDisplay extends React.Component {
         <div className='ui item'>
           {this.state.selectionTitle}
           <i>{' ' + this.state.imagesOfSelection.length + ' images'}</i>
-          (Aperçu)
+          ({this.props.userstore.getText('preview')})
         </div>
       </div>
       <div className='ui container' style={this.twoColumnContainerStyle}>
@@ -234,7 +236,7 @@ class SimpleImageDisplay extends React.Component {
              style={this.imageStyle}
              src={this.state.imageUrl}
              onDoubleClick={self.loadParentSet.bind(self)}
-             alt="Aucune image sélectionnée">
+             alt={this.props.userstore.getText('noDataForSelection')}>
         </img>
       </div>
         </div>

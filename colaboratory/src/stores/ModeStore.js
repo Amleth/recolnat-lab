@@ -50,11 +50,11 @@ class ModeStore extends EventEmitter {
     );
     switch(mode) {
       case ModeConstants.Modes.OBSERVATION:
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
+      // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
         window.setTimeout(MetadataActions.loadLabBench, 10);
         break;
       case ModeConstants.Modes.ORGANISATION:
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
+      // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
         window.setTimeout(MetadataActions.loadLabBench, 10);
         break;
       case ModeConstants.Modes.SET:

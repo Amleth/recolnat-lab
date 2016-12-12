@@ -22,7 +22,7 @@ class Remove extends React.Component {
       this.state.label = this.props.label;
     }
     else {
-      this.state.label = 'Supprimer';
+      this.state.label = this.props.userstore.getText('remove');
     }
 
     if(this.props.metadata) {
@@ -35,6 +35,14 @@ class Remove extends React.Component {
   removeSelf() {
     var self = this;
     ServiceMethods.remove(this.props.uid, this.props.successCallback);
+  }
+
+  componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {

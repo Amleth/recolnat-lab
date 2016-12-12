@@ -7,7 +7,6 @@ import React from 'react';
 
 import BenchLabFreeSpace from './FreeSpace';
 
-import ContextMenu from './context-menu/ContextMenu';
 import OrbalContextMenu from './context-menu/OrbalContextMenu';
 import Inbox from './Inbox';
 import BenchLabBorders from './BenchLabBorders';
@@ -18,13 +17,8 @@ import DragNDropStore from '../stores/DragNDropStore';
 
 import Popup from "../components/PopupToolComponent";
 
-import ViewActions from "../actions/ViewActions";
-import ToolActions from '../actions/ToolActions';
-import MetadataActions from '../actions/MetadataActions';
 import ModalActions from '../actions/ModalActions';
 
-import ViewConstants from '../constants/ViewConstants';
-import ModeConstants from '../constants/ModeConstants';
 import ModalConstants from '../constants/ModalConstants';
 
 const drag = new DragNDropStore();
@@ -68,6 +62,7 @@ class VirtualBenchLab extends React.Component {
 
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -95,6 +90,7 @@ class VirtualBenchLab extends React.Component {
 
   componentWillUnmount() {
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -105,19 +101,26 @@ class VirtualBenchLab extends React.Component {
           benchstore={this.props.benchstore}
           metastore={this.props.metastore}
           viewstore={this.props.viewstore}
+          userstore={this.props.userstore}
           drag={drag}
         />
-        <ImagesLoadingStatus imagestore={this.props.imagestore}/>
+        <ImagesLoadingStatus imagestore={this.props.imagestore}
+                             userstore={this.props.userstore}/>
         <Popup toolstore={this.props.toolstore}/>
         <div style={this.importSheetButtonStyle}
-        data-content='Importer des images' ref='import' className='ui container'>
+             data-content={this.props.userstore.getText('importImages')}
+             ref='import'
+             className='ui container'>
           <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {parent: this.props.benchstore.getActiveSetId()})}
-          className='ui small green button' ><i className='ui small add icon'/></a>
+          className='ui small green button' >
+            <i className='ui small add icon'/>
+          </a>
         </div>
         <OrbalContextMenu
           menustore={this.props.menustore}
           ministore={this.props.ministore}
           metastore={this.props.metastore}
+          userstore={this.props.userstore}
           benchstore={this.props.benchstore}
           viewstore={this.props.viewstore}
           toolstore={this.props.toolstore}
@@ -131,6 +134,7 @@ class VirtualBenchLab extends React.Component {
           viewstore={this.props.viewstore}
           metastore={this.props.metastore}
           modestore={this.props.modestore}
+          userstore={this.props.userstore}
           benchstore={this.props.benchstore}
           managerstore={this.props.managerstore}
           drag={drag}

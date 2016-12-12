@@ -5,5 +5,6 @@
 
 export default {
   USER_LOG_IN: 'userLogIn',
-  USER_LOG_OUT: 'userLogOut'
+  USER_LOG_OUT: 'userLogOut',
+  PREFS_CHANGE_LANGUAGE: 'userPreferencesChangeLanguage'
 };

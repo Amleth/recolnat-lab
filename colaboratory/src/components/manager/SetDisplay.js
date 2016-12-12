@@ -90,13 +90,8 @@ class SetDisplay extends React.Component {
       height: '5px'
     };
 
-    //this._onSelectionChange = () => {
-    //  const changeSelected = () => this.setState({});
-    //  return changeSelected.apply(this);
-    //};
-
-    var subSets = [];
-    var items = [];
+    let subSets = [];
+    let items = [];
     if(this.props.set.subsets) {
       subSets = JSON.parse(JSON.stringify(this.props.set.subsets));
     }
@@ -105,7 +100,7 @@ class SetDisplay extends React.Component {
     }
 
     this.state = {
-      displayName: this.props.index === 0 ? 'Mes sets' : this.props.set.name,
+      displayName: this.props.index === 0 ? this.props.userstore.getText('mySets') : this.props.set.name,
       subSets: subSets,
       items: items,
       validEntityDraggedOverSelf: false
@@ -116,12 +111,12 @@ class SetDisplay extends React.Component {
   }
 
   itemOrSubSetUpdated() {
-    var subSets = [];
-    var items = [];
+    let subSets = [];
+    let items = [];
 
     if(this.props.set.subsets) {
-      for (var i = 0; i < this.props.set.subsets.length; ++i) {
-        var metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i].uid);
+      for (let i = 0; i < this.props.set.subsets.length; ++i) {
+        let metadata = this.props.metastore.getMetadataAbout(this.props.set.subsets[i].uid);
         if (metadata) {
           //console.log('pushing subset ' +metadata.uid);
           metadata.link = this.props.set.subsets[i].link;
@@ -139,8 +134,8 @@ class SetDisplay extends React.Component {
     }
 
     if(this.props.set.items) {
-      for (i = 0; i < this.props.set.items.length; ++i) {
-        var metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i].uid);
+      for (let i = 0; i < this.props.set.items.length; ++i) {
+        let metadata = this.props.metastore.getMetadataAbout(this.props.set.items[i].uid);
 
         if (metadata) {
           metadata.link = this.props.set.items[i].link;
@@ -173,15 +168,15 @@ class SetDisplay extends React.Component {
     // console.log('entering drop area');
     switch(this.props.dragstore.getType()) {
       case 'managerDragSet':
-        var data = this.props.dragstore.getData();
-        for(var i = 0; i < this.props.set.subsets.length; ++i) {
+        let data = this.props.dragstore.getData();
+        for(let i = 0; i < this.props.set.subsets.length; ++i) {
           if(this.props.set.subsets[i].link == data.linkToParent) {
             return;
           }
         }
       case 'managerDragItem':
-        var data = this.props.dragstore.getData();
-        for(var i = 0; i < this.props.set.items.length; ++i) {
+        data = this.props.dragstore.getData();
+        for(let i = 0; i < this.props.set.items.length; ++i) {
           if(this.props.set.items[i].link == data.linkToParent) {
             return;
           }
@@ -201,7 +196,7 @@ class SetDisplay extends React.Component {
 
   addDraggedEntity(event) {
     if(this.state.validEntityDraggedOverSelf) {
-      var data = this.props.dragstore.getData();
+      let data = this.props.dragstore.getData();
 
       ServiceMethods.cutPaste(data.linkToParent, this.props.set.uid, undefined);
     }
@@ -220,37 +215,17 @@ class SetDisplay extends React.Component {
       })
       , 10
     );
-    //if(this.props.index === 0) {
-    //  window.setTimeout(
-    //    ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {
-    //      parent: this.props.set.uid,
-    //      index: this.props.index
-    //    })
-    //    , 10
-    //  );
-    //}
-    //else {
-    //  window.setTimeout(
-    //    ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {
-    //      parent: this.props.set.uid,
-    //      index: this.props.index
-    //    })
-    //    , 10
-    //  );
-    //}
   }
 
   addMetadataUpdateListeners(s) {
     if(s.subsets) {
-      for (var i = 0; i < s.subsets.length; ++i) {
-        //console.log('mount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+      for (let i = 0; i < s.subsets.length; ++i) {
         this.props.metastore.addMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
 
     if(s.items) {
-      for (i = 0; i < s.items.length; ++i) {
-        //console.log('mount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+      for (let i = 0; i < s.items.length; ++i) {
         this.props.metastore.addMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
@@ -258,15 +233,13 @@ class SetDisplay extends React.Component {
 
   removeMetadataUpdateListeners(s) {
     if(s.subsets) {
-      for (var i = 0; i < s.subsets.length; ++i) {
-        //console.log('unmount listener for set ' + s.subsets[i].uid + ' in ' + this.state.displayName);
+      for (let i = 0; i < s.subsets.length; ++i) {
         this.props.metastore.removeMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
 
     if(s.items) {
-      for (i = 0; i < s.items.length; ++i) {
-        //console.log('unmount listener for item ' + s.items[i].uid + ' in ' + this.state.displayName);
+      for (let i = 0; i < s.items.length; ++i) {
         this.props.metastore.removeMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
       }
     }
@@ -274,6 +247,7 @@ class SetDisplay extends React.Component {
 
   componentDidMount() {
     //this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -289,11 +263,11 @@ class SetDisplay extends React.Component {
     }
 
     if(nextProps.set.loading) {
-      nextState.displayName = 'Chargement...';
+      nextState.displayName = this.props.userstore.getText('loading');
     }
 
     if(nextProps.index === 0) {
-      nextState.displayName = 'Mes sets';
+      nextState.displayName = this.props.userstore.getText('mySets');
     }
     else {
       nextState.displayName = nextProps.set.name;
@@ -307,20 +281,14 @@ class SetDisplay extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(prevProps.set.hash != this.props.set.hash) {
-      //console.log('previous hash ' + prevProps.set.hash);
-      //console.log('next hash ' + this.props.set.hash);
-      //console.log('existing component receives new props with new hash');
       this.removeMetadataUpdateListeners(prevProps.set);
       this.addMetadataUpdateListeners(this.props.set);
-      //this.itemOrSubSetUpdated();
     }
   }
 
   componentWillUnmount() {
-    //console.log('unmounting ' + this.props.set.uid);
-    //this.props.metastore.removeMetadataUpdateListener(null, this._onMetadataUpdate);
-    //this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
     this.removeMetadataUpdateListeners(this.props.set);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -341,11 +309,14 @@ class SetDisplay extends React.Component {
                   onDragOver={this.preventDefault.bind(this)}
                   onDragLeave={this.removeDraggedEntity.bind(this)}
                   onDrop={this.addDraggedEntity.bind(this)}>
-        <div className='ui tertiary center aligned segment' style={this.topBarStyle}>
-          <div className='ui center aligned container' style={this.titleStyle}>
+        <div className='ui tertiary center aligned segment'
+             style={this.topBarStyle}>
+          <div className='ui center aligned container'
+               style={this.titleStyle}>
             {this.state.displayName}
           </div>
-          <i className='large add circle green icon' style={this.addItemStyle}
+          <i className='large add circle green icon'
+             style={this.addItemStyle}
              onClick={this.showAddToSetModal.bind(this)}/>
         </div>
       </div>;
@@ -376,6 +347,7 @@ class SetDisplay extends React.Component {
                                      metastore={self.props.metastore}
                                      dragstore={self.props.dragstore}
                                      index={self.props.index}
+                                     userstore={self.props.userstore}
                                      parentSetId={self.props.set.uid}
                                      set={subSet}
                                      />
@@ -387,6 +359,7 @@ class SetDisplay extends React.Component {
               metastore={self.props.metastore}
               dragstore={self.props.dragstore}
               index={self.props.index}
+              userstore={self.props.userstore}
               parentSetId={self.props.set.uid}
               item={item} />;
           })}
@@ -397,81 +370,5 @@ class SetDisplay extends React.Component {
     </div>
   }
 }
-
-//{this.state.subSets.map(function(s, idx) {
-//  var icon = 'ui icon help';
-//  var linkStyle = {
-//    margin: 0
-//  };
-//
-//  if(self.props.set.selectedId == s.uid) {
-//    linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
-//  }
-//  if(s.uid == self.props.managerstore.getSelected().id) {
-//    linkStyle.color = 'blue';
-//  }
-//
-//  if(self.state.validEntityDraggedOverSelf) {
-//    linkStyle.pointerEvents = 'none';
-//  }
-//
-//  return (
-//    <a className={'item '}
-//       style={linkStyle}
-//       key={'SET-OPTION-' + s.uid}
-//       onClick={self.setActive.bind(self, idx, s)}
-//       onContextMenu={self.callContextMenu.bind(self, s, idx)}
-//       draggable={true}
-//       onDragStart={self.startDragSet.bind(self, s)}
-//       onDragEnd={self.clearDrag.bind(self)}
-//       onDoubleClick={self.selectAndLoadSet.bind(self, idx, s)}>
-//      <div>
-//        <i className='ui icon folder' style={self.textStyle} />{s.name}
-//      </div>
-//    </a>);
-//})
-//}
-
-//{this.state.items.map(function(item, idx) {
-//  //console.log(JSON.stringify(item));
-//  var icon = 'ui icon file';
-//  var linkStyle = {
-//    margin: 0
-//  };
-//
-//  if(self.props.set.selectedId == item.uid) {
-//    linkStyle.backgroundColor = 'rgba(0,0,0,0.1)';
-//  }
-//  if(item.uid == self.props.managerstore.getSelected().id) {
-//    linkStyle.color = 'blue';
-//  }
-//  if(self.state.validEntityDraggedOverSelf) {
-//    linkStyle.pointerEvents = 'none';
-//  }
-//  switch(item.type) {
-//    case 'Specimen':
-//      icon = 'ui icon barcode';
-//      break;
-//    case 'Image':
-//      icon = 'ui icon file image outline';
-//      break;
-//    default:
-//  }
-//
-//  return <a className={'item '}
-//            style={linkStyle}
-//            key={'SET-OPTION-' + item.uid}
-//            onContextMenu={self.callContextMenu.bind(self, item, idx)}
-//            draggable={true}
-//            onDragStart={self.startDragItem.bind(self, item)}
-//            onDragEnd={self.clearDrag.bind(self)}
-//            onClick={self.setActive.bind(self, idx, item)}
-//  >
-//    <div>
-//      <i className={icon} style={self.textStyle} />{item.name}
-//    </div>
-//  </a>
-//})
-//}
 
 export default SetDisplay;

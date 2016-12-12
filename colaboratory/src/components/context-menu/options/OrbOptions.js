@@ -41,8 +41,8 @@ class OrbOptions {
 
   }
 
-  static notAvailable() {
-    alert("Cette fonctionnalité n'est pas disponible dans la version actuelle");
+  static notAvailable(userstore) {
+    alert(userstore.getText('operationNotAvailableInVersion'));
   }
 
   static showMetadata(data) {

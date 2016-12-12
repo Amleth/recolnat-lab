@@ -151,14 +151,14 @@ class SpecimenMetadataDisplay extends React.Component {
           this.setState({
             type: 'specimen',
             source: 'recolnat',
-            institutionCode: 'Erreur réseau: spécimen indisponible pour le moment',
+            institutionCode: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
             catalogNumber: ''
           });
         }
         else {
-          var specimen = JSON.parse(res.text);
-          var institCode = 'Code institution indisponible';
-          var catalogNum = 'N° catalogue indisponible';
+          let specimen = JSON.parse(res.text);
+          let institCode = this.props.userstore.getText('insitutionCodeUnavailable');
+          let catalogNum = this.props.userstore.getText('catalogNumberUnavailable');
           if(specimen.institutioncode) {
             institCode = specimen.institutioncode
           }
@@ -180,14 +180,14 @@ class SpecimenMetadataDisplay extends React.Component {
         if(err) {
           console.error('Error requesting determinations about ' + id);
           this.setState({
-            scientificName: 'Erreur réseau: déterminations indisponibles pour le moment',
+            scientificName: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
             scientificNameAuthorship: ''
           });
         }
         else {
           var determinations = JSON.parse(res.text);
-          var scName = 'Donnée indisponible';
-          var scNameAuth = 'Donnée indisponible';
+          var scName = this.props.userstore.getText('dataUnavailable');
+          var scNameAuth = this.props.userstore.getText('dataUnavailable');
           var determinationStatusWarning = 'warning';
           //console.log('determinations=' + res.text);
           for(var i = 0; i < determinations.length; ++i) {
@@ -218,17 +218,17 @@ class SpecimenMetadataDisplay extends React.Component {
         if(err) {
           console.error('Error requesting harvest data about ' + id);
           this.setState({
-            harvestVerbatimLocality: 'Erreur réseau: données de récolte indisponibles pour le moment',
-            harvestRecordedBy: 'Erreur réseau: données de récolte indisponibles pour le moment',
+            harvestVerbatimLocality: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
+            harvestRecordedBy: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
             harvestFieldNumber: ''
           });
         }
         else {
-          var harvest = JSON.parse(res.text);
+          let harvest = JSON.parse(res.text);
           //console.log('harvest=' + res.text);
-          var recBy = 'Donnée indisponible';
-          var fieldNum = 'Donnée indisponible';
-          var verbatimLoc = 'Donnée indisponible';
+          let recBy = this.props.userstore.getText('dataUnavailable');
+          let fieldNum = this.props.userstore.getText('dataUnavailable');
+          let verbatimLoc = this.props.userstore.getText('dataUnavailable');
 
           if(harvest.recordedBy) {
             recBy = harvest.recordedBy;
@@ -263,24 +263,24 @@ class SpecimenMetadataDisplay extends React.Component {
         <table className='ui selectable striped structured very compact table'>
           <thead>
           <tr>
-            <th colSpan='2' className='center aligned'><i className={'ui yellow ' + this.state.determinationStatusWarning + ' icon'} ref='warning' data-content="Le fournisseur de données n'a marqué aucune détermination comme acceptée. La détermination affichée est la dernière trouvée par le système."/><i>{this.state.scientificName}</i> {this.state.scientificNameAuthorship}</th>
+            <th colSpan='2' className='center aligned'><i className={'ui yellow ' + this.state.determinationStatusWarning + ' icon'} ref='warning' data-content={this.props.userstore.getText('noDeterminationAccepted')}/><i>{this.state.scientificName}</i> {this.state.scientificNameAuthorship}</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-            <td className='right aligned'>Récolteur</td>
+            <td className='right aligned'>{this.props.userstore.getText('harvester')}</td>
             <td className='left aligned' style={this.textStyle}>{this.state.harvestRecordedBy} {this.state.harvestFieldNumber}</td>
           </tr>
           <tr>
-            <td className='right aligned'>Lieu de récolte</td>
+            <td className='right aligned'>{this.props.userstore.getText('harvestLocation')}</td>
             <td className='left aligned' style={this.textStyle}>{this.state.harvestVerbatimLocality}</td>
           </tr>
           <tr>
-            <td className='right aligned'>N° inventaire</td>
+            <td className='right aligned'>{this.props.userstore.getText('catalogNumber')}</td>
             <td className='left aligned' style={this.textStyle}>{this.state.institutionCode} {this.state.catalogNumber}</td>
           </tr>
           <tr>
-            <td className='center aligned' style={this.textStyle} colSpan='2'><a href={this.state.linkToExplore} target='_blank'>Page Explore du spécimen</a></td>
+            <td className='center aligned' style={this.textStyle} colSpan='2'><a href={this.state.linkToExplore} target='_blank'>{this.props.userstore.getText('specimenExplorePage')}</a></td>
           </tr>
           </tbody>
         </table>
@@ -291,6 +291,7 @@ class SpecimenMetadataDisplay extends React.Component {
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
     this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillReceiveProps(props) {
@@ -324,6 +325,7 @@ class SpecimenMetadataDisplay extends React.Component {
     }
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {

@@ -15,66 +15,165 @@ class LocationMetadataTable extends MetadataTable {
   buildDisplayTableBody() {
     if(this.props.loading) {
       return <tbody>
-      <tr><td colSpan='2' className='ui center aligned'>Chargement en cours...</td></tr>
+      <tr>
+        <td colSpan='2' className='ui center aligned'>
+          {this.props.userstore.getText('loading')}
+          </td>
+      </tr>
         </tbody>
     }
     return <tbody>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Longitude</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.decimallongitude}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('longitude')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.decimallongitude}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Localité originale</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.verbatimlocality}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('verbatimLocality')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.verbatimlocality}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Code pays</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.countrycode}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('countryCode')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.countrycode}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Profondeur minimale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.minimumdepthinmeters}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('minDepthInM')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.minimumdepthinmeters}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Système géodésique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.geodeticdatum}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('geodeticDatum')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.geodeticdatum}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Municipalité</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.municipality}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('municipality')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.municipality}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Remarques sur le lieu</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locationremarks}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('locationRemarks')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.locationremarks}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >ID du lieu</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locationID}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('locationId')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.locationID}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Références de géolocalisation</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.georeferencesources}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('georeferenceSources')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.georeferencesources}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Altitude originale</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.verbatimelevation}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('verbatimElevation')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.verbatimelevation}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Pays</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.country}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('country')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.country}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Altitude maximale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.maximumelevationInmeters}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('maxElevationInM')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.maximumelevationInmeters}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Altitude moyenne</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.averagealtituderounded}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('averageAltitudeRounded')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.averagealtituderounded}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Département</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.county}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('county')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.county}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Continent</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.continent}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('continent')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.continent}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Localité</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.locality}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('locality')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.locality}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Etat/Province</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.stateprovince}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('stateOrProvince')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.stateprovince}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Profondeur maximale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.maximumdepthinmeters}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('maxDepthInM')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.maximumdepthinmeters}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Altitude minimale (m)</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.minimumelevationinmeters}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('minElevationInM')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.minimumelevationinmeters}
+        </td>
     </tr>
     </tbody>
   }

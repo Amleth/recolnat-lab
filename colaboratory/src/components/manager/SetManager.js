@@ -104,6 +104,7 @@ class SetManager extends React.Component {
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.addManagerUpdateListener(this._onSetUpdate);
     this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -116,14 +117,9 @@ class SetManager extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    //if(this.state.userLoggedIn && !prevState.userLoggedIn) {
-    //    window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, this.props.managerstore.getCoreSet(), 'Set', 0, true)
-    //      , 10);
-    //
-    //}
     if(this.state.displayedSets.length != prevState.displayedSets.length) {
-      var node = this.refs.sets.getDOMNode();
-      var scrollAnimate = window.setInterval(function () {
+      let node = this.refs.sets.getDOMNode();
+      let scrollAnimate = window.setInterval(function () {
         //console.log('left=' + node.scrollLeft + ' scollwidth=' + node.scrollWidth + ' clientwidth=' + node.clientWidth);
         if (node.scrollLeft < node.scrollWidth - node.clientWidth - 2) {
           node.scrollLeft = node.scrollLeft + 2;
@@ -140,26 +136,31 @@ class SetManager extends React.Component {
     this.props.userstore.removeUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.removeManagerUpdateListener(this._onSetUpdate);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
     var self = this;
     return <div style={this.containerStyle} >
-    <i className='ui big blue help circle icon' ref='helpIcon' style={this.helpIconStyle} onMouseEnter={this.showHelp.bind(this)} onMouseLeave={this.hideHelp.bind(this)}/>
+    <i className='ui big blue help circle icon'
+       ref='helpIcon'
+       style={this.helpIconStyle}
+       onMouseEnter={this.showHelp.bind(this)}
+       onMouseLeave={this.hideHelp.bind(this)}/>
       <div className='ui text segment container' style={this.helpTextStyle}>
-        <div> Cliquez sur "Mes sets" pour voir le premier niveau de sets et notament le "set exemple". Ce dernier vous permet de découvrir le Collaboratoire et ses fonctions.
+        <div>{this.props.userstore.getText('managerHelp0')}
         </div>
         <div>
-          Cliquez sur un set <i className='ui icon folder' /> pour charger son contenu.
+          <i className='ui icon folder' /> {this.props.userstore.getText('managerHelp1')}
         </div>
         <div>
-          Double-cliquez sur un set <i className='ui icon folder' /> pour le charger dans la paillasse.
+          <i className='ui icon folder' /> {this.props.userstore.getText('managerHelp2')}
         </div>
         <div>
-          Le clic droit sur un set <i className='ui icon folder' /> permet d'afficher son menu contextuel.
+          <i className='ui icon folder' /> {this.props.userstore.getText('managerHelp3')}
         </div>
         <div>
-          Si le set choisi <i className='ui blue icon folder' /> contient des images, elles seront listées à droite.
+          <i className='ui blue icon folder' />{this.props.userstore.getText('managerHelp4')}
         </div>
       </div>
       <div style={this.optionBarStyle}></div>
@@ -169,6 +170,7 @@ class SetManager extends React.Component {
                              set={s}
                              index={idx}
                              managerstore={self.props.managerstore}
+                             userstore={self.props.userstore}
                              dragstore={self.props.dragstore}
                              metastore={self.props.metastore}
           />;

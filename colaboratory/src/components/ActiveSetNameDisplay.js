@@ -40,15 +40,17 @@ export default class ActiveSetNameDisplay extends React.Component {
       this.setState({name: this.props.managerstore.getSelected().name});
     }
     else {
-      this.setState({name: 'Aucun set actif'});
+      this.setState({name: this.props.userstore.getText('noActiveSet')});
     }
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.managerstore.addSelectionChangeListener(this._onSetIdChange);
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.managerstore.removeSelectionChangeListener(this._onSetIdChange);
   }
 

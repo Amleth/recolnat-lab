@@ -92,22 +92,22 @@ class Minimap extends React.Component {
   }
 
   updateStoreWithPosition() {
-    var imageId = this.props.toolstore.getSelectedImageId();
+    let imageId = this.props.toolstore.getSelectedImageId();
     if(!imageId) {
       window.setTimeout(MinimapActions.unsetMinimap, 10);
       return;
     }
-    var viewData = this.props.benchstore.getActiveViewData();
+    let viewData = this.props.benchstore.getActiveViewData();
     if(!viewData) {
       window.setTimeout(MinimapActions.unsetMinimap, 10);
       return;
     }
-    var imageUrl = this.props.ministore.getImage().url;
+    let imageUrl = this.props.ministore.getImage().url;
     if(!imageUrl) {
       return;
     }
 
-    for(var i = 0; i < viewData.displays.length; ++i) {
+    for(let i = 0; i < viewData.displays.length; ++i) {
       if(viewData.displays[i].link == imageId) {
         var displayData = viewData.displays[i];
         window.setTimeout(
@@ -125,9 +125,9 @@ class Minimap extends React.Component {
   }
 
   updateViewportLocation(view) {
-    var node = this.refs.image.getDOMNode().getBoundingClientRect();
-    var image = this.props.ministore.getImage();
-    var ratio = image.height/node.height;
+    let node = this.refs.image.getDOMNode().getBoundingClientRect();
+    let image = this.props.ministore.getImage();
+    let ratio = image.height/node.height;
     this.setState({
       view: {
         top: -(view.top/view.scale + image.yZero)/(ratio),
@@ -141,8 +141,8 @@ class Minimap extends React.Component {
   }
 
   moveViewToClickLocation(event) {
-    var image = this.props.ministore.getImage();
-    var node = this.refs.image.getDOMNode().getBoundingClientRect();
+    let image = this.props.ministore.getImage();
+    let node = this.refs.image.getDOMNode().getBoundingClientRect();
 
     ViewActions.updateViewport(
       -((event.clientX-node.left-this.state.view.width/2)*this.state.ratio + image.xZero)*this.state.view.zoom,
@@ -183,8 +183,8 @@ class Minimap extends React.Component {
     //event.stopPropagation();
     event.preventDefault();
     // Needed to get offset from page to image
-    var node = this.refs.image.getDOMNode().getBoundingClientRect();
-    var image = this.props.ministore.getImage();
+    let node = this.refs.image.getDOMNode().getBoundingClientRect();
+    let image = this.props.ministore.getImage();
     if(event.deltaY < 0) {
       // Zoom out
       ViewActions.updateViewport(
@@ -214,6 +214,7 @@ class Minimap extends React.Component {
     this.props.ministore.addInitListener(this._onImageInit);
     this.props.viewstore.addViewportListener(this._onViewChange);
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchUpdate);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     $('.ui.button.small.compact', this.refs.component.getDOMNode()).popup();
   }
 
@@ -245,6 +246,7 @@ class Minimap extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.ministore.removeInitListener(this._onImageInit);
     this.props.viewstore.removeViewportListener(this._onViewChange);
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchUpdate);
@@ -258,7 +260,7 @@ class Minimap extends React.Component {
            ref='component'>
            <div className='ui blue tiny basic label'
                 style={this.labelStyle}>
-             Minivue
+             {this.props.userstore.getText('minimap')}
            </div>
         <div style={this.imageContainerStyle}
              onClick={this.moveViewToClickLocation.bind(this)}
@@ -270,7 +272,7 @@ class Minimap extends React.Component {
             className='ui fluid image'
             style={this.imageStyle}
             src={this.state.imgUrl}
-            alt="Pas d'image active"
+            alt={this.props.userstore.getText('noActiveImage')}
             onDragStart={this.suppress.bind(this)}
             ref="image"/>
           <div style={this.boundingBoxStyle} />

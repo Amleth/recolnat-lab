@@ -62,15 +62,15 @@ class FeedbackForm extends AbstractModal {
 
   postFeedback() {
     if(!this.state.feedbackType) {
-      alert('Vous devez faire une sélection dans la liste déroulante');
+      alert(this.props.userstore.getText('dropdownSelectRequired'));
       return false;
     }
     if(this.state.message.length < 2) {
-      alert('Vous devez entrer un message');
+      alert(this.props.userstore.getText('textIsMandatory'));
       return false;
     }
 
-    var message = {
+    let message = {
       type: this.state.feedbackType,
       text: this.state.message,
       rsvp: this.state.userWantsAnswer
@@ -80,7 +80,7 @@ class FeedbackForm extends AbstractModal {
 
     this.setState({feedbackType: null,
       message: '',
-      userWantsAnswer: false})
+      userWantsAnswer: false});
 
     return true;
   }
@@ -107,18 +107,18 @@ class FeedbackForm extends AbstractModal {
     return <div className="ui small modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Formulaire de Contact
+        {this.props.userstore.getText('contactForm')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="description">
           <div className='ui form'>
 
               <select value={this.state.type} className='menu' onChange={this.selectFeedbackOption.bind(this)}>
-                <option className='item' value={null} >Vous voulez... (sélectionnez dans la liste)</option>
-                <option className='item' value='bug'>Signaler un bug</option>
-                <option className='item' value='enhancement'>Proposer une amélioration</option>
-                <option className='item' value='feedback'>Nous parler de votre expérience</option>
-                <option className='item' value='other'>Autre</option>
+                <option className='item' value={null} >{this.props.userstore.getText('selectInDropdown')}</option>
+                <option className='item' value='bug'>{this.props.userstore.getText('reportBug')}</option>
+                <option className='item' value='enhancement'>{this.props.userstore.getText('suggestEnhancement')}</option>
+                <option className='item' value='feedback'>{this.props.userstore.getText('provideFeedback')}</option>
+                <option className='item' value='other'>{this.props.userstore.getText('other')}</option>
               </select>
 
             <div className='field'>
@@ -129,17 +129,17 @@ class FeedbackForm extends AbstractModal {
             </div>
             <div className='ui checkbox'>
               <input type='checkbox' checked={this.state.userWantsAnswer} onChange={this.toggleAnswerDemand.bind(this)} />
-              <label>Je souhaite être tenu au courant des réponses à ma requête. Les réponses vous seront communiquées via l'adresse e-mail renseignée à la création de votre compte ReColNat</label>
+              <label>{this.props.userstore.getText('feedbackFormHelp0')}</label>
             </div>
           </div>
         </div>
       </div>
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-          Annuler
+          {this.props.userstore.getText('cancel')}
         </div>
         <div className="ui positive right labeled icon button">
-          Envoyer
+          {this.props.userstore.getText('send')}
           <i className="unlink icon"></i>
         </div>
       </div>

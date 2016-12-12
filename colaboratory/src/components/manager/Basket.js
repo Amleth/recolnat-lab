@@ -46,10 +46,10 @@ class Basket extends React.Component {
 
   getBasketStateText() {
     if(this.state.basketItems.length == 0) {
-      return 'Votre panier Recherche est vide. Allez sur explore.recolnat.org pour le remplir.';
+      return this.props.userstore.getText('basketEmpty');
     }
     else {
-      return this.state.basketItems.length + ' images dans le panier Recherche';
+      return this.props.userstore.getText('countImagesInBasket') + ' ' + this.state.basketItems.length;
     }
   }
 
@@ -72,6 +72,7 @@ class Basket extends React.Component {
 
   componentDidMount() {
     this.props.basketstore.addBasketUpdateListener(this._onBasketUpdate);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -95,25 +96,21 @@ class Basket extends React.Component {
 
   componentWillUnmount() {
     this.props.basketstore.removeBasketUpdateListener(this._onBasketUpdate);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
-    // if(this.state.basketItems.length === 0) {
-    //   return <div style={this.basketContainerStyle}>
-    //     Connexion au panier
-    //   </div>;
-    // }
     var self = this;
     return <div style={this.basketContainerStyle}>
       <div className='ui buttons' ref='buttons'>
         <div className='ui button'
              onClick={this.reloadBasket.bind(this)}
-             data-content='Mettre à jour le panier'>
+             data-content={this.props.userstore.getText('updateBasket')}>
           <i className='refresh icon' />
         </div>
         <div className='ui button'
              onClick={this.toggleSelectionAll.bind(this)}
-             data-content='Tout cocher/decocher'>
+             data-content={this.props.userstore.getText('selectUnselectAll')}>
           <i className={this.state.checkbox + ' icon'} />
         </div>
         <div className={'ui disabled button'}>

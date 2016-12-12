@@ -164,12 +164,6 @@ class AddToSet extends AbstractModal {
     this.setState({newSetNameInput: event.target.value});
   }
 
-  scrollHorizontal(event) {
-    event.preventDefault();
-    var node = this.refs.cards.getDOMNode();
-    node.scrollLeft = node.scrollLeft + event.deltaY;
-  }
-
   loadFile(e) {
     //console.log(e.target.files[0]);
     this.setState({csvFileInput: e.target.files[0]});
@@ -181,19 +175,19 @@ class AddToSet extends AbstractModal {
   }
 
   reloadCsv() {
-    var reader = new FileReader();
+    let reader = new FileReader();
     reader.onload = this.csvLoaded.bind(this);
     reader.readAsText(this.state.csvFileInput);
   }
 
   csvLoaded(e) {
     //console.log(e.target.result);
-    var self = this;
-    var parsedRows = [];
-    var invalidRows = [];
-    var messages = [];
-    var csvInvalid = false;
-    var rowCounter = 0;
+    let self = this;
+    let parsedRows = [];
+    let invalidRows = [];
+    let messages = [];
+    let csvInvalid = false;
+    let rowCounter = 0;
     csv.fromString(e.target.result,
       {
         headers: true,
@@ -230,13 +224,7 @@ class AddToSet extends AbstractModal {
         parsedRows.push(data);
       })
       .on('error', function(error) {
-        //rowCounter++;
-        //var invalid = {
-        //  data: error,
-        //  row: rowCounter
-        //};
-        //invalidRows.push(invalid);
-        messages.push("Un problème est survenu pendant la lecture du fichier. Le fichier choisi n'est pas au format CSV.");
+        messages.push(this.props.userstore.getText('errorNotCsv'));
         csvInvalid = true;
       })
       .on('end', function () {
@@ -246,17 +234,17 @@ class AddToSet extends AbstractModal {
   }
 
   launch(keepInBasket) {
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Lancement de l'import..."), 10);
-    var setProps = {
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('startingImport')), 10);
+    let setProps = {
       name: this.state.destination === 'new' ? this.state.newSetNameInput : null,
       parent: this.state.destination === 'new' ? this.state.parentId : null,
       setId: this.state.destination === 'current' ? this.state.parentId : null
     };
-    var imports = [];
+    let imports = [];
     if(this.state.source === 'basket') {
-      var items = this.props.basketstore.getBasketSelection();
+      let items = this.props.basketstore.getBasketSelection();
       if(items.length === 0) {
-        alert('Aucune image à importer');
+        alert(this.props.userstore.getText('nothingToImport'));
         return;
       }
       for(var i = 0; i < items.length; ++i) {
@@ -276,7 +264,7 @@ class AddToSet extends AbstractModal {
           name = itemData.catalognumber;
         }
         else {
-          name = "Spécimen " + itemId;
+          name = this.props.userstore.getText('specimen') + " " + itemId;
         }
         imports.push({
           source: 'recolnat',
@@ -297,7 +285,7 @@ class AddToSet extends AbstractModal {
     }
     var placeInView = this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode();
 
-    var creator = new SetCreator(setProps,imports, placeInView, keepInBasket, this.props.benchstore, this.props.viewstore);
+    var creator = new SetCreator(setProps,imports, placeInView, keepInBasket, this.props.benchstore, this.props.viewstore, this.props.userstore);
     creator.run();
 
     // Hide modal
@@ -322,7 +310,7 @@ class AddToSet extends AbstractModal {
         }
       }
       else {
-        nextState.displayName = 'Mes sets';
+        nextState.displayName = this.props.userstore.getText('mySets');
       }
       window.setTimeout(BasketActions.reloadBasket, 10);
     }
@@ -369,10 +357,10 @@ class AddToSet extends AbstractModal {
     return <div className="ui modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Ajouter au set
+        {this.props.userstore.getText('addToSet')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
-        <div>Ajouter les images
+        <div>{this.props.userstore.getText('addImages')}
           <div className='grouped fields'>
             <div className='field'>
               <div className='ui radio checkbox'>
@@ -381,7 +369,7 @@ class AddToSet extends AbstractModal {
                        value='basket'
                        onChange={this.sourceChanged.bind(this)}
                        checked={this.state.source === 'basket'} />
-                <label>depuis le panier Recolnat (ci-dessous)</label>
+                <label>{this.props.userstore.getText('fromBasket')}</label>
               </div>
             </div>
             <div className='field'>
@@ -391,7 +379,7 @@ class AddToSet extends AbstractModal {
                        value='csv'
                        onChange={this.sourceChanged.bind(this)}
                        checked={this.state.source === 'csv'}/>
-                <label>depuis un fichier CSV ou Excel CSV</label>
+                <label>{this.props.userstore.getText('fromCsv')}</label>
               </div>
             </div>
             <div className='field'>
@@ -401,7 +389,7 @@ class AddToSet extends AbstractModal {
                        value='none'
                        onChange={this.sourceChanged.bind(this)}
                        checked={this.state.source === 'none'}/>
-                <label>Ne pas ajouter d'images (créer seulement un set vide)</label>
+                <label>{this.props.userstore.getText('fromNowhere')}</label>
               </div>
             </div>
           </div>
@@ -414,7 +402,7 @@ class AddToSet extends AbstractModal {
                        value='current'
                        onChange={this.destinationChanged.bind(this)}
                        checked={this.state.destination === 'current'}/>
-                <label>dans le set {this.state.displayName}</label>
+                <label>{this.props.userstore.getText('intoSet')} {this.state.displayName}</label>
               </div>
             </div>
             <div className='field'>
@@ -424,10 +412,10 @@ class AddToSet extends AbstractModal {
                        value='new'
                        onChange={this.destinationChanged.bind(this)}
                        checked={this.state.destination === 'new'}/>
-                <label>dans un nouveau sous-set de {this.state.displayName} : </label>
+                <label>{this.props.userstore.getText('intoNewSubSet')} {this.state.displayName} : </label>
               </div>
               <div className='ui input' style={this.newSubSetInputFieldStyle}>
-                <input placeholder='Nom du nouveau sous-set' value={this.state.newSetNameInput} onChange={this.newSetNameInputChange.bind(this)} type='text' />
+                <input placeholder={this.props.userstore.getText('newSubSetName')} value={this.state.newSetNameInput} onChange={this.newSetNameInputChange.bind(this)} type='text' />
               </div>
             </div>
           </div>
@@ -437,12 +425,12 @@ class AddToSet extends AbstractModal {
           <div className='ui divider' />
           <div className="actions" style={this.actionBarStyle}>
             <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-              Annuler
+              {this.props.userstore.getText('cancel')}
             </div>
             <div className={"ui positive right labeled icon button" + (this.state.destination === 'new' && this.state.newSetNameInput.length === 0 ? ' disabled' : '')}
                  onClick={this.launch.bind(this, true)}>
               <div className='ui text'>
-                Créer set vide
+                {this.props.userstore.getText('createEmptySet')}
               </div>
               <i className="checkmark icon"></i>
             </div>
@@ -453,22 +441,24 @@ class AddToSet extends AbstractModal {
         <div className='content' style={this.basketPaneStyle}>
           <div className='ui divider' />
           <div className='description'>
-            <div className='header'>Ajouter les {this.props.basketstore.getBasketSelection().length} planches sélectionnées dans le panier au set {this.state.destination === 'current'? this.state.displayName : this.state.newSetNameInput}
+            <div className='header'>
+              {this.props.userstore.getInterpolatedText('addNSheetsToSet', [this.props.basketstore.getBasketSelection().length, this.state.destination === 'current'? this.state.displayName : this.state.newSetNameInput])}
             </div>
-            <Basket basketstore={this.props.basketstore}/>
+            <Basket basketstore={this.props.basketstore}
+            userstore={this.props.userstore}/>
           </div>
           <div className="actions" style={this.actionBarStyle}>
             <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-              Annuler
+              {this.props.userstore.getText('cancel')}
             </div>
             <div className={"ui positive right labeled icon button" + (this.state.destination === 'new' && this.state.newSetNameInput.length === 0 ? ' disabled' : '')}
                  style={this.launchRecolnatImportButtonStyle}
                  onClick={this.launch.bind(this, true)}>
               <div className='ui text'>
-                Ajouter au set
+                {this.props.userstore.getText('addToSet')}
               </div>
               <div className='ui text' style={this.buttonSubTextStyle}>
-                et conserver dans le panier
+                {this.props.userstore.getText('andKeepInBasket')}
               </div>
               <i className="checkmark icon"></i>
             </div>
@@ -476,10 +466,10 @@ class AddToSet extends AbstractModal {
                  style={this.launchRecolnatImportButtonStyle}
                  onClick={this.launch.bind(this, false)}>
               <div className='ui text'>
-                Ajouter au set
+                {this.props.userstore.getText('addToSet')}
               </div>
               <div className='ui text' style={this.buttonSubTextStyle}>
-                et supprimer du panier
+                {this.props.userstore.getText('andRemoveFromBasket')}
               </div>
               <i className="checkmark icon"></i>
             </div>
@@ -489,14 +479,19 @@ class AddToSet extends AbstractModal {
         <div className='content' style={this.selectCSVStyle}>
           <div className='ui divider' />
           <h4 className='ui center aligned header'>
-            Import d'images extérieures à Recolnat
+            {this.props.userstore.getText('importExternalImages')}
           </h4>
           <div className='description'>
-            <div className='ui text'>
-              Vous pouvez importer dans le collaboratoire des images extérieures à la base d'images Recolnat (panier). Attention, ces images doivent obligatoirement être accessibles en ligne (lien http ou https).
-            </div>
-            <div className='ui text'>
-              Pour ce faire vous devez d'abord créer avec Excel ou LibreOffice un fichier contenant la liste de ces images, l'exporter au format CSV puis choisir ce fichier ci-dessous.
+            <div className='ui text message'>
+              <p>
+                {this.props.userstore.getText('importExternalHelp0')}
+              </p>
+              <p>
+                {this.props.userstore.getText('importExternalHelp1')}
+              </p>
+              <p>
+                <a href="sample.csv" download>{this.props.userstore.getText('download')}</a> {this.props.userstore.getText('validCsvExample')}
+              </p>
             </div>
             <div className='content'>
               <div className='grouped fields'>
@@ -507,7 +502,7 @@ class AddToSet extends AbstractModal {
                            value=';'
                            onChange={this.separatorChanged.bind(this)}
                            checked={this.state.separator === ';'} />
-                    <label>Format CSV français avec séparateur ; Télécharger exemple</label>
+                    <label>{this.props.userstore.getText('frenchFormatCsv')}</label>
                   </div>
                 </div>
                 <div className='field'>
@@ -517,7 +512,7 @@ class AddToSet extends AbstractModal {
                            value=','
                            onChange={this.separatorChanged.bind(this)}
                            checked={this.state.separator === ','} />
-                    <label>Format CSV anglo-saxon avec séparateur , Télécharger exemple</label>
+                    <label>{this.props.userstore.getText('englishFormatCsv')}</label>
                   </div>
                 </div>
                 <div className='field'>
@@ -527,19 +522,26 @@ class AddToSet extends AbstractModal {
                            value=''
                            onChange={this.separatorChanged.bind(this)}
                            checked={this.state.separator === 'other'} />
-                    <label>Autre format dont je donne le séparateur ci-contre</label>
+                    <label>{this.props.userstore.getText('otherFormatCsv')}</label>
                   </div>
                   <div className='ui input'>
-                    <input placeholder='Séparateur' type='text' value={this.state.inputSeparator} onChange={this.inputSeparatorChanged.bind(this)}/>
+                    <input placeholder={this.props.userstore.getText('separator')}
+                           type='text'
+                           value={this.state.inputSeparator}
+                           onChange={this.inputSeparatorChanged.bind(this)}/>
                   </div>
                 </div>
               </div>
             </div>
-            <input type="file" name='inputCsvFile' id='inputCsvFile' onChange={this.loadFile.bind(this)} style={this.hiddenStyle}/>
+            <input type="file"
+                   name='inputCsvFile'
+                   id='inputCsvFile'
+                   onChange={this.loadFile.bind(this)}
+                   style={this.hiddenStyle}/>
           </div>
           <div className="actions" style={this.actionBarStyle}>
             <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-              Annuler
+              {this.props.userstore.getText('cancel')}
             </div>
 
             <label htmlFor='inputCsvFile'><div className='ui button'>{this.state.csvFileInput === null ? 'Choisir fichier CSV' : this.state.csvFileInput.name}</div></label>
@@ -547,18 +549,18 @@ class AddToSet extends AbstractModal {
             <div className={"ui green approve button " + (this.state.csvFileInput?'':'disabled')}
                  style={this.nextButtonStyle}
                  onClick={this.showCsvParseResults.bind(this)}>
-              Suivant
+              {this.props.userstore.getText('next')}
             </div>
           </div>
         </div>
 
         <div className='content' style={this.csvParseResultStyle}>
           <h4 className='ui center aligned header'>
-            Import d'images extérieures à Recolnat
+            {this.props.userstore.getText('importExternalImages')}
           </h4>
           <div className='description'>
             <div className='ui text'>
-              Le fichier {this.state.csvFileInput === null ? '' : this.state.csvFileInput.name} a été traité.
+              {this.props.userstore.getInterpolatedText('fileHasBeenProcessed', [this.state.csvFileInput === null ? '' : this.state.csvFileInput.name])}
             </div>
             {this.state.csvParseMessages.map(function(message) {
               return <div className='ui yellow message'>
@@ -566,7 +568,7 @@ class AddToSet extends AbstractModal {
               </div>
             })}
             <div className='ui green message'>
-              {this.state.csvParseResult.length} images trouvées
+              {this.state.csvParseResult.length} {this.props.userstore.getText('imagesFound')}
               <div className='ui list'>
                 {this.state.csvParseResult.map(function(data) {
                   return <div className='item'>
@@ -578,25 +580,25 @@ class AddToSet extends AbstractModal {
             </div>
 
             {this.state.csvParseErrors.map(function(data) {
-              return <div className='ui red message'>Ligne {data.row} invalide : {data.data}</div>
+              return <div className='ui red message'>{this.props.userstore.getInterpolatedText('lineInvalid', [data.row])}: {data.data}</div>
             })}
           </div>
           <div className="actions" style={this.actionBarStyle}>
             <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-              Annuler
+              {this.props.userstore.getText('cancel')}
             </div>
             <div className="ui positive right labeled icon button"
                  style={this.reloadButtonStyle}
                  onClick={this.reloadCsv.bind(this)}>
               <div className='ui text'>
-                Recharger
+                {this.props.userstore.getText('reload')}
               </div>
             </div>
             <div className={"ui positive right labeled icon button" + (this.state.destination === 'new' && this.state.newSetNameInput.length === 0 ? ' disabled' : '')}
                  style={this.launchWebImportButtonStyle}
                  onClick={this.launch.bind(this, false)}>
               <div className='ui text'>
-                Lancer l'import
+                {this.props.userstore.getText('launchImport')}
               </div>
               <i className="checkmark icon"></i>
             </div>

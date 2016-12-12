@@ -17,7 +17,7 @@ class SetCreator {
    * @param images an array of {source, ...} where source can be 'recolnat' or 'web'; if 'recolnat' then the other properties must be name, recolnatSpecimenUuid, images, if 'web' then must be name, url
    * @param placeInView boolean
    */
-  constructor(setProps, images, placeInView, keepInBasket, benchstore, viewstore) {
+  constructor(setProps, images, placeInView, keepInBasket, benchstore, viewstore, userstore) {
     console.log(JSON.stringify(setProps));
     console.log(JSON.stringify(images));
     console.log(JSON.stringify(placeInView));
@@ -43,21 +43,22 @@ class SetCreator {
 
     this.benchstore = benchstore;
     this.viewstore = viewstore;
+    this.userstore = userstore;
   }
 
   createSet() {
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Creation du set " + this.newSetName), 10);
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getText('creatingSet') + " " + this.newSetName), 10);
     ServiceMethods.createSet(this.newSetName, this.newSetParent, this.setCreated.bind(this));
   }
 
   setCreated(msg) {
     if(msg.clientProcessError) {
-      alert('Impossible de créer le nouveau set. Veuillez réessayer plus tard');
+      alert(this.userstore.getInterpolatedText('errorCreatingSet', [this.newSetName]));
       window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
     }
     else {
       if(this.dataToImport.length > 0) {
-        window.setTimeout(ViewActions.changeLoaderState.bind(null, "Set crée"), 10);
+        window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getText('createdSet')), 10);
         window.setTimeout(ManagerActions.select.bind(null, msg.data.subSet, 'Set', this.newSetName, msg.data.parentSet, msg.data.link), 10);
         window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, msg.data.parentSet, msg.data.subSet), 10);
         window.setTimeout(InspectorActions.setInspectorData.bind(null, [msg.data.subSet]), 10);
@@ -74,7 +75,7 @@ class SetCreator {
   imageImported(msg) {
     if(msg.clientProcessError) {
       this.imageImportError++;
-      alert("L'import d'une image a échoué " + JSON.stringify(msg));
+      alert(this.userstore.getInterpolatedText('failedToImportImage', [JSON.stringify(msg)]));
     }
     else {
       this.imageImportSuccess++;
@@ -85,7 +86,7 @@ class SetCreator {
     }
 
     if(this.imageImportSuccess + this.imageImportError < this.dataToImport.length) {
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des images... " + this.imageImportSuccess + "/" + this.dataToImport.length + " (" + this.imageImportError + " erreurs)"), 10);
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getInterpolatedText("importingImages", [this.imageImportSuccess, this.dataToImport.length, this.imageImportError])), 10);
     }
     else {
       if (this.placeInView) {
@@ -100,13 +101,13 @@ class SetCreator {
   imagePlaced(msg) {
     if(msg.clientProcessError) {
       this.imagePlaceError++;
-      alert("Echec de placement de l'image " + JSON.stringify(msg));
+      alert(this.userstore.getInterpolatedText('failedToPlaceImage', [JSON.stringify(msg)]));
     }
     else {
       this.imagePlaceSuccess++;
     }
     if(this.imagePlaceSuccess + this.imagePlaceError < this.imagesToPlace) {
-      window.setTimeout(ViewActions.changeLoaderState.bind(null, "Placement des images... " + this.imagePlaceSuccess + "/" + this.imagesToPlace + " (" + this.imagePlaceError + " erreurs)"), 10);
+      window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getInterpolatedText('placingImages', [this.imagePlaceSuccess, this.imagesToPlace, this.imagePlaceError])), 10);
     }
     else {
       window.setTimeout(ViewActions.changeLoaderState.bind(null, null), 10);
@@ -115,23 +116,23 @@ class SetCreator {
   }
 
   runPlace() {
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Placement des images..."), 10);
-    var viewId = this.benchstore.getActiveViewId();
-    var view = this.viewstore.getView();
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getText('placing')), 10);
+    let viewId = this.benchstore.getActiveViewId();
+    let view = this.viewstore.getView();
     if(!viewId || !view) {
-      alert('Impossible de placer les images');
+      console.error('Placing images with no view or no viewId provided');
       return;
     }
 
-    var x = (-view.left + view.width / 2)/view.scale;
-    var y = (-view.top + view.height / 2)/view.scale;
+    let x = (-view.left + view.width / 2)/view.scale;
+    let y = (-view.top + view.height / 2)/view.scale;
 
-    for(var i = 0; i < this.importedEntities.length; ++i) {
-      var entity = this.importedEntities[i];
+    for(let i = 0; i < this.importedEntities.length; ++i) {
+      let entity = this.importedEntities[i];
       if(entity.recolnatUuid) {
         this.imagesToPlace += entity.images.length;
-        for(var k = 0; k < entity.images.length; ++k) {
-          var image = entity.images[k];
+        for(let k = 0; k < entity.images.length; ++k) {
+          let image = entity.images[k];
           ServiceMethods.place(viewId, image.uid, x, y, this.imagePlaced.bind(this));
           x = x + image.width + 100;
         }
@@ -146,7 +147,7 @@ class SetCreator {
   }
 
   runImport() {
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import des images"), 10);
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getInterpolatedText('importingImages', ['', '', ''])), 10);
     for(var i = 0; i < this.dataToImport.length; ++i) {
       var data = this.dataToImport[i];
       switch(data.source) {
@@ -166,7 +167,7 @@ class SetCreator {
   }
 
   run() {
-    window.setTimeout(ViewActions.changeLoaderState.bind(null, "Import en cours"), 10);
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.userstore.getInterpolatedText('importingImages', ['', '', '']), 10));
     if(this.newSetName) {
       // Create new set
       this.createSet();

@@ -32,17 +32,11 @@ class MoveObject extends AbstractTool {
 
     this.className = "ObjectMover";
 
-    // this.drag = d3.behavior.drag()
-    //   .origin(d => d)
-    //   .on('dragstart', this.dragstarted)
-    //   .on('drag', this.dragged)
-    //   .on('dragend', this.dragended);
-
     this.state = {active: false};
   }
 
   begin() {
-    var self = this;
+    let self = this;
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS)
       .each(function(d, i) {
         d3.select(this).append('rect')
@@ -63,9 +57,6 @@ class MoveObject extends AbstractTool {
       .on('dblclick', this.switchToSheetInObservationMode.bind(this))
       .call(D3EventHandlers.dragMove());
 //     d3.select('svg').style('cursor', 'grab');
-    // window.setTimeout(function() {
-    //   ToolActions.activeToolPopupUpdate(ToolConf.moveObject.tooltip);
-    // }, 10);
     this.setState({active: true});
   }
 
@@ -86,18 +77,8 @@ class MoveObject extends AbstractTool {
   }
 
   click(self, x, y, data) {
-    // Find images under cursor in data.objects
-    //console.log(JSON.stringify(data));
-    //for(var i = 0; i < data.objects.length; ++i) {
-    //  if(data.objects[i].type == TypeConstants.sheet) {
-    //    window.setTimeout((function(id) {
-    //      return function() {
-    //        ViewActions.changeSelection(id, null);
-    //      }
-    //    })(data.objects[i].uid), 100);
-    //    return;
-    //  }
-    //}
+
+
   }
 
   setMode() {
@@ -111,46 +92,6 @@ class MoveObject extends AbstractTool {
       }
     })(d.entity), 10);
   }
-
-  // dragstarted(d) {
-  //   if(d3.event.sourceEvent.which == 1) {
-  //     d3.event.sourceEvent.preventDefault();
-  //     d3.event.sourceEvent.stopPropagation();
-  //     var group = d3.select(this);
-  //
-  //     group
-  //       .classed('dragging', true)
-  //       .style('cursor', '-webkit-grabbing')
-  //       .style('cursor', 'grabbing')
-  //       .style('opacity', 0.3);
-  //     d.tx = 0;
-  //     d.ty = 0;
-  //   }
-  // }
-  //
-  // dragged(d) {
-  //   if(d3.select(this).classed('dragging') == true) {
-  //     var group = d3.select(this);
-  //     d.x = d3.event.x;
-  //     d.y = d3.event.y;
-  //     d.tx = d.tx + d3.event.dx;
-  //     d.ty = d.ty + d3.event.dy;
-  //
-  //     group.attr('transform', 'translate(' + d.tx + ',' + d.ty + ')');
-  //   }
-  // }
-  //
-  // dragended(d) {
-  //   if(d3.event.sourceEvent.which == 1 && d3.select(this).classed('dragging')) {
-  //     ViewActions.moveEntity(d.view, d.entity, d.link, d.x, d.y);
-  //     d3.select(this)
-  //       .classed('dragging', false)
-  //       .style('cursor', null);
-  //
-  //     d.tx = 0;
-  //     d.ty = 0;
-  //   }
-  // }
 
   switchToSheetInObservationMode(d) {
     D3ViewUtils.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());

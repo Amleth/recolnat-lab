@@ -59,8 +59,8 @@ class ViewController extends React.Component {
 
   zoomIn() {
     this.endZoom();
-    var view = this.props.viewstore.getView();
-    var self = this;
+    let view = this.props.viewstore.getView();
+    let self = this;
     this.timeout = window.setInterval(function() {
       ViewActions.updateViewport(
         (view.left-view.width*2.5/100)*1.05,
@@ -75,8 +75,8 @@ class ViewController extends React.Component {
 
   zoomOut() {
     this.endZoom();
-    var view = this.props.viewstore.getView();
-    var self = this;
+    let view = this.props.viewstore.getView();
+    let self = this;
     this.timeout = window.setInterval(function() {
       ViewActions.updateViewport(
         (view.left+view.width*2.5/100)*0.95,
@@ -94,7 +94,7 @@ class ViewController extends React.Component {
   }
 
   resetZoom() {
-    var view = this.props.viewstore.getView();
+    let view = this.props.viewstore.getView();
     if (view.scale < 1.0001 && view.scale > 0.9999) {
       return;
     }
@@ -127,8 +127,8 @@ class ViewController extends React.Component {
 
   fitViewToImage() {
     // var image = this.props.ministore.getImage();
-    var view = this.props.viewstore.getView();
-    var linkId = this.props.toolstore.getSelectedImageId();
+    let view = this.props.viewstore.getView();
+    let linkId = this.props.toolstore.getSelectedImageId();
     if(!linkId) {
       return;
     }
@@ -139,6 +139,7 @@ class ViewController extends React.Component {
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.viewstore.addViewportListener(this._onViewChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -153,6 +154,7 @@ class ViewController extends React.Component {
   componentWillUnmount() {
     this.props.viewstore.removeViewportListener(this._onViewChange);
     this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -162,7 +164,7 @@ class ViewController extends React.Component {
       ref='component'>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Paillasse
+        {this.props.userstore.getText('labBench')}
       </div>
       <div className='ui three fluid buttons'>
         <button className='ui button small compact'
@@ -187,12 +189,12 @@ class ViewController extends React.Component {
         <button style={this.buttonStyle}
                 className='ui button small compact'
                 onClick={this.displayAllElementsInView.bind(this)}
-                data-content='Afficher toutes les images'>Tout</button>
+                data-content={this.props.userstore.getText('showAllImages')}>{this.props.userstore.getText('everything')}</button>
         <button style={this.buttonStyle}
                 className='ui button small compact'
-                data-content="Afficher l'image active en entier"
-                onClick={this.fitViewToImage.bind(this)}>Planche</button>
-        <button className='ui button small compact' data-content="Voir l'image à l'échelle 1:1"
+                data-content={this.props.userstore.getText('showWholeImage')}
+                onClick={this.fitViewToImage.bind(this)}>{this.props.userstore.getText('sheet')}</button>
+        <button className='ui button small compact' data-content={this.props.userstore.getText('show1to1')}
                 style={this.buttonStyle}
                 onClick={this.resetZoom.bind(this)}>1:1</button>
       </div>

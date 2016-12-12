@@ -16,33 +16,68 @@ class DeterminationMetadataTable extends MetadataTable {
     //console.log('displaying=' + JSON.stringify(this.state.metadata));
     if(this.props.loading) {
       return <tbody>
-      <tr><td colSpan='2' className='ui center aligned'>Chargement en cours...</td></tr>
+      <tr><td colSpan='2' className='ui center aligned'>{this.props.userstore.getText('loading')}</td></tr>
       </tbody>
     }
     return <tbody>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Identifié par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentifiedby}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('identifiedBy')}
+        </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.uidentifiedby}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Identification qualifier</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentificationqualifier}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('identificationQualifier')}
+        </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.uidentificationqualifier}
+        </td>
     </tr>
     <tr>
       <td className='ui right aligned' style={this.labelStyle} >Date de création</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.created).toLocaleString()}</td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Type status</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.typestatus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('typeStatus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.typestatus}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Vérification de l'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.identificationverificationStatus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('identificationVerificationStatus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.identificationverificationStatus}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Date d'identification</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.dateidentified).toLocaleString()}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('dateIdentified')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {new Date(this.state.metadata.dateidentified).toLocaleString()}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Remarques d'identification</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.uidentificationremarks}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('identificationRemarks')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.uidentificationremarks}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Dernière modification</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.modified).toLocaleString()}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('lastModified')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {new Date(this.state.metadata.modified).toLocaleString()}
+        </td>
     </tr>
 
 
@@ -50,83 +85,212 @@ class DeterminationMetadataTable extends MetadataTable {
 
 
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Etat de la taxonomie</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.taxonomicStatus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('taxonomicStatus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+      {this.state.metadata.taxon.taxonomicStatus}
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Ordre</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.order_}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('taxonOrder')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.order_}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom d'usage accepté</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.acceptedNameUsage}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('acceptedNameUsage')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.acceptedNameUsage}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Phylum</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.phylum}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('taxonPhylum')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.phylum}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Année de publication du nom</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.namePublishedInYear}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('namePublishedInYear')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.namePublishedInYear}
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Règne</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.kingdom}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('kingdom')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.kingdom}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Date de création</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.taxon.created).toLocaleString()}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('creationDate')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {new Date(this.state.metadata.taxon.created).toLocaleString()}
+        </td>
     </tr>
 
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom publié dans</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.namePublishedIn}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('namePublishedIn')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.namePublishedIn}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Niveau du taxon</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.taxonRank}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('taxonRank')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.taxonRank}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Epithète spécifique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.specificEpithet}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('specificEpithet')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.specificEpithet}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Remarques sur le taxon</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.taxonRemarks}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('taxonRemarks')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.taxonRemarks}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom scientifique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.scientificName}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('scientificName')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.scientificName}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Classe</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.class_}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('class')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.class_}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Genre</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.genus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('genus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.genus}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Sous-genre</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.subgenus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('subGenus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.subgenus}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Famille</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.family}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('family')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.family}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom d'usage du parent</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.parentnameusage}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('parentNameUsage')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.parentnameusage}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom vernaculaire</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.vernacularname}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('vernacularName')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.vernacularname}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Nom d'usage originel</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.originalnameusage}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('originalNameUsage')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.originalnameusage}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Code de la nomenclature</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.nomenclaturalCode}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('nomenclaturalCode')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.nomenclaturalCode}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Classification supérieure</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.higherClassification}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('higherClassification')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.higherClassification}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Etat de la nomenclature</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.nomenclaturalStatus}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('nomenclaturalStatus')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.nomenclaturalStatus}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Sensu</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.nameAccordingTo}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('nameAccordingTo')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.nameAccordingTo}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Créateur du nom scientifique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.scientificNameAuthorship}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('scientificNameAuthorship')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.scientificNameAuthorship}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Épithète infraspécifique</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.taxon.infraspecificEpithet}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('infraspecificEpithet')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.taxon.infraspecificEpithet}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Dernière modification</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.taxon.modified).toLocaleString()}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('lastModified')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {new Date(this.state.metadata.taxon.modified).toLocaleString()}
+        </td>
     </tr>
 
     </tbody>

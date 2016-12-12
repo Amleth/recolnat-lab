@@ -61,6 +61,10 @@ class MetadataTable extends React.Component {
     }
   }
 
+  componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
   componentWillUpdate(nextProps, nextState) {
     //console.log('Updating metadata with ' + JSON.stringify(nextProps.metadata));
     if(nextProps.metadata) {
@@ -71,10 +75,18 @@ class MetadataTable extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
   buildDisplayTableBody() {
     //console.log(JSON.stringify(this.state.metadata));
     return <tbody>{this.state.metadata.map(function(elt, index) {
-      return <tr key={'META-' + index}><td className='ui right aligned' >{elt.key}</td><td style={self.textStyle} className='ui left aligned'>{elt.value}</td></tr>;
+      return (
+        <tr key={'META-' + index}>
+          <td className='ui right aligned' >{elt.key}</td>
+          <td style={self.textStyle} className='ui left aligned'>{elt.value}</td>
+        </tr>);
     })}</tbody>;
   }
 

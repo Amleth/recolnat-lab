@@ -40,30 +40,12 @@ class SetDisplayItem extends React.Component {
     };
   }
 
-  //itemMetadataUpdated() {
-  //  var metadata = this.props.metastore.getMetadataAbout(this.props.item.uid);
-  //  if(metadata) {
-  //    var icon = null;
-  //    switch (metadata.type) {
-  //      case 'Specimen':
-  //        icon = 'ui icon barcode';
-  //        break;
-  //      case 'Image':
-  //        icon = 'ui icon file image outline';
-  //        break;
-  //      default:
-  //    }
-  //    console.log('call from ' + this.props.item.uid);
-  //    console.log('call from ' + metadata.name);
-  //    this.setState({item: metadata, icon: icon});
-  //  }
-  //}
 
   callContextMenu(event) {
     event.preventDefault();
-    var entity = JSON.parse(JSON.stringify(this.state.item));
-    var index = this.props.index;
-    var objectsAtEvent = {
+    let entity = JSON.parse(JSON.stringify(this.state.item));
+    let index = this.props.index;
+    let objectsAtEvent = {
       sets:[],
       specimens: [],
       images: []
@@ -100,7 +82,7 @@ class SetDisplayItem extends React.Component {
   }
 
   setActive() {
-    var node = this.state.item;
+    let node = this.state.item;
     //console.log(JSON.stringify(this.props.set));
     window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.parentSetId, this.props.item.link),10);
     window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.parentSetId, node.uid), 10);
@@ -112,7 +94,6 @@ class SetDisplayItem extends React.Component {
   }
 
   componentDidMount() {
-    //this.props.metastore.addMetadataUpdateListener(this.props.item.uid, this.itemMetadataUpdated.bind(this));
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
   }
 

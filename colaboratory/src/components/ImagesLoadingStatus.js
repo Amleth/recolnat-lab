@@ -51,7 +51,8 @@ class ImagesLoadingStatus extends React.Component {
 
   render() {
     return <div style={this.componentStyle} className='ui text segment'>
-    <div className="ui active small inline loader"></div>Chargement {this.state.countLoadingImages} images
+    <div className="ui active small inline loader"></div>
+      {this.props.userstore.getInterpolatedText('loadingImages', [this.state.countLoadingImages])}
     </div>
   }
 }

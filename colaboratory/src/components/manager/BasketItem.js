@@ -99,6 +99,7 @@ class BasketItem extends React.Component {
   componentDidMount() {
     var src = BasketItem.itemSourceImage(this.props.content);
     ViewActions.loadImage(src, this.imageLoaded.bind(this));
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -106,51 +107,10 @@ class BasketItem extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    //var self = this;
-    //if(this.state.modalSrc && !prevState.modalSrc) {
-    //  // Show modal only after image has loaded successfully. Otherwise the modal will not be scrollable and the bottom of the image will not be visible.
-    //  if(!this.refs.image.getDOMNode().src) {
-    //    $(this.refs.loadingModal.getDOMNode()).modal({
-    //      onHidden: function () {
-    //        //self.setState({modalSrc: null});
-    //      }
-    //    }).modal('show');
-    //  }
-    //
-    //  var showImageCallback = function(image) {
-    //    //if(this.state.modalSrc) {
-    //    //  var self = this;
-    //    //this.refs.image.getDOMNode().height = image.naturalHeight;
-    //    //this.refs.image.getDOMNode().width = image.naturalWidth;
-    //      this.refs.image.getDOMNode().src = image.src;
-    //      $(this.refs.loadingModal.getDOMNode()).modal('hide');
-    //      $(this.refs.imageModal.getDOMNode()).modal({
-    //        onHidden: function () {
-    //          self.refs.image.getDOMNode().src = null;
-    //          self.setState({modalSrc: null});
-    //        }
-    //      }).modal('show');
-    //    //}
-    //  };
+  }
 
-      //window.setTimeout(
-      //  ViewActions.loadImage.bind(null, this.state.modalSrc, showImageCallback.bind(this)),
-      //  10);
-      //$(this.refs.loadingModal.getDOMNode()).modal({
-      //  onHidden: function() {
-      //    self.refs.image.getDOMNode().onload = null;
-      //  }
-      //}).modal('show');
-      //this.refs.image.getDOMNode().src = this.state.modalSrc;
-      //this.refs.image.getDOMNode().onload = function() {
-      //  $(self.refs.loadingModal.getDOMNode()).modal('hide');
-      //  $(self.refs.imageModal.getDOMNode()).modal({
-      //    onHidden: function () {
-      //      self.setState({modalSrc: null});
-      //    }
-      //  }).modal('show');
-      //};
-    //}
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -162,7 +122,7 @@ class BasketItem extends React.Component {
           <div className='description'>
             <div className='ui segment'>
               <div className='ui active inverted dimmer'>
-              <div className='ui text loader'>Chargement en cours...</div>
+              <div className='ui text loader'>{this.props.userstore.getText('loading')}</div>
                 </div>
             </div>
           </div>
@@ -173,7 +133,7 @@ class BasketItem extends React.Component {
         <div className='header'>{this.props.content.scientificname}</div>
         <div className='content'>
           <div className='description'>
-            <img className='ui image' ref='image' src={null} alt='Image indisponible'/>
+            <img className='ui image' ref='image' src={null} alt={this.props.userstore.getText('imageUnavailable')}/>
           </div>
         </div>
       </div>

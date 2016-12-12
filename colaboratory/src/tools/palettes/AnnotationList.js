@@ -415,15 +415,15 @@ class AnnotationList extends React.Component {
     }
 
     if(annotation.inSpecimen) {
-      var data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
+      let data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
       if(data === 'loading') {
-        annotation.barcode = 'Chargement...';
+        annotation.barcode = this.props.userstore.getText('loading');
       }
       else if(data) {
         annotation.barcode = data.institutioncode + ' ' + data.catalognumber;
       }
       else {
-        annotation.barcode = 'Indisponible';
+        annotation.barcode = this.props.userstore.getText('unavailable');
       }
     }
 
@@ -516,13 +516,13 @@ class AnnotationList extends React.Component {
     if(annotation.inSpecimen) {
       var data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
       if(data === 'loading') {
-        annotation.barcode = 'Chargement...';
+        annotation.barcode = this.props.userstore.getText('loading');
       }
       else if(data) {
         annotation.barcode = data.institutioncode + ' ' + data.catalognumber;
       }
       else {
-        annotation.barcode = 'Indisponible';
+        annotation.barcode = this.props.userstore.getText('unavailable');
       }
     }
 
@@ -596,9 +596,9 @@ class AnnotationList extends React.Component {
     }
 
 
-    var text = 'Type\tTitre\tValeur\tPlanche\n';
-    for(var i = 0; i < annotationsToCopy.length; ++i) {
-      var annotation = annotationsToCopy[i];
+    let text = this.props.userstore.getText('type') + '\t' + this.props.userstore.getText('name') + '\t' + this.props.userstore.getText('value') + '\t' + this.props.userstore.getText('sheet') + '\n';
+    for(let i = 0; i < annotationsToCopy.length; ++i) {
+      let annotation = annotationsToCopy[i];
       switch(annotation.type) {
         case 'Text':
           continue;
@@ -606,16 +606,16 @@ class AnnotationList extends React.Component {
           console.warning('Unknown annotation type for ' + JSON.stringify(annotation));
           continue;
         case 'Area':
-          text += 'aire\t';
+          text += this.props.userstore.getText('area') + '\t';
           break;
         case 'Perimeter':
-          text += 'périmètre\t';
+          text += this.props.userstore.getText('perimeter') + '\t';
           break;
         case 'Length':
-          text += 'longueur\t';
+          text += this.props.userstore.getText('length') + '\t';
           break;
         case 'Angle':
-          text += 'angle\t';
+          text += this.props.userstore.getText('angle') + '\t';
           break;
         default:
           break;
@@ -627,24 +627,24 @@ class AnnotationList extends React.Component {
   }
 
   exportAsCSV() {
-    var columnTitles = {
-      type: 'type',
-      name: 'name',
-      value: 'value',
-      barcode: 'inventory n°',
-      created: 'creation date',
-      setName: 'set',
-      imageName: 'image name',
-      specimenDisplayName: 'preferred specimen name',
-      coordinates: 'coordinates (origin in bottom left corner)',
-      linkToExplore: 'Explore page'
+    let columnTitles = {
+      type: this.props.userstore.getText('type'),
+      name: this.props.userstore.getText('name'),
+      value: this.props.userstore.getText('value'),
+      barcode: this.props.userstore.getText('catalogNumber'),
+      created: this.props.userstore.getText('creationDate'),
+      setName: this.props.userstore.getText('set'),
+      imageName: this.props.userstore.getText('imageName'),
+      specimenDisplayName: this.props.userstore.getText('displayedSpecimenName'),
+      coordinates: this.props.userstore.getText('coordinatesWithOrigin'),
+      linkToExplore: this.props.userstore.getText('specimenExplorePage')
     };
-    var columns = [];
+    let columns = [];
 
-    var annotationsToExport = [];
-    for(var i = 0; i < this.state.annotations.length; ++i) {
+    let annotationsToExport = [];
+    for(let i = 0; i < this.state.annotations.length; ++i) {
       if(this.state.annotations[i].selected) {
-        var annotation = JSON.parse(JSON.stringify(this.state.annotations[i]));
+        let annotation = JSON.parse(JSON.stringify(this.state.annotations[i]));
         annotationsToExport.push(annotation);
       }
     }
@@ -652,27 +652,27 @@ class AnnotationList extends React.Component {
       annotationsToExport = JSON.parse(JSON.stringify(this.state.annotations));
     }
 
-    var setName;
-    var encoder = new TextEncoder();
-    var decoder = new TextDecoder("utf-8");
+    let setName;
+    let encoder = new TextEncoder();
+    let decoder = new TextDecoder("utf-8");
 
-    for(var i = 0; i < annotationsToExport.length; ++i) {
-      var annotation = annotationsToExport[i];
-      var entityData = this.props.metastore.getMetadataAbout(annotation.inEntity);
-      var imageData = this.props.metastore.getMetadataAbout(annotation.inImage);
-      var setData = this.props.metastore.getMetadataAbout(annotation.inSet);
-      var specimenData = this.props.metastore.getMetadataAbout(annotation.inSpecimen);
-      var vertices = [];
+    for(let i = 0; i < annotationsToExport.length; ++i) {
+      let annotation = annotationsToExport[i];
+      let entityData = this.props.metastore.getMetadataAbout(annotation.inEntity);
+      let imageData = this.props.metastore.getMetadataAbout(annotation.inImage);
+      let setData = this.props.metastore.getMetadataAbout(annotation.inSet);
+      let specimenData = this.props.metastore.getMetadataAbout(annotation.inSpecimen);
+      let vertices = [];
       if(entityData.polygonVertices) {
         //console.log(entityData.polygonVertices);
-        var polygonVertices = JSON.parse(entityData.polygonVertices);
-        for(var j = 0; j < polygonVertices.length; ++j) {
-          var vertex = polygonVertices[j];
+        let polygonVertices = JSON.parse(entityData.polygonVertices);
+        for(let j = 0; j < polygonVertices.length; ++j) {
+          let vertex = polygonVertices[j];
           vertices.push([imageData.width - vertex[0], imageData.height - vertex[1]]);
         }
       }
       //console.log(JSON.stringify(vertices));
-      var data = {
+      let data = {
         type: '"' + decoder.decode(encoder.encode(annotation.type)) + '"',
         name: '"' + decoder.decode(encoder.encode(annotation.name)) + '"',
         value: '"' + decoder.decode(encoder.encode(annotation.displayValue)) + '"',
@@ -688,12 +688,12 @@ class AnnotationList extends React.Component {
       columns.push(data);
     }
 
-    var date = new Date();
+    let date = new Date();
     downloadCSV(columns, columnTitles, setName + "-export-" + date.getFullYear() + "" + (date.getMonth() + 1) + "" + date.getDay() + "" + date.getHours() + "" + date.getMinutes() + "" + date.getSeconds() + ".csv");
   }
 
   zoomOnElement(entityId) {
-    var meta = this.props.metastore.getMetadataAbout(entityId);
+    let meta = this.props.metastore.getMetadataAbout(entityId);
     if(!meta) {
       return;
     }
@@ -719,9 +719,9 @@ class AnnotationList extends React.Component {
     if (!annotation.display) {
       return null;
     }
-    var titleCell = null;
-    var barcodeCell = null;
-    var selectionIcon = null;
+    let titleCell = null;
+    let barcodeCell = null;
+    let selectionIcon = null;
     if (annotation.name) {
       if (annotation.name.length > 15) {
         titleCell = <td style={this.cellLfAlignStyle} className='tooltip title' data-content={annotation.name}
@@ -775,6 +775,7 @@ class AnnotationList extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.inspecstore.addAnnotationSelectionListener(this._onEntitySelected);
   }
@@ -829,6 +830,7 @@ class AnnotationList extends React.Component {
     this.removeListeners();
     this.props.modestore.removeModeChangeListener(this._onModeChange);
     this.props.inspecstore.removeAnnotationSelectionListener(this._onEntitySelected);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -847,18 +849,18 @@ class AnnotationList extends React.Component {
     return <div className='ui segment container' ref='component' style={this.containerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
-        Tags et Mesures
+        {this.props.userstore.getText('tagsAndMeasures')}
       </div>
       <div style={this.scrollerStyle}>
         <div style={this.menuStyle} ref='menu'>
           <div style={this.upperButtonsStyle} className='ui buttons'>
             <div style={this.buttonStyle}
-                 data-content="Mesures"
+                 data-content={this.props.userstore.getText('measures')}
                  className={'ui tiny compact button ' + this.state.buttons.measures}>
               <img src={measureIcon} style={this.iconButtonStyle} height='20px' width='20px' />
             </div>
             <div style={this.buttonStyle}
-                 data-content="Tags"
+                 data-content={this.props.userstore.getText('tags')}
                  className={'ui tiny compact icon button ' + this.state.buttons.tags}>
               <i className="tags icon"/>
             </div>
@@ -866,32 +868,32 @@ class AnnotationList extends React.Component {
           <div style={this.upperButtonsStyle} className='ui buttons'>
             <div style={this.buttonStyle}
                  className={'ui tiny compact button ' + this.state.buttons.image}
-                 data-content="Image/Planche"
+                 data-content={this.props.userstore.getText('imageSheet')}
                  onClick={this.setSubject.bind(this, 'image')}>
               <i className='file icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
                  className={'ui tiny compact button ' + this.state.buttons.set}
-                 data-content="Set"
+                 data-content={this.props.userstore.getText('set')}
                  onClick={this.setSubject.bind(this, 'set')}>
               <i className='folder icon'  style={this.iconButtonStyle} />
             </div>
           </div>
           <div style={this.upperButtonsStyle}>
             <div style={this.buttonStyle}
-                 data-content="Copier vers le presse-papiers"
+                 data-content={this.props.userstore.getText('copyToClipboard')}
                  ref='copyButton'
                  className='ui tiny compact button'>
               <i className='copy icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
-                 data-content="Exporter"
+                 data-content={this.props.userstore.getText('exportAsCsv')}
                  onClick={this.exportAsCSV.bind(this)}
                  className='ui tiny compact button'>
               <i className='download icon' style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
-                 data-content="Options d'affichage"
+                 data-content={this.props.userstore.getText('displayOptions')}
                  className='ui tiny compact button disabled'>
               <i style={this.iconButtonStyle} className='setting icon' />
             </div>
@@ -906,9 +908,9 @@ class AnnotationList extends React.Component {
             <tr>
               <th className='one wide disabled' style={this.cellStyle}>{selectAllIcon}</th>
               <th className='one wide' style={this.cellStyle}></th>
-              <th className='five wide' style={this.cellLfAlignStyle}>Titre</th>
-              <th className='four wide' style={this.cellStyle}>Valeur</th>
-              <th className='four wide' style={this.cellStyle}>Planche</th>
+              <th className='five wide' style={this.cellLfAlignStyle}>{this.props.userstore.getText('name')}</th>
+              <th className='four wide' style={this.cellStyle}>{this.props.userstore.getText('value')}</th>
+              <th className='four wide' style={this.cellStyle}>{this.props.userstore.getText('sheet')}</th>
               <th className='one wide disabled' style={this.cellStyle}></th>
             </tr>
             </thead>
@@ -916,7 +918,7 @@ class AnnotationList extends React.Component {
             {_.values(this.state.annotations).map(this.buildAnnotationRow.bind(this))}
             </tbody>
           </table>
-          <div style={this.nothingStyle}>Aucune donnée à afficher pour la sélection courante</div>
+          <div style={this.nothingStyle}>{this.props.userstore.getText('noDataForSelection')}</div>
         </div>
       </div>
     </div>

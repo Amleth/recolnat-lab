@@ -14,7 +14,6 @@ import Classes from "../../constants/CommonSVGClasses";
 
 import Popup from '../popups/CreateAnglePopup';
 
-import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
 import ServiceMethods from '../../utils/ServiceMethods';
@@ -93,21 +92,21 @@ class CreateAngle extends AbstractTool {
 
   save() {
     if(this.state.interactionState !== 3) {
-      alert("Le tracé de l'angle n'est pas terminé");
+      alert(this.props.userstore.getText('angleNotFinished'));
       return null;
     }
     if(this.state.name.length < 1) {
-      alert("L'intitulé est obligatoire");
+      alert(this.props.userstore.getText('nameMandatory'));
       return null;
     }
 
-    var vertices = [
+    let vertices = [
       [this.state.vertex1.x, this.state.vertex1.y],
       [this.state.center.x, this.state.center.y],
       [this.state.vertex2.x, this.state.vertex2.y]
     ];
-    var measure = this.getAngleInDegrees();
-    var name = this.state.name;
+    let measure = this.getAngleInDegrees();
+    let name = this.state.name;
 
     ServiceMethods.createAngleOfInterest(this.state.imageId, measure, vertices, name, Globals.setSavedEntityInInspector);
   }
@@ -115,7 +114,7 @@ class CreateAngle extends AbstractTool {
   begin() {
     var self = this;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newAngle.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [1, 4])}<br />{this.props.userstore.getText('newAngleTooltip')}</p>), 10);
 
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', this.activateEnter)
@@ -171,7 +170,7 @@ class CreateAngle extends AbstractTool {
     var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newAngle.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [1, 4])}<br />{this.props.userstore.getText('newAngleTooltip')}</p>), 10);
   }
 
   finish() {
@@ -464,6 +463,7 @@ class CreateAngle extends AbstractTool {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     ToolActions.registerTool(ToolConf.newAngle.id, this.click, this);
     $(this.refs.button.getDOMNode()).popup();
   }
@@ -486,16 +486,16 @@ class CreateAngle extends AbstractTool {
 
       switch(this.state.interactionState) {
         case 0:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newAngle.tooltip), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [1, 4])}<br />{this.props.userstore.getText('newAngleTooltip')}</p>), 10);
           break;
         case 1:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 2/4<br />Cliquez sur la même image pour figer la première droite de l'angle.</p>), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [2, 4])}<br />{this.props.userstore.getText('newAngleTooltip2')}</p>), 10);
           break;
         case 2:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 3/4<br />Cliquez sur la même image pour figer la deuxième droite de l'angle.<br />Angle : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [3, 4])}<br />{this.props.userstore.getText('newAngleTooltip3')}<br />{this.props.userstore.getText('angle')} : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
           break;
         case 3:
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>Étape 4/4<br />Tirez n'importe quel point de l'angle pour changer sa définition. Cliquez sur Enregistrer pour terminer l'angle et le sauvegarder.<br />Angle : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [4, 4])}<br />{this.props.userstore.getText('newAngleTooltip4')}<br />{this.props.userstore.getText('angle')} : {this.convertToDMS(this.getAngleInDegrees())}</p>), 10);
           break;
         default:
           break;

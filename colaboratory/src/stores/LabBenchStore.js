@@ -202,7 +202,7 @@ class LabBenchStore extends EventEmitter {
     }
     else {
       console.error('Could not load set ' + this.labBench.id + ': ' + JSON.stringify(resource));
-      alert('Impossible de charger la paillasse, veuillez réessayer plus tard');
+      alert('Unable to load lab bench. Please try again later.');
 
       this.socket.removeResourceListener(this.labBench.id, this.receiveBench.bind(this), 10);
       this.labBench = {};
@@ -573,16 +573,16 @@ class LabBenchStore extends EventEmitter {
       //  'Mesures ' + _.size(this.labBench.measurements) + '/' + this.ids.measurements.length + '\n' +
       //  'Étalons ' + _.size(this.labBench.measureStandards) + '/' + this.ids.measureStandards.length</div>
 
-      var loadingText = <div>Chargement en cours...<br/>
-        <p>Sous-sets {_.size(this.labBench.subSets)}/{this.ids.subSets.length}<br />
-          Spécimens&Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
-          Vues {_.size(this.labBench.views)}/{this.ids.views.length}<br />
-          Zones {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
+      let loadingText = <div>Loading...<br/>
+        <p>Sub-Sets {_.size(this.labBench.subSets)}/{this.ids.subSets.length}<br />
+          Specimens & Images {_.size(this.labBench.items)}/{this.ids.items.length}<br />
+          Views {_.size(this.labBench.views)}/{this.ids.views.length}<br />
+          Regions {_.size(this.labBench.rois)}/{this.ids.rois.length}<br />
           Angles {_.size(this.labBench.aois)}/{this.ids.aois.length}<br />
-          Points {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
-          Chemins {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
-          Mesures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
-          Étalons {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
+          Vertices {_.size(this.labBench.pois)}/{this.ids.pois.length}<br />
+          Trails {_.size(this.labBench.tois)}/{this.ids.tois.length}<br />
+          Measures {_.size(this.labBench.measurements)}/{this.ids.measurements.length}<br />
+          Standards {_.size(this.labBench.measureStandards)}/{this.ids.measureStandards.length}</p>
       </div>;
 
       window.setTimeout(ViewActions.changeLoaderState.bind(null, loadingText), 10);

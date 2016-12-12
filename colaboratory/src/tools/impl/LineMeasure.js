@@ -107,15 +107,15 @@ class LineMeasure extends AbstractTool {
   }
 
   createActiveMeasure(x, y, uuid, data) {
-    var activeToolGroup = d3.select('#OVER-' + data.link);
+    let activeToolGroup = d3.select('#OVER-' + data.link);
 
-    var scales = {};
-    var imageMetadata = this.props.benchstore.getData(data.entity);
-    var scaleIds = JSON.parse(JSON.stringify(imageMetadata.scales));
-    var exifMmPerPx = Globals.getEXIFScalingData(imageMetadata);
+    let scales = {};
+    let imageMetadata = this.props.benchstore.getData(data.entity);
+    let scaleIds = JSON.parse(JSON.stringify(imageMetadata.scales));
+    let exifMmPerPx = Globals.getEXIFScalingData(imageMetadata);
     if(exifMmPerPx) {
       scales.exif = {
-        name: "Données de numérisation",
+        name: this.props.userstore.getText('exifData'),
         uid: 'exif',
         mmPerPixel: exifMmPerPx
       };
@@ -257,7 +257,7 @@ class LineMeasure extends AbstractTool {
       setScaleCallback={this.setScale.bind(this)}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.lineMeasure.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip')), 10);
 
     var self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
@@ -283,7 +283,7 @@ class LineMeasure extends AbstractTool {
   reset() {
     this.removeMouseMoveListener();
     // this.removeSVG();
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.lineMeasure.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip')), 10);
     this.setState({start: null, end: null,
       imageUri: null, imageLinkUri: null, uuid: null});
   }
@@ -313,7 +313,7 @@ class LineMeasure extends AbstractTool {
   startLine(x, y, data) {
     var uuid = UUID.v4();
     window.setTimeout(function () {
-      ToolActions.updateTooltipData("Cliquez sur l'image pour terminer la mesure");
+      ToolActions.updateTooltipData(this.props.userstore.getText('lineMeasureTooltip1'));
     }, 10);
     this.createActiveMeasure(x, y, uuid, data);
     this.setState({
@@ -343,7 +343,7 @@ class LineMeasure extends AbstractTool {
       self.endLine.call(self, coords[0], coords[1], d);
     }
     else {
-      ToolActions.updateTooltipData("Vous ne pouvez pas changer d'image pendant qu'une autre mesure est en cours. Terminez la mesure sur la même image ou cliquez sur le bouton droit de la souris pour annuler la mesure en cours.");
+      ToolActions.updateTooltipData(this.props.userstore.getText('lineMeasureTooltip2'));
     }
   }
 
@@ -355,9 +355,9 @@ class LineMeasure extends AbstractTool {
     if(d3.event.defaultPrevented) return;
     d3.event.preventDefault();
     d3.event.stopPropagation();
-    var name = prompt('Veuillez indiquer un nom pour cette mesure', '');
+    var name = prompt(this.props.userstore.getText('lineMeasureTooltip3'), '');
     if(name.length < 1) {
-      alert('Le nom est obligatoire');
+      alert(this.props.userstore.getText('nameMandatory'));
       return;
     }
 
@@ -508,6 +508,7 @@ class LineMeasure extends AbstractTool {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.viewstore.addViewportListener(this._onZoom);
     $(this.refs.button.getDOMNode()).popup();
     ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
@@ -523,6 +524,7 @@ class LineMeasure extends AbstractTool {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.viewstore.removeViewportListener(this._onZoom);
     ToolActions.activeToolPopupUpdate(null);
   }
@@ -533,7 +535,7 @@ class LineMeasure extends AbstractTool {
               style={this.buttonStyle}
               className='ui button compact'
               onClick={this.setMode}
-              data-content="Mesurer une longueur sur l'image sélectionnée">
+              data-content={this.props.userstore.getText('newLineMeasure')}>
         <img src={icon} style={this.iconStyle} height='20px' width='20px' />
       </button>
     );

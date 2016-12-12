@@ -38,6 +38,7 @@ class WebSocketStatus extends React.Component {
 
   componentDidMount() {
     this.props.socket.addStateChangeListener(this._onWebSocketStatusChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -51,11 +52,12 @@ class WebSocketStatus extends React.Component {
 
   componentWillUnmount() {
     this.props.socket.removeStateChangeListener(this._onWebSocketStatusChange);
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
     return <div style={this.componentStyle} className='ui text segment'>
-      <div className="ui active small inline loader"></div>Synchronisation des données... {this.state.countPendingMessages}
+      <div className="ui active small inline loader"></div>{this.props.userstore.getText('syncWithServer')} {this.state.countPendingMessages}
     </div>
   }
 }

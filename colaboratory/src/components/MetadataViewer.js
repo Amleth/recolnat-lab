@@ -98,14 +98,14 @@ class MetadataViewer extends React.Component {
 
   loadMetadata() {
     //console.log('loadMetadata');
-    var imageLinkId = this.props.toolstore.getSelectedImageId();
-    var view = this.props.benchstore.getActiveViewData();
-    var imageId = null;
+    let imageLinkId = this.props.toolstore.getSelectedImageId();
+    let view = this.props.benchstore.getActiveViewData();
+    let imageId = null;
 
     //console.log(imageLinkId);
 
-    for(var i = 0; i < view.displays.length; ++i) {
-      var dEntity = view.displays[i];
+    for(let i = 0; i < view.displays.length; ++i) {
+      let dEntity = view.displays[i];
       //console.log(JSON.stringify(dEntity));
       if(dEntity.link == imageLinkId) {
         imageId = dEntity.entity;
@@ -151,16 +151,16 @@ class MetadataViewer extends React.Component {
 
   displayImageMetadata() {
     //console.log('displayImageMetadata');
-    var id = this.state.imageCoLabId;
+    let id = this.state.imageCoLabId;
     //console.log(id);
     if(!id) {
       this.setState({loading: false, noContent: true});
       return;
     }
 
-    var metadata = this.props.metastore.getMetadataAbout(id);
-    var specimenId = null;
-    var loading = false;
+    let metadata = this.props.metastore.getMetadataAbout(id);
+    let specimenId = null;
+    let loading = false;
     //console.log(JSON.stringify(metadata));
     if(metadata.specimens) {
       if(metadata.specimens.length > 0) {
@@ -239,7 +239,7 @@ class MetadataViewer extends React.Component {
       .end((err, res) => {
         if(err) {
           console.error('Could not retrieve resource data from recolnat about ' + id + ' -> ' + err);
-          alert('Impossible de récupérer les données associées dans ReColNat');
+          alert(this.props.userstore.getText('cannotRetrieveRecolnatData'));
           this.setState({
             specimen: null,
             loadingSpecimen: false
@@ -331,9 +331,9 @@ class MetadataViewer extends React.Component {
       if(this.state.coLabSpecimenMetadata.name) {
         return this.state.coLabSpecimenMetadata.name;
       }
-      return 'Nom manquant';
+      return this.props.userstore.getText('nameUnavailable');
     }
-    return 'Pas de planche sélectionnée';
+    return this.props.userstore.getText('noSheetSelected');
   }
 
   componentDidMount() {
@@ -344,6 +344,7 @@ class MetadataViewer extends React.Component {
     }
     this.props.toolstore.addSelectionChangeListener(this._onChangeSelection);
     this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillReceiveProps(props) {
@@ -361,50 +362,12 @@ class MetadataViewer extends React.Component {
       this.tableStyle.display = 'none';
       this.placeholderStyle.display = 'none';
     }
-    if(nextState.coLabImageMetadata) {
-      nextState.noContent = false;
-    }
-    else {
-      nextState.noContent = true;
-    }
+    nextState.noContent = !nextState.coLabImageMetadata;
 
-    //if(!nextState.imageCoLabId) {
-    //  nextState.loading = false;
-    //}
-    //else if(nextState.imageCoLabId != this.state.imageCoLabId) {
-    //  nextState.loading = true;
-    //  nextState.loadingSpecimen = true;
-    //  nextState.loadingHarvest = true;
-    //  nextState.loadingDeterminations = true;
-    //  nextState.loadingLocation = true;
-    //  //nextState.specimen = null;
-    //  //nextState.determinations = [];
-    //  //nextState.harvest = null;
-    //  //nextState.location = null;
-    //  //window.setTimeout(this.displayMetadata.bind(this), 100);
-    //}
-
-    //if(nextState.loading) {
-    //  this.loaderStyle.display = '';
-    //  this.noDataStyle.display = 'none';
-    //  this.tableStyle.display = 'none';
-    //}
-    //else if(nextState.noContent) {
-    //  this.loaderStyle.display = 'none';
-    //  this.noDataStyle.display = '';
-    //  this.tableStyle.display = 'none';
-    //}
-    //else {
-    //  this.loaderStyle.display = 'none';
-    //  this.noDataStyle.display = 'none';
-    //  this.tableStyle.display = '';
-    //}
       this.loaderStyle.display = 'none';
       this.noDataStyle.display = 'none';
     this.tableStyle.display = '';
 
-    //console.log('current state=' + JSON.stringify(this.state));
-    //console.log('future state=' + JSON.stringify(nextState));
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -422,6 +385,7 @@ class MetadataViewer extends React.Component {
     if(this.state.specimenCoLabId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onSpecimenMetadataUpdated);
     }
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
@@ -434,26 +398,30 @@ class MetadataViewer extends React.Component {
             {this.displaySelectedName()}
           </div>
           <div className='ui segment'>
-            Pas d'informations disponibles sur la sélection
+            {this.props.userstore.getText('noInformationAboutSelection')}
           </div>
         </div>
 
         <div ref='accordion' className="ui fluid accordion" style={this.tableStyle}>
           <SpecimenMetadataTable loading={this.state.loadingSpecimen}
+                                 userstore={this.props.userstore}
                                  metadata={this.state.specimen}
-                                 title='Spécimen'/>
+                                 title={this.props.userstore.getText('specimen')}/>
           {this.state.determinations.map(function(determination, index) {
             return <DeterminationMetadataTable key={'META-DET-' + index}
+                                               userstore={self.props.userstore}
                                                loading={self.state.loadingDeterminations}
                                                metadata={determination}
-                                               title={'Détermination ' + (index+1)}/>
+                                               title={self.props.userstore.getText('determination') + ' ' + (index+1)}/>
           })}
-          <HarvestMetadataTable metadata={this.state.harvest}
+          <HarvestMetadataTable userstore={this.props.userstore}
+                                metadata={this.state.harvest}
                                 loading={this.state.loadingHarvest}
-                                title='Récolte'/>
-          <LocationMetadataTable metadata={this.state.location}
+                                title={this.props.userstore.getText('harvest')}/>
+          <LocationMetadataTable userstore={this.props.userstore}
+                                 metadata={this.state.location}
                                  loading={this.state.loadingLocation}
-                                 title='Localisation'/>
+                                 title={this.props.userstore.getText('location')}/>
         </div>
       </div>
     );

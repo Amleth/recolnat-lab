@@ -78,6 +78,7 @@ class RightPane extends React.Component {
           height={this.state.componentHeights[0]}
           metastore={this.props.metastore}
           modestore={this.props.modestore}
+          userstore={this.props.userstore}
           managerstore={this.props.managerstore}
         />
         <MetadataViewer
@@ -86,6 +87,7 @@ class RightPane extends React.Component {
           metastore={this.props.metastore}
           viewstore={this.props.viewstore}
           modestore={this.props.modestore}
+          userstore={this.props.userstore}
           benchstore={this.props.benchstore}
         />
         <SpecimenMetadataDisplay
@@ -93,6 +95,7 @@ class RightPane extends React.Component {
           metastore={this.props.metastore}
           toolstore={this.props.toolstore}
           modestore={this.props.modestore}
+          userstore={this.props.userstore}
           managerstore={this.props.managerstore}/>
         <AnnotationList
           height={this.state.componentHeights[3]}
@@ -100,6 +103,7 @@ class RightPane extends React.Component {
           inspecstore={this.props.inspecstore}
           metastore={this.props.metastore}
           viewstore={this.props.viewstore}
+          userstore={this.props.userstore}
           />
         <ElementInspector
           height={this.state.componentHeights[4]}

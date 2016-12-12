@@ -43,17 +43,11 @@ class SetDisplaySubSet extends React.Component {
     };
   }
 
-  //itemMetadataUpdated() {
-  //  var metadata = this.props.metastore.getMetadataAbout(this.props.set.uid);
-  //  var icon = 'ui icon folder';
-  //  this.setState({set: metadata, icon: icon});
-  //}
-
   callContextMenu(event) {
     event.preventDefault();
-    var entity = JSON.parse(JSON.stringify(this.state.set));
-    var index = this.props.index;
-    var objectsAtEvent = {
+    let entity = JSON.parse(JSON.stringify(this.state.set));
+    let index = this.props.index;
+    let objectsAtEvent = {
       sets:[],
       specimens: [],
       images: []

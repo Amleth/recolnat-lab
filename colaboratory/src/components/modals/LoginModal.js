@@ -53,6 +53,7 @@ class LoginModal extends React.Component {
   componentDidMount() {
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -74,22 +75,23 @@ class LoginModal extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.userstore.removeUserLogInListener(this._onUserLogIn);
     this.props.userstore.removeUserLogOutListener(this._onUserLogOut);
   }
 
   render() {
     return <div ref='modal' className='ui modal' style={this.loginModalStyle}>
-      <div className='ui header'>Connexion nécessaire</div>
+      <div className='ui header'>{this.props.userstore.getText('loginRequired')}</div>
       <div className='ui content'>
-        <p>Vous devez être connecté avec votre compte ReColNat afin de pouvoir accéder au Collaboratoire</p>
+        <p>{this.props.userstore.getText('loginHelp')}</p>
         <a className='ui button'
            onClick={this.openLoginPopup.bind(this)}>
-          Me Connecter
+          {this.props.userstore.getText('login')}
         </a>
         <a className='ui button'
            onClick={this.openRegisterPopup.bind(this)}>
-          Créer compte
+          {this.props.userstore.getText('createAccount')}
         </a>
       </div>
     </div>

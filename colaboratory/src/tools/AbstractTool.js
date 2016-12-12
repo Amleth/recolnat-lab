@@ -87,10 +87,11 @@ class AbstractTool extends React.Component {
    */
   setMode(){
     ToolActions.setTool(ToolConf.nothing.uid);
-    ToolActions.updateTooltipData(ToolConf.nothing.tooltip);
+    // ToolActions.updateTooltipData(ToolConf.nothing.tooltip);
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     $(this.refs.button.getDOMNode()).popup();
   }
   
@@ -103,13 +104,17 @@ class AbstractTool extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
   render() {
     return (
       <button style={this.buttonStyle}
               ref='button'
               className='ui button compact'
               onClick={this.setMode}
-              data-content="Rien">
+              data-content={this.props.userstore.getText('nothing')}>
         <i className='ui large cancel icon'></i>
       </button>
     )

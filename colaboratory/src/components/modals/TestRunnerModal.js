@@ -19,20 +19,6 @@ class TestRunnerModal extends AbstractModal {
     this.modalName = ModalConstants.Modals.testRunnerModal;
   }
 
-  runReadLoadTest() {
-    for(var i = 0; i < 100; ++i) {
-      request
-        .use(request_no_cache)
-        .get(conf.actions.setServiceActions.getSet)
-        .query({id: null})
-        .set('Accept', 'application/json')
-        .withCredentials()
-        .end((err, res)=> {
-
-        });
-    }
-  }
-
   render() {
     return <div className="ui small modal" ref='modal'>
       <i className="close icon"></i>
@@ -41,9 +27,6 @@ class TestRunnerModal extends AbstractModal {
       </div>
       <div className="content">
         <div className="description">
-          <div className='ui button' onClick={this.runReadLoadTest.bind(this)}>
-            Montée en charge (lecture)
-          </div>
         </div>
       </div>
       <div className="actions">

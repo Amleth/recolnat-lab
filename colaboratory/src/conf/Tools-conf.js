@@ -5,50 +5,39 @@
 
 import React from 'react';
 
-var ToolConfiguration = {
+let ToolConfiguration = {
   lineMeasure: {
-    id: "measure",
-    tooltip: "Cliquez sur l'image pour commencer une nouvelle mesure"
+    id: "measure"
   },
   newRegionOfInterest: {
-    id: "newRoI",
-    tooltip: "Cliquez sur l'image pour placer le premier point du polygone."
+    id: "newRoI"
   },
   newPointOfInterest: {
-    id: "newPoI",
-    tooltip: "Cliquez sur l'image pour créer un point."
+    id: "newPoI"
   },
   newPath: {
-    id: "createPath",
-    tooltip: "Cliquez sur l'image pour placer le premier point du tracé."
+    id: "createPath"
   },
   annotation: {
-    id: "createAnnotation",
-    tooltip: "Cliquez sur un élément de l'image pour y ajouter des annotations."
+    id: "createAnnotation"
   },
   exportFragments: {
-    id: "exportFragments",
-    tooltip: "Cliquez sur une zone pour l'ajouter à l'export."
+    id: "exportFragments"
   },
   moveObject: {
-    id: 'moveObject',
-    tooltip: 'Faites glisser une image pour la déplacer.'
+    id: 'moveObject'
   },
   moveView: {
-    id: 'moveView',
-    tooltip: ''
+    id: 'moveView'
   },
   selectObject: {
-    id: 'selectObject',
-    tooltip: 'Cliquez sur une image pour la sélectionner'
+    id: 'selectObject'
   },
   newAngle: {
-    id: 'createNewAngleMeasure',
-    tooltip: <p>Étape 1/4<br />Cliquez sur une image pour placer le sommet de l'angle à mesurer.</p>
+    id: 'createNewAngleMeasure'
   },
   nothing: {
-    id: "null",
-    tooltip: ""
+    id: "null"
   }
 };
 

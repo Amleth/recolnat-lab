@@ -138,7 +138,7 @@ class Inbox extends React.Component {
 
   placeAllImagesInLine() {
     window.setTimeout(function() {
-      ViewActions.changeLoaderState("Placement en cours.")}, 10);
+      ViewActions.changeLoaderState(this.props.userstore.getText('placing'))}, 10);
 
     var view = this.props.viewstore.getView();
 
@@ -158,7 +158,7 @@ class Inbox extends React.Component {
 
   placeAllImagesInColumn() {
     window.setTimeout(function() {
-      ViewActions.changeLoaderState("Placement en cours.")}, 10);
+      ViewActions.changeLoaderState(this.props.userstore.getText('placing'))}, 10);
 
     var data = [];
     var x = this.props.viewstore.getView().left;
@@ -174,7 +174,7 @@ class Inbox extends React.Component {
 
   placeAllImagesInGrid() {
     window.setTimeout(
-      ViewActions.changeLoaderState.bind(null, "Placement en cours."), 10);
+      ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
     var x = this.props.viewstore.getView().left;
     var y = this.props.viewstore.getView().top;
@@ -229,6 +229,7 @@ class Inbox extends React.Component {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
   }
 
@@ -262,6 +263,7 @@ class Inbox extends React.Component {
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
     if(this.state.viewId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewMetadataReceived);
@@ -275,7 +277,9 @@ class Inbox extends React.Component {
     if(!this.state.open) {
       return <div ref='component' style={this.componentStyle}>
         <div className='ui teal button'
-        onClick={this.open.bind(this)}>Il y a  {this.state.content.length} images dans ce set qui ne sont pas placées dans la vue actuelle. Cliquez ici si vous souhaitez les placer.</div>
+        onClick={this.open.bind(this)}>
+          {this.props.userstore.getInterpolatedText('setHasUnplacedImages', [this.state.content.length])}
+          </div>
       </div>
     }
     return <div className='ui segment' style={this.componentStyle} ref='tabs'>
@@ -283,25 +287,25 @@ class Inbox extends React.Component {
         <div
           className="active item"
           data-tab="automatic">
-          Auto
+          {this.props.userstore.getText('auto')}
         </div>
         <div className="item" data-tab="manual">
-          Manuel
+          {this.props.userstore.getText('manual')}
         </div>
       </div>
       <div className="ui bottom attached active tab segment" data-tab="automatic">
-        <div className='ui button disabled'>{this.state.content.length} images</div>
+        <div className='ui button disabled'>{this.props.userstore.getInterpolatedText('countImages', [this.state.content.length])}</div>
         <div className='ui tiny two buttons'
              ref='buttons'
         >
           <div className='ui button'
                onClick={this.placeAllImagesInLine.bind(this)}
-               data-content='Placer toutes les images non-affichées en ligne. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+               data-content={this.props.userstore.getText('placeInLine')}>
             <i className='ui ellipsis horizontal icon' />
           </div>
           <div className='ui button'
                onClick={this.placeAllImagesInColumn.bind(this)}
-               data-content='Placer toutes les images non-affichées en colonne. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+               data-content={this.props.userstore.getText('placeInColumn')}>
             <i className='ui ellipsis vertical icon' />
           </div>
         </div>
@@ -309,7 +313,7 @@ class Inbox extends React.Component {
              ref='buttons'>
           <div className='ui button'
                onClick={this.placeAllImagesInGrid.bind(this)}
-               data-content='Placer toutes les images non-affichées en tableau de 5 colonnes. Le placement commence dans le coin supérieur gauche de la vue actuelle.'>
+               data-content={this.props.userstore.getText('placeInMatrix')}>
             <i className='ui grid layout icon' />
           </div>
         </div>
@@ -317,9 +321,9 @@ class Inbox extends React.Component {
       <div className="ui bottom attached tab segment" data-tab="manual">
         <img className='ui image'
              ref='image'
-             data-content="Faites glisser l'image vers le bureau pour la placer"
+             data-content={this.props.userstore.getText('dragDropImage')}
              src={this.state.content[this.state.selected].thumbnail}
-             alt='Chargement en cours'
+             alt={this.props.userstore.getText('loading')}
              draggable='true'
              onDragStart={this.startDragImage.bind(this)}/>
         <div className='ui mini three buttons'>

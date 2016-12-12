@@ -521,42 +521,12 @@ class D3FreeSpace {
   }
 
   static endLoad() {
-    //window.setTimeout(function() {
-    //  ViewActions.changeLoaderState('Chargement terminé')},10);
-
     window.setTimeout(function() {
       ViewActions.changeLoaderState(null)},20);
   }
 
-  // getImageUrlParamName() {
-  //   switch(this.imageSourceLevel) {
-  //     case 1:
-  //       return 'url';
-  //     case 2:
-  //       return 'thumbnail';
-  //     default:
-  //       return 'url';
-  //   }
-  // }
-
   loadImage(elt) {
-    //console.log('loadImage');
-    //console.log('url=' + elt.url);
-    //console.log('thumb=' + elt.thumbnail);
-    //console.log('------');
-    // var self = this;
-
-    var source = D3ViewUtils.getImageUrlFromQuality(elt, this.imageSourceLevel);
-    // switch(this.imageSourceLevel) {
-    //   case 1:
-    //   source = elt.url;
-    //   break;
-    //   case 2:
-    //   source = elt.thumbnail;
-    //   break;
-    //   default:
-    //   source = elt.thumbnail;
-    // }
+    let source = D3ViewUtils.getImageUrlFromQuality(elt, this.imageSourceLevel);
 
     window.setTimeout(
       ViewActions.loadImage.bind(null, source, D3ViewUtils.displayLoadedImage.bind(null, elt))

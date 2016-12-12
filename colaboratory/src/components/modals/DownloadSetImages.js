@@ -53,7 +53,7 @@ class DownloadSetImages extends AbstractModal {
 
   userDownloadsReceived(msg) {
     if(msg.clientProcessError) {
-      alert('Impossible de récupérer la liste des téléchargements');
+      alert(this.props.userstore.getText('errorGettingDownloadList'));
       return;
     }
     let files = [];
@@ -99,11 +99,11 @@ class DownloadSetImages extends AbstractModal {
     return <div className="ui small modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Télécharger les images du set
+        {this.props.userstore.getText('downloadSetImages')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="ui message">
-          <p>Les fichiers suivants issus de vos demandes d'export précédentes sont disponibles pour téléchargement :</p>
+          <p>{this.props.userstore.getText('downloadSetImagesHelp0')}</p>
           <div clssName='ui divided list'>
           {this.state.downloadableFiles.map(function(file, index) {
             return <p key={index}><a href={file.url} download>{file.fileName}</a></p>
@@ -114,23 +114,23 @@ class DownloadSetImages extends AbstractModal {
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="ui info message"  style={this.nothingToDownloadStyle}>
           <p>
-            Si vous souhaitez créer un export, veuillez ouvrir cette fenêtre après avoir sélectionné un set dans le gestionnaire de sets ou avoir chargé un set dans la paillasse.
+            {this.props.userstore.getText('downloadSetImagesHelp1')}
           </p>
         </div>
         <div className="ui positive message" style={this.downloadsStyle}>
           <p>
-            Les {this.state.setData? this.state.setData.items.length : '*'} images du set {this.state.setData? this.state.setData.name : this.state.setId} seront compressées et mises à votre disposition pour téléchargement. Vous recevrez le lien de téléchargement à l'adresse e-mail associée à votre compte ReColNat. Le lien sera aussi affiché dans la liste ci-dessus. Tous les fichiers sont supprimés une fois par semaine (généralement le samedi).
+            {this.props.userstore.getInterpolatedText('downloadSetImagesHelp2', [this.state.setData? this.state.setData.items.length : '*', this.state.setData? this.state.setData.name : this.state.setId])}
           </p>
         </div>
       </div>
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-          Annuler
+          {this.props.userstore.getText('cancel')}
         </div>
         <div className="ui positive right labeled icon button"
              style={this.launchButtonStyle}
              onClick={this.run.bind(this)}>
-          Confirmer
+          {this.props.userstore.getText('confirm')}
           <i className="unlink icon"></i>
         </div>
       </div>

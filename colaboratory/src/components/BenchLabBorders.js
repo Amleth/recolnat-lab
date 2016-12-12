@@ -61,7 +61,7 @@ class WorkbenchBorders extends React.Component {
       pointerEvents: 'auto'
     };
 
-    var view = props.viewstore.getView();
+    let view = props.viewstore.getView();
 
     this.arrowNStyle = {
       position: 'absolute',

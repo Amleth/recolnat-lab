@@ -104,13 +104,15 @@ class CollectionNavigator extends React.Component {
     };
   }
 
-  componentWillMount() {
+  componentDidMount() {
     // Add listeners
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.addChangeEntitiesListener(this._onChangeEntities);
     this.props.addChangeSelectionListener(this._onChangeSelection);
   }
 
   componentWillUnmount() {
+    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.removeChangeEntitiesListener(this._onChangeEntities);
     this.props.removeChangeSelectionListener(this._onChangeSelection);
   }
@@ -180,20 +182,20 @@ class CollectionNavigator extends React.Component {
     if(index < this.state.activeItemIdx) {
       return <img src={this.state.workbenchItems[index].url}
                   style={this.imageBeforeStyle}
-                  alt="Chargement en cours"
+                  alt={this.props.userstore.getText('loading')}
                   onClick={this.setActiveItem.bind(this,index)}/>;
     }
     else if (index > this.state.activeItemIdx) {
       return <img
         src={this.state.workbenchItems[index].url}
         style={this.imageAfterStyle}
-        alt="Chargement en cours"
+        alt={this.props.userstore.getText('loading')}
         onClick={this.setActiveItem.bind(this,index)}/>;
     }
     else {
       return <img src={this.state.workbenchItems[index].url}
                   onClick={this.showActiveImage.bind(this)}
-                  alt="Chargement en cours"
+                  alt={this.props.userstore.getText('loading')}
                   style={this.imageStyle}/>;
     }
   }
@@ -205,9 +207,9 @@ class CollectionNavigator extends React.Component {
   }
 
   showActiveImage() {
-    var view = this.props.viewstore.getView();
-    var image = this.props.ministore.getImage();
-    var scale = 1.0;
+    let view = this.props.viewstore.getView();
+    let image = this.props.ministore.getImage();
+    let scale = 1.0;
 
     if(image.height > image.width) {
       scale = view.height / image.height;
@@ -260,8 +262,8 @@ class CollectionNavigator extends React.Component {
                     onClick={this.setActiveItem.bind(this, this.state.workbenchItems.length-1)}>&gt;&gt;</button>
           </div>
           <div style={this.optionsStyle}>
-          <span className='ui text' style={this.textStyle}>Trier par <select className='ui compact inline scrolling dropdown' onChange={this.sort.bind(this)} value={this.state.sortBy}>
-            <option value="name">nom</option>
+          <span className='ui text' style={this.textStyle}>{this.props.userstore.getText('sortBy')} <select className='ui compact inline scrolling dropdown' onChange={this.sort.bind(this)} value={this.state.sortBy}>
+            <option value="name">{this.props.userstore.getText('name')}</option>
           </select></span>
           </div>
         </div>

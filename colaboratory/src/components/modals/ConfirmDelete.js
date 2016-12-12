@@ -68,20 +68,20 @@ class ConfirmDelete extends AbstractModal {
     return <div className="ui small modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Retirer du set
+        {this.props.userstore.getText('deleteFromSet')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="description">
-          <p>L'entité sélectionnée sera retirée de son set parent. Elle restera accessible depuis tout autre parent.</p>
+          {this.props.userstore.getText('deleteHelp0')}
         </div>
       </div>
       <div className="actions">
         <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-          Annuler
+          {this.props.userstore.getText('cancel')}
         </div>
         <div className="ui positive right labeled icon button"
              onClick={this.unlink.bind(this)}>
-          Confirmer
+          {this.props.userstore.getText('confirm')}
           <i className="unlink icon"></i>
         </div>
       </div>

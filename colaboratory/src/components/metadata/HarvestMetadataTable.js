@@ -15,43 +15,98 @@ class HarvestMetadataTable extends MetadataTable {
   buildDisplayTableBody() {
     if(this.props.loading) {
       return <tbody>
-      <tr><td colSpan='2' className='ui center aligned'>Chargement en cours...</td></tr>
+      <tr><td colSpan='2' className='ui center aligned'>{this.props.userstore.getText('loading')}</td></tr>
       </tbody>
     }
 
     return <tbody>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Date originale de l'événement</td><td style={this.textStyle} className='ui left aligned'>{new Date(this.state.metadata.verbatimEventDate).toLocaleString()}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('verbatimEventDate')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {new Date(this.state.metadata.verbatimEventDate).toLocaleString()}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Notes de terrain</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnotes}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('fieldNotes')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.fieldnotes}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Date de l'événement</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventDate}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('eventDate')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.eventDate}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Remarques sur l'événement</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eventRemarks}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('eventRemarks')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.eventRemarks}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Jour</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.eday} {this.state.metadata.sday}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('day')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.eday} {this.state.metadata.sday}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Mois</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.smonth} {this.state.metadata.emonth}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('month')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.smonth} {this.state.metadata.emonth}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Année</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.syear} {this.state.metadata.eyear}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getText('year')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.syear} {this.state.metadata.eyear}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned'  style={this.labelStyle}>Décennie</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.decade}</td>
+      <td className='ui right aligned'  style={this.labelStyle}>
+        {this.props.userstore.getText('decade')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.decade}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Numéro de terrain</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.fieldnumber}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('fieldNumber')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.fieldnumber}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Habitat</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.habitat}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('habitat')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.habitat}
+        </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >Enregistré par</td><td style={this.textStyle} className='ui left aligned'>{this.state.metadata.recordedBy}</td>
+      <td className='ui right aligned' style={this.labelStyle} >
+        {this.props.userstore.getOntologyField('recordedBy')}
+      </td>
+      <td style={this.textStyle} className='ui left aligned'>
+        {this.state.metadata.recordedBy}
+        </td>
     </tr>
     </tbody>
   }

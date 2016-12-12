@@ -125,7 +125,7 @@ class OrganiseSet extends AbstractModal {
 
   calculateOutput() {
     if(!this.state.setData) {
-      alert('Les données du set ne sont pas encore disponibles. Veuillez réessayer ultérieurement');
+      alert(this.props.userstore.getText('dataUnavailableRetry'));
       return;
     }
 
@@ -151,13 +151,13 @@ class OrganiseSet extends AbstractModal {
   moveItems(setName, msg) {
     var log = JSON.parse(JSON.stringify(this.state.log));
     if(msg.clientProcessError) {
-      alert('Impossible de créer le set ' + setName);
-      log.push('Echec de la création de ' + setName);
+      // alert('Impossible de créer le set ' + setName);
+      log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [setName]));
       this.setState({log: log});
       return;
     }
     else {
-      log.push('Set ' + setName + ' crée. Copie des entités.');
+      log.push(this.props.userstore.getInterpolatedText('emptySetCreated', [setName]));
       this.setState({log: log});
       for(var i = 0; i < this.state.newSets[setName].length; ++i) {
         var item = this.state.newSets[setName][i];
@@ -169,7 +169,7 @@ class OrganiseSet extends AbstractModal {
 
   itemMoved(name, id) {
     var log = JSON.parse(JSON.stringify(this.state.log));
-    log.push('Entité ' + name + ' (' + id + ')' + ' copiée vers son nouveau set.');
+    log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [name, id]));
     this.setState({done: this.state.done+1, log: log});
   }
 
@@ -193,37 +193,10 @@ class OrganiseSet extends AbstractModal {
           nextState.entities[id] = this.props.metastore.getMetadataAbout(id);
           nextState.entities[id].link = nextState.setData.items[i].link;
         }
+        nextState.setDisplayName = nextState.setData.name;
 
       }
     }
-
-    //if(nextState.setData) {
-    //  // get data about children
-    //  if(this.state.setData) {
-    //    // subscribe to new, unsubscribe from old
-    //    var oldIds = this.state.setData.items.map(i => i);
-    //    var newIds = nextState.setData.items.map(i => i);
-    //    var addedIds = _.difference(newIds, oldIds);
-    //    for(var i = 0 ; i < addedIds.length; ++i) {
-    //      this.props.metastore.addMetadataUpdateListener(addedIds[i].uid, this.receiveItem.bind(this));
-    //      nextState.entities[addedIds[i].uid] = {link : addedIds[i].link};
-    //    }
-    //  }
-    //  else {
-    //    // subscribe to everything in setData
-    //    var ids = nextState.setData.items.map(i => i);
-    //    for(var i = 0 ; i < ids.length; ++i) {
-    //      this.props.metastore.addMetadataUpdateListener(ids[i].uid, this.receiveItem.bind(this));
-    //      nextState.entities[ids[i].uid] = {link : ids[i].link};
-    //    }
-    //  }
-    //}
-    //else if(this.state.setData && !nextState.setData) {
-    //  for(var i = 0; i < this.state.setData.length; ++i) {
-    //    this.props.metastore.removeMetadataUpdateListener(this.state.setData[i].uid, this.receiveItem.bind(this));
-    //    delete nextState.entities[this.state.setData[i].uid];
-    //  }
-    //}
 
     this.processingStatusStyle.display = nextState.phase === 2? '' : 'none';
     this.actionBarStyle.display = nextState.phase === 2? 'none' : '';
@@ -254,35 +227,32 @@ class OrganiseSet extends AbstractModal {
     return <div className="ui modal" ref='modal'>
       <i className="close icon"></i>
       <div className="header">
-        Organiser le set
+        {this.props.userstore.getText('organiseSet')}
       </div>
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className='description' style={this.optionsStyle}>
           <div className='ui text'>
-            Regrouper automatiquement le contenu du set {this.state.setDisplayName}
+            {this.props.userstore.getInterpolatedText('organiseSetHelp0', [this.state.setDisplayName])}
           </div>
           <div className='ui text'>
-            Critère de regroupement : nom
+            {this.props.userstore.getText('organiseSetHelp1')} {this.props.userstore.getText('name')}
           </div>
 
           <div className='ui text'>
             <div className='ui orange message'>
-              Attention, cette opération prend plusieurs minutes sur un petit set (10 entités) et ne doit pas être interrompue. Prévoyez la nuit sur de gros sets.
+              {this.props.userstore.getText('organiseSetHelp3')}
             </div>
-            Résultat du regroupement : {Object.keys(this.state.newSets).length} sets seront crées dans {this.state.setDisplayName}
+            {this.props.userstore.getInterpolatedText('organiseSetHelp2', [Object.keys(this.state.newSets).length, this.state.setDisplayName])}
             {Object.keys(this.state.newSets).map(function(newSetName) {
-              var setData = self.state.newSets[newSetName];
-              return <div>{newSetName} contiendra {setData.length} entités.</div>
+              let setData = self.state.newSets[newSetName];
+              return <div>{self.props.userstore.getInterpolatedText('organiseSetHelp4', [newSetName, setData.length])}</div>
             })}
           </div>
         </div>
 
         <div className='description' style={this.processingStatusStyle}>
           <div className='ui text'>
-            Traitement en cours. La fenêtre se fermera automatiquement dès que le traitement sera terminé.
-          </div>
-          <div className='ui text'>
-            Il reste {this.state.setData? this.state.setData.items.length : null} entités à trier.
+            {this.props.userstore.getText('organiseSetHelp5')} {this.props.userstore.getText('name')}
           </div>
           {this.state.log.map(function(line) {
             return <div className='ui text'>
@@ -293,16 +263,16 @@ class OrganiseSet extends AbstractModal {
 
         <div className="actions" style={this.actionBarStyle}>
           <div className="ui black deny button" onClick={this.cancel.bind(this)}>
-            Annuler
+            {this.props.userstore.getText('cancel')}
           </div>
           <div className={'ui button' + (this.state.phase < 2? '' :' disabled')}
                onClick={this.calculateOutput.bind(this)}>
-            Calculer le résultat
+            {this.props.userstore.getText('precalculate')}
           </div>
           <div className={"ui positive right labeled icon button" + (this.state.phase === 1? '':' disabled')}
                onClick={this.run.bind(this)}>
             <div className='ui text'>
-              Appliquer les actions
+              {this.props.userstore.getText('apply')}
             </div>
             <i className="checkmark icon"></i>
           </div>

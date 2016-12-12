@@ -160,26 +160,6 @@ class ToolStore extends EventEmitter {
     }
   }
 
-  //sendData(data, onSuccessCallback) {
-  //  console.log("Saving data about image " + this.imageId + " " + JSON.stringify(data));
-  //  request.post(data.serviceUrl)
-  //    .set("Content-Type", "application/json")
-  //    .use(request_no_cache)
-  //    .send(data)
-  //    .withCredentials()
-  //    .end((err, res) => {
-  //      if (err) {
-  //        console.log(err);
-  //        alert("Impossible de sauvegarder les changements");
-  //      }
-  //      else {
-  //        MetadataActions.updateLabBenchFrom(data.parent);
-  //        //this.emit(EntitiesEvents.RELOAD_IMAGE_EVENT, this.imageId);
-  //        onSuccessCallback();
-  //      }
-  //    });
-  //}
-
   register(name, onClickAction, component) {
     this.tools[name] = {
       name: name,

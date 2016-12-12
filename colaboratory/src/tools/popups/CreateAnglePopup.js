@@ -116,6 +116,10 @@ class CreateAnglePopup extends React.Component {
     this.setState({saveButtonActive: 'disabled'});
   }
 
+  componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
   componentWillReceiveProps(nextProps) {
     this.setState({name: ''});
   }
@@ -133,24 +137,28 @@ class CreateAnglePopup extends React.Component {
     this.props.setDataCallback(this.state.name);
   }
 
+  componentWillUnmount(){
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+  }
+
   render() {
     return (
       <div style={this.componentStyle} className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
-          <div style={this.titleStyle}>Nouvel angle</div>
+          <div style={this.titleStyle}>{this.props.userstore.getText('newAngle')}</div>
           <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
         </div>
         <div style={this.barContainerStyle}>
           <Tooltip toolstore={this.props.toolstore} />
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
-            <textarea placeholder="Intitulé"
+            <textarea placeholder={this.props.userstore.getText('name')}
                       style={this.textAreaStyle}
                       onChange={this.onNameChange.bind(this)}
                       value={this.state.name} autofocus="true" wrap="hard"/>
           </div>
         </div>
         <div style={this.buttonContainerStyle} className='ui buttons'>
-          <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>Valider</button>
+          <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('validate')}</button>
         </div>
       </div>
     );

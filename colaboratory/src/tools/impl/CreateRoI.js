@@ -212,7 +212,7 @@ class CreateRoI extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     this.clearSVG();
-    window.setTimeout(ToolActions.updateTooltipData.bind(null, ToolConf.newRegionOfInterest.tooltip), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip')), 10);
 
     this.setState({
       imageUri: null,
@@ -245,20 +245,20 @@ class CreateRoI extends AbstractTool {
   save() {
     //console.log("CreateROI: building save data");
     if(this.state.interactionState != 1) {
-      alert("Sauvegarde impossible: le polygone n'est pas terminé.");
+      alert(this.props.userstore.getText('polygonUnfinished'));
       return null;
     }
     if(this.state.name.length < 1) {
-      alert('Le nom est obligatoire');
+      alert(this.props.userstore.getText('nameMandatory'));
       return null;
     }
     // Create polygon or polyline representation of this area..
 
-    var polygon = [];
-    var perimeter = 0;
-    var x = null;
-    var y = null;
-    var edges = this.state.edges;
+    let polygon = [];
+    let perimeter = 0;
+    let x = null;
+    let y = null;
+    let edges = this.state.edges;
     while(edges.length > 0) {
       var edge = CreateRoI.getNextEdge(edges, x, y);
       x = edge.end.x;
@@ -314,9 +314,7 @@ class CreateRoI extends AbstractTool {
         }
         else if (count == 2) {
           // ac
-          window.setTimeout(function () {
-            ToolActions.updateTooltipData("Impossible de commencer une ligne ici. Veuillez cliquer sur un point au début ou à la fin de la zone.");
-          }, 100);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip1')), 100);
         }
         else {
           console.error("Whoops. This vertex is in too many edges. How unexpected.");
@@ -342,7 +340,7 @@ class CreateRoI extends AbstractTool {
         else if (count == 1) {
           // bb
           if(this.state.edges.length < 2) {
-            window.setTimeout(ToolActions.updateTooltipData.bind(null, "Il faut au moins 2 côtés pour fermer un polygone.")
+            window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip2'))
             , 100);
             return;
           }
@@ -362,7 +360,7 @@ class CreateRoI extends AbstractTool {
         }
         else if (count == 2) {
           // bc
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, "Impossible de créer la ligne ici. Si vous souhaitez fermer le polygone, cliquez sur le bouton droit de la souris.")
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip3'))
           , 100);
         }
         else {
@@ -389,7 +387,7 @@ class CreateRoI extends AbstractTool {
       }
       else {
         window.setTimeout(
-          ToolActions.updateTooltipData.bind(null, "Il faut au moins 2 segments pour fermer le polygone.")
+          ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip2'))
         , 100);
       }
     }
@@ -560,6 +558,7 @@ class CreateRoI extends AbstractTool {
   }
 
   componentDidMount() {
+    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     $(this.refs.button.getDOMNode()).popup();
     ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
   }
@@ -591,8 +590,7 @@ class CreateRoI extends AbstractTool {
         d3.select('.' + CreateRoI.classes().selfSvgClass)
           .style('pointer-events', 'auto');
 
-      window.setTimeout(function() {
-        ToolActions.updateTooltipData("Tirez un point pour le déplacer. Double-cliquez sur une ligne pour créer un nouveau point en son milieu.");}, 50);
+      window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip4')), 50);
     }
     else if(prevState.interactionState == 1 && this.state.interactionState != 1) {
       d3.select('.' + Classes.ROOT_CLASS)
@@ -619,7 +617,7 @@ class CreateRoI extends AbstractTool {
       <button ref='button'
         style={this.buttonStyle}
         className='ui button compact'
-        data-content='Créer un polygone'
+        data-content={this.props.userstore.getText('createNewRoI')}
         onClick={this.setMode}>
         <img src={icon} style={this.iconStyle} height='20px' width='20px' />
       </button>

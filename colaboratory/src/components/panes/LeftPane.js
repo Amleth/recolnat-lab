@@ -42,8 +42,10 @@ class LeftPane extends React.Component {
            style={this.containerStyle}
            className='ui container'>
         <div className='ui divider'></div>
-        <ModeSwitcher modestore={this.props.modestore} />
+        <ModeSwitcher modestore={this.props.modestore}
+                      userstore={this.props.userstore}/>
         <SetManagerMainButtons
+          userstore={this.props.userstore}
           managerstore={this.props.managerstore}
           modestore={this.props.modestore} />
         <SetSelectorDisplay modestore={this.props.modestore}
@@ -51,19 +53,23 @@ class LeftPane extends React.Component {
                             managerstore={this.props.managerstore} />
         <GroupSelector
           modestore={this.props.modestore}
+          userstore={this.props.userstore}
           toolstore={this.props.toolstore}
           benchstore={this.props.benchstore} />
         <Minimap ministore={this.props.ministore}
+                 userstore={this.props.userstore}
                  viewstore={this.props.viewstore}
                  modestore={this.props.modestore}
                  toolstore={this.props.toolstore}
                  benchstore={this.props.benchstore}/>
         <ViewController
           ministore={this.props.ministore}
+          userstore={this.props.userstore}
           modestore={this.props.modestore}
           toolstore={this.props.toolstore}
           viewstore={this.props.viewstore} />
         <Toolbox ministore={this.props.ministore}
+                 userstore={this.props.userstore}
                  modestore={this.props.modestore}
                  viewstore={this.props.viewstore}
                  toolstore={this.props.toolstore}

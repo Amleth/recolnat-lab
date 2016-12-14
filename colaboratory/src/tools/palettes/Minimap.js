@@ -8,11 +8,6 @@ import React from "react";
 import MinimapActions from "../../actions/MinimapActions";
 import ViewActions from "../../actions/ViewActions";
 
-import AbstractTool from "../AbstractTool";
-import MoveObject from "../impl/MoveObject";
-import MoveView from "../impl/MoveView";
-import SelectObject from '../impl/SelectObject';
-
 class Minimap extends React.Component {
   constructor(props) {
     super(props);

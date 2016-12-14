@@ -253,6 +253,7 @@ class LineMeasure extends AbstractTool {
 
   begin() {
     var popup = <Popup
+      userstore={this.props.userstore}
       toolstore={this.props.toolstore}
       setScaleCallback={this.setScale.bind(this)}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -312,9 +313,7 @@ class LineMeasure extends AbstractTool {
 
   startLine(x, y, data) {
     var uuid = UUID.v4();
-    window.setTimeout(function () {
-      ToolActions.updateTooltipData(this.props.userstore.getText('lineMeasureTooltip1'));
-    }, 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip1')), 10);
     this.createActiveMeasure(x, y, uuid, data);
     this.setState({
       //  start: {x: x, y: y},

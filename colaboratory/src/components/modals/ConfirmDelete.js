@@ -38,6 +38,10 @@ class ConfirmDelete extends AbstractModal {
     }
   }
 
+  shouldModalClose() {
+    return true;
+  }
+
   receiveMessage(message) {
     if(message.action === ServerConstants.ActionTypes.Receive.DONE) {
       this.props.modalstore.runSuccessCallback(message);
@@ -82,7 +86,7 @@ class ConfirmDelete extends AbstractModal {
         <div className="ui positive right labeled icon button"
              onClick={this.unlink.bind(this)}>
           {this.props.userstore.getText('confirm')}
-          <i className="unlink icon"></i>
+          <i className="checkmark icon"></i>
         </div>
       </div>
     </div>;

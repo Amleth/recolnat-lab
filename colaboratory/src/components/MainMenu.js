@@ -10,6 +10,8 @@ import UserActions from '../actions/UserActions';
 
 import ModalConstants from '../constants/ModalConstants';
 
+import conf from '../conf/ApplicationConfiguration';
+
 class MainMenu extends React.Component {
   constructor(props) {
     super(props);
@@ -67,6 +69,7 @@ class MainMenu extends React.Component {
   }
 
   render() {
+    let self = this;
     return <div ref='dropdown' style={this.componentStyle} className='ui dropdown'>
       <i className='circular inverted blue sidebar icon' style={this.enableEventsStyle}/>
       <div className='menu'  style={this.enableEventsStyle}>
@@ -92,8 +95,9 @@ class MainMenu extends React.Component {
           {this.props.userstore.getText('languages')}
           <i className='dropdown icon' />
           <div className='menu'>
-            <a className='item'  style={this.optionStyle} onClick={UserActions.setLanguage.bind(null, 'en')}><i className='gb flag' />English</a>
-            <a className='item'  style={this.optionStyle} onClick={UserActions.setLanguage.bind(null, 'fr')}><i className='fr flag' />Français</a>
+            {conf.app.languages.map(function(language) {
+              return <a className='item' key={language.code} style={self.optionStyle} onClick={UserActions.setLanguage.bind(null, language.code)}><i className={language.flag + ' flag'} />{language.localized}</a>
+            })}
           </div>
         </div>
       </div>

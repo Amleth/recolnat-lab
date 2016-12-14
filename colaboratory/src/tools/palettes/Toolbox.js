@@ -2,7 +2,6 @@
 
 import React from 'react';
 
-import AbstractTool from "../AbstractTool";
 import LineMeasure from "../impl/LineMeasure";
 import CreatePointOfInterest from "../impl/CreatePoI";
 import MoveObject from "../impl/MoveObject.js";
@@ -12,10 +11,6 @@ import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
 import CreateAngle from '../impl/CreateAngle';
 import NoTool from '../impl/NoTool';
-
-import ToolActions from "../../actions/ToolActions";
-
-import conf from '../../conf/ApplicationConfiguration';
 
 class Toolbox extends React.Component {
   constructor(props) {
@@ -83,13 +78,17 @@ class Toolbox extends React.Component {
       <div style={this.componentStyle} className='ui container segment'>
         <div className='ui blue tiny basic label'
              style={this.labelStyle}>
-          Outils
+          {this.props.userstore.getText('tools')}
         </div>
         <div style={this.hiddenButtons}>
-          <NoTool />
-          <MoveView />
-          <MoveObject viewstore={this.props.viewstore}/>
-          <SelectObject />
+          <NoTool
+            userstore={this.props.userstore}/>
+          <MoveView
+            userstore={this.props.userstore}/>
+          <MoveObject viewstore={this.props.viewstore}
+                      userstore={this.props.userstore}/>
+          <SelectObject
+            userstore={this.props.userstore}/>
         </div>
         <div className='ui three buttons' style={this.buttonRowsStyle}>
           <LineMeasure

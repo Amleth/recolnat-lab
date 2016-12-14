@@ -563,7 +563,7 @@ class OrbalContextMenu extends React.Component {
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
         this.southWestIcon = 'info';
-        this.southIcon = 'unlink';
+        this.southIcon = 'unlinkify';
         this.southEastIcon = 'setting';
 
         this.orbNWStyle.visibility = 'hidden';
@@ -604,7 +604,7 @@ class OrbalContextMenu extends React.Component {
         this.northIcon = 'eye';
         this.northEastIcon = 'users';
         this.southWestIcon = 'info';
-        this.southIcon = 'unlink';
+        this.southIcon = 'unlinkify';
         this.southEastIcon = 'setting';
 
         this.orbNWStyle.visibility = 'hidden';

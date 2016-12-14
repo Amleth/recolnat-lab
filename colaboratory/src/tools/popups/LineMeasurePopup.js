@@ -130,7 +130,8 @@ class LineMeasurePopup extends React.Component {
              style={this.closeIconStyle}
              onClick={Globals.noActiveTool} />
         </div>
-        <Tooltip toolstore={this.props.toolstore} />
+        <Tooltip userstore={this.props.userstore}
+                 toolstore={this.props.toolstore} />
         <div className='title'>
           {this.props.userstore.getText('measureStandard')}
         </div>

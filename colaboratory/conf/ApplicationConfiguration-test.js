@@ -1,5 +1,13 @@
 'use strict';
 
+// Each language must have a corresponding language file defined in src/data/i18n
+let Application = {
+  languages: [
+    {code: 'en', localized: 'English', flag: 'gb'},
+    {code: 'fr', localized: 'Français', flag: 'fr'}
+  ]
+};
+
 var Integration = {
   recolnatMenuBarOrigin: 'https://www.recolnat.org',
   recolnatMenuBarUrl: 'https://www.recolnat.org/menu'
@@ -103,4 +111,4 @@ var SocketActions = {
 };
 
 
-export default {wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {app: Application, wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

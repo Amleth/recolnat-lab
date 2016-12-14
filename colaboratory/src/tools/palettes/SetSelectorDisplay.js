@@ -109,7 +109,7 @@ class SetSelectorDisplay extends React.Component {
              onClick={this.loadRootSet.bind(this)}
           >
             <div>
-              <i className='ui icon lab' style={this.textStyle} />Mes sets
+              <i className='ui icon lab' style={this.textStyle} />{this.props.userstore.getText('mySets')}
             </div>
           </a>
         </div>

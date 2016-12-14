@@ -13,18 +13,29 @@ import SocketActions from '../actions/SocketActions';
 
 import UserConstants from '../constants/UserConstants';
 
-import en from '../data/i18n/en';
-import fr from '../data/i18n/fr';
+import conf from '../conf/ApplicationConfiguration';
+
+// import en from '../data/i18n/en';
+// import fr from '../data/i18n/fr';
 // import es from '../data/i18n/es';
 
 class UserStore extends EventEmitter {
   constructor() {
     super();
 
+    this.setMaxListeners(1000);
+
     this.userAuthorized = false;
     this.userRplusId = null;
     this.userLogin = null;
     this.userData = null;
+
+    this.languageMaps = {};
+    for(let i = 0; i < conf.app.languages.length; ++i) {
+      this.languageMaps[conf.app.languages[i].code] = require('../data/i18n/' + conf.app.languages[i].code + '.js');
+    }
+
+    this.langMap = null;
     this.language = localStorage.getItem('lang');
     if(!this.language) {
       localStorage.setItem("lang", "en");
@@ -65,19 +76,11 @@ class UserStore extends EventEmitter {
   setLanguage(language) {
     switch(language) {
       case 'es':
-        this.language = language;
-        this.langMap = es;
-        localStorage.setItem('lang', 'es');
-        break;
       case 'fr':
-        this.language = language;
-        this.langMap = fr;
-        localStorage.setItem('lang', 'fr');
-        break;
       case 'en':
         this.language = language;
-        this.langMap = en;
-        localStorage.setItem('lang', 'en');
+        this.langMap = this.languageMaps[language];
+        localStorage.setItem('lang', language);
         break;
       default:
         console.warn('No language ' + language);
@@ -92,8 +95,8 @@ class UserStore extends EventEmitter {
     else {
       console.error('No corresponding string for key ' + key + ' in ' + this.language);
     }
-    if(en[key]) {
-      return en[key];
+    if(this.languageMaps.en[key]) {
+      return this.languageMaps.en[key];
     } else {
       console.error('No corresponding string for key in English i18n: ' + key);
       return '#';
@@ -104,7 +107,7 @@ class UserStore extends EventEmitter {
     let string = this.langMap.interpolated[key];
     if(!string) {
       console.error('No corresponding interpolated string for key ' + key + ' in ' + this.language);
-      string = en[key];
+      string = this.languageMaps.en.interpolated[key];
       if(!string) {
         console.error('No corresponding interpolated string for key in English i18n: ' + key);
         return '#';
@@ -121,15 +124,15 @@ class UserStore extends EventEmitter {
   getOntologyField(key) {
     switch(this.language) {
       case 'es':
-        return es.darwinCore[key]?es.darwinCore[key]:en.darwinCore[key];
+        return this.langMap.darwinCore[key]?this.langMap.darwinCore[key]:this.languageMaps.en.darwinCore[key];
       case 'fr':
-        return fr.darwinCore[key]?fr.darwinCore[key]:en.darwinCore[key];
+        return this.langMap.darwinCore[key]?this.langMap.darwinCore[key]:this.languageMaps.en.darwinCore[key];
       case 'en':
       default:
-        if(!en.darwinCore[key]) {
+        if(!this.languageMaps.en.darwinCore[key]) {
           console.error('No corresponding string for key in English DarwinCore i18n: ' + key);
         }
-        return en.darwinCore[key]?en.darwinCore[key]:'#';
+        return this.languageMaps.en.darwinCore[key]?this.languageMaps.en.darwinCore[key]:'#';
     }
   }
 

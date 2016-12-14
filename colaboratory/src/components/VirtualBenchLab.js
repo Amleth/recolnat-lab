@@ -96,7 +96,9 @@ class VirtualBenchLab extends React.Component {
   render() {
     return(
       <div style={this.componentContainerStyle}>
-        <ActiveSetNameDisplay managerstore={this.props.managerstore}/>
+        <ActiveSetNameDisplay
+          userstore={this.props.userstore}
+          managerstore={this.props.managerstore}/>
         <Inbox
           benchstore={this.props.benchstore}
           metastore={this.props.metastore}
@@ -106,7 +108,8 @@ class VirtualBenchLab extends React.Component {
         />
         <ImagesLoadingStatus imagestore={this.props.imagestore}
                              userstore={this.props.userstore}/>
-        <Popup toolstore={this.props.toolstore}/>
+        <Popup userstore={this.props.userstore}
+               toolstore={this.props.toolstore}/>
         <div style={this.importSheetButtonStyle}
              data-content={this.props.userstore.getText('importImages')}
              ref='import'
@@ -126,6 +129,7 @@ class VirtualBenchLab extends React.Component {
           toolstore={this.props.toolstore}
         />
         <BenchLabBorders
+          userstore={this.props.userstore}
           viewstore={this.props.viewstore}
         />
         <BenchLabFreeSpace

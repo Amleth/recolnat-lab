@@ -21,10 +21,10 @@ export default {
     });
   },
 
-  updateLabBenchFrom: (id) => {
-    AppDispatcher.dispatch({
-      actionType: MetadataConstants.ActionTypes.UPDATE_LAB_BENCH,
-      id: id
-    });
-  }
+  // updateLabBenchFrom: (id) => {
+  //   AppDispatcher.dispatch({
+  //     actionType: MetadataConstants.ActionTypes.UPDATE_LAB_BENCH,
+  //     id: id
+  //   });
+  // }
 }

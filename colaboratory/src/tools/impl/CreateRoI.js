@@ -181,8 +181,11 @@ class CreateRoI extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup setDataCallback={this.setData.bind(this)}  toolstore={this.props.toolstore}/>;
+    var popup = <Popup userstore={this.props.userstore}
+                       setDataCallback={this.setData.bind(this)}
+                       toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip')), 10);
 
     var self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
@@ -208,7 +211,9 @@ class CreateRoI extends AbstractTool {
   }
 
   reset() {
-    var popup = <Popup setDataCallback={this.setData.bind(this)}  toolstore={this.props.toolstore}/>;
+    var popup = <Popup setDataCallback={this.setData.bind(this)}
+                       userstore={this.props.userstore}
+                       toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     this.clearSVG();
@@ -305,10 +310,12 @@ class CreateRoI extends AbstractTool {
         // a
         if (count == 0) {
           // aa
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
           this.setState({edges: [], start: {x: x, y: y}});
         }
         else if (count == 1) {
           // ab
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
           var vertex = this.matchVertex(x, y);
           this.setState({start: {x: vertex.x, y: vertex.y}});
         }
@@ -324,6 +331,7 @@ class CreateRoI extends AbstractTool {
         // b
         if (count == 0) {
           // ba
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
           var edges = this.state.edges;
           edges.push({
             start: {

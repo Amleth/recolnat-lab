@@ -119,7 +119,9 @@ class Basket extends React.Component {
       </div>
       <div ref='cards' style={this.cardRowStyle} onWheel={this.scrollHorizontal.bind(this)}>
         {this.state.basketItems.map(function(item, idx) {
-          return <BasketItem content={item} key={'EXPLORE-BASKET-ITEM-' + item.id} basketstore={self.props.basketstore} />
+          return <BasketItem content={item} key={'EXPLORE-BASKET-ITEM-' + item.id}
+                             userstore={self.props.userstore}
+                             basketstore={self.props.basketstore} />
         })}
       </div>
     </div>

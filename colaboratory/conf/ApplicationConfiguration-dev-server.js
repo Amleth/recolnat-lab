@@ -1,17 +1,25 @@
 'use strict';
 
-var Integration = {
+// Each language must have a corresponding language file defined in src/data/i18n
+let Application = {
+  languages: [
+    {code: 'en', localized: 'English', flag: 'gb'},
+    {code: 'fr', localized: 'Français', flag: 'fr'}
+  ]
+};
+
+let Integration = {
   recolnatMenuBarOrigin: 'https://wp5test.recolnat.org',
   recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
 };
 
-var Services = {
+let Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
   laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory',
   downloadsBaseURL: 'https://wp5test.recolnat.org/exports/'
 };
 
-var Endpoints = {
+let Endpoints = {
   authenticationService: Services.laboratoryRESTService + '/authentication',
   dataAccessService: Services.laboratoryRESTService + '/database',
   imageService: Services.laboratoryRESTService + '/image',
@@ -23,7 +31,7 @@ var Endpoints = {
   virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
 };
 
-var Actions = {
+let Actions = {
   imageServiceActions: {
     getImage: Endpoints.imageService + "/get-image",
     getSpecimen: Endpoints.imageService + "/get-specimen",
@@ -77,7 +85,7 @@ var Actions = {
   }
 };
 
-var SocketActions = {
+let SocketActions = {
   createRegionOfInterest: "create-roi",
   createPointOfInterest: "create-poi",
   createTrailOfInterest: "create-toi",
@@ -103,4 +111,4 @@ var SocketActions = {
 };
 
 
-export default {wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {app: Application, wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

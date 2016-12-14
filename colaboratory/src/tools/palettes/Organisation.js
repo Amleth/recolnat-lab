@@ -7,7 +7,6 @@ import React from 'react';
 
 import AbstractTool from "../AbstractTool";
 import MoveObject from "../impl/MoveObject";
-import SelectObject from '../impl/SelectObject';
 
 import Popup from "../../components/PopupToolComponent";
 
@@ -31,7 +30,7 @@ class Organisation extends React.Component {
     return (
       <div style={this.componentStyle} className='ui container'>
         <div className='ui buttons' style={this.buttonRowsStyle}>
-          <AbstractTool />
+          <AbstractTool userstore={this.props.userstore}/>
           <MoveObject />
         </div>
         <div>

@@ -76,7 +76,7 @@ class SimpleImageDisplay extends React.Component {
 
     this.state = {
       isVisibleInCurrentMode: true,
-      selectionTitle: this.props.userstore.getText('imagePreviewer'),
+      selectionTitle: null,
       imagesOfSelection: [],
       imageUrl: null,
       listening: []
@@ -100,7 +100,7 @@ class SimpleImageDisplay extends React.Component {
         //this.processReceivedMetadata(selection.id, true);
         break;
       default:
-        this.setState({selectionTitle: this.props.userstore.getText('imagePreviewer')});
+        this.setState({selectionTitle: null});
         return;
     }
     this.setState({selectionTitle: selection.name});
@@ -211,7 +211,7 @@ class SimpleImageDisplay extends React.Component {
       <div className='ui small header centered segment'
            style={this.compactBorderlessSegmentStyle}>
         <div className='ui item'>
-          {this.state.selectionTitle}
+          {this.state.selectionTitle? this.state.selectionTitle : this.props.userstore.getText('imagePreviewer')}
           <i>{' ' + this.state.imagesOfSelection.length + ' images'}</i>
           ({this.props.userstore.getText('preview')})
         </div>

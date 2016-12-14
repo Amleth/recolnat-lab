@@ -816,8 +816,10 @@ class AnnotationList extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    $(this.refs.table.getDOMNode()).tablesort();
-    $('.tooltip.title', $(this.refs.table.getDOMNode())).popup();
+    if(this.state.annotations.length > 0) {
+      $(this.refs.table.getDOMNode()).tablesort();
+      $('.tooltip.title', $(this.refs.table.getDOMNode())).popup();
+    }
     $('.button', $(this.refs.menu.getDOMNode())).popup();
 
     //var copyText = this.copySelected();

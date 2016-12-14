@@ -120,7 +120,9 @@ class CreateAngle extends AbstractTool {
       .on('mouseenter', this.activateEnter)
       .on('mouseleave', this.deactivateEnter);
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
+    var popup = <Popup setDataCallback={this.setData.bind(this)}
+                       userstore={this.props.userstore}
+                       toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     d3.selectAll('.' + Classes.IMAGE_CLASS)
@@ -167,7 +169,9 @@ class CreateAngle extends AbstractTool {
       imageId: null
     });
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)} toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
+    var popup = <Popup setDataCallback={this.setData.bind(this)}
+                       userstore={this.props.userstore}
+                       toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [1, 4])}<br />{this.props.userstore.getText('newAngleTooltip')}</p>), 10);

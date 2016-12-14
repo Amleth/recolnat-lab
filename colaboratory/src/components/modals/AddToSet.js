@@ -233,6 +233,11 @@ class AddToSet extends AbstractModal {
       });
   }
 
+  updateDisplayName() {
+    // this.props.metastore.removeMetadataUpdateListener(this.state.parentId, this._onMetadataAvailable);
+    this.setState({displayName: this.props.metastore.getMetadataAbout(this.state.parentId).name});
+  }
+
   launch(keepInBasket) {
     window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('startingImport')), 10);
     let setProps = {

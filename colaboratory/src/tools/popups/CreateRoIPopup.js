@@ -128,7 +128,8 @@ class CreateRoIPopup extends React.Component {
           <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
         </div>
         <div style={this.barContainerStyle}>
-          <Tooltip toolstore={this.props.toolstore} />
+          <Tooltip userstore={this.props.userstore}
+                   toolstore={this.props.toolstore} />
           <div style={this.horizontalContainerStyle} className='ui inverted field'>
             <textarea placeholder={this.props.userstore.getText('name')}
                       onChange={this.onNameChange.bind(this)}

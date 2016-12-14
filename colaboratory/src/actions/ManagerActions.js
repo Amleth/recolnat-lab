@@ -11,11 +11,11 @@ export default {
     });
   },
 
-  loadStudiesAndSets: () => {
-    AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.RELOAD
-    });
-  },
+  // loadStudiesAndSets: () => {
+  //   AppDispatcher.dispatch({
+  //     actionType: ManagerConstants.ActionTypes.RELOAD
+  //   });
+  // },
 
   select: (id, type = null, name = null, parentId = null, linkToParentId = null) => {
     AppDispatcher.dispatch({
@@ -44,11 +44,11 @@ export default {
     })
   },
 
-  reloadDisplayedSets: () => {
-    AppDispatcher.dispatch({
-      actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS
-    });
-  },
+  // reloadDisplayedSets: () => {
+  //   AppDispatcher.dispatch({
+  //     actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS
+  //   });
+  // },
 
   changeBasketSelectionState: (id, state) => {
     AppDispatcher.dispatch({

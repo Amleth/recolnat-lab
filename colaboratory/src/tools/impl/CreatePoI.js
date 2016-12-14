@@ -77,6 +77,7 @@ class CreatePoI extends AbstractTool {
 
   begin() {
     var popup = <Popup vertexClass={this.vertexClass}
+                       userstore={this.props.userstore}
                        toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
     />;
@@ -110,6 +111,7 @@ class CreatePoI extends AbstractTool {
 
   reset() {
     var popup = <Popup vertexClass={this.vertexClass}
+                       userstore={this.props.userstore}
                        toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
     />;

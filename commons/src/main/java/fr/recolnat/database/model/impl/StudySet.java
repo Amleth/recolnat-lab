@@ -145,6 +145,10 @@ public class StudySet extends AbstractObject {
     ret.put("subsets", aSubsets);
     ret.put("items", aItems);
     ret.put("view", this.viewId);
+    
+    if(log.isTraceEnabled()) {
+      log.trace(ret.toString());
+    }
 
     return ret;
   }

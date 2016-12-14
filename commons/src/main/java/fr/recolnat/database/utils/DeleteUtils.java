@@ -49,6 +49,11 @@ public class DeleteUtils {
     }
     OrientVertex vParentSet = eLink.getVertex(Direction.OUT);
     OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
+    
+    if(log.isDebugEnabled()) {
+    log.debug("Parent is " + vParentSet.getProperty(DataModel.Properties.name));
+    log.debug("Child is " + vChildItemOrSet.getProperty(DataModel.Properties.name));
+    }
 
     if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vParentSet.getProperty(DataModel.Properties.id));

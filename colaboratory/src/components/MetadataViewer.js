@@ -228,7 +228,6 @@ class MetadataViewer extends React.Component {
   }
 
   getRecolnatSpecimenMetadata(id) {
-
     // Example id 3A160E6F-8ED3-4ED3-A46A-D6737893E844
     // https://api.recolnat.org/erecolnat/v1/specimens/3a160e6f-8ed3-4ed3-a46a-d6737893e844
     // Then go to determination(s)
@@ -239,7 +238,7 @@ class MetadataViewer extends React.Component {
       .end((err, res) => {
         if(err) {
           console.error('Could not retrieve resource data from recolnat about ' + id + ' -> ' + err);
-          alert(this.props.userstore.getText('cannotRetrieveRecolnatData'));
+          alert(this.props.userstore.getText('cannotRetrieveRecolnatData') + ' https://api.recolnat.org/erecolnat/v1/specimens/' + id);
           this.setState({
             specimen: null,
             loadingSpecimen: false

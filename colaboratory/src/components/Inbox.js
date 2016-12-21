@@ -137,8 +137,7 @@ class Inbox extends React.Component {
   }
 
   placeAllImagesInLine() {
-    window.setTimeout(function() {
-      ViewActions.changeLoaderState(this.props.userstore.getText('placing'))}, 10);
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
     var view = this.props.viewstore.getView();
 
@@ -157,8 +156,7 @@ class Inbox extends React.Component {
   }
 
   placeAllImagesInColumn() {
-    window.setTimeout(function() {
-      ViewActions.changeLoaderState(this.props.userstore.getText('placing'))}, 10);
+    window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
     var data = [];
     var x = this.props.viewstore.getView().left;

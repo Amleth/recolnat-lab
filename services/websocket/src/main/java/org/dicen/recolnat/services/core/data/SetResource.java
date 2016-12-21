@@ -131,24 +131,24 @@ public class SetResource {
         // Create new set & default view
         OrientVertex vSet = CreatorUtils.createSet(name, DataModel.Globals.SET_ROLE, g);
         OrientVertex vView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
-        g.commit();
+//        g.commit();
 
-        boolean retry1 = true;
+//        boolean retry1 = true;
         OrientEdge eParentToChildLink = null;
-        while (retry1) {
-          retry1 = false;
-          try {
-            vParentSet.reload();
-            vParentSet = AccessUtils.findLatestVersion(vParentSet);
+//        while (retry1) {
+//          retry1 = false;
+//          try {
+//            vParentSet.reload();
+//            vParentSet = AccessUtils.findLatestVersion(vParentSet);
             // Add new set to parent
             eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
             UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
             g.commit();
-          } catch (OConcurrentModificationException e) {
-            log.warn("Database busy, retrying internal operation");
-            retry1 = true;
-          }
-        }
+//          } catch (OConcurrentModificationException e) {
+//            log.warn("Database busy, retrying internal operation");
+//            retry1 = true;
+//          }
+//        }
 
         // Grant creator rights on new set & default view
         AccessRights.grantAccessRights(vUser, vSet, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);

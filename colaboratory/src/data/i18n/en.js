@@ -210,7 +210,7 @@ export default {
   exportAsCsv: "Export as CSV",
   displayOptions: "Display options",
   noDataForSelection: "No data to display for current selection",
-  tagsAndMeasures: "Tags et Measures",
+  tagsAndMeasures: "Tags and Measures",
   sortBy: 'Sort by',
   recolnatSystem: "ReColNat System",
   noStandardAvailable: 'No measure standard available for conversion.',

@@ -53,6 +53,18 @@ class MainMenu extends React.Component {
       fontVariant: 'small-caps',
       fontSize: '16pt'
     };
+
+    {/*<script src="build-timestamp.json" id="colaboratory_BuildTimestamp" type="application/json"></script>*/}
+
+
+
+    // console.log($('#colaboratory_BuildTimestamp'));
+    // let timestamp = JSON.parse($('#colaboratory_BuildTimestamp').html());
+
+
+    this.state = {
+      timestamp: null
+    }
   }
 
   componentDidMount() {
@@ -62,6 +74,11 @@ class MainMenu extends React.Component {
       direction: 'downward',
       onShow: this.setState.bind(this, {})
     });
+
+    let self = this;
+    $.getJSON('build-timestamp.json', function(data) {
+      self.setState({timestamp: data.date})
+    })
   }
 
   componentWillUnmount() {
@@ -78,7 +95,7 @@ class MainMenu extends React.Component {
         </div>
         <div className='item' style={this.optionStyle}>
           <span className='text'>
-            {this.props.userstore.getText('version')} 0.9.3 (beta)
+            {this.props.userstore.getText('version')} 0.9.3 (beta) - {this.state.timestamp?new Date(this.state.timestamp).toLocaleString(this.props.userstore.getLanguage()):null}
           </span>
         </div>
         <div className='item' onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.feedback, null, null, null)} style={this.optionStyle}>

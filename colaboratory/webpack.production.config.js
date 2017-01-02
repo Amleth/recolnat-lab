@@ -1,4 +1,5 @@
 var path = require('path');
+var TimestampWebpackPlugin = require('timestamp-webpack-plugin');
 
 module.exports = {
   entry: path.resolve(__dirname, 'src/main.js'),
@@ -16,5 +17,11 @@ module.exports = {
   },
   node: {
     fs: 'empty'
-  }
+  },
+  plugins: [
+    new TimestampWebpackPlugin({
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'build-timestamp.json'
+    })
+  ]
 };

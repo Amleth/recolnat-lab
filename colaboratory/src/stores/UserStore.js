@@ -88,6 +88,10 @@ class UserStore extends EventEmitter {
     }
   }
 
+  getLanguage() {
+    return this.language;
+  }
+
   getText(key) {
     if(this.langMap[key]) {
       return this.langMap[key];

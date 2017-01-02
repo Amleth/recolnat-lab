@@ -48,6 +48,7 @@
     "style-loader": "git://github.com/webpack/style-loader.git#master",
     "superagent": "^1.2.0",
     "superagent-no-cache": "^0.1.0",
+    "timestamp-webpack-plugin": "^0.2.3",
     "tls": "0.0.1",
     "url-loader": "git://github.com/webpack/url-loader.git#master",
     "websocket": "^1.0.22"

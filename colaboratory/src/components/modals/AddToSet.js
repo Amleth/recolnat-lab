@@ -306,7 +306,7 @@ class AddToSet extends AbstractModal {
     if(!this.state.active && nextState.active) {
       if(this.props.modalstore.getTargetData().parent) {
         nextState.parentId = this.props.modalstore.getTargetData().parent;
-        var metadata = nextProps.metastore.getMetadataAbout(nextState.parentId);
+        let metadata = nextProps.metastore.getMetadataAbout(nextState.parentId);
         if(metadata) {
           nextState.displayName = metadata.name;
         }

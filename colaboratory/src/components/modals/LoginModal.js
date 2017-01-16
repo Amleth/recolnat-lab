@@ -13,7 +13,10 @@ class LoginModal extends React.Component {
     super(props);
 
     this.loginModalStyle = {
-      zIndex: ViewConstants.zIndices.loginRequiredModal
+      zIndex: ViewConstants.zIndices.loginRequiredModal,
+      position: 'absolute',
+      top: '100px !important',
+      left: '50% !important'
     };
 
     this._onUserLogIn = () => {
@@ -54,11 +57,13 @@ class LoginModal extends React.Component {
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    $(React.findDOMNode(this))
+      .modal({closable: false, detachable: false});
   }
 
   componentWillUpdate(nextProps, nextState) {
     if(!nextState.active && this.state.active) {
-      $(this.refs.modal.getDOMNode()).modal('hide');
+      $(React.findDOMNode(this)).modal('hide');
       if(this.loginWindow) {
         this.loginWindow.close();
         this.loginWindow = null;
@@ -68,8 +73,7 @@ class LoginModal extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.active) {
-      $(this.refs.modal.getDOMNode())
-        .modal('setting', 'closable', false)
+      $(React.findDOMNode(this))
         .modal('show');
     }
   }

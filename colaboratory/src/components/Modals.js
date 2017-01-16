@@ -14,14 +14,16 @@ import AddToSet from './modals/AddToSet';
 import OrganiseSet from './modals/OrganiseSet';
 import DownloadSetImages from './modals/DownloadSetImages';
 
-class ManagerModals extends React.Component {
+import ViewConstants from '../constants/ViewConstants';
+
+class Modals extends React.Component {
   constructor(props) {
     super(props);
 
     this.containerStyle = {
-      display: 'none',
-      position: 'fixed',
-      zIndex: 99999,
+      display: '',
+      // position: 'fixed',
+      zIndex: ViewConstants.zIndices.modalDimmer,
       top: 0,
       left: 0
     };
@@ -31,13 +33,25 @@ class ManagerModals extends React.Component {
       return updateDisplay.apply(this);
     };
 
+    this._onUserLogIn = () => {
+      const userLogIn = () => this.setState({showModal: null});
+      return userLogIn.apply(this);
+    };
+
+    this._onUserLogOut = () => {
+      const userLogOut = () => this.setState({showModal: true});
+      return userLogOut.apply(this);
+    };
+
     this.state = {
-      showModal: null
+      showModal: !props.userstore.isUserAuthorized()
     };
   }
 
   componentDidMount() {
     this.props.modalstore.addModalChangeListener(this._onModalChange);
+    this.props.userstore.addUserLogInListener(this._onUserLogIn);
+    this.props.userstore.addUserLogOutListener(this._onUserLogOut);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -51,6 +65,8 @@ class ManagerModals extends React.Component {
 
   componentWillUnmount() {
     this.props.modalstore.removeModalChangeListener(this._onModalChange);
+    this.props.userstore.addUserLogInListener(this._onUserLogIn);
+    this.props.userstore.addUserLogOutListener(this._onUserLogOut);
   }
 
   render() {
@@ -86,4 +102,4 @@ class ManagerModals extends React.Component {
   }
 }
 
-export default ManagerModals;
+export default Modals;

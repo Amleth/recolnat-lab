@@ -50,22 +50,25 @@ class AbstractModal extends React.Component {
   componentDidMount() {
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.modalstore.addModalChangeListener(this._onModalChanged);
+
+    $(React.findDOMNode(this.refs.modal)).modal({
+      detachable: false,
+      onHide: this.cancel,
+      observeChanges: true,
+      onApprove: this.shouldModalClose.bind(this)
+    });
   }
 
   componentWillUpdate(nextProps, nextState) {
     if(!nextState.active && this.state.active) {
       this.clearState(nextState);
-      $(this.refs.modal.getDOMNode()).modal('hide');
+      $(React.findDOMNode(this.refs.modal)).modal('hide');
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.active && !prevState.active) {
-      $(this.refs.modal.getDOMNode()).modal({
-        onHide: this.cancel,
-        observeChanges: true,
-        onApprove: this.shouldModalClose.bind(this)
-      }).modal('show');
+      $(React.findDOMNode(this.refs.modal)).modal('show');
     }
   }
 

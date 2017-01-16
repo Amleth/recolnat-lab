@@ -10,18 +10,23 @@ import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DeleteUtils;
+import java.util.HashSet;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Set;
+import org.codehaus.jettison.json.JSONArray;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
  */
 public class Annotation extends AbstractObject{
     String creator;
+    
+    Set<String> standards = new HashSet<>();
 
   private final static Logger log = LoggerFactory.getLogger(Annotation.class);
 
@@ -43,13 +48,31 @@ public class Annotation extends AbstractObject{
           this.parents.add((String) vParent.getProperty(DataModel.Properties.id));
         }
       }
-    } 
+    }
+    
+    Iterator<Vertex> itStandards = v.getVertices(Direction.OUT, DataModel.Links.definedAsMeasureStandard).iterator();
+    while(itStandards.hasNext()) {
+      OrientVertex vStandard = (OrientVertex) itStandards.next();
+      if(AccessUtils.isLatestVersion(vStandard)) {
+        if(AccessRights.canRead(vUser, vStandard, g, rightsDb)) {
+          standards.add((String) vStandard.getProperty(DataModel.Properties.id));
+        }
+      }
+    }
   }
 
   @Override
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
     ret.put("creator", this.creator);
+    
+    if(!standards.isEmpty()) {
+      JSONArray jStandards = new JSONArray();
+      for(String id: standards) {
+        jStandards.put(id);
+      }
+      ret.put("standards", jStandards);
+    }
     
     return ret;
   }

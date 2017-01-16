@@ -59,11 +59,11 @@ export default class ServiceMethods {
     window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
   }
 
-  static addMeasureStandard(pathId, value, unit, name, callback = undefined) {
+  static addMeasureStandard(measurementId, value, unit, name, callback = undefined) {
     var message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.addMeasureStandard,
-      path: pathId,
+      measurement: measurementId,
       value: value,
       unit: unit,
       name: name

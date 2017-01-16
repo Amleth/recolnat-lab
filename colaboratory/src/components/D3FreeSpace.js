@@ -13,24 +13,15 @@ import Classes from '../constants/CommonSVGClasses';
 import TypeConstants from '../constants/TypeConstants';
 import ViewConstants from '../constants/ViewConstants';
 
-import D3EventHandlers from '../utils/D3EventHandlers';
 import D3ViewUtils from '../utils/D3ViewUtils';
 import Globals from '../utils/Globals';
-
-import OrbOptions from './context-menu/options/OrbOptions';
-
-import LineMeasure from '../tools/impl/LineMeasure';
-
-import ShapesConf from "../conf/shapes";
-
-import workbenchImageUrl from '../images/book_300.png';
-import markerSVG from '../images/marker.svg';
 
 class D3FreeSpace {
   constructor() {
     this.zoom = d3.behavior.zoom()
       //.scaleExtent([0.1, 100])
       .on('zoom', () => {
+        if(d3.event.defaultPrevented) return;
         ViewActions.updateViewport(
           d3.event.translate[0],
           d3.event.translate[1],
@@ -266,14 +257,14 @@ class D3FreeSpace {
   updateVisibleImages() {
     // Calculate visible images and load if necessary
     // console.log('before=' + JSON.stringify(this.visibleImages));
-    var visibleImagesAfter = [];
-    var quality = this.imageSourceLevel;
+    let visibleImagesAfter = [];
+    let quality = this.imageSourceLevel;
     // var urlParamName = this.getImageUrlParamName();
-    var self = this;
+    let self = this;
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).each(function(d) {
-      var box = this.getBoundingClientRect();
+      let box = this.getBoundingClientRect();
       if(Globals.isElementInViewport(box)) {
-        var url = D3ViewUtils.getImageUrlFromQuality(d, quality);
+        let url = D3ViewUtils.getImageUrlFromQuality(d, quality);
         visibleImagesAfter.push(url);
         if(!_.contains(self.visibleImages, url)) {
           //console.log('loading image ' + url);

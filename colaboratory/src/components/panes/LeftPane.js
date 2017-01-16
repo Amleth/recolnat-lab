@@ -73,6 +73,7 @@ class LeftPane extends React.Component {
                  modestore={this.props.modestore}
                  viewstore={this.props.viewstore}
                  toolstore={this.props.toolstore}
+                 metastore={this.props.metastore}
                  benchstore={this.props.benchstore}/>
       </div>
     );

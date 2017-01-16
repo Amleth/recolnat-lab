@@ -159,31 +159,6 @@ class LabBenchStore extends EventEmitter {
     return this.labBench.id;
   }
 
-  getMeasureStandardForMeasure(measureId) {
-    // Get RoI or ToI or AoI corresponding to measure.
-    if(this.labBench.measurements[measureId]) {
-      var thingOfInterestId = this.labBench.measurements[measureId].parents[0];
-
-      var imageId = null;
-      if(this.labBench.aois[thingOfInterestId]) {
-        imageId = this.labBench.aois[thingOfInterestId].parents[0];
-      }
-      if(this.labBench.rois[thingOfInterestId]) {
-        imageId = this.labBench.rois[thingOfInterestId].parents[0];
-      }
-      else if(this.labBench.tois[thingOfInterestId]) {
-        imageId = this.labBench.tois[thingOfInterestId].parents[0];
-      }
-      else {
-        console.warn('No thing of interest corresponding to id ' + thingOfInterestId);
-        return null;
-      }
-      var mmPerPixel = Globals.getEXIFScalingData(this.labBench.images[imageId]);
-      return mmPerPixel;
-    }
-    return null;
-  }
-
   loadNewBench(setId) {
     //this.allElementIds.push(setId);
 
@@ -194,7 +169,7 @@ class LabBenchStore extends EventEmitter {
 
   receiveBench(resource) {
     if(resource) {
-      this.labBench.metadata = resource;
+        this.labBench.metadata = resource;
 
       this.loadSubSets(resource.subsets);
       this.loadItems(resource.items.map(function (item) {return item.uid}));
@@ -222,7 +197,7 @@ class LabBenchStore extends EventEmitter {
 
   subSetLoaded(resource) {
     if(resource) {
-      if(resource.forbidden) {
+      if(resource.forbidden || resource.deleted) {
         delete this.labBench.subSets[resource.uid];
         this.ids.subSets.splice(this.ids.subSets.indexOf(resource.uid), 1);
       }
@@ -245,7 +220,7 @@ class LabBenchStore extends EventEmitter {
 
   viewLoaded(view) {
     if(view) {
-      if(view.forbidden) {
+      if(view.forbidden || view.deleted) {
         delete this.labBench.views[view.uid];
         this.ids.views.splice(this.ids.views.indexOf(view.uid), 1);
       }
@@ -276,7 +251,7 @@ class LabBenchStore extends EventEmitter {
   itemLoaded(item) {
     this.labBench.items[item.uid] = item;
     if(item) {
-      if(item.forbidden) {
+      if(item.forbidden || item.deleted) {
         if(this.labBench.images[item.uid]) {
           delete this.labBench.images[item.uid];
           delete this.labBench.items[item.uid];
@@ -337,7 +312,7 @@ class LabBenchStore extends EventEmitter {
 
   aoiLoaded(aoi) {
     if(aoi) {
-      if(aoi.forbidden) {
+      if(aoi.forbidden || aoi.deleted) {
         delete this.labBench.aois[aoi.uid];
         this.ids.aois.splice(this.ids.aois.indexOf(aoi.uid), 1);
       }
@@ -365,7 +340,7 @@ class LabBenchStore extends EventEmitter {
 
   roiLoaded(roi) {
     if(roi) {
-      if(roi.forbidden) {
+      if(roi.forbidden || roi.deleted) {
         delete this.labBench.rois[roi.uid];
         this.ids.rois.splice(this.ids.rois.indexOf(roi.uid), 1);
       }
@@ -393,7 +368,7 @@ class LabBenchStore extends EventEmitter {
 
   poiLoaded(poi) {
     if(poi) {
-      if(poi.forbidden) {
+      if(poi.forbidden || poi.deleted) {
         delete this.labBench.pois[poi.uid];
         this.ids.pois.splice(this.ids.pois.indexOf(poi.uid), 1);
       }
@@ -418,7 +393,7 @@ class LabBenchStore extends EventEmitter {
 
   toiLoaded(toi) {
     if(toi) {
-      if(toi.forbidden) {
+      if(toi.forbidden || toi.deleted) {
         delete this.labBench.tois[toi.uid];
         this.ids.tois.splice(this.ids.tois.indexOf(toi.uid), 1);
       }
@@ -446,7 +421,7 @@ class LabBenchStore extends EventEmitter {
 
   standardLoaded(standard) {
     if(standard) {
-      if(standard.forbidden) {
+      if(standard.forbidden || standard.deleted) {
         delete this.labBench.measureStandards[standard.uid];
         this.ids.measureStandards.splice(this.ids.measureStandards.indexOf(standard.uid), 1);
       }
@@ -471,7 +446,7 @@ class LabBenchStore extends EventEmitter {
 
   measurementLoaded(measurement) {
     if(measurement) {
-      if(measurement.forbidden) {
+      if(measurement.forbidden || measurement.deleted) {
         delete this.labBench.measurements[measurement.uid];
         this.ids.measurements.splice(this.ids.measurements.indexOf(measurement.uid), 1);
       }

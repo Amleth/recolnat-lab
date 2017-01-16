@@ -10,17 +10,12 @@ import Popup from "../popups/LineMeasurePopup";
 import AbstractTool from "../AbstractTool";
 
 import ToolActions from "../../actions/ToolActions";
-import ViewActions from '../../actions/ViewActions';
-import MetadataActions from '../../actions/MetadataActions';
 
 import ToolConf from "../../conf/Tools-conf";
-import conf from '../../conf/ApplicationConfiguration';
 
 import Globals from '../../utils/Globals';
-import ServiceMethods from '../../utils/ServiceMethods';
 
 import icon from '../../images/measure.svg';
-import saveIcon from '../../images/save.png';
 
 /**
  * A tool registers itself with the ToolStore, providing its name and a callback function.
@@ -60,6 +55,7 @@ class LineMeasure extends AbstractTool {
       start: null,
       end: null,
       uuid: null,
+      scale: null,
       mmPerPixel: null
     };
   }
@@ -73,8 +69,7 @@ class LineMeasure extends AbstractTool {
       selfRectSvgClass: "LINE_MEASURE_RECT_TOOL_CLASS",
       selfTextSvgClass: "LINE_MEASURE_TEXT_TOOL_CLASS",
       selfStartVertexClass: "LINE_MEASURE_RECT_START_CLASS",
-      selfEndVertexClass: "LINE_MEASURE_RECT_END_CLASS",
-      selfSaveClass: 'LINE_MEASURE_SAVE_CLASS'
+      selfEndVertexClass: "LINE_MEASURE_RECT_END_CLASS"
     };
   }
 
@@ -98,12 +93,6 @@ class LineMeasure extends AbstractTool {
     d3.selectAll('.' + LineMeasure.classes().selfEndVertexClass)
       .attr('stroke-width', 3/view.scale)
       .attr('r', 6/view.scale);
-
-    d3.selectAll('.' + LineMeasure.classes().selfSaveClass)
-      .attr('height', 30/view.scale)
-      .attr('width', 30/view.scale)
-      .attr('x', d => (d.x2 + d.x1) / 2 - 20/view.scale)
-      .attr('y', d => (d.y2 + d.y1) / 2 + 10/view.scale);
   }
 
   createActiveMeasure(x, y, uuid, data) {
@@ -120,12 +109,22 @@ class LineMeasure extends AbstractTool {
         mmPerPixel: exifMmPerPx
       };
     }
-    for(var i = 0; i < scaleIds.length; ++i) {
+
+    let useScaleId = null;
+    for(let i = 0; i < scaleIds.length; ++i) {
       //console.log(JSON.stringify(this.props.benchstore.getData(scaleIds[i])));
-      scales[scaleIds[i]] = this.props.benchstore.getData(scaleIds[i]);
+      let scale = this.props.metastore.getMetadataAbout(scaleIds[i]);
+      if(scale) {
+        scales[scaleIds[i]] = {
+          name: scale.name,
+          uid: scale.uid,
+          mmPerPixel: scale.mmPerPixel
+        };
+        useScaleId = scale.uid;
+      }
     }
 
-    var lineData = {
+    let lineData = {
       x1: x,
       y1: y,
       x2: x,
@@ -134,20 +133,26 @@ class LineMeasure extends AbstractTool {
       image: data.entity,
       link: data.link,
       scales: scales,
-      unit: exifMmPerPx ? 'mm' : 'px',
-      mmPerPixel: exifMmPerPx
+      scale: useScaleId? useScaleId : exifMmPerPx?'exif':null,
+      unit: useScaleId || exifMmPerPx ? 'mm' : 'px',
+      date: new Date(),
+      mmPerPixel: useScaleId? scales[useScaleId].mmPerPixel: exifMmPerPx ? exifMmPerPx : null
     };
 
-    if(this.state.scale) {
-      if(scales[this.state.scale]) {
-        lineData.mmPerPixel = scales[this.state.scale].mmPerPixel;
-        lineData.unit = 'mm';
-      }
-    }
+    // if(this.state.scale) {
+    //   if(scales[this.state.scale]) {
+    //     lineData.mmPerPixel = scales[this.state.scale].mmPerPixel;
+    //     lineData.unit = 'mm';
+    //   } else {
+    //     this.setState({scale: useScaleId});
+    //   }
+    // }else {
+    //   this.setState({scale: useScaleId});
+    // }
 
-    var view = this.props.viewstore.getView();
+    let view = this.props.viewstore.getView();
 
-    var newMeasure = activeToolGroup.append('g')
+    let newMeasure = activeToolGroup.append('g')
       .datum(lineData)
       .attr('id', d => 'MEASURE-' + d.id)
       .attr('class', LineMeasure.classes().selfGroupSvgClass);
@@ -157,7 +162,7 @@ class LineMeasure extends AbstractTool {
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfSvgClass)
       .attr('stroke-width', 2/view.scale)
-      .attr('stroke', '#AAAAAA')
+      .attr('stroke', 'white')
       .style('pointer-events', 'none');
 
     newMeasure
@@ -169,7 +174,7 @@ class LineMeasure extends AbstractTool {
       .attr('stroke', 'black')
       .style('pointer-events', 'none');
 
-    var group = newMeasure.append('g')
+    let group = newMeasure.append('g')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfDataContainerClass);
 
@@ -177,8 +182,6 @@ class LineMeasure extends AbstractTool {
       .append('text')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfTextSvgClass)
-      //.attr('dy', 0.35/view.scale + 'em')
-      //.attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .attr('stroke-width', 1/(4*view.scale) + 'px')
       .attr('font-size', 20/view.scale + 'px')
@@ -189,23 +192,25 @@ class LineMeasure extends AbstractTool {
 
     LineMeasure.updateLineDisplay(lineData.id);
 
-    var self = this;
+    let self = this;
     d3.select('#GROUP-' + data.link)
       .on("mousemove", function(d, i) {
         self.setLineEndPosition.call(this, self)
       });
+
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   makeActiveMeasurePassive(x, y, data) {
-    var view = this.props.viewstore.getView();
+    let view = this.props.viewstore.getView();
     // Grab active measure
-    var activeToolGroup = d3.select('#MEASURE-' + this.state.uuid);
-    var self = this;
-    var lineData = activeToolGroup.datum();
+    let activeToolGroup = d3.select('#MEASURE-' + this.state.uuid);
+    let self = this;
+    let lineData = activeToolGroup.datum();
     // Remove mousemove listener
     d3.select('#GROUP' + this.state.imageLinkUri)
       .on("mousemove", null);
-    // Create point (rect) at both ends with drag listeners
+    // Create point (circle) at both ends with drag listeners
     activeToolGroup.append('circle')
       .datum(lineData)
       .attr('class', LineMeasure.classes().selfStartVertexClass)
@@ -232,19 +237,9 @@ class LineMeasure extends AbstractTool {
       .on('mousedown', LineMeasure.stopEvent)
       .call(this.dragEndVertex);
 
-    activeToolGroup.select('.' + LineMeasure.classes().selfDataContainerClass).append('svg:image')
-      .datum(lineData)
-      .attr('class', LineMeasure.classes().selfSaveClass)
-      .attr('xlink:href', saveIcon)
-      .attr('height', 30/view.scale)
-      .attr('width', 30/view.scale)
-      .attr('x', d => (d.x2 + d.x1) / 2 - 20/view.scale)
-      .attr('y', d => (d.y2 + d.y1) / 2 + 10/view.scale)
-      .style('cursor', 'default')
-      .on('click', function(d) { return self.save.call(self, d); });
-
     LineMeasure.updateLineDisplay(this.state.uuid);
-    // Add icon to 'save measure to server'
+
+    // window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   removeSVG() {
@@ -255,6 +250,8 @@ class LineMeasure extends AbstractTool {
     var popup = <Popup
       userstore={this.props.userstore}
       toolstore={this.props.toolstore}
+      metastore={this.props.metastore}
+      viewstore={this.props.viewstore}
       setScaleCallback={this.setScale.bind(this)}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
@@ -283,10 +280,12 @@ class LineMeasure extends AbstractTool {
 
   reset() {
     this.removeMouseMoveListener();
-    // this.removeSVG();
+    this.removeSVG();
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip')), 10);
     this.setState({start: null, end: null,
       imageUri: null, imageLinkUri: null, uuid: null});
+
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   finish() {
@@ -300,6 +299,7 @@ class LineMeasure extends AbstractTool {
     this.removeMouseMoveListener();
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ''), 10);
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
     this.setState(this.initialState());
   }
 
@@ -321,24 +321,27 @@ class LineMeasure extends AbstractTool {
       imageLinkUri: data.link,
       imageUri: data.entity
     });
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   endLine(x, y, data) {
     this.removeMouseMoveListener();
     this.makeActiveMeasurePassive(x, y, data);
-    //if(this.popup) {
-    //  this.popup.updateScales();
-    //}
-    this.reset();
+
+    // window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
+
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip')), 10);
+    this.setState({start: null, end: null,
+      imageUri: null, imageLinkUri: null, uuid: null});
   }
 
   leftClick(self, d) {
     if(!self.state.imageLinkUri) {
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.startLine.call(self, coords[0], coords[1], d);
     }
     else if(self.state.imageLinkUri == d.link) {
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.endLine.call(self, coords[0], coords[1], d);
     }
     else {
@@ -351,27 +354,11 @@ class LineMeasure extends AbstractTool {
   }
 
   save(d) {
-    if(d3.event.defaultPrevented) return;
-    d3.event.preventDefault();
-    d3.event.stopPropagation();
-    var name = prompt(this.props.userstore.getText('lineMeasureTooltip3'), '');
-    if(name.length < 1) {
-      alert(this.props.userstore.getText('nameMandatory'));
-      return;
-    }
-
-    var path = [];
-    path.push([d.x1, d.y1]);
-    path.push([d.x2, d.y2]);
-
-    var length = Math.sqrt(Math.pow(Math.abs(d.y2) - Math.abs(d.y1), 2) + Math.pow(Math.abs(d.x2) - Math.abs(d.x1), 2));
-
-    ServiceMethods.createTrailOfInterest(d.image, length, path, name, Globals.setSavedEntityInInspector);
   }
 
   static updateLineDisplay(id) {
     //console.log("updating " + id);
-    var measure = d3.select('#MEASURE-' + id);
+    let measure = d3.select('#MEASURE-' + id);
 
     measure.selectAll('.' + LineMeasure.classes().selfSvgClass)
       .attr('x1', d => d.x1)
@@ -385,13 +372,13 @@ class LineMeasure extends AbstractTool {
       .attr('x2', d => d.x2)
       .attr('y2', d => d.y2);
 
-    var text = measure.select('.' + LineMeasure.classes().selfTextSvgClass)
-      .attr('x', d => (d.x2 + d.x1) / 2)
-      .attr('y', d => (d.y2 + d.y1) / 2)
-      .text(d => LineMeasure.calculateMeasuredLength(d).toFixed(2) + '' + d.unit);
+    // var text = measure.select('.' + LineMeasure.classes().selfTextSvgClass)
+    //   .attr('x', d => (d.x2 + d.x1) / 2)
+    //   .attr('y', d => (d.y2 + d.y1) / 2)
+    //   .text(d => LineMeasure.calculateMeasuredLength(d).toFixed(2) + '' + d.unit);
 
-    var width = text.node().getBBox().width;
-    var height = text.node().getBBox().height;
+    // var width = text.node().getBBox().width;
+    // var height = text.node().getBBox().height;
 
     measure.select('.' + LineMeasure.classes().selfStartVertexClass)
       .attr('cx', d => d.x1)
@@ -401,9 +388,7 @@ class LineMeasure extends AbstractTool {
       .attr('cx', d => d.x2)
       .attr('cy', d => d.y2);
 
-    //measure.select('.' + LineMeasure.classes().selfSaveClass)
-    //  .attr('x', d => (d.x2 + d.x1) / 2)
-    //  .attr('y', d => (d.y2 + d.y1) / 2 - 10);
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   static stopEvent(d) {
@@ -453,13 +438,7 @@ class LineMeasure extends AbstractTool {
 
     LineMeasure.updateLineDisplay(lineData.id);
 
-    var popup = <Popup
-      toolstore={self.props.toolstore}
-      setScaleCallback={self.setScale.bind(self)}/>;
-    //window.setTimeout(function() {
-    //  ToolActions.activeToolPopupUpdate(popup);
-    //  ToolActions.updateTooltipData(ToolConf.lineMeasure.tooltip);
-    //}, 50);
+    window.setTimeout(ToolActions.updateToolData.bind(null, null), 10);
   }
 
   removeMouseMoveListener() {
@@ -467,10 +446,10 @@ class LineMeasure extends AbstractTool {
   }
 
   static calculateMeasuredLength(d) {
-    var yMax = Math.max(d.y1, d.y2);
-    var yMin = Math.min(d.y1, d.y2);
-    var xMax = Math.max(d.x1, d.x2);
-    var xMin = Math.min(d.x1, d.x2);
+    let yMax = Math.max(d.y1, d.y2);
+    let yMin = Math.min(d.y1, d.y2);
+    let xMax = Math.max(d.x1, d.x2);
+    let xMin = Math.min(d.x1, d.x2);
     if(d.mmPerPixel) {
       return Math.sqrt(Math.pow(yMax - yMin, 2) + Math.pow(xMax - xMin, 2)) * d.mmPerPixel;
     }
@@ -480,26 +459,26 @@ class LineMeasure extends AbstractTool {
   }
 
   setScale(scaleId) {
-    if(scaleId) {
-      d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-        //console.log('setting scale for ' + JSON.stringify(d));
-        if(d.scales[scaleId]) {
-          d.mmPerPixel = d.scales[scaleId].mmPerPixel;
-          d.unit = 'mm';
-        }
-        else {
-          d.mmPerPixel = null;
-          d.unit = 'px';
-        }
-      });
-    }
-    else {
-      d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-        //console.log('setting scale for ' + JSON.stringify(d));
-        d.mmPerPixel = null;
-        d.unit = 'px';
-      });
-    }
+    // if(scaleId) {
+    //   d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
+    //     //console.log('setting scale for ' + JSON.stringify(d));
+    //     if(d.scales[scaleId]) {
+    //       d.mmPerPixel = d.scales[scaleId].mmPerPixel;
+    //       d.unit = 'mm';
+    //     }
+    //     else {
+    //       d.mmPerPixel = null;
+    //       d.unit = 'px';
+    //     }
+    //   });
+    // }
+    // else {
+    //   d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
+    //     //console.log('setting scale for ' + JSON.stringify(d));
+    //     d.mmPerPixel = null;
+    //     d.unit = 'px';
+    //   });
+    // }
     d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).each(function(d) {
       LineMeasure.updateLineDisplay(d.id);
     });
@@ -510,7 +489,7 @@ class LineMeasure extends AbstractTool {
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
     this.props.viewstore.addViewportListener(this._onZoom);
     $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.lineMeasure.id, this.click, this);
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.lineMeasure.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -525,7 +504,7 @@ class LineMeasure extends AbstractTool {
   componentWillUnmount() {
     this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.viewstore.removeViewportListener(this._onZoom);
-    ToolActions.activeToolPopupUpdate(null);
+    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
   }
 
   render() {

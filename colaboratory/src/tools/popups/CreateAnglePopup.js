@@ -159,7 +159,7 @@ class CreateAnglePopup extends React.Component {
           </div>
         </div>
         <div style={this.buttonContainerStyle} className='ui buttons'>
-          <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('validate')}</button>
+          <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('save')}</button>
         </div>
       </div>
     );

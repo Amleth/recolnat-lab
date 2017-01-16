@@ -10,6 +10,7 @@ import MoveView from '../impl/MoveView';
 import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
 import CreateAngle from '../impl/CreateAngle';
+import CreateMeasureStandard from '../impl/CreateMeasureStandard';
 import NoTool from '../impl/NoTool';
 
 class Toolbox extends React.Component {
@@ -95,25 +96,35 @@ class Toolbox extends React.Component {
             toolstore={this.props.toolstore}
             userstore={this.props.userstore}
             benchstore={this.props.benchstore}
+            metastore={this.props.metastore}
             viewstore={this.props.viewstore} />
           <CreateAngle
             viewstore={this.props.viewstore}
             userstore={this.props.userstore}
+            metastore={this.props.metastore}
+            toolstore={this.props.toolstore} />
+          <CreateMeasureStandard
+            viewstore={this.props.viewstore}
+            userstore={this.props.userstore}
+            metastore={this.props.metastore}
             toolstore={this.props.toolstore} />
         </div>
         <div className='ui three buttons' style={this.buttonRowsStyle}>
           <CreatePointOfInterest
             toolstore={this.props.toolstore}
             userstore={this.props.userstore}
+            metastore={this.props.metastore}
             viewstore={this.props.viewstore} />
           <CreatePath
             viewstore={this.props.viewstore}
             benchstore={this.props.benchstore}
             userstore={this.props.userstore}
+            metastore={this.props.metastore}
             toolstore={this.props.toolstore} />
           <CreateRoI
             viewstore={this.props.viewstore}
             userstore={this.props.userstore}
+            metastore={this.props.metastore}
             toolstore={this.props.toolstore} />
         </div>
       </div>

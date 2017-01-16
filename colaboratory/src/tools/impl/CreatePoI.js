@@ -73,6 +73,12 @@ class CreatePoI extends AbstractTool {
     }
 
     ServiceMethods.createPointOfInterest(this.state.imageUri, this.state.x, this.state.y, this.state.name, Globals.setSavedEntityInInspector);
+
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPointOfInterestTooltip')), 10);
+
+    this.clearSVG();
+
+    this.setState({x: null, y: null, displayX: null, displayY: null, imageUri: null, imageLinkUri: null});
   }
 
   begin() {

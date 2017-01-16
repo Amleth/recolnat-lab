@@ -59,7 +59,7 @@ class MetadataStore extends EventEmitter {
   }
 
   metadataUpdated(metadata) {
-    if(metadata.forbidden) {
+    if(metadata.forbidden || metadata.deleted) {
       delete this.metadata[metadata.uid];
     }
     else {
@@ -81,13 +81,14 @@ class MetadataStore extends EventEmitter {
   }
 
   getOriginalSource(id) {
-    var meta = this.metadata[id];
+    console.log('getOriginalSource');
+    let meta = this.metadata[id];
     if(!meta) {
       // Get metadata and restart this operation
       this.addMetadataUpdateListener(id, this.getOriginalSource.bind(this, id));
       return;
     }
-    if(meta.type == 'Specimen') {
+    if(meta.type === 'Specimen') {
       if(meta.originalSource) {
         this.addMetadataUpdateListener(meta.originalSource, this.originalSourceObtained.bind(this, meta.originalSource, id));
       }
@@ -95,24 +96,31 @@ class MetadataStore extends EventEmitter {
   }
 
   originalSourceObtained(originalSourceId, specimenId) {
-    var meta = this.metadata[originalSourceId];
+    console.log('originalSourceObtained');
+    console.log('originalSourceId ' + originalSourceId);
+    console.log('originalSourceObtained ' + specimenId);
+    let meta = this.metadata[originalSourceId];
     if(!meta) {
       return;
     }
-    var id = meta.idInOriginSource;
-    var type = meta.typeInOriginSource;
-    var source = meta.origin;
+    console.log(JSON.stringify(meta));
+    let id = meta.idInOriginSource;
+    let type = meta.typeInOriginSource;
+    let source = meta.origin;
     switch(source.toLowerCase()) {
       case 'recolnat':
+        console.log('recolnat ext');
         switch(type.toLowerCase()) {
           case 'specimen':
+            console.log('recolnat specimen ext, calling API');
             request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
               .end((err, res) => {
                 if(err) {
                   console.error('Could not retrieve resource data from recolnat about ' + id);
                 }
                 else {
-                  var specimen = JSON.parse(res.text);
+                  console.log('recolnat API received response');
+                  let specimen = JSON.parse(res.text);
                   this.externalMetadata[specimenId] = specimen;
                   this.emitExternalMetadataUpdateEvent(specimenId);
                 }
@@ -131,18 +139,20 @@ class MetadataStore extends EventEmitter {
 
   addExternalMetadataUpdateListener(id, callback) {
     if(id) {
-      if(!this.externalMetadata[id]) {
-        this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
-      }
+      this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
+      // if(!this.externalMetadata[id]) {
+      //   this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
+      // }
 
       if(this.externalMetadata[id]) {
         if(this.externalMetadata[id] !== 'loading') {
-          window.setTimeout(this.emitExternalMetadataUpdateEvent.bind(this, id), 10);
+          window.setTimeout(function(){callback(id)}, 10);
+          // window.setTimeout(this.emitExternalMetadataUpdateEvent.bind(this, id), 10);
         }
       }
       else {
-        window.setTimeout(this.getOriginalSource.bind(this, id), 10);
         this.externalMetadata[id] = 'loading';
+        window.setTimeout(this.getOriginalSource.bind(this, id), 10);
       }
     }
   }

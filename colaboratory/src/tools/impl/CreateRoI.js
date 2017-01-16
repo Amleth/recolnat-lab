@@ -265,16 +265,18 @@ class CreateRoI extends AbstractTool {
     let y = null;
     let edges = this.state.edges;
     while(edges.length > 0) {
-      var edge = CreateRoI.getNextEdge(edges, x, y);
+      let edge = CreateRoI.getNextEdge(edges, x, y);
       x = edge.end.x;
       y = edge.end.y;
 
       polygon.push([edge.start.x, edge.start.y]);
       perimeter += Math.sqrt(Math.pow(Math.abs(edge.end.y) - Math.abs(edge.start.y), 2) + Math.pow(Math.abs(edge.end.x) - Math.abs(edge.start.x), 2));
     }
-    var area = Math.abs(polygonArea(polygon));
+    let area = Math.abs(polygonArea(polygon));
 
     ServiceMethods.createRegionOfInterest(this.state.imageUri, area, perimeter, polygon, this.state.name, Globals.setSavedEntityInInspector);
+
+    this.reset();
   }
 
   static getNextEdge(edges, x, y) {

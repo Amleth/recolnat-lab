@@ -22,6 +22,7 @@ class ToolStore extends EventEmitter {
     this.activeToolPopup = null;
     this.tooltipContent = null;
     this.imageId = null;
+    this.toolData = null;
 
     AppDispatcher.register((action) => {
       switch (action.actionType) {
@@ -63,10 +64,18 @@ class ToolStore extends EventEmitter {
           this.tooltipContent = action.content;
           this.emit(ToolEvents.TOOLTIP_CONTENT_UPDATE);
           break;
+        case ToolConstants.ActionTypes.TOOL_UPDATE_DATA:
+          this.toolData = action.data?JSON.parse(JSON.stringify(action.data)): null;
+          this.emit(ToolEvents.TOOL_DATA_CHANGED);
+          break;
       }
     });
 
     this.register("null", function() {}, null);
+  }
+
+  getToolData() {
+    return JSON.parse(JSON.stringify(this.toolData));
   }
 
   getTooltipContent() {
@@ -198,6 +207,14 @@ class ToolStore extends EventEmitter {
 
   removeTooltipChangeListener(callback) {
     this.removeListener(ToolEvents.TOOLTIP_CONTENT_UPDATE, callback);
+  }
+
+  addToolDataChangeListener(callback) {
+    this.on(ToolEvents.TOOL_DATA_CHANGED, callback);
+  }
+
+  removeToolDataChangeListener(callback) {
+    this.removeListener(ToolEvents.TOOL_DATA_CHANGED, callback);
   }
 }
 

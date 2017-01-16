@@ -142,7 +142,6 @@ class Connector extends EventEmitter {
     switch(jsonMessage.action) {
       case ServerConstants.ActionTypes.Receive.RESOURCE:
         var resource = jsonMessage.resource;
-
         if(resource.type === "User" && this.user === null) {
           console.log('User data received');
           this.idToData['user'] = resource;

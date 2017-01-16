@@ -148,11 +148,12 @@ public class MessageProcessorThread implements Runnable {
                 modified = result.getModified();
                 break;
               case "add-measure-standard":
-                String pathId = jsonIn.getString("path");
+                String measurementId = jsonIn.getString("measurement");
                 Double value = jsonIn.getDouble("value");
                 String unit = jsonIn.getString("unit");
                 name = jsonIn.getString("name");
-                modified = ImageEditorResource.addMeasureStandard(pathId, value, unit, name, userLogin);
+                result = ImageEditorResource.addMeasureStandard(measurementId, value, unit, name, userLogin);
+                modified = result.getModified();
                 break;
               case "create-set":
                 name = jsonIn.getString("name");

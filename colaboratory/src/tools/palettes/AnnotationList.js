@@ -106,7 +106,7 @@ class AnnotationList extends React.Component {
 
     this._onMetadataUpdate = (id) => {
       const processMetadata = (id) => {
-        var meta = this.props.metastore.getMetadataAbout(id);
+        let meta = this.props.metastore.getMetadataAbout(id);
         if(!meta) {
           return;
         }
@@ -132,7 +132,12 @@ class AnnotationList extends React.Component {
             this.receiveAnchor(id);
             break;
           case 'Annotation':
-            this.receiveAnnotation(id);
+            if(meta.content === 'MeasureStandard') {
+              this.receiveStandard(id);
+            }
+            else {
+              this.receiveAnnotation(id);
+            }
             break;
           default:
             console.warn('No handler for ' + meta.type);
@@ -333,6 +338,25 @@ class AnnotationList extends React.Component {
     var data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
 
+    if(meta.standards) {
+      for(let i = 0; i < meta.standards.length; ++i) {
+        let standardId = meta.standards[i];
+        this.props.metastore.addMetadataUpdateListener(standardId, this._onMetadataUpdate);
+        data[standardId] = null;
+      }
+    }
+
+    this.setState({data: data});
+  }
+
+  receiveStandard(id) {
+    let meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    let data = JSON.parse(JSON.stringify(this.state.data));
+    data[id] = meta;
+
     this.setState({data: data});
   }
 
@@ -357,7 +381,7 @@ class AnnotationList extends React.Component {
       this.props.metastore.removeMetadataUpdateListener(ids[i], this._onMetadataUpdate);
     }
 
-    for(var i = 0; i < this.state.annotations.length; ++i) {
+    for(let i = 0; i < this.state.annotations.length; ++i) {
       this.props.metastore.removeExternalMetadataUpdateListener(this.state.annotations[i].inSpecimen, this._onExternalMetadataUpdate);
     }
 
@@ -365,7 +389,7 @@ class AnnotationList extends React.Component {
   }
 
   createAnnotations(state) {
-    var annotations = _.chain(state.data)
+    let annotations = _.chain(state.data)
       .pick(d => d !== null)
       .pick(d => (d.type === 'Annotation' && d.valueInPx !== 0) || d.type === 'PointOfInterest')
       .map(a => JSON.parse(JSON.stringify(a)))
@@ -437,8 +461,22 @@ class AnnotationList extends React.Component {
 
     annotation.displayDate = new Date(annotation.creationDate);
 
-    var mmPerPixel = Globals.getEXIFScalingData(state.data[annotation.inImage]);
+
     if(annotation.measureType) {
+      let mmPerPixel = null;
+      let imageData = state.data[annotation.inImage];
+      if(imageData) {
+        if(imageData.scales.length > 0) {
+          let scaleId = imageData.scales[imageData.scales.length -1];
+          let scale = state.data[scaleId];
+          if(scale) {
+            mmPerPixel = scale.mmPerPixel;
+          }
+        }
+      }
+      if(!mmPerPixel) {
+        mmPerPixel = Globals.getEXIFScalingData(state.data[annotation.inImage]);
+      }
       switch(annotation.measureType) {
         case 100: // Area
           if(mmPerPixel) {
@@ -731,6 +769,9 @@ class AnnotationList extends React.Component {
         titleCell = <td style={this.cellLfAlignStyle} data-sort-value={annotation.name}>{annotation.name}</td>;
       }
     }
+    else {
+      titleCell = <td style={this.cellLfAlignStyle} data-sort-value={this.props.userstore.getText('nameUnavailable')}>{this.props.userstore.getText('nameUnavailable')}</td>;
+    }
 
     if(annotation.selected) {
       selectionIcon = <i className='ui checkmark box icon' onClick={this.unselect.bind(this, annotation.uid)}/>;
@@ -752,8 +793,11 @@ class AnnotationList extends React.Component {
         barcodeCell = <td style={this.cellStyle} data-sort-value={annotation.barcode}>{annotation.barcode}</td>;
       }
     }
+    else {
+      barcodeCell = <td style={this.cellStyle} data-sort-value={this.props.userstore.getText('unavailable')}>{this.props.userstore.getText('unavailable')}</td>;
+    }
 
-    var eyeIconStyle = JSON.parse(JSON.stringify(this.cellStyle));
+    let eyeIconStyle = JSON.parse(JSON.stringify(this.cellStyle));
     if(!this.props.modestore.isInObservationMode() && !this.props.modestore.isInOrganisationMode()) {
       eyeIconStyle.visibility = 'hidden';
     }

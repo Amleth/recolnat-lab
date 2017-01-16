@@ -2,29 +2,11 @@
 
 import React from 'react';
 
+import Styles from '../constants/Styles';
+
 class ActiveToolTooltip extends React.Component {
   constructor(props) {
     super(props);
-
-    this.componentStyle = {
-      //position: "absolute",
-      //backgroundColor: "rgba(0,0,0,0.5)",
-      //borderStyle: "solid",
-      //borderWidth: "1px",
-      //borderColor: "green",
-      //padding: "5px",
-      //left: "17vw",
-      //bottom: "5",
-      //display: "none",
-      //maxWidth: "200px"
-    };
-
-    this.textStyle = {
-      //color: "white",
-      cursor: "default",
-      fontSize: "12px",
-      charSet: "utf8"
-    };
 
     this._onTooltipContentUpdate = () => {
       const setTooltipContent = () => this.setState({text: this.props.toolstore.getTooltipContent()});
@@ -49,8 +31,14 @@ class ActiveToolTooltip extends React.Component {
   }
 
   render() {
-    return (<div style={this.componentStyle}>
-      <span style={this.textStyle}>{this.state.text}</span></div>);
+    return (
+      <div style={Styles.compact}
+           className={this.props.cClasses?this.props.cClasses:'ui segment'}>
+        <span style={Styles.text}>
+          {this.state.text}
+          </span>
+      </div>
+    );
   }
 }
 

@@ -176,6 +176,8 @@ class CreatePath extends AbstractTool {
 
     ServiceMethods.createTrailOfInterest(this.state.imageUri, length, path, name, Globals.setSavedEntityInInspector);
 
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathTooltip')), 10);
+
     this.setState({
       interactionState: 0,
       edges: [],

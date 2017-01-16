@@ -32,7 +32,8 @@ export default {
     topPaneCloseButton: 502,
     mainMenu: 9000,
     contextMenu: 9001,
-    loginRequiredModal: 99999
+    modalDimmer: 10000,
+    loginRequiredModal: 10001
   },
   imageQuality: {
     Low: 1,

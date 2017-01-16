@@ -20,7 +20,7 @@ class AbstractTool extends React.Component {
     this.state = {active: false};
   }
   /**
-   * Mandatory
+   * Optional
    * @param self
    * @param x
    * @param y
@@ -102,6 +102,10 @@ class AbstractTool extends React.Component {
     else {
       this.buttonStyle.backgroundColor = null;
     }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+
   }
 
   componentWillUnmount() {

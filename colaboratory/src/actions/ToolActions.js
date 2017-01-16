@@ -49,6 +49,13 @@ export default {
     });
   },
 
+  updateToolData: (data) => {
+    AppDispatcher.dispatch({
+      actionType: ToolConstants.ActionTypes.TOOL_UPDATE_DATA,
+      data: data
+    });
+  },
+
   save: () => {
     AppDispatcher.dispatch({
       actionType: ToolConstants.ActionTypes.TOOL_SAVE

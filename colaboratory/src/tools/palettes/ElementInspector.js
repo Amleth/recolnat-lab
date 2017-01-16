@@ -6,11 +6,6 @@
 import React from 'react';
 import d3 from 'd3';
 
-import MetadataActions from '../../actions/MetadataActions';
-import ModalActions from '../../actions/ModalActions';
-
-import ModalConstants from '../../constants/ModalConstants';
-
 import Globals from '../../utils/Globals';
 import D3ViewUtils from '../../utils/D3ViewUtils';
 import ServiceMethods from '../../utils/ServiceMethods';
@@ -18,13 +13,6 @@ import ServiceMethods from '../../utils/ServiceMethods';
 class ElementInspector extends React.Component {
   constructor(props) {
     super(props);
-
-    //this.containerStyle = {
-    //  height: this.props.height,
-    //  padding: '5px 5px 5px 5px',
-    //  margin: '1%',
-    //  overflow: 'hidden'
-    //};
 
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
@@ -174,6 +162,11 @@ class ElementInspector extends React.Component {
       return processAnnotationMetadata.apply(this);
     };
 
+    this._onStandardMetadataChange = () => {
+      const processStandardMetadata = () => this.processStandardMetadata();
+      return processStandardMetadata.apply(this);
+    };
+
     this._onCreatorMetadataChange = () => {
       const processCreatorMetadata = () => this.processCreatorMetadata();
       return processCreatorMetadata.apply(this);
@@ -185,8 +178,10 @@ class ElementInspector extends React.Component {
       annotationsIds: [],
       tagsIds: [],
       creatorsIds: [],
+      standardsIds: [],
       entities: {},
       annotations: {},
+      standards: {},
       tags: {},
       creators: {},
       annotationTextInput: '',
@@ -198,6 +193,7 @@ class ElementInspector extends React.Component {
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
+    this.clearMetadataListeners(this.state.standardsIds, this._onStandardMetadataChange);
 
     let elements = this.props.inspecstore.getInspectorContent();
 
@@ -206,8 +202,10 @@ class ElementInspector extends React.Component {
       annotationsIds: [],
       tagsIds: [],
       creatorsIds: [],
+      standardsIds: [],
       entities: {},
       annotations: {},
+      standards: {},
       tags: {},
       annotationTextInput: '',
       newAnnotationActiveField: null
@@ -268,12 +266,16 @@ class ElementInspector extends React.Component {
   processAnnotationMetadata() {
     let annotations = {};
     let creatorIds = [];
+    let standardIds = [];
     for(let i = 0; i < this.state.annotationsIds.length; ++i) {
       let metadata = this.props.metastore.getMetadataAbout(this.state.annotationsIds[i]);
       if(metadata) {
         annotations[metadata.uid] = metadata;
         if(metadata.creator) {
           creatorIds.push(metadata.creator);
+        }
+        if(metadata.standards) {
+          standardIds.push(...metadata.standards);
         }
       }
       else {
@@ -284,13 +286,17 @@ class ElementInspector extends React.Component {
     creatorIds = _.uniq(creatorIds);
     let newCreatorIds = _.difference(creatorIds, this.state.creatorsIds);
     //var removedCreatorIds = _.difference(this.state.creatorsIds, creatorIds);
+    standardIds = _.uniq(standardIds);
+    let newStandardIds = _.difference(standardIds, this.state.standardsIds);
 
     //this.clearMetadataListeners(removedCreatorIds);
     this.addMetadataListeners(newCreatorIds, this._onCreatorMetadataChange);
+    this.addMetadataListeners(newStandardIds, this._onStandardMetadataChange);
 
     this.setState({
       annotations: annotations,
-      creatorsIds: creatorIds
+      creatorsIds: creatorIds,
+      standardsIds: standardIds
     });
 
     //window.setTimeout(this._onCreatorMetadataChange, 50);
@@ -313,13 +319,30 @@ class ElementInspector extends React.Component {
     });
   }
 
+  processStandardMetadata() {
+    let standards = {};
+    for (let i = 0; i < this.state.standardsIds.length; ++i) {
+      let metadata = this.props.metastore.getMetadataAbout(this.state.standardsIds[i]);
+      if(metadata) {
+        standards[metadata.uid] = metadata;
+      }
+      else {
+        standards[this.state.standardsIds[i]] = null;
+      }
+    }
+
+    this.setState({
+      standards: standards
+    });
+  }
+
   annotationToMetaDisplay(metadata) {
     let item = {
       date: new Date(),
       value: metadata.content
     };
     item.date.setTime(metadata.creationDate);
-    item.date = item.date.toLocaleDateString();
+    item.date = item.date.toLocaleDateString(this.props.userstore.getLanguage());
 
     if(!metadata.creator) {
       item.author = this.props.userstore.getText('recolnatSystem');
@@ -339,7 +362,7 @@ class ElementInspector extends React.Component {
       date: new Date()
     };
     item.date.setTime(metadata.creationDate);
-    item.date = item.date.toLocaleDateString();
+    item.date = item.date.toLocaleDateString(this.props.userstore.getLanguage());
     // Ideally all of this metadata has been downloaded beforehand, otherwise the inspector could not have been reached.
     let entityId = metadata.parents[0];
     if(!entityId) {
@@ -350,7 +373,17 @@ class ElementInspector extends React.Component {
       return null;
     }
     let imageMetadata = this.props.metastore.getMetadataAbout(imageId);
-    let mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+    let mmPerPixel = null;
+    if(imageMetadata.scales.length > 0) {
+      let scaleId = imageMetadata.scales[imageMetadata.scales.length - 1];
+      let scale = this.props.metastore.getMetadataAbout(scaleId);
+      if(scale) {
+        mmPerPixel = scale.mmPerPixel;
+      }
+    }
+    if(!mmPerPixel) {
+      mmPerPixel = Globals.getEXIFScalingData(imageMetadata);
+    }
     if(mmPerPixel) {
       switch(metadata.measureType) {
         case 101: // Perimeter
@@ -384,14 +417,22 @@ class ElementInspector extends React.Component {
       }
     }
 
+    if(metadata.standards) {
+      item.standards = [];
+      for(let i = 0; i < metadata.standards.length; ++i) {
+        let standard = this.state.standards[metadata.standards[i]];
+        if(standard) {
+          item.standards.push(standard.length + standard.unit);
+        }
+      }
+    }
+
     return item;
   }
 
   convertToDMS(angle) {
     return [0|angle, '° ', 0|(angle<0?angle=-angle:angle)%1*60, "' ", 0|angle*60%1*60, '"'].join('');
   }
-
-
 
   addAnnotation(id) {
     if(!id) {
@@ -551,32 +592,32 @@ class ElementInspector extends React.Component {
             {displayName}
           </div>
           <div>
-          <i className='grey small eye icon'
-             style={eyeIconStyle}
-             data-content={this.props.userstore.getText('zoomOnEntity')}
-             onClick={this.centerViewOn.bind(this, d3id)}
-             />
-          <i className='grey small write icon'
-             style={this.addAnnotationStyle}
-             data-content={this.props.userstore.getText('addAnAnnotation')}
-             onClick={this.addAnnotation.bind(this, entityId)}/>
-        </div>
+            <i className='grey small eye icon'
+               style={eyeIconStyle}
+               data-content={this.props.userstore.getText('zoomOnEntity')}
+               onClick={this.centerViewOn.bind(this, d3id)}
+            />
+            <i className='grey small write icon'
+               style={this.addAnnotationStyle}
+               data-content={this.props.userstore.getText('addAnAnnotation')}
+               onClick={this.addAnnotation.bind(this, entityId)}/>
           </div>
+        </div>
 
         <div className='text' style={this.entityMetaStyle}>
-          {this.props.userstore.getText('creationDate') + ' : ' + (new Date(entityMetadata.creationDate)).toLocaleString('fr-FR', {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
+          {this.props.userstore.getText('creationDate') + ' : ' + (new Date(entityMetadata.creationDate)).toLocaleString(this.props.userstore.getLanguage(), {weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric', hour:'numeric', minute: 'numeric'})}
         </div>
         {measurements.map(this.buildMeasurementDisplay.bind(this))}
         <div className='ui field' style={annotationInputLocalStyle}>
           <label style={this.annotationInputTitleStyle}>{this.props.userstore.getText('newAnnotation')}</label>
-            <textarea rows='2'
-                      autofocus='true'
-                      style={this.annotationInputTextStyle}
-                      value={this.state.annotationTextInput}
-                      onChange={this.onAnnotationTextChange.bind(this)}/>
+          <textarea rows='2'
+                    autoFocus='true'
+                    style={this.annotationInputTextStyle}
+                    value={this.state.annotationTextInput}
+                    onChange={this.onAnnotationTextChange.bind(this)}/>
           <div style={this.annotationInputButtonRowStyle} className='ui tiny compact buttons'>
             <button className='ui red button' onClick={this.cancelNewAnnotation.bind(this)}>{this.props.userstore.getText('cancel')}</button>
-            <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>{this.annotationInputTitleStyle}>{this.props.userstore.getText('save')}</button>
+            <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>{this.props.userstore.getText('save')}</button>
           </div>
         </div>
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
@@ -602,10 +643,19 @@ class ElementInspector extends React.Component {
     if(this.props.userstore.getUser().login === meta.author) {
       authorStyle.visibility = 'hidden';
     }
+
+    let standardIcon = null;
+    if(meta.standards) {
+      standardIcon = <i className='blue small info circle icon' data-content={this.props.userstore.getInterpolatedText('measureIsStandard', [JSON.stringify(meta.standards)])} />;
+    }
+
+
     return (
       <div style={this.annotationStyle} key={'MEASURE-' + measurementId}>
         <div style={this.annotationTextStyle} >
-          <span>{meta.value}</span><i className={icon} data-content={meta.warning}/>
+          <span>{meta.value}</span>
+          <i className={icon} data-content={meta.warning}/>
+          {standardIcon}
         </div>
       </div>
     );
@@ -640,10 +690,10 @@ class ElementInspector extends React.Component {
     }
 
     return (
-      <div style={this.annotationStyle} key={'MEASURE-' + annotationMetadata.uid}>
+      <div style={this.annotationStyle} key={'ANNOTATION-' + annotationMetadata.uid}>
         <div style={this.annotationMetadataStyle}>
           <a style={authorStyle} className="author">{author}</a>
-          <span style={this.annotationDateStyle} className="date">{date.toLocaleDateString()}</span>
+          <span style={this.annotationDateStyle} className="date">{date.toLocaleDateString(this.props.userstore.getLanguage())}</span>
         </div>
         <div style={this.annotationTextStyle} className="text">
           <i>{annotationMetadata.content}</i>

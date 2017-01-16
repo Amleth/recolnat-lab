@@ -71,7 +71,7 @@ public class AbstractObject {
     // Get annotations
     if (e.getElementType().equals("Vertex")) {
       OrientVertex v = (OrientVertex) e;
-      if(v.countEdges(Direction.OUT) == 0 && v.countEdges(Direction.IN) == 1) {
+      if(v.countEdges(Direction.OUT, DataModel.Links.hasNewerVersion) == 1) {
         this.deleted = true;
       }
       Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();

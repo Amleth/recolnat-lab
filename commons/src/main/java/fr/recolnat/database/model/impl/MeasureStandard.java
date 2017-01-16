@@ -11,10 +11,12 @@ import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DeleteUtils;
 import java.nio.file.AccessDeniedException;
+import java.util.HashSet;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 30/09/15.

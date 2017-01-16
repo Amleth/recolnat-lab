@@ -46,6 +46,11 @@ class VirtualBenchLab extends React.Component {
       width: '15px'
     };
 
+    this.importSheetButtonIconStyle = {
+      margin:0,
+      padding: '10px'
+    };
+
     this.state = {
       isVisibleInCurrentMode: false,
       loader: null,
@@ -114,9 +119,13 @@ class VirtualBenchLab extends React.Component {
              data-content={this.props.userstore.getText('importImages')}
              ref='import'
              className='ui container'>
-          <a onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {parent: this.props.benchstore.getActiveSetId()})}
-          className='ui small green button' >
-            <i className='ui small add icon'/>
+          <a style={this.importSheetButtonIconStyle} onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.addToSet, {parent: this.props.benchstore.getActiveSetId()})}
+          className='ui green button' >
+            <i className='ui large icons'>
+              <i className='folder icon'/>
+              <i className='corner big black add icon'/>
+            </i>
+
           </a>
         </div>
         <OrbalContextMenu

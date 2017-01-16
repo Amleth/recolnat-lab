@@ -18,6 +18,9 @@ let ToolConfiguration = {
   newPath: {
     id: "createPath"
   },
+  newMeasureStandard: {
+    id: "newMeasureStandard"
+  },
   annotation: {
     id: "createAnnotation"
   },

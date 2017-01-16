@@ -190,7 +190,7 @@ public class ImageEditorResource {
   /**
    * Unit must be mm, cm, m, in
    *
-   * @param pathId
+   * @param measurementId
    * @param value
    * @param unit
    * @param name
@@ -198,8 +198,9 @@ public class ImageEditorResource {
    * @return
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
-  public static List<String> addMeasureStandard(String measurementId, Double value, String unit, String name, String user) throws AccessForbiddenException {
-    List<String> changes = new LinkedList<>();
+  public static ActionResult addMeasureStandard(String measurementId, Double value, String unit, String name, String user) throws AccessForbiddenException, JSONException {
+//    List<String> changes = new LinkedList<>();
+    ActionResult res = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -225,12 +226,14 @@ public class ImageEditorResource {
         AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
         
         
-        changes.add(vMeasurement.getProperty(DataModel.Properties.id));
-        changes.add(vStandard.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vMeasurement.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vStandard.getProperty(DataModel.Properties.id));
+        res.setResponse("id", vStandard.getProperty(DataModel.Properties.id));
         // In this case the grandparent image has changed as well
         OrientVertex vTrail = AccessUtils.findLatestVersion(vMeasurement.getVertices(Direction.IN, DataModel.Links.hasMeasurement).iterator(), g);
         OrientVertex vImage = AccessUtils.findLatestVersion(vTrail.getVertices(Direction.IN, DataModel.Links.toi).iterator(), g);
-        changes.add(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vTrail.getProperty(DataModel.Properties.id));
+        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -242,7 +245,7 @@ public class ImageEditorResource {
       }
     }
 
-    return changes;
+    return res;
   }
 
   public static ActionResult createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
@@ -310,6 +313,7 @@ public class ImageEditorResource {
         res.addModifiedId(vPath.getProperty(DataModel.Properties.id));
         res.addModifiedId(mRefPx.getProperty(DataModel.Properties.id));
         res.setResponse("id", vPath.getProperty(DataModel.Properties.id));
+        res.setResponse("measurementId", mRefPx.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;

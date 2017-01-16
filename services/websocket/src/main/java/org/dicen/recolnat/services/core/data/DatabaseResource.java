@@ -405,11 +405,15 @@ public class DatabaseResource {
       case DataModel.Classes.trailOfInterest:
         return new TrailOfInterest(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.annotation:
-        return new Annotation(v, vUser, g, DatabaseAccess.rightsDb);
+        String content = v.getProperty(DataModel.Properties.content);
+        switch(content) {
+          case DataModel.Classes.measureStandard:
+            return new MeasureStandard(v, vUser, g, DatabaseAccess.rightsDb);
+          default:
+            return new Annotation(v, vUser, g, DatabaseAccess.rightsDb);
+        }
       case DataModel.Classes.image:
         return new RecolnatImage(v, vUser, g, DatabaseAccess.rightsDb);
-      case DataModel.Classes.measureStandard:
-        return new MeasureStandard(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.study:
         return new Study(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.specimen:

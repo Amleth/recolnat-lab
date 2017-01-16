@@ -109,6 +109,8 @@ class CreateAngle extends AbstractTool {
     let name = this.state.name;
 
     ServiceMethods.createAngleOfInterest(this.state.imageId, measure, vertices, name, Globals.setSavedEntityInInspector);
+
+    this.reset();
   }
 
   begin() {
@@ -169,7 +171,7 @@ class CreateAngle extends AbstractTool {
       imageId: null
     });
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)}
+    let popup = <Popup setDataCallback={this.setData.bind(this)}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -513,7 +515,7 @@ class CreateAngle extends AbstractTool {
               style={this.buttonStyle}
               className='ui button compact'
               onClick={this.setMode}
-              data-content="Mesurer un angle">
+              data-content={this.props.userstore.getText('createNewAngle')}>
         <img src={icon} style={this.iconStyle} height='20px' width='40px' />
       </button>
     );

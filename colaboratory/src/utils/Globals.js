@@ -3,6 +3,8 @@
  */
 'use strict';
 
+import uuid from 'node-uuid';
+
 import ModeConstants from '../constants/ModeConstants';
 
 import ModeActions from '../actions/ModeActions';
@@ -152,6 +154,11 @@ class GlobalFunctions {
     return entity.name;
   }
 
+  /**
+   * Retrieves 'creationDate' or 'created' or 'date' in that order of precedence
+   * @param entity
+   * @returns {*}
+   */
   static getCreationDate(entity) {
     if(!entity) {
       return 0;
@@ -159,8 +166,11 @@ class GlobalFunctions {
     if(entity.creationDate) {
       return entity.creationDate;
     }
-    else if(entity.created) {
+    if(entity.created) {
       return entity.created;
+    }
+    if(entity.date) {
+      return entity.date;
     }
   }
 
@@ -236,6 +246,41 @@ class GlobalFunctions {
       return;
     }
     window.setTimeout(InspectorActions.setInspectorData.bind(null, [message.data.id]), 10);
+  }
+
+  /**
+   * Checks pos integer to be within min & max bounds; returns either pos, min or max. Used to check a vertex is not dragged outside its parent image.
+   * @param pos
+   * @param max
+   * @param min
+   * @returns {number}
+   */
+  static getBoundedPosition(pos, max, min) {
+    return Math.min(Math.max(pos, min), max);
+  }
+
+  static saveAutofill(formDOMNode, formSubmitCallback, e) {
+    e.preventDefault();
+    // e.stopPropagation();
+
+    let cloneForm = formDOMNode.cloneNode(true);
+    cloneForm.id = "form";
+    // let frame = document.getElementById("collaboratoryBlankHiddenTarget").cloneNode(true);
+    let frame = document.createElement('iframe');
+    frame.src = "";
+    frame.name = "temp_" + uuid.v4();
+    frame.style = "display:none";
+
+    document.body.appendChild(frame);
+    frame.contentWindow.document.body.appendChild(cloneForm);
+
+    let frameForm = frame.contentWindow.document.getElementById("form");
+    frameForm.target = "";
+    frameForm.action = "about:blank";
+    frameForm.submit();
+    window.setTimeout( () => document.body.removeChild(frame), 100);
+
+    formDOMNode.onSubmit = formSubmitCallback;
   }
 }
 

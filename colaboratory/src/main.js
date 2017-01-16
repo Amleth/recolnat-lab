@@ -25,5 +25,5 @@ import React from 'react';
   document.body.style.fontFamily = 'Roboto Condensed';
   document.body.style.fontWeight = '300';
   //document.body.style = "margin: 0px; position: relative; box-sizing: border-box; min-height: 100%; color: #F5F5F5; padding: 0px; height: 99vh; width: 100%; font-family:'Roboto Condensed'; font-weight:300;";
-  React.render(<Window/>, document.body);
+  React.render(<Window/>, document.getElementById("appContainer"));
 //});

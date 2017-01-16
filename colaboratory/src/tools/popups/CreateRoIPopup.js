@@ -140,7 +140,7 @@ class CreateRoIPopup extends React.Component {
           <button className='ui green button'
                   style={this.textStyle}
                   onClick={this.save.bind(this)}>
-            {this.props.userstore.getText('validate')}
+            {this.props.userstore.getText('save')}
             </button>
         </div>
       </div>

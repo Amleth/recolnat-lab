@@ -168,7 +168,8 @@ public class MessageProcessorThread implements Runnable {
                 break;
               case "delete-element-from-set":
                 String linkId = jsonIn.getString("link");
-                modified = SetResource.deleteElementFromSet(linkId, userLogin);
+                result = SetResource.deleteElementFromSet(linkId, userLogin);
+                modified = result.getModified();
                 break;
               case "delete-element-from-view":
                 String displayLinkId = jsonIn.getString("link");
@@ -177,7 +178,8 @@ public class MessageProcessorThread implements Runnable {
               case "link":
                 elementToCopyId = jsonIn.getString("target");
                 futureParentId = jsonIn.getString("destination");
-                modified = SetResource.link(elementToCopyId, futureParentId, userLogin);
+                result = SetResource.link(elementToCopyId, futureParentId, userLogin);
+                modified = result.getModified();
                 break;
               case "copy":
                 elementToCopyId = jsonIn.getString("target");
@@ -187,7 +189,8 @@ public class MessageProcessorThread implements Runnable {
               case "cutpaste":
                 String currentParentToElementLinkId = jsonIn.getString("link");
                 futureParentId = jsonIn.getString("destination");
-                modified = SetResource.cutPaste(currentParentToElementLinkId, futureParentId, userLogin);
+                result = SetResource.cutPaste(currentParentToElementLinkId, futureParentId, userLogin);
+                modified = result.getModified();
                 break;
               case "import-recolnat-specimen":
                 parentSetId = jsonIn.getString("set");

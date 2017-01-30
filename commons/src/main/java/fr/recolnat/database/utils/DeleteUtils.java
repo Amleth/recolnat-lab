@@ -35,8 +35,6 @@ public class DeleteUtils {
    * as well, recursively.
    *
    * @param linkId
-   * @param itemOrSetId
-   * @param parentSetId
    * @param vUser
    * @param graph
    * @return

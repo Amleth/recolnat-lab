@@ -131,24 +131,12 @@ public class SetResource {
         // Create new set & default view
         OrientVertex vSet = CreatorUtils.createSet(name, DataModel.Globals.SET_ROLE, g);
         OrientVertex vView = CreatorUtils.createView("Vue par défaut", DataModel.Globals.DEFAULT_VIEW, g);
-//        g.commit();
 
-//        boolean retry1 = true;
         OrientEdge eParentToChildLink = null;
-//        while (retry1) {
-//          retry1 = false;
-//          try {
-//            vParentSet.reload();
-//            vParentSet = AccessUtils.findLatestVersion(vParentSet);
-            // Add new set to parent
-            eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
-            UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
-            g.commit();
-//          } catch (OConcurrentModificationException e) {
-//            log.warn("Database busy, retrying internal operation");
-//            retry1 = true;
-//          }
-//        }
+        // Add new set to parent
+        eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
+        UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
+        g.commit();
 
         // Grant creator rights on new set & default view
         AccessRights.grantAccessRights(vUser, vSet, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
@@ -175,8 +163,8 @@ public class SetResource {
     return result;
   }
 
-  public static List<String> deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
-    List<String> changes = new LinkedList<>();
+  public static ActionResult deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
+    ActionResult changes = new ActionResult();
 
     boolean retry = true;
     while (retry) {
@@ -189,7 +177,9 @@ public class SetResource {
         List<String> deleted = DeleteUtils.unlinkItemFromSet(linkSetToElementId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
 
-        changes.addAll(deleted);
+        for(String id: deleted) {
+          changes.addModifiedId(id);
+        }
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -202,8 +192,8 @@ public class SetResource {
     return changes;
   }
 
-  public static List<String> link(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
-    List<String> changes = new LinkedList<>();
+  public static ActionResult link(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
+    ActionResult changes = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -230,8 +220,8 @@ public class SetResource {
         }
         g.commit();
 
-        changes.add(vSet.getProperty(DataModel.Properties.id));
-        changes.add(vTarget.getProperty(DataModel.Properties.id));
+        changes.addModifiedId(vSet.getProperty(DataModel.Properties.id));
+        changes.addModifiedId(vTarget.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -288,8 +278,8 @@ public class SetResource {
     return changes;
   }
 
-  public static List<String> cutPaste(String currentParentToElementLinkId, String futureParentId, String user) throws JSONException, AccessForbiddenException, ObsoleteDataException {
-    List<String> changes = new LinkedList<>();
+  public static ActionResult cutPaste(String currentParentToElementLinkId, String futureParentId, String user) throws JSONException, AccessForbiddenException, ObsoleteDataException {
+    ActionResult changes = new ActionResult();
     boolean retry = true;
     while (retry) {
       retry = false;
@@ -314,7 +304,7 @@ public class SetResource {
           throw new AccessForbiddenException(user, (String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
         }
 
-        changes = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
+        List<String> deletionChanges = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
 
         vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
 
@@ -330,9 +320,12 @@ public class SetResource {
 
         g.commit();
 
-        changes.add((String) vCurrentParentSet.getProperty(DataModel.Properties.id));
-        changes.add((String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
-        changes.add((String) vFutureParentSet.getProperty(DataModel.Properties.id));
+        for(String id: deletionChanges) {
+          changes.addModifiedId(id);
+        }
+        changes.addModifiedId((String) vCurrentParentSet.getProperty(DataModel.Properties.id));
+        changes.addModifiedId((String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
+        changes.addModifiedId((String) vFutureParentSet.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -532,18 +525,18 @@ public class SetResource {
 
     return result;
   }
-  
+
   public static ActionResult listUserDownloads(String user) throws JSONException {
     ActionResult ret = new ActionResult();
     List<String[]> files = DatabaseAccess.exportsDb.listUserExports(user);
     JSONArray jFiles = new JSONArray();
-    for(String[] file : files) {
+    for (String[] file : files) {
       log.debug("User " + user + " has file " + file[0]);
       jFiles.put(file[0]);
     }
-    
+
     ret.setResponse("files", jFiles);
-    
+
     return ret;
   }
 
@@ -575,25 +568,25 @@ public class SetResource {
         g.shutdown();
       }
     }
-    
-    if(!images.isEmpty()) {
+
+    if (!images.isEmpty()) {
       String zipFileName = Configuration.Exports.DIRECTORY + "/" + user + "-" + setName + "-" + DateFormatUtils.export.format(new Date()) + ".zip";
       File zipFile = new File(zipFileName);
-      
+
       try {
         zipFile.createNewFile();
         ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
-        
+
         final int BUFFER = 2048;
         byte data[] = new byte[BUFFER];
-        
-        for(File f : images) {
+
+        for (File f : images) {
           log.info("Compressing " + f.getName());
           FileInputStream fis = new FileInputStream(f);
           ZipEntry entry = new ZipEntry(f.getName());
           zos.putNextEntry(entry);
           int count = 0;
-          while((count = fis.read(data)) != -1) {
+          while ((count = fis.read(data)) != -1) {
             log.info("Compressed " + count);
             zos.write(data);
           }
@@ -609,7 +602,7 @@ public class SetResource {
         log.error("Error with file " + zipFileName, ex);
         return;
       }
-      
+
       // Add file to list of stuff ready to export
       DatabaseAccess.exportsDb.addUserExport(user, zipFile.getName(), zipFile.getName());
     }

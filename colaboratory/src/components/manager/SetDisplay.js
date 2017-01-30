@@ -174,15 +174,16 @@ class SetDisplay extends React.Component {
       case 'managerDragSet':
         let data = this.props.dragstore.getData();
         for(let i = 0; i < this.props.set.subsets.length; ++i) {
-          if(this.props.set.subsets[i].link == data.linkToParent) {
+          if(this.props.set.subsets[i].link == data.link) {
             return;
           }
         }
         // No break here, fallthrough is voluntary
       case 'managerDragItem':
         data = this.props.dragstore.getData();
+        console.log(JSON.stringify((data)));
         for(let i = 0; i < this.props.set.items.length; ++i) {
-          if(this.props.set.items[i].link == data.linkToParent) {
+          if(this.props.set.items[i].link == data.link) {
             return;
           }
         }
@@ -202,8 +203,8 @@ class SetDisplay extends React.Component {
   addDraggedEntity(event) {
     if(this.state.validEntityDraggedOverSelf) {
       let data = this.props.dragstore.getData();
-
-      ServiceMethods.cutPaste(data.linkToParent, this.props.set.uid, undefined);
+      console.log(JSON.stringify((data)));
+      ServiceMethods.cutPaste(data.link, this.props.set.uid, undefined);
     }
     this.setState({validEntityDraggedOverSelf: false});
   }

@@ -127,14 +127,14 @@ class SetManagerMainButtons extends React.Component {
               {this.props.userstore.getText('selectedSet')}
             </div>
           </div>
-          <div className={'ui compact button ' + this.state.openButton} onClick={this.splitSet.bind(this)}>
-            <div className='ui text'>
-              {this.props.userstore.getText('organise')}
-            </div>
-            <div className='ui text' style={this.buttonSubTextStyle}>
-              {this.props.userstore.getText('selectedSetContent')}
-            </div>
-          </div>
+          {/*// <div className={'ui compact button ' + this.state.openButton} onClick={this.splitSet.bind(this)}>*/}
+          {/*//   <div className='ui text'>*/}
+              {/*/!*{this.props.userstore.getText('organise')}*!/*/}
+            {/*/!*</div>*!/*/}
+            {/*/!*<div className='ui text' style={this.buttonSubTextStyle}>*!/*/}
+              {/*/!*{this.props.userstore.getText('selectedSetContent')}*!/*/}
+            {/*/!*</div>*!/*/}
+          {/*/!*</div>*!/*/}
         </div>
       </div>);
   }

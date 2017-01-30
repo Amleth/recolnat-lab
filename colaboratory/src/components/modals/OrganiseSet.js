@@ -32,21 +32,13 @@ class OrganiseSet extends AbstractModal {
     };
 
     this.processingStatusStyle = {
-      display: 'none'
+      display: 'none',
+      height: '200px',
+      overflow: 'auto'
     };
 
     this.optionsStyle = {
       display: ''
-    };
-
-    this._onMetadataAvailable = () => {
-      const updateDisplayedName = () => this.updateDisplayName();
-      return updateDisplayedName.apply(this);
-    };
-
-    this._onBasketUpdate = () => {
-      const refresh = () => this.setState({});
-      return refresh.apply(this);
     };
 
     this.state.setDisplayName = null;
@@ -90,9 +82,9 @@ class OrganiseSet extends AbstractModal {
     if(this.state.setId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.setId, this.storeSetData.bind(this));
     }
-    var keys = Object.keys(this.state.entities);
-    for(var i = 0; i < keys.length; ++i) {
-      var id = keys[i];
+    let keys = Object.keys(this.state.entities);
+    for(let i = 0; i < keys.length; ++i) {
+      let id = keys[i];
       this.props.metastore.removeMetadataUpdateListener(id, this.receiveItem.bind(this, id));
     }
   }
@@ -101,7 +93,7 @@ class OrganiseSet extends AbstractModal {
     if(this.state.phase === 2) {
       return;
     }
-    var setData = this.props.metastore.getMetadataAbout(this.state.setId);
+    let setData = this.props.metastore.getMetadataAbout(this.state.setId);
     if(setData) {
       this.setState({setData: setData, setDisplayName: setData.name});
     }
@@ -115,10 +107,10 @@ class OrganiseSet extends AbstractModal {
       console.warn('Entity no longer stored here ' + id);
       return;
     }
-    var meta = this.props.metastore.getMetadataAbout(id);
+    let meta = this.props.metastore.getMetadataAbout(id);
     meta.link = this.state.entities[id].link;
 
-    var entities = JSON.parse(JSON.stringify(this.state.entities));
+    let entities = JSON.parse(JSON.stringify(this.state.entities));
     entities[id] = meta;
     this.setState({entities : entities});
   }
@@ -129,48 +121,51 @@ class OrganiseSet extends AbstractModal {
       return;
     }
 
-    var entities = [];
-    for(var i = 0; i < this.state.setData.items.length; ++i) {
+    let entities = [];
+    for(let i = 0; i < this.state.setData.items.length; ++i) {
       entities.push(JSON.parse(JSON.stringify(this.state.entities[this.state.setData.items[i].uid])));
     }
 
-    var futureSets = _.groupBy(entities, function(item) {return item.name});
+    let futureSets = _.groupBy(entities, function(item) {return item.name});
     this.setState({newSets: futureSets, phase: 1});
   }
 
   run() {
     // Unsubscribe all listeners
     this.removeAllListeners();
-    var newSetNames = Object.keys(this.state.newSets);
-    for(var i = 0; i < newSetNames.length; ++i) {
+    let newSetNames = Object.keys(this.state.newSets);
+    for(let i = 0; i < newSetNames.length; ++i) {
       ServiceMethods.createSet(newSetNames[i], this.state.setId, this.moveItems.bind(this, newSetNames[i]));
     }
     this.setState({phase: 2});
   }
 
   moveItems(setName, msg) {
-    var log = JSON.parse(JSON.stringify(this.state.log));
+    let log = JSON.parse(JSON.stringify(this.state.log));
     if(msg.clientProcessError) {
       // alert('Impossible de créer le set ' + setName);
       log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [setName]));
       this.setState({log: log});
-      return;
     }
     else {
       log.push(this.props.userstore.getInterpolatedText('emptySetCreated', [setName]));
       this.setState({log: log});
-      for(var i = 0; i < this.state.newSets[setName].length; ++i) {
-        var item = this.state.newSets[setName][i];
+      for(let i = 0; i < this.state.newSets[setName].length; ++i) {
+        let item = this.state.newSets[setName][i];
         ServiceMethods.cutPaste(item.link, msg.data.subSet, this.itemMoved.bind(this, item.name, item.uid));
       }
-
     }
   }
 
-  itemMoved(name, id) {
-    var log = JSON.parse(JSON.stringify(this.state.log));
-    log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [name, id]));
-    this.setState({done: this.state.done+1, log: log});
+  itemMoved(name, id, msg) {
+    let log = JSON.parse(JSON.stringify(this.state.log));
+    if(msg.clientProcessError) {
+      log.push(this.props.userstore.getInterpolatedText('errorCopyingEntity', [name, id]));
+    }
+    else {
+      log.push(this.props.userstore.getInterpolatedText('entityCopiedToNewSet', [name, id]));
+    }
+    this.setState({done: this.state.done + 1, log: log});
   }
 
   componentDidMount() {
@@ -188,8 +183,8 @@ class OrganiseSet extends AbstractModal {
         //this.props.metastore.addMetadataUpdateListener(nextState.setId, this.storeSetData.bind(this));
         //nextState.setData = this.props.metastore.getMetadataAbout(nextState.setId);
         nextState.setData = this.props.metastore.getMetadataAbout(nextState.setId);
-        for(var i = 0; i < nextState.setData.items.length; ++i) {
-          var id = nextState.setData.items[i].uid;
+        for(let i = 0; i < nextState.setData.items.length; ++i) {
+          let id = nextState.setData.items[i].uid;
           nextState.entities[id] = this.props.metastore.getMetadataAbout(id);
           nextState.entities[id].link = nextState.setData.items[i].link;
         }
@@ -223,9 +218,9 @@ class OrganiseSet extends AbstractModal {
   }
 
   render() {
-    var self = this;
+    let self = this;
     return <div className="ui modal" ref='modal'>
-      <i className="close icon"></i>
+      <i className="close icon" />
       <div className="header">
         {this.props.userstore.getText('organiseSet')}
       </div>
@@ -243,9 +238,9 @@ class OrganiseSet extends AbstractModal {
               {this.props.userstore.getText('organiseSetHelp3')}
             </div>
             {this.props.userstore.getInterpolatedText('organiseSetHelp2', [Object.keys(this.state.newSets).length, this.state.setDisplayName])}
-            {Object.keys(this.state.newSets).map(function(newSetName) {
+            {Object.keys(this.state.newSets).map(function(newSetName, index) {
               let setData = self.state.newSets[newSetName];
-              return <div>{self.props.userstore.getInterpolatedText('organiseSetHelp4', [newSetName, setData.length])}</div>
+              return <div key={index}>{self.props.userstore.getInterpolatedText('organiseSetHelp4', [newSetName, setData.length])}</div>
             })}
           </div>
         </div>
@@ -254,8 +249,8 @@ class OrganiseSet extends AbstractModal {
           <div className='ui text'>
             {this.props.userstore.getText('organiseSetHelp5')} {this.props.userstore.getText('name')}
           </div>
-          {this.state.log.map(function(line) {
-            return <div className='ui text'>
+          {this.state.log.map(function(line, index) {
+            return <div className='ui text' key={index}>
               {line}
             </div>
           })}
@@ -274,7 +269,7 @@ class OrganiseSet extends AbstractModal {
             <div className='ui text'>
               {this.props.userstore.getText('apply')}
             </div>
-            <i className="checkmark icon"></i>
+            <i className="checkmark icon" />
           </div>
         </div>
       </div>

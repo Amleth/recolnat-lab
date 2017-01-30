@@ -126,7 +126,7 @@ export default class ServiceMethods {
   }
 
   static cutPaste(linkId, destination, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.cutPaste,
       link: linkId,

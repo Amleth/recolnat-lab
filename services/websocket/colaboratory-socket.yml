@@ -8,6 +8,10 @@ database:
     directory: /tmp/backups/
     firstExecutionDate: 7-3:00
     frequency: 7
+performance:
+  readThreadsPerUser: 50
+  lowConcurrencyWriteThreadsPerUser: 4
+  highConcurrencyWriteThreadsPerUser: 1
 authentication:
   cas: 
     ticketUrl: https://cas.recolnat.org/v1/tickets

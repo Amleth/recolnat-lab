@@ -16,6 +16,7 @@ import org.dicen.recolnat.services.core.data.DatabaseResource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.dicen.recolnat.services.configuration.Authentication;
+import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.MessageProcessorThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +42,13 @@ public class ColaboratorySocket {
   public static final Logger log = LoggerFactory.getLogger(ColaboratorySocket.class);
 
   // Executor for concurrency-heavy and intensive tasks (such as import or delete)
-  private final ExecutorService heavyExecutor = Executors.newSingleThreadExecutor();
+  private final ExecutorService heavyExecutor = Executors.newFixedThreadPool(Configuration.Performance.HIGHCONC_WRITERS_PER_USER);
 
   // Executor for short and not too concurrent tasks
-  private final ExecutorService lightExecutor = Executors.newFixedThreadPool(4);
+  private final ExecutorService lightExecutor = Executors.newFixedThreadPool(Configuration.Performance.LOWCONC_WRITERS_PER_USER);
 
   // Executor for read-only actions and operations with no concurrency issues
-  private final ExecutorService roExecutor = Executors.newFixedThreadPool(10);
+  private final ExecutorService roExecutor = Executors.newFixedThreadPool(Configuration.Performance.READERS_PER_USER);
 
   @OnMessage
   public void onMessage(String message, Session session) throws JSONException, InterruptedException {
@@ -238,6 +239,10 @@ public class ColaboratorySocket {
     } finally {
       ColaboratorySocket.mapAccessLock.unlock();
     }
+    
+    heavyExecutor.shutdownNow();
+    lightExecutor.shutdownNow();
+    roExecutor.shutdownNow();
   }
 
   @OnError

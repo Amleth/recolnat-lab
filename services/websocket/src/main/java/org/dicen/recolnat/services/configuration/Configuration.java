@@ -73,6 +73,12 @@ public class Configuration {
       public static String SERVICE_VALIDATE_URL = null;
     }
   }
+  
+  public static class Performance {
+    public static Integer READERS_PER_USER = 10;
+    public static Integer LOWCONC_WRITERS_PER_USER = 4;
+    public static Integer HIGHCONC_WRITERS_PER_USER = 1;
+  }
 
   public static void loadConfiguration(String configurationFileName) throws FileNotFoundException {
     Yaml yaml = new Yaml();
@@ -94,6 +100,11 @@ public class Configuration {
     
     Exports.DIRECTORY = (String) dbConf.get("exportsDirectory");
     new File(Exports.DIRECTORY).mkdirs();
+    
+    Map perfConf = (Map) conf.get("performance");
+    Performance.READERS_PER_USER = (Integer) perfConf.get("readThreadsPerUser");
+    Performance.LOWCONC_WRITERS_PER_USER = (Integer) perfConf.get("lowConcurrencyWriteThreadsPerUser");
+    Performance.HIGHCONC_WRITERS_PER_USER = (Integer) perfConf.get("highConcurrencyWriteThreadsPerUser");
 
     Map authConf = (Map) conf.get("authentication");
     Map cas = (Map) authConf.get("cas");

@@ -33,6 +33,7 @@ class CreatePathPopup extends React.Component {
       width: '198px',
       flexDirection: 'row',
       backgroundColor: 'whitesmoke',
+      justifyContent: 'space-between',
       borderStyle: "solid",
       borderWidth: "0 0 1px 0",
       borderColor: "black",
@@ -52,10 +53,7 @@ class CreatePathPopup extends React.Component {
       cursor: 'default'
     };
 
-    this.closeIconStyle = {
-      position: 'absolute',
-      right: 0,
-      top: 0,
+    this.iconStyle = {
       cursor: 'pointer'
     };
 
@@ -99,6 +97,11 @@ class CreatePathPopup extends React.Component {
     this.setState({name: ''});
   }
 
+  minimize() {
+    this.barContainerStyle.display = this.barContainerStyle.display === 'none' ? '': 'none';
+    this.setState({});
+  }
+
   save() {
     ToolActions.save();
   }
@@ -128,7 +131,12 @@ class CreatePathPopup extends React.Component {
       <div style={this.componentStyle} className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
           <div style={this.titleStyle}>{this.props.userstore.getText('newTrail')}</div>
-          <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
+          <div>
+            <i className='ui minus icon'
+               style={this.iconStyle}
+               onClick={this.minimize.bind(this)} />
+            <i className='ui remove icon' style={this.iconStyle} onClick={Globals.noActiveTool} />
+          </div>
         </div>
         <div style={this.barContainerStyle}>
           <Tooltip userstore={this.props.userstore}
@@ -139,9 +147,9 @@ class CreatePathPopup extends React.Component {
                       onChange={this.onNameChange.bind(this)}
                       value={this.state.name} autofocus="true" wrap="hard"/>
           </div>
-        </div>
-        <div style={this.buttonContainerStyle} className='ui buttons'>
-          <button className='ui green button' style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('save')}</button>
+          <div style={this.buttonContainerStyle} className='ui buttons'>
+            <button className='ui green button' style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('save')}</button>
+          </div>
         </div>
       </div>
     );

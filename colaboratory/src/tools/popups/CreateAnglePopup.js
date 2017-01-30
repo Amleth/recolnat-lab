@@ -32,6 +32,7 @@ class CreateAnglePopup extends React.Component {
       display: 'flex',
       width: '198px',
       flexDirection: 'row',
+      justifyContent: 'space-between',
       backgroundColor: 'whitesmoke',
       borderStyle: "solid",
       borderWidth: "0 0 1px 0",
@@ -52,10 +53,7 @@ class CreateAnglePopup extends React.Component {
       cursor: 'default'
     };
 
-    this.closeIconStyle = {
-      position: 'absolute',
-      right: 0,
-      top: 0,
+    this.iconStyle = {
       cursor: 'pointer'
     };
 
@@ -116,6 +114,11 @@ class CreateAnglePopup extends React.Component {
     this.setState({saveButtonActive: 'disabled'});
   }
 
+  minimize() {
+    this.barContainerStyle.display = this.barContainerStyle.display === 'none' ? '': 'none';
+    this.setState({});
+  }
+
   componentDidMount() {
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
   }
@@ -125,12 +128,6 @@ class CreateAnglePopup extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    //if(nextProps.enableSave) {
-    //  nextState.saveButtonActive = '';
-    //}
-    //else {
-    //  nextState.saveButtonActive = 'disabled';
-    //}
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -146,7 +143,12 @@ class CreateAnglePopup extends React.Component {
       <div style={this.componentStyle} className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
           <div style={this.titleStyle}>{this.props.userstore.getText('newAngle')}</div>
-          <i className='ui remove icon' style={this.closeIconStyle} onClick={Globals.noActiveTool} />
+          <div style={this.buttonsStyle}>
+            <i className='ui minus icon'
+               style={this.iconStyle}
+               onClick={this.minimize.bind(this)} />
+            <i className='ui remove icon' style={this.iconStyle} onClick={Globals.noActiveTool} />
+          </div>
         </div>
         <div style={this.barContainerStyle}>
           <Tooltip userstore={this.props.userstore}
@@ -157,9 +159,9 @@ class CreateAnglePopup extends React.Component {
                       onChange={this.onNameChange.bind(this)}
                       value={this.state.name} autofocus="true" wrap="hard"/>
           </div>
-        </div>
-        <div style={this.buttonContainerStyle} className='ui buttons'>
-          <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('save')}</button>
+          <div style={this.buttonContainerStyle} className='ui buttons'>
+            <button className={'ui green button ' + this.state.saveButtonActive} style={this.textStyle} onClick={this.save.bind(this)}>{this.props.userstore.getText('save')}</button>
+          </div>
         </div>
       </div>
     );

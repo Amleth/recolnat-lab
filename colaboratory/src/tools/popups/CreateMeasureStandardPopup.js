@@ -56,6 +56,10 @@ class CreateMeasureStandardPopup extends React.Component {
       display: ''
     };
 
+    this.iconStyle = {
+      cursor: 'pointer'
+    };
+
     this._toolDataChanged = () => {
       const updatePath = () => this.pathDefinitionUpdate();
       return updatePath.apply(this);
@@ -119,7 +123,7 @@ class CreateMeasureStandardPopup extends React.Component {
       <div style={this.containerStyle} ref='container' className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
           <div style={this.titleStyle}>{this.props.userstore.getText('measureStandard')}</div>
-          <div style={this.buttonsStyle}>
+          <div>
             <i className='ui minus icon'
                style={this.iconStyle}
                onClick={this.minimize.bind(this)} />

@@ -64,10 +64,6 @@ class LineMeasurePopup extends React.Component {
       cursor: 'default'
     };
 
-    this.buttonsStyle = {
-
-    };
-
     this.pixelValueDisplayStyle = JSON.parse(JSON.stringify(Styles.buttonSubText));
     this.pixelValueDisplayStyle.display = 'relative';
     this.pixelValueDisplayStyle.top = '-10px';
@@ -460,7 +456,7 @@ class LineMeasurePopup extends React.Component {
       <div style={this.containerStyle} ref='container' className='ui segment'>
         <div className='ui segment' style={this.titleBarStyle} >
           <div style={this.titleStyle}>{this.props.userstore.getText('newMeasure')}</div>
-          <div style={this.buttonsStyle}>
+          <div>
             <i className='ui blue help circle icon'
                style={this.iconStyle} />
             <i className='ui minus icon'

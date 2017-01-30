@@ -67,15 +67,12 @@ class MetadataViewer extends React.Component {
       return displaySourceMetadata.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
 
     this.state = {
-      isVisibleInCurrentMode: false,
       loading: true,
       noContent: true,
       imageCoLabId: null,
@@ -185,7 +182,7 @@ class MetadataViewer extends React.Component {
       this.setState({loading: false});
       return;
     }
-    var metadata = this.props.metastore.getMetadataAbout(this.state.specimenCoLabId);
+    let metadata = this.props.metastore.getMetadataAbout(this.state.specimenCoLabId);
     this.setState({coLabSpecimenMetadata: metadata});
 
     if(metadata.originalSource) {
@@ -198,13 +195,13 @@ class MetadataViewer extends React.Component {
 
   displayOriginalSourceMetadata() {
     //console.log('displayOriginalSourceMetadata');
-    var metadata = this.props.metastore.getMetadataAbout(this.state.originalSourceCoLabId);
+    let metadata = this.props.metastore.getMetadataAbout(this.state.originalSourceCoLabId);
     if(!metadata) {
       return;
     }
-    var origin = metadata.origin;
-    var type = metadata.typeInOriginSource;
-    var id = metadata.idInOriginSource;
+    let origin = metadata.origin;
+    let type = metadata.typeInOriginSource;
+    let id = metadata.idInOriginSource;
     switch(origin.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
@@ -245,7 +242,7 @@ class MetadataViewer extends React.Component {
           });
         }
         else {
-          var specimen = JSON.parse(res.text);
+          let specimen = JSON.parse(res.text);
           //console.log('specimen=' + res.text);
           this.setState({
             specimen: specimen,
@@ -253,8 +250,8 @@ class MetadataViewer extends React.Component {
           });
 
           if(specimen.links) {
-            for(var i = 0; i < specimen.links.length; ++i) {
-              var link = specimen.links[i];
+            for(let i = 0; i < specimen.links.length; ++i) {
+              let link = specimen.links[i];
               switch(link.rel) {
                 case "determinations":
                 if(this.state.loadingDeterminations) {
@@ -269,7 +266,7 @@ class MetadataViewer extends React.Component {
                         });
                       }
                       else {
-                        var determinations = JSON.parse(res.text);
+                        let determinations = JSON.parse(res.text);
                         //console.log('determinations=' + res.text);
                         this.setState({determinations: determinations,
                           loadingDeterminations: false});
@@ -297,7 +294,7 @@ class MetadataViewer extends React.Component {
                         });
                       }
                       else {
-                        var harvest = JSON.parse(res.text);
+                        let harvest = JSON.parse(res.text);
                         //console.log('harvest=' + res.text);
                         this.setState({harvest: harvest, location: harvest.localisation, loadingHarvest: false, loadingLocation: false});
                       }
@@ -342,8 +339,8 @@ class MetadataViewer extends React.Component {
       });
     }
     this.props.toolstore.addSelectionChangeListener(this._onChangeSelection);
-    this.props.modestore.addModeChangeListener(this._onModeChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillReceiveProps(props) {
@@ -353,14 +350,6 @@ class MetadataViewer extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.tableStyle.display = '';
-      this.placeholderStyle.display = '';
-    }
-    else {
-      this.tableStyle.display = 'none';
-      this.placeholderStyle.display = 'none';
-    }
     nextState.noContent = !nextState.coLabImageMetadata;
 
       this.loaderStyle.display = 'none';
@@ -377,14 +366,14 @@ class MetadataViewer extends React.Component {
 
   componentWillUnmount() {
     this.props.toolstore.removeSelectionChangeListener(this._onChangeSelection);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
     if(this.state.imageCoLabId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onImageMetadataUpdated);
     }
     if(this.state.specimenCoLabId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onSpecimenMetadataUpdated);
     }
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
   }
 
   render() {

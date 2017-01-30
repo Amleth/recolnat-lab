@@ -104,7 +104,8 @@ class CreateRoI extends AbstractTool {
         .attr('y1', edge.start.y)
         .attr('x2', edge.end.x)
         .attr('y2', edge.end.y)
-        .attr('stroke-width', 1/view.scale)
+        .attr('stroke-width', 4/view.scale)
+        .attr('stroke-dasharray', 8/view.scale + ',' + 8/view.scale)
         .attr('stroke', 'white');
 
       if(this.state.interactionState == 1) {
@@ -128,7 +129,9 @@ class CreateRoI extends AbstractTool {
         .attr("cx", edge.start.x)
         .attr("cy", edge.start.y)
         .attr("r", 6/view.scale)
-        .style("fill", "black");
+        .attr('stroke-width', 3/view.scale)
+        .attr('stroke', 'white')
+        .attr("fill", "black");
 
       if(this.state.interactionState == 1) {
         circle.datum({x: edge.start.x, y: edge.start.y})
@@ -159,7 +162,9 @@ class CreateRoI extends AbstractTool {
         .attr("cx", this.state.start.x)
         .attr("cy", this.state.start.y)
         .attr("r", 6/view.scale)
-        .style("fill", "black");
+        .attr('stroke-width', 3/view.scale)
+        .attr('stroke', 'white')
+        .attr("fill", "black");
     }
   }
 
@@ -170,10 +175,12 @@ class CreateRoI extends AbstractTool {
     tool.selectAll('.blackLine')
       .attr('stroke-width', 4/scale);
     tool.selectAll('.whiteLine')
-      .attr('stroke-width', 1/scale);
+      .attr('stroke-width', 4/scale)
+      .attr('stroke-dasharray', 8/scale + ',' + 8/scale);
     tool.selectAll('.' + CreateRoI.classes().activeLineClass)
       .attr('stroke-width', 2/scale);
     tool.selectAll('circle')
+      .attr('stroke-width', 3/scale)
       .attr("r", 6/scale);
   }
 
@@ -309,7 +316,7 @@ class CreateRoI extends AbstractTool {
       // ba/ The target is not a vertex. Create a new vertex here and a new edge linking start to end. Continue with a new edge starting at this location.
       // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will close the current ROI. Close shape, end editing.
       // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-      let count = this.countEdges(x, y);
+      let count = Globals.countEdges(x, y, this.state.edges, 1);
       if (this.state.start == null) {
         // a
         if (count == 0) {
@@ -320,12 +327,12 @@ class CreateRoI extends AbstractTool {
         else if (count == 1) {
           // ab
           window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
-          let vertex = this.matchVertex(x, y);
+          let vertex = Globals.matchVertex(x, y, this.state.edges, 1);
           this.setState({start: {x: vertex.x, y: vertex.y}});
         }
         else if (count == 2) {
           // ac
-          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip1')), 100);
+          window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip1')), 10);
         }
         else {
           console.error("Whoops. This vertex is in too many edges. How unexpected.");
@@ -356,7 +363,7 @@ class CreateRoI extends AbstractTool {
             , 100);
             return;
           }
-          let vertex = this.matchVertex(x, y);
+          let vertex = Globals.matchVertex(x, y, this.state.edges, 1);
           let edges = this.state.edges;
           edges.push({
             start: {
@@ -536,9 +543,9 @@ class CreateRoI extends AbstractTool {
     if(d3.event.sourceEvent.which == 1) {
       let circle = d3.select(this);
       circle.classed('dragging', false);
+      let edges = self.state.edges;
       if(d.x && d.y && d.cx && d.cy) {
-        let edges = self.state.edges;
-        CreateRoI.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges);
+        Globals.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges, 0.1);
       }
       self.setState({edges: edges});
     }

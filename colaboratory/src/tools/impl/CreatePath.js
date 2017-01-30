@@ -76,7 +76,7 @@ class CreatePath extends AbstractTool {
         // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will
         // close the current path. Close shape, end editing.
         // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-        let count = Globals.countEdges(x, y, this.state.edges, 5);
+        let count = Globals.countEdges(x, y, this.state.edges, 1);
         if (this.state.start == null) {
           // a
           if (count == 0) {
@@ -85,14 +85,12 @@ class CreatePath extends AbstractTool {
           }
           else if (count == 1) {
             // ab
-            let vertex = Globals.matchVertex(x, y, this.state.edges, 5);
+            let vertex = Globals.matchVertex(x, y, this.state.edges, 1);
             this.setState({start: {x: vertex.x, y: vertex.y}});
           }
           else if (count == 2) {
             // ac
-            window.setTimeout(function () {
-              ToolActions.updateTooltipData(this.props.userstore.getText('newPathCannotStart'));
-            }, 100);
+            window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathCannotStart')), 10);
           }
           else {
             console.error("Whoops. This vertex is in too many edges. How unexpectedly theoretically impossible!");
@@ -117,7 +115,7 @@ class CreatePath extends AbstractTool {
           }
           else if (count == 1) {
             // bb
-            let vertex = Globals.matchVertex(x, y, this.state.edges, 5);
+            let vertex = Globals.matchVertex(x, y, this.state.edges, 1);
             let edges = this.state.edges;
             edges.push({
               start: {
@@ -133,9 +131,7 @@ class CreatePath extends AbstractTool {
           }
           else if (count == 2) {
             // bc
-            window.setTimeout(function () {
-              ToolActions.updateTooltipData(this.props.userstore.getText('newPathVertexError'));
-            }, 100);
+            window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathVertexError')), 10);
           }
           else {
             console.error("Whoops. This vertex is in too many edges. How unexpected.");
@@ -532,7 +528,7 @@ class CreatePath extends AbstractTool {
       circle.classed('dragging', false);
       let edges = self.state.edges;
       if(d.x && d.y && d.cx && d.cy) {
-        Globals.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges, 5);
+        Globals.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges, 0.1);
       }
       self.setState({edges: edges});
     }

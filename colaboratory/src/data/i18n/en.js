@@ -258,6 +258,7 @@ export default {
     errorCreatingSet: "Failed to create set %0",
     emptySetCreated: "Set %0 created.",
     entityCopiedToNewSet: "Entity %0 (id %1) moved to its new set.",
+    errorCopyingEntity: "Entity %0 (id %1) could not be moved to its new set.",
     organiseSetHelp0: "Automatically cluster the conents of set %0",
     organiseSetHelp2: "Clustering predicted results : %0 sub-sets will be created in set %1",
     organiseSetHelp4: "%0 will contain %1 entities.",

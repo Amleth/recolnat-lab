@@ -259,6 +259,7 @@ export default {
     errorCreatingSet: "Echec de la création du set %0",
     emptySetCreated: "Set %0 crée. Copie des entités.",
     entityCopiedToNewSet: "Entité %0 (%1) copiée vers son nouveau set.",
+    errorCopyingEntity: "Entité %0 (%1) n'a pas pu être ajoutée à son nouveau set",
     organiseSetHelp0: "Regrouper automatiquement le contenu du set %0",
     organiseSetHelp2: "Résultat du regroupement : %0 sets seront crées dans %1",
     organiseSetHelp4: "%0 contiendra %1 entités.",

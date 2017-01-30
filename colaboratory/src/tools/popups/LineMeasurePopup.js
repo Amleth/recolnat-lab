@@ -18,6 +18,7 @@ import ServiceMethods from '../../utils/ServiceMethods';
 import ViewUtils from '../../utils/D3ViewUtils';
 
 import ToolActions from '../../actions/ToolActions';
+import ViewActions from '../../actions/ViewActions';
 
 import ToolsConf from '../../conf/Tools-conf';
 
@@ -104,7 +105,8 @@ class LineMeasurePopup extends React.Component {
     this.nameAssistanceButtonStyle = {
       display: 'flex',
       justifyContent: 'flex-end',
-      fontSize: "8px"
+      fontSize: "8px",
+      cursor: 'pointer'
     };
 
     this.tableCellStyle = {
@@ -134,11 +136,18 @@ class LineMeasurePopup extends React.Component {
       return displayData.apply(this);
     };
 
+    this._forceRender = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.state = {
       measures: [],
       scales: {},
       scale: "null",
       name: '',
+      prefix: '',
+      index: 1,
       imageName: '',
       lengthInPx: 0,
       refName: null,
@@ -148,8 +157,22 @@ class LineMeasurePopup extends React.Component {
     };
   }
 
+  getName() {
+    if(this.state.nameAssistanceFillMode === 0) {
+      return this.state.name;
+    }
+    else if(this.state.nameAssistanceFillMode === 2) {
+      return this.state.prefix + ' ' + this.state.index;
+    }
+    else {
+      console.error('No naming handler for assistance fill mode ' + this.state.nameAssistanceFillMode);
+      return this.state.name;
+    }
+  }
+
   getMeasures() {
     let self = this;
+    let name = this.getName();
     let newTempMeasures = [];
     let scales = {};
     let currentTempMeasures = JSON.parse(JSON.stringify(this.state.measures));
@@ -161,7 +184,7 @@ class LineMeasurePopup extends React.Component {
         newTempMeasures.push(d);
       }
       else {
-        d.name = self.state.name;
+        d.name = name;
         newTempMeasures.push(d);
       }
     });
@@ -216,9 +239,39 @@ class LineMeasurePopup extends React.Component {
     }
   }
 
-  onNameChange(event) {
-    this.setState({name: event.target.value});
+  cycleAssistFillModes() {
+    if(this.state.nameAssistanceFillMode === 0) {
+      this.setState({nameAssistanceFillMode: 2, prefix: this.state.name});
+    }
+    else {
+      this.setState({nameAssistanceFillMode: 0, name: this.state.prefix});
+    }
+  }
 
+  onNameChange(event) {
+    // this.nameChanged(event.target.value);
+    this.setState({name: event.target.value});
+  }
+
+  onIndexChange(event) {
+    // this.nameChanged(this.state.prefix + ' ' + event.target.value);
+    this.setState({index: event.target.value});
+  }
+
+  onPrefixChange(event) {
+    // this.nameChanged(event.target.value + ' ' + this.state.index);
+    this.setState({prefix: event.target.value});
+  }
+
+  nameChanged(name) {
+    let measures = this.state.measures;
+    if(this.state.measures.length > 0) {
+      measures[measures.length-1].name = name;
+      d3.selectAll('#MEASURE-' + measures[measures.length-1].uid).each(d => d.name = name);
+    }
+    this.setState({
+      // name: name,
+      measures: measures});
   }
 
   setMode(mode) {
@@ -294,14 +347,80 @@ class LineMeasurePopup extends React.Component {
     this._toolDataUpdated();
   }
 
+  getForm() {
+    if(this.state.nameAssistanceFillMode === 0) {
+      return(
+        <form autoComplete='on'
+              key='noAssist'
+              onSubmit={this.saveAutofill.bind(this)}
+              ref='form'>
+          <input placeholder={this.props.userstore.getText('name')}
+                 name='name'
+                 type='text'
+                 style={this.textAreaStyle}
+                 onChange={this.onNameChange.bind(this)}
+                 value={this.state.name}
+                 autoFocus="true"
+                 wrap="hard"/>
+          <button type="submit" ref='autocompleteTrigger' style={{display: 'none'}} />
+        </form>);
+    } else if(this.state.nameAssistanceFillMode === 2) {
+      return(
+        <form autoComplete='on'
+              key='nameAndIndex'
+              onSubmit={this.saveAutofill.bind(this)}
+              ref='form'>
+          <input placeholder={this.props.userstore.getText('name')}
+                 name='name'
+                 type='text'
+                 style={this.textAreaStyle}
+                 onChange={this.onPrefixChange.bind(this)}
+                 value={this.state.prefix}
+                 autoFocus="true"
+                 wrap="hard"/>
+          <input autoComplete='off'
+                 name='index'
+                 type='number'
+                 style={this.textAreaStyle}
+                 onChange={this.onIndexChange.bind(this)}
+                 value={this.state.index}
+                 autoFocus="true"
+                 wrap="hard"/>
+          <button type="submit" ref='autocompleteTrigger' style={{display: 'none'}} />
+        </form>);
+    }
+    else {
+      return null;
+    }
+  }
+
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceRender);
     this.props.toolstore.addToolDataChangeListener(this._toolDataUpdated);
   }
 
   componentWillUpdate(nextProps, nextState) {
     this.measureStandardPanelStyle.display = nextState.mode === 'standard'? '':'none';
     this.currentMeasurePanelStyle.display = nextState.mode === 'measure'? '':'none';
+
+    if(nextState.nameAssistanceFillMode === 2) {
+      if(nextState.measures.length > 0) {
+        if (nextState.measures.length !== this.state.measures.length && this.state.measures.length !== 0) {
+          nextState.index++;
+        }
+
+        if (nextState.prefix !== this.state.prefix || nextState.index !== this.state.index) {
+          nextState.measures[nextState.measures.length - 1].name = nextState.prefix + ' ' + nextState.index;
+          d3.selectAll('#MEASURE-' + nextState.measures[nextState.measures.length - 1].uid).each(d => d.name = nextState.prefix + ' ' + nextState.index);
+        }
+      }
+    }
+    else if(nextState.nameAssistanceFillMode === 0) {
+      if(nextState.measures.length > 0 && (nextState.prefix !== this.state.prefix || nextState.index !== this.state.index)) {
+        nextState.measures[nextState.measures.length - 1].name = nextState.name;
+        d3.selectAll('#MEASURE-' + nextState.measures[nextState.measures.length - 1].uid).each(d => d.name = nextState.name);
+      }
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -326,7 +445,7 @@ class LineMeasurePopup extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.removeLanguageChangeListener(this._forceRender);
     this.props.toolstore.removeToolDataChangeListener(this._toolDataUpdated);
   }
 
@@ -364,33 +483,23 @@ class LineMeasurePopup extends React.Component {
                 {this.state.imageName}
                 </span>
             </div>
-            <div className='ui text'
-                 style={this.nameAssistanceButtonStyle}>
-              <div>{this.getAssistFillModeDisplay()}</div>
+            <div className='ui mini compact fluid button' onClick={this.setMode.bind(this, 'standard')}>
+              <div>{this.props.userstore.getText('measureStandard')}</div>
+              <div style={Styles.buttonSubText}>{this.getScaleName()}</div>
             </div>
+            <a className='ui link text'
+                 style={this.nameAssistanceButtonStyle}
+                 onClick={this.cycleAssistFillModes.bind(this)}>
+              {this.getAssistFillModeDisplay()}
+            </a>
             <div style={this.horizontalContainerStyle}>
-              <form autoComplete='on'
-                    onSubmit={this.saveAutofill.bind(this)}
-                    ref='form'>
-              <input placeholder={this.props.userstore.getText('name')}
-                     name='name'
-                     type='text'
-                     style={this.textAreaStyle}
-                     onChange={this.onNameChange.bind(this)}
-                     value={this.state.name}
-                     autoFocus="true"
-                     wrap="hard"/>
-                <button type="submit" ref='autocompleteTrigger' style={{display: 'none'}} />
-              </form>
+              {this.getForm()}
             </div>
             <div>
               {this.props.userstore.getInterpolatedText('length', [this.state.mmPerPx?(this.state.lengthInPx * this.state.mmPerPx).toFixed(2) : '**'])}
                mm <span style={this.pixelValueDisplayStyle}>({this.state.lengthInPx.toFixed(2)} px)</span>
             </div>
-            <div className='ui mini compact fluid button' onClick={this.setMode.bind(this, 'standard')}>
-              <div>{this.props.userstore.getText('measureStandard')}</div>
-              <div style={Styles.buttonSubText}>{this.getScaleName()}</div>
-            </div>
+
           </div>
           <div className='ui segment' style={this.scrollingTableStyle}>
             <div>{this.props.userstore.getText('newMeasuresUnsaved')}</div>

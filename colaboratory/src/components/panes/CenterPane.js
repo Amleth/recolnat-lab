@@ -42,6 +42,7 @@ class CenterPane extends React.Component {
 
   componentDidMount() {
     this.props.viewstore.addLoaderListener(this._onLoaderUpdate);
+    this.props.modestore.addModeChangeListener(this.setState.bind(this, {}));
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -55,37 +56,54 @@ class CenterPane extends React.Component {
 
   componentWillUnmount() {
     this.props.viewstore.removeLoaderListener(this._onLoaderUpdate);
+    this.props.modestore.removeModeChangeListener(this.setState.bind(this, {}));
   }
 
   render() {
-    return (
-      <div style={this.componentContainerStyle}>
-        <div className={"ui " + this.state.loading + " dimmer"} style={this.dimmerStyle}>
-          <div className="ui large text loader">{this.state.loader}</div>
+    if(this.props.modestore.isInSetMode()) {
+      return (
+        <div style={this.componentContainerStyle}>
+          <div className={"ui " + this.state.loading + " dimmer"} style={this.dimmerStyle}>
+            <div className="ui large text loader">{this.state.loader}</div>
+          </div>
+          <StudyManager
+            key='StudyManager'
+            userstore={this.props.userstore}
+            toolstore={this.props.toolstore}
+            modestore={this.props.modestore}
+            metastore={this.props.metastore}
+            dragstore={this.props.dragstore}
+            managerstore={this.props.managerstore} />
         </div>
-        <VirtualBenchLab
-          imagestore={this.props.imagestore}
-          userstore={this.props.userstore}
-          viewstore={this.props.viewstore}
-          toolstore={this.props.toolstore}
-          menustore={this.props.menustore}
-          metastore={this.props.metastore}
-          modalstore={this.props.modalstore}
-          modestore={this.props.modestore}
-          ministore={this.props.ministore}
-          benchstore={this.props.benchstore}
-          managerstore={this.props.managerstore}
-          dragstore={this.props.dragstore}
-        />
-        <StudyManager
-          userstore={this.props.userstore}
-          toolstore={this.props.toolstore}
-          modestore={this.props.modestore}
-          metastore={this.props.metastore}
-          dragstore={this.props.dragstore}
-          managerstore={this.props.managerstore} />
-      </div>
-    );
+      );
+    } else if(this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode()) {
+      return (
+        <div style={this.componentContainerStyle}>
+          <div className={"ui " + this.state.loading + " dimmer"} style={this.dimmerStyle}>
+            <div className="ui large text loader">{this.state.loader}</div>
+          </div>
+          <VirtualBenchLab
+            key='VirtualBenchLab'
+            imagestore={this.props.imagestore}
+            userstore={this.props.userstore}
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore}
+            menustore={this.props.menustore}
+            metastore={this.props.metastore}
+            modalstore={this.props.modalstore}
+            modestore={this.props.modestore}
+            ministore={this.props.ministore}
+            benchstore={this.props.benchstore}
+            managerstore={this.props.managerstore}
+            dragstore={this.props.dragstore}
+          />
+        </div>
+      );
+    } else {
+      console.error('No rendering handler for center pane in mode ' + this.props.modestore.getMode());
+      return null;
+    }
+
   }
 }
 

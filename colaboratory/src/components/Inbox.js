@@ -53,14 +53,14 @@ class Inbox extends React.Component {
     }
 
     if(removeEntityListeners) {
-      for (var i = 0; i < this.state.entityIds.length; ++i) {
+      for (let i = 0; i < this.state.entityIds.length; ++i) {
         this.props.metastore.removeMetadataUpdateListener(this.state.entityIds[i], this._onUnplacedEntityMetadataUpdate);
       }
     }
   }
 
   subscribeToView() {
-    var viewId = this.props.benchstore.getActiveViewId();
+    let viewId = this.props.benchstore.getActiveViewId();
     if(!viewId) {
       this.removeListeners(true, true);
       this.setState({viewId: null, entityIds: [], open: false, active: false, content: []});
@@ -75,8 +75,8 @@ class Inbox extends React.Component {
   }
 
   calculateUnplacedEntities() {
-    var labBench = this.props.benchstore.getLabBench();
-    var viewData = this.props.metastore.getMetadataAbout(this.state.viewId);
+    let labBench = this.props.benchstore.getLabBench();
+    let viewData = this.props.metastore.getMetadataAbout(this.state.viewId);
     if(!this.state.viewId) {
       return;
     }
@@ -88,24 +88,24 @@ class Inbox extends React.Component {
     }
     this.removeListeners(false, true);
 
-    var imageIds = Object.keys(labBench.images);
-    var displayedImageIds = viewData.displays.map(function(display) {
+    let imageIds = Object.keys(labBench.images);
+    let displayedImageIds = viewData.displays.map(function(display) {
       return display.entity;
     });
-    var undisplayedImageIds = _.difference(imageIds, displayedImageIds);
+    let undisplayedImageIds = _.difference(imageIds, displayedImageIds);
 
     this.setState({active: false, open: false, content: [], entityIds: undisplayedImageIds});
 
     // Download metadata for unplaced entities
-    for(var i = 0; i < undisplayedImageIds.length; ++i) {
+    for(let i = 0; i < undisplayedImageIds.length; ++i) {
       this.props.metastore.addMetadataUpdateListener(undisplayedImageIds[i], this._onUnplacedEntityMetadataUpdate);
       //window.setTimeout(this._onUnplacedEntityMetadataUpdate.bind(this, undisplayedImageIds[i]), 10);
     }
   }
 
   addEntityMetadata(id) {
-    var metadata = this.props.metastore.getMetadataAbout(id);
-    var content = JSON.parse(JSON.stringify(this.state.content));
+    let metadata = this.props.metastore.getMetadataAbout(id);
+    let content = JSON.parse(JSON.stringify(this.state.content));
     content.push(metadata);
     this.setState({content: content});
   }
@@ -139,14 +139,14 @@ class Inbox extends React.Component {
   placeAllImagesInLine() {
     window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
-    var view = this.props.viewstore.getView();
+    let view = this.props.viewstore.getView();
 
-    var x = (-view.left + view.width / 2)/view.scale;
-    var y = (-view.top + view.height / 2)/view.scale;
-    var viewId = this.state.viewId;
+    let x = (-view.left + view.width / 2)/view.scale;
+    let y = (-view.top + view.height / 2)/view.scale;
+    let viewId = this.state.viewId;
     this.imagesToPlace = this.state.content.length;
     this.imagesPlaced = 0;
-    for(var i = 0; i < this.state.content.length; ++i) {
+    for(let i = 0; i < this.state.content.length; ++i) {
       ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(this, viewId));
 
       x = x + this.state.content[i].width + 100;
@@ -158,13 +158,13 @@ class Inbox extends React.Component {
   placeAllImagesInColumn() {
     window.setTimeout(ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
-    var data = [];
-    var x = this.props.viewstore.getView().left;
-    var y = this.props.viewstore.getView().top;
-    var viewId = this.state.viewId;
+    let data = [];
+    let x = this.props.viewstore.getView().left;
+    let y = this.props.viewstore.getView().top;
+    let viewId = this.state.viewId;
     this.imagesToPlace = this.state.content.length;
     this.imagesPlaced = 0;
-    for(var i = 0; i < this.state.content.length; ++i) {
+    for(let i = 0; i < this.state.content.length; ++i) {
       ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(null, viewId));
       y = y + this.state.content[i].height + 200;
     }
@@ -174,26 +174,26 @@ class Inbox extends React.Component {
     window.setTimeout(
       ViewActions.changeLoaderState.bind(null, this.props.userstore.getText('placing')), 10);
 
-    var x = this.props.viewstore.getView().left;
-    var y = this.props.viewstore.getView().top;
-    var maxHeight = Math.max(
+    let x = this.props.viewstore.getView().left;
+    let y = this.props.viewstore.getView().top;
+    let maxHeight = Math.max(
       this.state.content[0]? this.state.content[0].height : 0,
       this.state.content[1]? this.state.content[1].height : 0,
       this.state.content[2]? this.state.content[2].height : 0,
       this.state.content[3]? this.state.content[3].height : 0,
       this.state.content[4]? this.state.content[4].height : 0
     );
-    var maxWidth = Math.max(
+    let maxWidth = Math.max(
       this.state.content[0]? this.state.content[0].width : 0,
       this.state.content[1]? this.state.content[1].width : 0,
       this.state.content[2]? this.state.content[2].width : 0,
       this.state.content[3]? this.state.content[3].width : 0,
       this.state.content[4]? this.state.content[4].width : 0
     );
-    var viewId = this.state.viewId;
+    let viewId = this.state.viewId;
     this.imagesToPlace = this.state.content.length;
     this.imagesPlaced = 0;
-    for(var i = 0; i < this.state.content.length; ++i) {
+    for(let i = 0; i < this.state.content.length; ++i) {
       ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(null, viewId));
 
       x = x + maxWidth + 200;
@@ -264,7 +264,7 @@ class Inbox extends React.Component {
     this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
     if(this.state.viewId) {
-      this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewMetadataReceived);
+      this.props.metastore.removeMetadataUpdateListener(this.state.viewId, this._onViewUpdated);
     }
   }
 

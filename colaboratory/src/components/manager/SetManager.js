@@ -80,10 +80,10 @@ class SetManager extends React.Component {
     };
 
     this.state = {
-      isVisibleInCurrentMode: true,
+      isVisibleInCurrentMode: this.props.modestore.isInSetMode(),
       userLoggedIn: false,
-      coreSet: null,
-      displayedSets: []
+      coreSet: this.props.managerstore.getCoreSet(),
+      displayedSets: this.props.managerstore.getSets()
     };
 
     this.listeneningToMetadataForIds = {};
@@ -118,6 +118,7 @@ class SetManager extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if(this.state.displayedSets.length != prevState.displayedSets.length) {
+      // Smooth scrolling towards the right
       let node = this.refs.sets.getDOMNode();
       let scrollAnimate = window.setInterval(function () {
         //console.log('left=' + node.scrollLeft + ' scollwidth=' + node.scrollWidth + ' clientwidth=' + node.clientWidth);
@@ -140,6 +141,9 @@ class SetManager extends React.Component {
   }
 
   render() {
+    // if(!this.state.isVisibleInCurrentMode) {
+    //   return null;
+    // }
     var self = this;
     return <div style={this.containerStyle} >
     <i className='ui big blue help circle icon'

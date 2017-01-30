@@ -14,7 +14,7 @@ import ModeConstants from '../constants/ModeConstants';
 
 import ToolConf from '../conf/Tools-conf';
 
-let d3Component = new D3FreeSpace();
+const d3Component = new D3FreeSpace();
 
 class FreeSpace extends React.Component {
   constructor(props) {
@@ -65,8 +65,8 @@ class FreeSpace extends React.Component {
     d3Component.clearDisplay();
     d3Component.newLabBench();
     // var id = this.props.managerstore.getSelected().id;
-    var sets = this.props.managerstore.getSets();
-    var id = sets[sets.length-1].uid;
+    let sets = this.props.managerstore.getSets();
+    let id = sets[sets.length-1].uid;
     window.setTimeout(MetadataActions.loadLabBench.bind(null, null), 10);
     window.setTimeout(MinimapActions.unsetMinimap, 10);
   }
@@ -81,6 +81,10 @@ class FreeSpace extends React.Component {
         );
       }
     }
+  }
+
+  redrawLabBench() {
+    d3Component.redrawChildEntities();
   }
 
   displayDragged(event) {
@@ -104,9 +108,9 @@ class FreeSpace extends React.Component {
 
   pinchZoom(event) {
     if(event.touches.length == 2) {
-      var length = Math.pow((event.touches[0].screenX - event.touches[1].screenX),2) + Math.pow((event.touches[0].screenY - event.touches[1].screenY), 2);
+      let length = Math.pow((event.touches[0].screenX - event.touches[1].screenX),2) + Math.pow((event.touches[0].screenY - event.touches[1].screenY), 2);
       if (this.state.pinchLength) {
-        var view = this.props.viewstore.getView();
+        let view = this.props.viewstore.getView();
         if(this.state.pinchLength < length) {
           // User zooming out
           window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale*0.99), 10);
@@ -140,14 +144,19 @@ class FreeSpace extends React.Component {
     this.props.viewstore.addFitViewListener(this._onFitView);
     this.props.viewstore.addViewportListener(this._onViewportUpdate);
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
+    this.props.viewstore.addFilterUpdateListener(this.redrawLabBench);
     this.props.benchstore.addActiveSetChangeListener(this._onChangeSetId);
     this.props.benchstore.addLabBenchLoadListener(this._onBenchLoaded);
+
+    this._onViewportUpdate();
   }
 
   componentWillUnmount() {
+    d3Component.unload();
     this.props.viewstore.removeFitViewListener(this._onFitView);
     this.props.viewstore.removeViewportListener(this._onViewportUpdate);
     this.props.viewstore.removeViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
+    this.props.viewstore.removeFilterUpdateListener(this.redrawLabBench);
     this.props.benchstore.removeActiveSetChangeListener(this._onChangeSetId);
     this.props.benchstore.removeLabBenchLoadListener(this._onBenchLoaded);
   }

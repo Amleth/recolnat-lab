@@ -17,6 +17,8 @@ class SimpleImageDisplay extends React.Component {
   constructor(props) {
     super(props);
 
+    this._isMounted = false;
+
     this.componentStyle = {
       height: this.props.height,
       padding: '5px 5px 5px 5px',
@@ -57,15 +59,8 @@ class SimpleImageDisplay extends React.Component {
       overflowY: 'auto'
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
-      });
-      return setModeVisibility.apply(this);
-    };
-
     this._onSelectionChange = () => {
-      const getImages = () => this.getImagesOfSelection(this.props.managerstore.getSelected());
+      const getImages = () => {this.getImagesOfSelection(this.props.managerstore.getSelected())};
       return getImages.apply(this);
     };
 
@@ -74,12 +69,18 @@ class SimpleImageDisplay extends React.Component {
       return processMetadata.apply(this, [id]);
     };
 
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.state = {
-      isVisibleInCurrentMode: true,
       selectionTitle: null,
       imagesOfSelection: [],
       imageUrl: null,
-      listening: []
+      listening: [],
+      offset: 0,
+      limit: this.props.height/5
     };
   }
 
@@ -90,14 +91,14 @@ class SimpleImageDisplay extends React.Component {
   }
 
   getImagesOfSelection(selection) {
+    if(!this._isMounted) return;
     this.removeListeners();
-    this.setState({imagesOfSelection: [], imageUrl: null, listening: [selection.id]});
+    this.setState({imagesOfSelection: [], imageUrl: null, listening: [selection.id], limit: this.props.height/5});
     switch(selection.type) {
       case 'Image':
       case 'Specimen':
       case 'Set':
         this.props.metastore.addMetadataUpdateListener(selection.id, this._onMetadataReceived);
-        //this.processReceivedMetadata(selection.id, true);
         break;
       default:
         this.setState({selectionTitle: null});
@@ -107,13 +108,11 @@ class SimpleImageDisplay extends React.Component {
   }
 
   processReceivedMetadata(id, skipListenerCheck = false) {
-    //this.props.metastore.removeMetadataUpdateListener(id, this._onMetadataReceived);
+    if(!this._isMounted) return;
     if(!_.contains(this.state.listening, id) && !skipListenerCheck) {
-      //console.log('Not listening for ' + id);
       return;
     }
     let metadata = this.props.metastore.getMetadataAbout(id);
-    //console.log('Metadata for ' + id + " : " + JSON.stringify(metadata));
     if(metadata) {
       switch(metadata.type) {
         case 'Image':
@@ -127,7 +126,6 @@ class SimpleImageDisplay extends React.Component {
           for(let i = 0; i < metadata.images.length; ++i) {
             this.props.metastore.addMetadataUpdateListener(metadata.images[i], this._onMetadataReceived);
             listening.push(metadata.images[i]);
-            //this.processReceivedMetadata(metadata.images[i], true);
           }
           this.setState({listening: listening});
           break;
@@ -138,7 +136,6 @@ class SimpleImageDisplay extends React.Component {
             this.props.metastore.addMetadataUpdateListener(metadata.items[i].uid, this._onMetadataReceived);
             listening.push(metadata.items[i].uid);
             metaToUpdate.push(metadata.items[i].uid);
-            //this.processReceivedMetadata(metadata.items[i].uid, true);
           }
           this.setState({listening: listening});
           break;
@@ -167,10 +164,19 @@ class SimpleImageDisplay extends React.Component {
 
   }
 
+  scrolled(e) {
+    let node = React.findDOMNode(this.refs.scroller);
+    if(node.offsetHeight + node.scrollTop >= node.scrollHeight-10) {
+      this.setState({limit: Math.min(this.state.imagesOfSelection.length, this.state.limit+5)});
+    }
+  }
+
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this._isMounted = true;
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
+    this._onSelectionChange();
   }
 
   componentWillReceiveProps(props) {
@@ -181,26 +187,22 @@ class SimpleImageDisplay extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if (nextState.isVisibleInCurrentMode) {
       this.componentStyle.display = '';
       if(nextState.imageUrl == null && nextState.imagesOfSelection.length > 0) {
         nextState.imageUrl = nextState.imagesOfSelection[0].thumbnail;
       }
-    }
-    else {
-      this.componentStyle.display = 'none';
-    }
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
     this.removeListeners();
+    this._isMounted = false;
   }
 
   render() {
-    var self = this;
+    let self = this;
 
     return <div className='ui segment container' style={this.componentStyle}>
       <div className='ui blue tiny basic label'
@@ -217,9 +219,15 @@ class SimpleImageDisplay extends React.Component {
         </div>
       </div>
       <div className='ui container' style={this.twoColumnContainerStyle}>
-        <div className='ui compact segments' style={this.segmentsContainerStyle}>
+        <div className='ui compact segments'
+             style={this.segmentsContainerStyle}
+             ref='scroller'
+             onScroll={this.scrolled.bind(this)}>
           {this.state.imagesOfSelection.map(function(image, index) {
-            var color = 'ui';
+            if(index < self.state.offset || index > self.state.limit) {
+              return null;
+            }
+            let color = 'ui';
             if(image.thumbnail == self.state.imageUrl) {
               color = 'ui blue inverted';
             }

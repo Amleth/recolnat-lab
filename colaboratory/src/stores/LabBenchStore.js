@@ -183,11 +183,12 @@ class LabBenchStore extends EventEmitter {
       this.labBench = {};
     }
 
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadSubSets(linksAndIds) {
-    for(var i = 0; i < linksAndIds.length; ++i) {
+    for(let i = 0; i < linksAndIds.length; ++i) {
       if(!_.contains(this.ids.subSets, linksAndIds[i].uid)) {
         this.socket.addResourceListener(linksAndIds[i].uid, this.subSetLoaded.bind(this), 10);
         this.ids.subSets.push(linksAndIds[i].uid);
@@ -208,6 +209,7 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load sub-set ' + JSON.stringify(resource));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
@@ -233,6 +235,7 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load view ' + JSON.stringify(view));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
@@ -240,7 +243,7 @@ class LabBenchStore extends EventEmitter {
     //console.log(JSON.stringify(ids));
     //console.log(JSON.stringify(this.labBench));
     //console.log(JSON.stringify(this.ids));
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.items, ids[i])) {
         this.socket.addResourceListener(ids[i], this.itemLoaded.bind(this), 10);
         this.ids.items.push(ids[i]);
@@ -298,11 +301,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load item ' + JSON.stringify(item));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadAoIs(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.aois, ids[i])) {
         this.socket.addResourceListener(ids[i], this.aoiLoaded.bind(this), 10);
         this.ids.aois.push(ids[i]);
@@ -326,11 +330,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load AoI ' + JSON.stringify(aoi));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadRoIs(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.rois, ids[i])) {
         this.socket.addResourceListener(ids[i], this.roiLoaded.bind(this), 10);
         this.ids.rois.push(ids[i]);
@@ -354,11 +359,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load RoI ' + JSON.stringify(roi));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadPoIs(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.pois, ids[i])) {
         this.socket.addResourceListener(ids[i], this.poiLoaded.bind(this), 10);
         this.ids.pois.push(ids[i]);
@@ -379,11 +385,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load PoI ' + JSON.stringify(poi));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadToIs(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.tois, ids[i])) {
         this.socket.addResourceListener(ids[i], this.toiLoaded.bind(this), 10);
         this.ids.tois.push(ids[i]);
@@ -407,11 +414,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load ToI ' + JSON.stringify(toi));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadMeasureStandards(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.measureStandards, ids[i])) {
         this.socket.addResourceListener(ids[i], this.standardLoaded.bind(this), 10);
         this.ids.measureStandards.push(ids[i]);
@@ -432,11 +440,12 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load measure standard ' + JSON.stringify(standard));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
   }
 
   loadMeasurements(ids) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.measurements, ids[i])) {
         this.socket.addResourceListener(ids[i], this.measurementLoaded.bind(this), 10);
         this.ids.measurements.push(ids[i]);
@@ -457,7 +466,63 @@ class LabBenchStore extends EventEmitter {
     else {
       console.error('Could not load measurement ' + JSON.stringify(item));
     }
+    this.emit(ViewEvents.LAB_BENCH_LOAD_PROGRESS);
     this.onLoadingDone();
+  }
+
+  getProgress(entity) {
+    switch(entity) {
+      case 'item':
+        return {
+          max: this.ids.items.length,
+          current: _.size(this.labBench.items)
+        };
+        break;
+      case 'view':
+        return {
+          max: this.ids.views.length,
+          current: _.size(this.labBench.views)
+        };
+        break;
+      case 'roi':
+        return {
+          max: this.ids.rois.length,
+          current: _.size(this.labBench.rois)
+        };
+        break;
+      case 'poi':
+        return {
+          max: this.ids.pois.length,
+          current: _.size(this.labBench.pois)
+        };
+        break;
+      case 'aoi':
+        return {
+          max: this.ids.aois.length,
+          current: _.size(this.labBench.aois)
+        };
+        break;
+      case 'toi':
+        return {
+          max: this.ids.tois.length,
+          current: _.size(this.labBench.tois)
+        };
+        break;
+      case 'measurement':
+        return {
+          max: this.ids.measurements.length,
+          current: _.size(this.labBench.measurements)
+        };
+        break;
+      case 'standard':
+        return {
+          max: this.ids.measureStandards.length,
+          current: _.size(this.labBench.measureStandards)
+        };
+        break;
+      default:
+        console.warn('No progress handler for ' + entity);
+    }
   }
 
   removeListeners() {
@@ -515,7 +580,7 @@ class LabBenchStore extends EventEmitter {
 
   onLoadingDone() {
     if(this.firstLoad) {
-      var totalLoaded = 1 +
+      let totalLoaded = 1 +
         _.size(this.labBench.subSets) +
         _.size(this.labBench.items) +
         _.size(this.labBench.views) +
@@ -526,7 +591,7 @@ class LabBenchStore extends EventEmitter {
         _.size(this.labBench.measureStandards) +
         _.size(this.labBench.measurements);
 
-      var totalToLoad = 1 +
+      let totalToLoad = 1 +
         this.ids.subSets.length +
         this.ids.items.length +
         this.ids.views.length +
@@ -589,29 +654,29 @@ class LabBenchStore extends EventEmitter {
           return false;
         }
 
-        if(!this.isDataComplete(this.ids.aois, this.labBench.aois)) {
-          return false;
-        }
+        // if(!this.isDataComplete(this.ids.aois, this.labBench.aois)) {
+        //   return false;
+        // }
+        //
+        // if(!this.isDataComplete(this.ids.rois, this.labBench.rois)) {
+        //   return false;
+        // }
+        //
+        // if(!this.isDataComplete(this.ids.pois, this.labBench.pois)) {
+        //   return false;
+        // }
+        //
+        // if(!this.isDataComplete(this.ids.tois, this.labBench.tois)) {
+        //   return false;
+        // }
 
-        if(!this.isDataComplete(this.ids.rois, this.labBench.rois)) {
-          return false;
-        }
+        // if(!this.isDataComplete(this.ids.measureStandards, this.labBench.measureStandards)) {
+        //   return false;
+        // }
 
-        if(!this.isDataComplete(this.ids.pois, this.labBench.pois)) {
-          return false;
-        }
-
-        if(!this.isDataComplete(this.ids.tois, this.labBench.tois)) {
-          return false;
-        }
-
-        if(!this.isDataComplete(this.ids.measureStandards, this.labBench.measureStandards)) {
-          return false;
-        }
-
-        if(!this.isDataComplete(this.ids.measurements, this.labBench.measurements)) {
-          return false;
-        }
+        // if(!this.isDataComplete(this.ids.measurements, this.labBench.measurements)) {
+        //   return false;
+        // }
 
         return true;
       }
@@ -624,7 +689,7 @@ class LabBenchStore extends EventEmitter {
   }
 
   isDataComplete(ids, data) {
-    for(var i = 0; i < ids.length; ++i) {
+    for(let i = 0; i < ids.length; ++i) {
       if(!data[ids[i]]) {
         return false;
       }
@@ -634,6 +699,9 @@ class LabBenchStore extends EventEmitter {
 
   addLabBenchLoadListener(callback) {
     this.on(MetadataEvents.LAB_BENCH_READY, callback);
+    if(this.isLoaded()) {
+      window.setTimeout(function(){callback()}, 10);
+    }
   }
 
   removeLabBenchLoadListener(callback) {
@@ -654,6 +722,14 @@ class LabBenchStore extends EventEmitter {
 
   removeActiveSetChangeListener(callback) {
     this.removeListener(ViewEvents.ACTIVE_SET_CHANGE, callback);
+  }
+
+  addLoadProgressListener(callback) {
+    this.on(ViewEvents.LAB_BENCH_LOAD_PROGRESS, callback);
+  }
+
+  removeLoadProgressListener(callback) {
+    this.removeListener(ViewEvents.LAB_BENCH_LOAD_PROGRESS, callback);
   }
 }
 

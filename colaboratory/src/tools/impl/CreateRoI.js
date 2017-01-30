@@ -12,6 +12,7 @@ import AbstractTool from '../AbstractTool';
 import Classes from '../../constants/CommonSVGClasses';
 
 import ToolActions from '../../actions/ToolActions';
+import ViewActions from '../../actions/ViewActions';
 
 import Popup from '../popups/CreateRoIPopup';
 
@@ -21,7 +22,7 @@ import Globals from '../../utils/Globals';
 import conf from '../../conf/ApplicationConfiguration';
 import ToolConf from '../../conf/Tools-conf';
 
-import icon from '../../images/polygon.png';
+import icon from '../../images/perimeter.svg';
 /**
  * Used to create polyline-like ROIs. However SVG polylines should not be used as each line must have its own onclick handler to split a line into two. Lines are grouped in a group in order to identify the ROI for an annotation. The shape does not need to be closed to be a valid annotation.
  *
@@ -31,7 +32,7 @@ class CreateRoI extends AbstractTool {
   constructor(props) {
     super(props);
 
-    var self = this;
+    let self = this;
 
     this.drag = d3.behavior.drag()
       .origin(d => d)
@@ -77,16 +78,16 @@ class CreateRoI extends AbstractTool {
   }
 
   dataToSVG() {
-    var view = this.props.viewstore.getView();
-    var overImageGroup = d3.select('#OVER-' + this.state.imageLinkUri);
-    var toolDisplayGroup = overImageGroup.append('g')
+    let view = this.props.viewstore.getView();
+    let overImageGroup = d3.select('#OVER-' + this.state.imageLinkUri);
+    let toolDisplayGroup = overImageGroup.append('g')
       .attr('class', CreateRoI.classes().selfSvgClass)
       .style('pointer-events', 'none');
 
-    var self = this;
-    for(var i = 0 ; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
-      var bLine = toolDisplayGroup.append('line');
+    let self = this;
+    for(let i = 0 ; i < this.state.edges.length; ++i) {
+      let edge = this.state.edges[i];
+      let bLine = toolDisplayGroup.append('line');
       bLine
         .attr('class', 'blackLine')
         .attr('x1', edge.start.x)
@@ -96,7 +97,7 @@ class CreateRoI extends AbstractTool {
         .attr('stroke-width', 4/view.scale)
         .attr('stroke', 'black');
 
-      var wLine = toolDisplayGroup.append('line');
+      let wLine = toolDisplayGroup.append('line');
       wLine
         .attr('class', 'whiteLine')
         .attr('x1', edge.start.x)
@@ -119,9 +120,9 @@ class CreateRoI extends AbstractTool {
       }
     }
 
-    for(var i = 0 ; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
-      var circle = toolDisplayGroup.append('circle');
+    for(let i = 0 ; i < this.state.edges.length; ++i) {
+      let edge = this.state.edges[i];
+      let circle = toolDisplayGroup.append('circle');
       circle
         .attr('class', 'blackCircle')
         .attr("cx", edge.start.x)
@@ -164,7 +165,7 @@ class CreateRoI extends AbstractTool {
 
   adaptElementSizetoZoom(scale) {
     //console.log('adaptElementSizetoZoom');
-    var tool = d3.select('.' + CreateRoI.classes().selfSvgClass);
+    let tool = d3.select('.' + CreateRoI.classes().selfSvgClass);
 
     tool.selectAll('.blackLine')
       .attr('stroke-width', 4/scale);
@@ -181,13 +182,14 @@ class CreateRoI extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup userstore={this.props.userstore}
+    let popup = <Popup userstore={this.props.userstore}
                        setDataCallback={this.setData.bind(this)}
                        toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip')), 10);
+    window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {regions: true}), 10);
 
-    var self = this;
+    let self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
       .on('click', function(d, i) {
@@ -211,7 +213,7 @@ class CreateRoI extends AbstractTool {
   }
 
   reset() {
-    var popup = <Popup setDataCallback={this.setData.bind(this)}
+    let popup = <Popup setDataCallback={this.setData.bind(this)}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -281,12 +283,12 @@ class CreateRoI extends AbstractTool {
 
   static getNextEdge(edges, x, y) {
     if(x == null || y == null || edges.length == 1) {
-      var edge = {start: {x: edges[0].start.x, y: edges[0].start.y}, end: {x: edges[0].end.x, y: edges[0].end.y}};
+      let edge = {start: {x: edges[0].start.x, y: edges[0].start.y}, end: {x: edges[0].end.x, y: edges[0].end.y}};
       edges.splice(0, 1);
       return edge;
     }
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = {start: {x: edges[i].start.x, y: edges[i].start.y}, end: {x: edges[i].end.x, y: edges[i].end.y}};
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = {start: {x: edges[i].start.x, y: edges[i].start.y}, end: {x: edges[i].end.x, y: edges[i].end.y}};
       if(edge.start.x-5 < x && edge.start.x +5 > x
         && edge.start.y-5 < y && edge.start.y +5 > y) {
         edges.splice(i, 1);
@@ -307,7 +309,7 @@ class CreateRoI extends AbstractTool {
       // ba/ The target is not a vertex. Create a new vertex here and a new edge linking start to end. Continue with a new edge starting at this location.
       // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will close the current ROI. Close shape, end editing.
       // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-      var count = this.countEdges(x, y);
+      let count = this.countEdges(x, y);
       if (this.state.start == null) {
         // a
         if (count == 0) {
@@ -318,7 +320,7 @@ class CreateRoI extends AbstractTool {
         else if (count == 1) {
           // ab
           window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
-          var vertex = this.matchVertex(x, y);
+          let vertex = this.matchVertex(x, y);
           this.setState({start: {x: vertex.x, y: vertex.y}});
         }
         else if (count == 2) {
@@ -334,7 +336,7 @@ class CreateRoI extends AbstractTool {
         if (count == 0) {
           // ba
           window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newRegionOfInterestTooltip5')), 10);
-          var edges = this.state.edges;
+          let edges = this.state.edges;
           edges.push({
             start: {
               x: this.state.start.x,
@@ -354,8 +356,8 @@ class CreateRoI extends AbstractTool {
             , 100);
             return;
           }
-          var vertex = this.matchVertex(x, y);
-          var edges = this.state.edges;
+          let vertex = this.matchVertex(x, y);
+          let edges = this.state.edges;
           edges.push({
             start: {
               x: this.state.start.x,
@@ -383,7 +385,7 @@ class CreateRoI extends AbstractTool {
   closePolygon() {
     if(this.state.interactionState == 0) {
       if(this.state.edges.length > 1) {
-        var edges = this.state.edges;
+        let edges = this.state.edges;
         edges.push(
           {
             start: {x: this.state.start.x, y: this.state.start.y},
@@ -411,8 +413,8 @@ class CreateRoI extends AbstractTool {
    * @returns {boolean}
    */
   matchVertex(x, y) {
-    for(var i = 0; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
+    for(let i = 0; i < this.state.edges.length; ++i) {
+      let edge = this.state.edges[i];
       if(edge.start.x-5 < x && edge.start.x +5 > x
         && edge.start.y-5 < y && edge.start.y +5 > y) {
         return edge.start;
@@ -426,9 +428,9 @@ class CreateRoI extends AbstractTool {
   }
 
   countEdges(x, y) {
-    var count = 0;
-    for(var i = 0; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
+    let count = 0;
+    for(let i = 0; i < this.state.edges.length; ++i) {
+      let edge = this.state.edges[i];
       if(edge.start.x-5 < x && edge.start.x +5 > x
         && edge.start.y-5 < y && edge.start.y +5 > y) {
         count++;
@@ -442,8 +444,8 @@ class CreateRoI extends AbstractTool {
   }
 
   static updateEdgesPosition(oldX, oldY, newX, newY, edges) {
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-5 < oldX && edge.start.x +5 > oldX
         && edge.start.y-5 < oldY && edge.start.y +5 > oldY) {
         edge.start.x = newX;
@@ -459,11 +461,11 @@ class CreateRoI extends AbstractTool {
 
   splitEdge(i, self) {
     d3.event.stopPropagation();
-    var edges = self.state.edges;
-    var edge = edges[i];
+    let edges = self.state.edges;
+    let edge = edges[i];
     edges.splice(i, 1);
-    var xm = (edge.end.x + edge.start.x)/2;
-    var ym = (edge.end.y + edge.start.y)/2;
+    let xm = (edge.end.x + edge.start.x)/2;
+    let ym = (edge.end.y + edge.start.y)/2;
     edges.push({start: {x: edge.start.x, y: edge.start.y}, end: {x: xm, y: ym}});
     edges.push({start: {x: xm, y: ym}, end: {x: edge.end.x, y: edge.end.y}});
     self.setState({edges: edges});
@@ -472,11 +474,11 @@ class CreateRoI extends AbstractTool {
   deleteVertex(x, y) {
     //d3.event.stopPropagation();
     // Find the two edges that have x and y as start or end
-    var edges = this.state.edges;
-    var startEdge = null;
-    var endEdge = null;
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    let edges = this.state.edges;
+    let startEdge = null;
+    let endEdge = null;
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-5 < x && edge.start.x +5 > y
         && edge.start.y-5 < x && edge.start.y +5 > y) {
         startEdge = edge;
@@ -502,7 +504,7 @@ class CreateRoI extends AbstractTool {
   }
 
   setLineEndPosition() {
-    var coords = d3.mouse(this);
+    let coords = d3.mouse(this);
     d3.select('.' + CreateRoI.classes().activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
   }
 
@@ -511,7 +513,7 @@ class CreateRoI extends AbstractTool {
       d3.event.sourceEvent.preventDefault();
       d3.event.sourceEvent.stopPropagation();
 
-      var circle = d3.select(this);
+      let circle = d3.select(this);
       circle
         .classed('dragging', true)
         .datum({tx: 0, ty: 0, origX: circle.cx, origY: circle.cy})
@@ -524,7 +526,7 @@ class CreateRoI extends AbstractTool {
 
   vertexDragged(d) {
     if(d3.select(this).classed('dragging') == true) {
-      var vertex = d3.select(this);
+      let vertex = d3.select(this);
       vertex.attr('cx', d.cx = d3.event.x)
         .attr('cy', d.cy = d3.event.y);
     }
@@ -532,10 +534,10 @@ class CreateRoI extends AbstractTool {
 
   vertexDragEnded(d, self) {
     if(d3.event.sourceEvent.which == 1) {
-      var circle = d3.select(this);
+      let circle = d3.select(this);
       circle.classed('dragging', false);
       if(d.x && d.y && d.cx && d.cy) {
-        var edges = self.state.edges;
+        let edges = self.state.edges;
         CreateRoI.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges);
       }
       self.setState({edges: edges});
@@ -545,13 +547,13 @@ class CreateRoI extends AbstractTool {
   leftClick(self, d) {
     // If no image set image and add vertex
     if(!self.state.imageLinkUri) {
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.setState({imageLinkUri: d.link, imageUri: d.entity});
       self.addVertex.call(self, coords[0], coords[1], d);
     }
     if(self.state.imageLinkUri == d.link) {
       // If same image add vertex
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.addVertex.call(self, coords[0], coords[1], d);
     }
     else {
@@ -568,9 +570,8 @@ class CreateRoI extends AbstractTool {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.newRegionOfInterest.id, this.click, this);
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.newRegionOfInterest.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {

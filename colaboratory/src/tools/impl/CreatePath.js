@@ -9,6 +9,7 @@ import d3 from 'd3';
 import AbstractTool from '../AbstractTool';
 
 import ToolActions from '../../actions/ToolActions';
+import ViewActions from '../../actions/ViewActions';
 
 import Classes from "../../constants/CommonSVGClasses";
 
@@ -29,7 +30,7 @@ class CreatePath extends AbstractTool {
     this.toolContainerSVGClass = "CREATE_PATH_TOOL_CLASS";
     this.activeLineClass = "CREATE_PATH_TOOL_ACTIVE_LINE_CLASS";
 
-    var self = this;
+    let self = this;
 
     this.drag = d3.behavior.drag()
       .origin(d => d)
@@ -75,7 +76,7 @@ class CreatePath extends AbstractTool {
         // bb/ The target is a vertex. The target vertex is part of one edge. Creating a connecting new edge will
         // close the current path. Close shape, end editing.
         // bc/ The target is a vertex. The target vertex is part of two edges. The connection cannot be made. Do nothing.
-        var count = Globals.countEdges(x, y, this.state.edges, 5);
+        let count = Globals.countEdges(x, y, this.state.edges, 5);
         if (this.state.start == null) {
           // a
           if (count == 0) {
@@ -84,7 +85,7 @@ class CreatePath extends AbstractTool {
           }
           else if (count == 1) {
             // ab
-            var vertex = Globals.matchVertex(x, y, this.state.edges, 5);
+            let vertex = Globals.matchVertex(x, y, this.state.edges, 5);
             this.setState({start: {x: vertex.x, y: vertex.y}});
           }
           else if (count == 2) {
@@ -101,7 +102,7 @@ class CreatePath extends AbstractTool {
           // b
           if (count == 0) {
             // ba
-            var edges = this.state.edges;
+            let edges = this.state.edges;
             edges.push({
               start: {
                 x: this.state.start.x,
@@ -116,8 +117,8 @@ class CreatePath extends AbstractTool {
           }
           else if (count == 1) {
             // bb
-            var vertex = Globals.matchVertex(x, y, this.state.edges, 5);
-            var edges = this.state.edges;
+            let vertex = Globals.matchVertex(x, y, this.state.edges, 5);
+            let edges = this.state.edges;
             edges.push({
               start: {
                 x: this.state.start.x,
@@ -189,15 +190,16 @@ class CreatePath extends AbstractTool {
   begin() {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPathTooltip')), 10);
+    window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {trails: true}), 10);
 
-    var self = this;
+    let self = this;
 
     // Mount listener for validation of path
     d3.select('.' + Classes.ROOT_CLASS)
       .on('mouseenter', this.activateEnter.bind(self))
       .on('mouseleave', this.deactivateEnter);
 
-    var popup = <Popup userstore={this.props.userstore}
+    let popup = <Popup userstore={this.props.userstore}
                        setDataCallback={this.setData.bind(this)}
                        toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -234,7 +236,7 @@ class CreatePath extends AbstractTool {
       imageLinkId: null,
       interactionState: 0});
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)}
+    let popup = <Popup setDataCallback={this.setData.bind(this)}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore}/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -270,7 +272,7 @@ class CreatePath extends AbstractTool {
    */
 
   adaptElementSizeToZoom(scale) {
-    var tool = d3.select('.' + this.toolContainerSVGClass);
+    let tool = d3.select('.' + this.toolContainerSVGClass);
 
     tool.selectAll('.blackLine')
       .attr('stroke-width', 4/scale);
@@ -287,13 +289,13 @@ class CreatePath extends AbstractTool {
   leftClick(self, d) {
     // If no image set image and add vertex
     if(!self.state.imageLinkId) {
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.setState({imageLinkId: d.link, imageUri: d.entity});
       self.addVertex.call(self, coords[0], coords[1], d);
     }
     if(self.state.imageLinkId == d.link) {
       // If same image add vertex
-      var coords = d3.mouse(this);
+      let coords = d3.mouse(this);
       self.addVertex.call(self, coords[0], coords[1], d);
     }
     else {
@@ -311,7 +313,7 @@ class CreatePath extends AbstractTool {
   }
 
   activateEnter() {
-    var self = this;
+    let self = this;
     d3.select("body").on('keyup', function(d, i) {
       if(d3.event.which == 13) {
         // 'Enter' key
@@ -341,18 +343,18 @@ class CreatePath extends AbstractTool {
       return;
     }
 
-    var view = this.props.viewstore.getView();
+    let view = this.props.viewstore.getView();
 
-    var overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
-    var toolDisplayGroup = overSheetGroup
+    let overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
+    let toolDisplayGroup = overSheetGroup
       .append('g')
       .attr('class', this.toolContainerSVGClass)
       .style('pointer-events', 'none');
 
-    var self = this;
-    for(var i = 0 ; i < this.state.edges.length; ++i) {
-      var edge = this.state.edges[i];
-      var bLine = toolDisplayGroup.append('line');
+    let self = this;
+    for(let i = 0 ; i < this.state.edges.length; ++i) {
+      let edge = this.state.edges[i];
+      let bLine = toolDisplayGroup.append('line');
       bLine
         .attr('class', 'blackLine')
         .attr('x1', edge.start.x)
@@ -362,7 +364,7 @@ class CreatePath extends AbstractTool {
         .attr('stroke-width', 4/view.scale)
         .attr('stroke', 'black');
 
-      var wLine = toolDisplayGroup.append('line');
+      let wLine = toolDisplayGroup.append('line');
       wLine
         .attr('class', 'whiteLine')
         .attr('x1', edge.start.x)
@@ -374,7 +376,7 @@ class CreatePath extends AbstractTool {
         .attr('stroke', 'white');
 
       //var edge = this.state.edges[i];
-      var circle = toolDisplayGroup.append('circle');
+      let circle = toolDisplayGroup.append('circle');
       circle
         .attr("cx", edge.start.x)
         .attr("cy", edge.start.y)
@@ -405,8 +407,8 @@ class CreatePath extends AbstractTool {
 
     if(this.state.interactionState == 1) {
       // Append the last circle, which marks the end of the trail
-      var edge = this.state.edges[this.state.edges.length-1];
-      var circle = toolDisplayGroup.append('circle');
+      let edge = this.state.edges[this.state.edges.length-1];
+      let circle = toolDisplayGroup.append('circle');
       circle
         .datum({x: edge.end.x, y: edge.end.y})
         .attr("cx", d => d.x)
@@ -457,11 +459,11 @@ class CreatePath extends AbstractTool {
 
   splitEdge(i, self) {
     d3.event.stopPropagation();
-    var edges = self.state.edges;
-    var edge = edges[i];
+    let edges = self.state.edges;
+    let edge = edges[i];
     edges.splice(i, 1);
-    var xm = (edge.end.x + edge.start.x)/2;
-    var ym = (edge.end.y + edge.start.y)/2;
+    let xm = (edge.end.x + edge.start.x)/2;
+    let ym = (edge.end.y + edge.start.y)/2;
     edges.push({start: {x: edge.start.x, y: edge.start.y}, end: {x: xm, y: ym}});
     edges.push({start: {x: xm, y: ym}, end: {x: edge.end.x, y: edge.end.y}});
     this.setState({edges: edges});
@@ -470,11 +472,11 @@ class CreatePath extends AbstractTool {
   deleteVertex(x, y) {
     //d3.event.stopPropagation();
     // Find the two edges that have x and y as start or end
-    var startEdge = null;
-    var endEdge = null;
-    var edges = this.state.edges;
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    let startEdge = null;
+    let endEdge = null;
+    let edges = this.state.edges;
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-5 < x && edge.start.x +5 > y
         && edge.start.y-5 < x && edge.start.y +5 > y) {
         startEdge = edge;
@@ -496,7 +498,7 @@ class CreatePath extends AbstractTool {
   }
 
   setLineEndPosition(self) {
-    var coords = d3.mouse(this);
+    let coords = d3.mouse(this);
     d3.select('.' + self.activeLineClass).attr("x2", coords[0]).attr("y2", coords[1]);
   }
 
@@ -505,7 +507,7 @@ class CreatePath extends AbstractTool {
       d3.event.sourceEvent.preventDefault();
       d3.event.sourceEvent.stopPropagation();
 
-      var circle = d3.select(this);
+      let circle = d3.select(this);
       circle
         .classed('dragging', true)
         .datum({tx: 0, ty: 0, origX: circle.cx, origY: circle.cy})
@@ -518,7 +520,7 @@ class CreatePath extends AbstractTool {
 
   vertexDragged(d) {
     if(d3.select(this).classed('dragging') == true) {
-      var vertex = d3.select(this);
+      let vertex = d3.select(this);
       vertex.attr('cx', d.cx = d3.event.x)
         .attr('cy', d.cy = d3.event.y);
     }
@@ -526,9 +528,9 @@ class CreatePath extends AbstractTool {
 
   vertexDragEnded(d, self) {
     if(d3.event.sourceEvent.which == 1) {
-      var circle = d3.select(this);
+      let circle = d3.select(this);
       circle.classed('dragging', false);
-      var edges = self.state.edges;
+      let edges = self.state.edges;
       if(d.x && d.y && d.cx && d.cy) {
         Globals.updateEdgesPosition(d.x, d.y, d.cx, d.cy, edges, 5);
       }
@@ -545,9 +547,8 @@ class CreatePath extends AbstractTool {
    * REACT API
    */
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    ToolActions.registerTool(ToolConf.newPath.id, this.click, this);
-    $(this.refs.button.getDOMNode()).popup();
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.newPath.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {

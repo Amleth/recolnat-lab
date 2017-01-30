@@ -19,157 +19,113 @@ import moveIcon from '../images/hand_hex.svg';
 
 export default class D3ViewUtils {
   static drawBenchData(data, self) {
-    var root = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
-    var children = root.selectAll('.' + Classes.CHILD_GROUP_CLASS)
+    let root = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
+    let children = root.selectAll('.' + Classes.CHILD_GROUP_CLASS)
       .data(data, d => d.link);
+    let displays = self.viewstore.getDisplayedTypes();
 
     children.enter()
       .append('g')
       .attr('class', Classes.CHILD_GROUP_CLASS)
       .attr('id', d => 'GROUP-' + d.link)
       .attr('transform', function(d) {
-        //console.log('data=' + JSON.stringify(d));
-        //console.log('d.dHeight=' + d.displayHeight);
-        //console.log('d.height=' + d.height);
-        //console.log('scale=' + d.displayHeight / d.height);
         return d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')'});
-      //.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
     children.exit().remove();
     children.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
 
     // BEGIN under image update
-    var under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);
-    under.enter()
-      .append('g')
-      .attr('class', d => Classes.UNDER_CHILD_CLASS)
-      .attr('id', d => 'UNDER-' + d.link);
-    under.exit().remove();
-    under.attr('id', d => 'UNDER-' + d.link);
+      let under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);
+      under.enter()
+        .append('g')
+        .attr('class', d => Classes.UNDER_CHILD_CLASS)
+        .attr('id', d => 'UNDER-' + d.link);
+      under.exit().remove();
+      under.attr('id', d => 'UNDER-' + d.link);
 
-    var borderAreas = under.selectAll('.' + Classes.BORDER_CLASS).data(d => [d], d => d.link);
-    borderAreas.enter()
-      .append('rect')
-      .attr('class', Classes.BORDER_CLASS)
-      .attr('id', d => 'BORDER-' + d.link)
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => d.height + 10/self.view.scale * d.height/ d.displayHeight)
-      .style('fill', '#AAAAAA');
-    borderAreas.exit().remove();
-    borderAreas
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => d.height + 10/self.view.scale * d.height/ d.displayHeight);
+    if(displays.borders) {
+      let borderAreas = under.selectAll('.' + Classes.BORDER_CLASS).data(d => [d], d => d.link);
+      borderAreas.enter()
+        .append('rect')
+        .attr('class', Classes.BORDER_CLASS)
+        .attr('id', d => 'BORDER-' + d.link)
+        .attr('x', d => -5 / self.view.scale * d.height / d.displayHeight)
+        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+        .attr('width', d => d.width + 10 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => d.height + 30 / self.view.scale * d.height / d.displayHeight)
+        .style('fill', '#AAAAAA');
+      borderAreas.exit().remove();
+      borderAreas
+        .attr('x', d => -5 / self.view.scale * d.height / d.displayHeight)
+        .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
+        .attr('width', d => d.width + 10 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => d.height + 30 / self.view.scale * d.height / d.displayHeight);
 
-    var topBar = under.selectAll('.' + Classes.TOP_BAR_CLASS).data(d => [d], d => d.link);
-    topBar.enter()
-      .append('rect')
-      .attr('class', Classes.TOP_BAR_CLASS)
-      .attr('id', d => 'TOP-BAR-' + d.link)
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
-      .attr('rx', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('ry', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 40/self.view.scale * d.height/ d.displayHeight)
-      .style('fill', '#AAAAAA');
-    topBar.exit().remove();
-    topBar
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => -20/self.view.scale * d.height/ d.displayHeight)
-      .attr('rx', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('ry', d => 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 40/self.view.scale * d.height/ d.displayHeight);
+      let namePath = under.selectAll('.' + Classes.NAME_PATH_CLASS).data(d => [d], d => d.link);
+      namePath.enter()
+        .append('path')
+        .attr('id', d => 'NAME-PATH-' + d.link)
+        .attr('class', Classes.NAME_PATH_CLASS)
+        .attr('d', d => 'M 0 ' + -5 / self.view.scale + ' L ' + d.width + ' ' + -5 / self.view.scale)
+        .style('pointer-events', 'none');
+      namePath.exit().remove();
+      namePath
+        .attr('d', d => 'M 0 ' + -5 / self.view.scale + ' L ' + d.width + ' ' + -5 / self.view.scale)
+        .style('pointer-events', 'none');
 
-    var namePath = under.selectAll('.' + Classes.NAME_PATH_CLASS).data(d => [d], d => d.link);
-    namePath.enter()
-      .append('path')
-      .attr('id', d => 'NAME-PATH-' + d.link)
-      .attr('class', Classes.NAME_PATH_CLASS)
-      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale)
-      .style('pointer-events', 'none');
-    namePath.exit().remove();
-    namePath
-      .attr('d', d => 'M 0 ' + -5/self.view.scale + ' L ' + d.width + ' ' + -5/self.view.scale)
-      .style('pointer-events', 'none');
-    //.attr('d', d => 'M 0 -15 L ' + d.width + ' -15');
+      let name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
+      name.enter().append('text')
+        .attr('class', Classes.NAME_CLASS)
+        .attr('id', d => 'NAME-' + d.link)
+        .attr('x', 10)
+        .attr('font-family', 'Verdana')
+        .attr('font-size', d => 14 / self.view.scale * d.height / d.displayHeight + 'px')
+        .attr('fill', 'white')
+        .append('textPath')
+        .attr('xlink:href', d => '#NAME-PATH-' + d.link)
+        .style('pointer-events', 'none')
+        .text(d => d.name);
+      name.exit().remove();
+      name.attr('font-size', d => 14 / self.view.scale * d.height / d.displayHeight + 'px')
+        .select('textPath')
+        .style('pointer-events', 'none')
+        .text(d => d.name);
 
-    var name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
-    name.enter().append('text')
-      .attr('class', Classes.NAME_CLASS)
-      .attr('id', d => 'NAME-' + d.link)
-      .attr('x', 10)
-      .attr('font-family', 'Verdana')
-      .attr('font-size', d => 14/self.view.scale * d.height/ d.displayHeight + 'px')
-      .attr('fill', 'white')
-      .append('textPath')
-      .attr('xlink:href', d => '#NAME-PATH-' + d.link)
-      .style('pointer-events', 'none')
-      .text(d => d.name);
-    name.exit().remove();
-    name.attr('font-size', d => 14/self.view.scale * d.height/ d.displayHeight + 'px')
-      //.attr('width', d => d.width + 8)
-      //.attr('height', d => d.height + 148)
-      .select('textPath')
-      .style('pointer-events', 'none')
-      .text(d => d.name);
+      let resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
+      resizer.enter()
+        .append('svg:image')
+        .attr('xlink:href', resizeHandleIcon)
+        .attr('class', Classes.RESIZE_CLASS)
+        .attr('id', d => 'RESIZE-' + d.link)
+        .attr('x', d => d.width - 5 / self.view.scale * d.height / d.displayHeight)
+        .attr('y', d => d.height)
+        .attr('width', d => 10 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 10 / self.view.scale * d.height / d.displayHeight)
+        .call(D3EventHandlers.dragResize())
+        .style('cursor', '-webkit-nwse-resize')
+        .style('cursor', 'nwse-resize');
+      resizer.exit().remove();
+      resizer
+        .attr('x', d => d.width - 5 / self.view.scale * d.height / d.displayHeight)
+        .attr('y', d => d.height)
+        .attr('width', d => 10 / self.view.scale * d.height / d.displayHeight)
+        .attr('height', d => 10 / self.view.scale * d.height / d.displayHeight);
 
-    var bottomBar = under.selectAll('.' + Classes.BOTTOM_BAR_CLASS).data(d => [d], d => d.link);
-    bottomBar.enter()
-      .append('rect')
-      .attr('class', Classes.BOTTOM_BAR_CLASS)
-      .attr('id', d => 'BOTTOM-BAR-' + d.link)
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => d.height-10/self.view.scale * d.height/ d.displayHeight)
-      //.attr('rx', 5/self.view.scale)
-      //.attr('ry', 5/self.view.scale)
-      .attr('width', d => d.width + 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale * d.height/ d.displayHeight)
-      .style('fill', '#AAAAAA');
-    bottomBar.exit().remove();
-    bottomBar
-      .attr('x', d => -5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => d.height-10/self.view.scale * d.height/ d.displayHeight)
-      .attr('width', d => d.width+10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 20/self.view.scale * d.height/ d.displayHeight);
-
-    var resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
-    resizer.enter()
-      // .append("rect")
-      .append('svg:image')
-      .attr('xlink:href', resizeHandleIcon)
-      .attr('class', Classes.RESIZE_CLASS)
-      .attr('id', d => 'RESIZE-' + d.link)
-      .attr('x', d => d.width - 5/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => d.height)
-      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight)
-      .call(D3EventHandlers.dragResize())
-      // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight)
-      // .style('stroke', 'rgb(0,0,0)')
-      // .style('fill-opacity', '0.0')
-      .style('cursor', '-webkit-nwse-resize')
-      .style('cursor', 'nwse-resize');
-    resizer.exit().remove();
-    resizer
-      .attr('x', d => d.width - 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('y', d => d.height)
-      .attr('width', d => 10/self.view.scale * d.height/ d.displayHeight)
-      .attr('height', d => 10/self.view.scale* d.height/ d.displayHeight);
-    // .style('stroke-width', d => 1/self.view.scale * d.height/ d.displayHeight);
-
-    if(self.modestore.isInObservationMode()) {
-      topBar.style('cursor', '-webkit-grab')
-        .style('cursor', 'grab')
-        .call(D3EventHandlers.dragMove());
+      if (self.modestore.isInObservationMode()) {
+        borderAreas.style('cursor', '-webkit-grab')
+          .style('cursor', 'grab')
+          .call(D3EventHandlers.dragMove());
+      }
+    }
+    else {
+      under.selectAll('.' + Classes.BORDER_CLASS).remove();
+      under.selectAll('.' + Classes.NAME_PATH_CLASS).remove();
+      under.selectAll('.' + Classes.NAME_CLASS).remove();
+      under.selectAll('.' + Classes.RESIZE_CLASS).remove();
     }
     // END under image update
 
 
-    var image = children.selectAll('.' + Classes.IMAGE_CLASS).data(d => [d], d => d.link);
+    let image = children.selectAll('.' + Classes.IMAGE_CLASS).data(d => [d], d => d.link);
     image.enter().append('svg:image')
       .attr('class', Classes.IMAGE_CLASS)
       .attr('id', d => 'IMAGE-' + d.link)
@@ -182,7 +138,7 @@ export default class D3ViewUtils {
       .attr("width", d => d.width);
 
     // BEGIN over image update
-    var over = children.selectAll('.' + Classes.OVER_CHILD_CLASS).data(d => [d], d => d.link);
+    let over = children.selectAll('.' + Classes.OVER_CHILD_CLASS).data(d => [d], d => d.link);
     over.enter().append('g')
       .attr('class', Classes.OVER_CHILD_CLASS)
       .attr('id', d=> 'OVER-' + d.link);
@@ -190,7 +146,7 @@ export default class D3ViewUtils {
 
     over = children.selectAll('.' + Classes.OVER_CHILD_CLASS);
 
-    var annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS).data(d => [d], d => d.link);
+    let annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS).data(d => [d], d => d.link);
     annotations.enter().append('g')
       .attr('class', Classes.ANNOTATIONS_CONTAINER_CLASS)
       .attr('id', d=> 'ANNOTATIONS-' + d.link);
@@ -198,95 +154,94 @@ export default class D3ViewUtils {
 
     annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS);
 
-    var angles = annotations.selectAll('.' + Classes.AOI_CONTAINER_CLASS).data(d => [d], d => d.link);
-    angles.enter().append('g')
-      .attr('class', Classes.AOI_CONTAINER_CLASS)
-      .attr('id', d => 'AOIS-' + d.link);
-    angles.exit().remove();
+    if(displays.angles) {
+      let angle = annotations.selectAll('.' + Classes.AOI_CLASS).data(d => d.aois, d => d.uid);
+      angle.enter().append('polyline')
+        .attr('class', Classes.AOI_CLASS)
+        .attr('id', d => 'AOI-' + d.uid)
+        .attr('fill', 'none')
+        .attr('stroke', 'red')
+        .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
+        .attr('stroke-width', 4)
+        .style('pointer-events', 'none');
+      angle.exit().remove();
+      angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+    }
+    else {
+      annotations.selectAll('.' + Classes.AOI_CLASS).remove();
+    }
 
-    var angle = angles.selectAll('.' + Classes.AOI_CLASS).data(d => d.aois, d => d.uid);
-    angle.enter().append('polyline')
-      .attr('class', Classes.AOI_CLASS)
-      .attr('id', d => 'AOI-' + d.uid)
-      .attr('fill', 'none')
-      .attr('stroke', 'red')
-      .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-      .attr('stroke-width', 4)
-      .style('pointer-events', 'none');
-    angle.exit().remove();
-    angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+    if(displays.trails) {
+      let path = annotations.selectAll('.' + Classes.PATH_CLASS).data(d => d.tois, d => d.uid);
+      path.enter().append('polyline')
+        .attr('class', Classes.PATH_CLASS)
+        .attr('id', d => 'PATH-' + d.uid)
+        .attr('fill', 'none')
+        .attr('stroke', 'red')
+        .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
+        .attr('stroke-width', 4)
+        .style('pointer-events', 'none');
+      path.exit().remove();
+      path.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+    }
+    else {
+      annotations.selectAll('.' + Classes.PATH_CLASS).remove();
+    }
 
-    var paths = annotations.selectAll('.' + Classes.PATH_CONTAINER_CLASS).data(d => [d], d => d.link);
-    paths.enter().append('g')
-      .attr('class', Classes.PATH_CONTAINER_CLASS)
-      .attr('id', d => 'PATHS-' + d.link);
-    paths.exit().remove();
+    if(displays.points) {
+      let point = annotations.selectAll('.' + Classes.POI_CLASS).data(d => d.pois, d => d.uid);
+      let poi = point.enter().append('g')
+        .attr('class', Classes.POI_CLASS)
+        .attr('id', d => 'POI-' + d.uid)
+        .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
+        .style('pointer-events', 'none');
+      poi.append('svg:image')
+        .attr('height', 100)
+        .attr('width', 60)
+        .attr('xlink:href', markerSVG)
+        .attr("x", -30)
+        .attr("y", -100);
+      point.exit().remove();
+      point.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+    }
+    else {
+      annotations.selectAll('.' + Classes.POI_CLASS).remove();
+    }
 
-    var path = paths.selectAll('.' + Classes.PATH_CLASS).data(d => d.tois, d => d.uid);
-    path.enter().append('polyline')
-      .attr('class', Classes.PATH_CLASS)
-      .attr('id', d => 'PATH-' + d.uid)
-      .attr('fill', 'none')
-      .attr('stroke', 'red')
-      .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-      .attr('stroke-width', 4)
-      .style('pointer-events', 'none');
-    path.exit().remove();
-    path.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
-
-    var points = annotations.selectAll('.' + Classes.POI_CONTAINER_CLASS).data(d => [d], d => d.link);
-    points.enter().append('g')
-      .attr('class', Classes.POI_CONTAINER_CLASS)
-      .attr('id', d => 'POIS-' + d.link);
-    points.exit().remove();
-
-    var point = points.selectAll('.' + Classes.POI_CLASS).data(d => d.pois, d => d.uid);
-    var poi = point.enter().append('g')
-      .attr('class', Classes.POI_CLASS)
-      .attr('id', d => 'POI-' + d.uid)
-      .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
-      .style('pointer-events', 'none');
-    //poi.append('rect')
-    //  .attr('rx', 5)
-    //  .attr('ry', 5)
-    //  .attr('width', 50)
-    //  .attr('height', 30)
-    //  .attr("x", -25)
-    //  .attr("y", -55)
-    //  .attr('fill', "white");
-    poi.append('svg:image')
-      .attr('height', 100)
-      .attr('width', 60)
-      .attr('xlink:href', markerSVG)
-      .attr("x", -30)
-      .attr("y", -100);
-    point.exit().remove();
-    point.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
-
-    var regions = annotations.selectAll('.' + Classes.ROI_CONTAINER_CLASS).data(d => [d], d => d.link);
-    regions.enter().append('g')
-      .attr('class', Classes.ROI_CONTAINER_CLASS)
-      .attr('id', d => 'ROIS-' + d.link);
-    regions.exit().remove();
-
-    var region = regions.selectAll('.' + Classes.ROI_CLASS).data(d => d.rois, d => d.uid);
-    region.enter().append('polygon')
-      .attr('class', Classes.ROI_CLASS)
-      .attr('id', d => 'ROI-' + d.uid)
-      .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-      .attr('fill', 'blue')
-      .attr('fill-opacity', 0.3)
-      .style('pointer-events', 'none');
-    region.exit().remove();
-    region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+    if(displays.regions) {
+      let region = annotations.selectAll('.' + Classes.ROI_CLASS).data(d => d.rois, d => d.uid);
+      region.enter().append('polygon')
+        .attr('class', Classes.ROI_CLASS)
+        .attr('id', d => 'ROI-' + d.uid)
+        .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
+        .attr('fill', 'blue')
+        .attr('fill-opacity', 0.3)
+        .style('pointer-events', 'none');
+      region.exit().remove();
+      region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '));
+    }
+    else {
+      annotations.selectAll('.' + Classes.ROI_CLASS).remove();
+    }
     // END over image update
   }
 
   static displayLoadedImage(data, image) {
-    var group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+    let group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
 
     group.select("#IMAGE-" + data.link)
       .attr("xlink:href", image.src);
+  }
+
+  static getImageUrlFromVisibleProportion(d, view) {
+    let proportion = (d.displayHeight) / (view.yMax - view.yMin);
+    if(proportion < 0.2) {
+      return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.Low);
+    } else if(proportion < 0.7) {
+      return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.High);
+    } else {
+      return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.Original);
+    }
   }
 
   static getImageUrlFromQuality(data, quality) {
@@ -304,7 +259,7 @@ export default class D3ViewUtils {
   }
 
   static animateOutline(id) {
-    var d3Node = d3.select('#' + id);
+    let d3Node = d3.select('#' + id);
     d3Node
       .classed('outline', true)
       .style('outline-style', 'solid')
@@ -335,14 +290,14 @@ export default class D3ViewUtils {
 
   static zoomToObject(d3selector, view) {
     // Retrieve object coordinates and size in browser window
-    var object = d3.select(d3selector);
-    var winLoc = object.node().getBoundingClientRect();
-    var oldHeight = winLoc.height;
-    var oldWidth = winLoc.width;
-    var oldScale = view.scale;
+    let object = d3.select(d3selector);
+    let winLoc = object.node().getBoundingClientRect();
+    let oldHeight = winLoc.height;
+    let oldWidth = winLoc.width;
+    let oldScale = view.scale;
 
     // Calculate fitting area
-    var scale = 1.0;
+    let scale = 1.0;
     if(oldHeight > oldWidth) {
       scale = (view.height * oldScale) / (oldHeight);
     }
@@ -352,8 +307,8 @@ export default class D3ViewUtils {
     scale = scale*0.90;
 
     // Leave half empty screen as margin to center the object in the viewport
-    var marginX = (view.width - oldWidth*scale/view.scale)/2;
-    var marginY = (view.height - oldHeight*scale/view.scale)/2;
+    let marginX = (view.width - oldWidth*scale/view.scale)/2;
+    let marginY = (view.height - oldHeight*scale/view.scale)/2;
 
     // Dispatch action
     window.setTimeout(ViewActions.updateViewport.bind(null,
@@ -364,5 +319,12 @@ export default class D3ViewUtils {
       scale,
       true
     ), 10);
+  }
+
+  static isElementInView(data, view) {
+    return !((data.x + data.displayWidth) < view.xMin
+    || data.x > view.xMax
+    || (data.y + data.displayHeight) < view.yMin
+    || data.y > view.yMax);
   }
 }

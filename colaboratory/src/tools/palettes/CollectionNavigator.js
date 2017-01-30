@@ -96,6 +96,11 @@ class CollectionNavigator extends React.Component {
       return changeSelection.apply(this);
     };
 
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.state = {
       workbenchItems: [{id: null, url: null}],
       activeItemIdx: null,

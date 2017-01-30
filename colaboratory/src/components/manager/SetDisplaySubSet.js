@@ -38,9 +38,14 @@ class SetDisplaySubSet extends React.Component {
       set: null,
       disablePointerEvents: false,
       icon: 'ui icon wait',
-      isActive: false,
-      isSelected: false
+      isActive: this.props.managerstore.getActiveId(this.props.index) === this.props.set.uid,
+      isSelected: this.props.managerstore.getSelected().id === this.props.set.uid
     };
+
+    if(props.set.name) {
+      this.state.set = props.set;
+      this.state.icon = 'ui icon folder';
+    }
   }
 
   callContextMenu(event) {
@@ -73,7 +78,7 @@ class SetDisplaySubSet extends React.Component {
   }
 
   setActive() {
-    var node = this.state.set;
+    let node = this.state.set;
     //console.log(JSON.stringify(this.props.set));
     window.setTimeout(ManagerActions.select.bind(null,node.uid, node.type, node.name, this.props.parentSetId, this.props.set.link),10);
     window.setTimeout(ManagerActions.selectEntityInSetById.bind(null, this.props.parentSetId, node.uid), 10);

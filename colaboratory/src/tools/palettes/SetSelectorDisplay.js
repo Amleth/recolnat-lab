@@ -54,22 +54,16 @@ class SetSelectorDisplay extends React.Component {
       padding: 0
     };
 
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.textStyle = {
       WebkitUserSelect: 'none',
       MozUserSelect: 'none',
       MsUserSelect: 'none',
       userSelect: 'none'
-    };
-
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
-      });
-      return setModeVisibility.apply(this);
-    };
-
-    this.state = {
-      isVisibleInCurrentMode: true
     };
   }
 
@@ -83,20 +77,15 @@ class SetSelectorDisplay extends React.Component {
   }
 
   componentDidMount() {
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.containerStyle.display = '';
-    }
-    else {
-      this.containerStyle.display = 'none';
-    }
+
   }
 
   componentWillUnmount() {
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
   }
 
   render() {
@@ -117,10 +106,5 @@ class SetSelectorDisplay extends React.Component {
     </div>
   }
 }
-
-//<div className='ui blue tiny basic label'
-//     style={this.labelStyle}>
-//  Mes sets
-//</div>
 
 export default SetSelectorDisplay;

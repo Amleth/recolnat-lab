@@ -9,8 +9,8 @@ import d3 from "d3";
 
 import AbstractTool from "../AbstractTool";
 
-import EditorActions from "../../actions/ManagerActions";
 import ToolActions from '../../actions/ToolActions';
+import ViewActions from '../../actions/ViewActions';
 
 import Classes from "../../constants/CommonSVGClasses";
 
@@ -82,7 +82,7 @@ class CreatePoI extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup vertexClass={this.vertexClass}
+    let popup = <Popup vertexClass={this.vertexClass}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
@@ -90,9 +90,9 @@ class CreatePoI extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('newPointOfInterestTooltip')), 10);
+    window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {points: true}), 10);
 
-
-    var self = this;
+    let self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
       .on('click', function(d, i) {
         if(d3.event.defaultPrevented) return;
@@ -116,7 +116,7 @@ class CreatePoI extends AbstractTool {
   }
 
   reset() {
-    var popup = <Popup vertexClass={this.vertexClass}
+    let popup = <Popup vertexClass={this.vertexClass}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore}
                        setNameCallback={this.setName.bind(this)}
@@ -148,7 +148,7 @@ class CreatePoI extends AbstractTool {
    * INTERNAL METHODS
    */
   leftClick(self, d) {
-    var coords = d3.mouse(this);
+    let coords = d3.mouse(this);
     self.setState({imageUri: d.entity, imageLinkUri: d.link});
     self.setPointCoordinates.call(self, coords[0], coords[1], d);
   }
@@ -167,11 +167,11 @@ class CreatePoI extends AbstractTool {
   }
 
   drawPointInSVG() {
-    var vertex = d3.select("." + this.vertexClass).remove();
+    d3.select("." + this.vertexClass).remove();
     // if(vertex.empty()) {
-      var toolDisplayGroup = d3.select('#OVER-' + this.state.imageLinkUri);
+      let toolDisplayGroup = d3.select('#OVER-' + this.state.imageLinkUri);
 
-      vertex = toolDisplayGroup
+      let vertex = toolDisplayGroup
         .append('g')
         .attr("class", this.vertexClass)
         .style('pointer-events', 'none');
@@ -184,8 +184,8 @@ class CreatePoI extends AbstractTool {
         .attr('xlink:href', markerSvg);
     // }
 
-    var view = this.props.viewstore.getView();
-    var viewProps = this.props.viewstore.getViewProperties();
+    let view = this.props.viewstore.getView();
+    let viewProps = this.props.viewstore.getViewProperties();
 
     vertex
       .attr('transform', 'translate(' + this.state.x + ',' + this.state.y + ')scale(' + viewProps.sizeOfTextAndObjects/view.scale + ')');
@@ -210,10 +210,9 @@ class CreatePoI extends AbstractTool {
    * REACT API
    */
   componentDidMount() {
+    super.componentDidMount();
     this.props.viewstore.addViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
-    ToolActions.registerTool(ToolConf.newPointOfInterest.id, this.click, this);
-    $(this.refs.button.getDOMNode()).popup();
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.newPointOfInterest.id, this.click, this), 10);
   }
 
   componentDidUpdate() {
@@ -239,8 +238,7 @@ class CreatePoI extends AbstractTool {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
-    this.finish();
+    super.componentWillUnmount();
     this.props.viewstore.removeViewPropertiesUpdateListener(this._onViewPropertiesUpdate);
   }
 

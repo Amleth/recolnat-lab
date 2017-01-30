@@ -39,8 +39,8 @@ class OrbalContextMenu extends React.Component {
       visibility: 'hidden',
       height: this.menuSize + 'px',
       width: this.menuSize + 'px',
-      borderRadius: this.menuSize/2 + 'px'
-      //backgroundColor: 'rgba(127,127,127,0.3)'
+      borderRadius: this.menuSize/2 + 'px',
+      backgroundColor: 'rgba(127,127,127,0.3)'
     };
 
     this.resetOrbs();
@@ -346,8 +346,8 @@ class OrbalContextMenu extends React.Component {
   }
 
   menuIsActivated() {
-    var x = this.props.menustore.getClickLocation().x;
-    var y = this.props.menustore.getClickLocation().y;
+    let x = this.props.menustore.getClickLocation().x;
+    let y = this.props.menustore.getClickLocation().y;
     this.menuContainerStyle.top = y-this.menuSize/2;
     this.menuContainerStyle.left = x-this.menuSize/2;
     this.menuContainerStyle.visibility = 'visible';
@@ -710,7 +710,6 @@ class OrbalContextMenu extends React.Component {
   }
 
   render() {
-    var self = this;
     return (
       <div style={this.menuContainerStyle}
            onMouseEnter={this.cancelCloseMenu.bind(this)}

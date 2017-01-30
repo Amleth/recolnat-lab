@@ -55,8 +55,8 @@ class SelectObject extends AbstractTool {
   }
 
   componentDidMount() {
-    $(this.refs.button.getDOMNode()).popup();
-    ToolActions.registerTool(ToolConf.selectObject.id, this.click, this);
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.selectObject.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -69,6 +69,7 @@ class SelectObject extends AbstractTool {
   }
 
   componentWillUnmount() {
+    super.componentWillUnmount();
     ToolActions.activeToolPopupUpdate(null);
   }
 

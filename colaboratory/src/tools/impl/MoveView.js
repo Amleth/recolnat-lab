@@ -51,8 +51,8 @@ class MoveView extends AbstractTool {
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.moveView.id, this.click, this);
-    $(this.refs.button.getDOMNode()).popup();
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.moveView.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {

@@ -26,21 +26,21 @@ export default class ActiveSetNameDisplay extends React.Component {
     };
 
     this._onSetIdChange = () => {
-      const changeDisplayedName = () => this.setActiveSetName();
+      const changeDisplayedName = () => this.setState({name: this.getActiveSetName()});
       return changeDisplayedName.apply(this);
     };
 
     this.state = {
-      name: 'Aucun set actif'
+      name: this.getActiveSetName()
     };
   }
 
-  setActiveSetName() {
+  getActiveSetName() {
     if(this.props.managerstore.getSelected().name) {
-      this.setState({name: this.props.managerstore.getSelected().name});
+      return this.props.managerstore.getSelected().name;
     }
     else {
-      this.setState({name: this.props.userstore.getText('noActiveSet')});
+      return this.props.userstore.getText('noActiveSet');
     }
   }
 

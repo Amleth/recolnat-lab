@@ -37,6 +37,14 @@ class ViewStore extends EventEmitter {
     this.loader = {};
     this.loader.text = null;
 
+    this.displayedTypes = {
+      borders: true,
+      regions: false,
+      points: false,
+      trails: false,
+      angles: false
+    };
+
     AppDispatcher.register((action) => {
       //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
@@ -55,6 +63,10 @@ class ViewStore extends EventEmitter {
           this.setViewProperties(action.properties);
           this.emit(ViewEvents.UPDATE_VIEW_PROPERTIES);
           break;
+        case ViewConstants.ActionTypes.Local.UPDATE_VIEW_FILTERS:
+          this.setDisplayFilters(action.filters);
+          this.emit(ViewEvents.UPDATE_VIEW_FILTERS);
+          break;
         case ViewConstants.ActionTypes.Local.LOADER_CHANGE_STATE:
           this.setLoaderText(action.text);
           this.emit(ViewEvents.UPDATE_LOADER);
@@ -71,8 +83,8 @@ class ViewStore extends EventEmitter {
     });
   }
 
-  getMetadataModalEntity() {
-    return this.metadataModalAbout;
+  getDisplayedTypes() {
+    return this.displayedTypes;
   }
 
   setLoaderText(text) {
@@ -85,6 +97,14 @@ class ViewStore extends EventEmitter {
     else {
       this.loader.text = text;
     }
+  }
+
+  setDisplayFilters(filters) {
+    this.displayedTypes.borders = filters.borders !== undefined?filters.borders:this.displayedTypes.borders;
+    this.displayedTypes.regions = filters.regions !== undefined?filters.regions:this.displayedTypes.regions;
+    this.displayedTypes.points = filters.points !== undefined?filters.points:this.displayedTypes.points;
+    this.displayedTypes.trails = filters.trails !== undefined?filters.trails:this.displayedTypes.trails;
+    this.displayedTypes.angles = filters.angles !== undefined?filters.angles:this.displayedTypes.angles;
   }
 
   getLoader() {
@@ -172,6 +192,14 @@ class ViewStore extends EventEmitter {
 
   removeViewPropertiesUpdateListener(callback) {
     this.removeListener(ViewEvents.UPDATE_VIEW_PROPERTIES, callback);
+  }
+
+  addFilterUpdateListener(callback) {
+    this.on(ViewEvents.UPDATE_VIEW_FILTERS, callback);
+  }
+
+  removeFilterUpdateListener(callback) {
+    this.removeListener(ViewEvents.UPDATE_VIEW_FILTERS, callback);
   }
 
   addLoaderListener(callback) {

@@ -31,8 +31,6 @@ class MoveObject extends AbstractTool {
     this.buttonName = "Déplacer";
 
     this.className = "ObjectMover";
-
-    this.state = {active: false};
   }
 
   begin() {
@@ -71,7 +69,7 @@ class MoveObject extends AbstractTool {
       .on(".drag", null).remove();
     d3.select('svg').style('cursor', 'default');
     window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
-      window.setTimeout(ToolActions.updateTooltipData.bind(null, ''), 10);
+    window.setTimeout(ToolActions.updateTooltipData.bind(null, ''), 10);
 
     this.setState({active: false});
   }
@@ -95,14 +93,12 @@ class MoveObject extends AbstractTool {
 
   switchToSheetInObservationMode(d) {
     D3ViewUtils.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());
-
-    // window.setTimeout(Globals.setMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
     window.setTimeout(ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
   }
 
   componentDidMount() {
-    ToolActions.registerTool(ToolConf.moveObject.id, this.click, this);
-    $(this.refs.button.getDOMNode()).popup();
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.moveObject.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -115,7 +111,8 @@ class MoveObject extends AbstractTool {
   }
 
   componentWillUnmount() {
-    ToolActions.activeToolPopupUpdate(null);
+    super.componentWillUnmount();
+    window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
   }
 
   render() {

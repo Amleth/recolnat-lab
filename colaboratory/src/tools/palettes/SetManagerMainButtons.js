@@ -36,18 +36,17 @@ class SetManagerMainButtons extends React.Component {
       fontSize: '10px'
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({isVisibleInCurrentMode: this.props.modestore.isInSetMode()});
-      return setModeVisibility.apply(this);
-    };
-
     this._onSetSelectionChange = () => {
       const setIsSelected = () => this.enableOrDisableActions();
       return setIsSelected.apply(this);
     };
 
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.state = {
-      isVisibleInCurrentMode: true,
       openButton: 'disabled'
     };
   }
@@ -87,23 +86,19 @@ class SetManagerMainButtons extends React.Component {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.managerstore.addSelectionChangeListener(this._onSetSelectionChange);
+    this.enableOrDisableActions();
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.containerStyle.display = '';
-    }
-    else {
-      this.containerStyle.display = 'none';
-    }
+
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
     this.props.managerstore.removeSelectionChangeListener(this._onSetSelectionChange);
   }
 

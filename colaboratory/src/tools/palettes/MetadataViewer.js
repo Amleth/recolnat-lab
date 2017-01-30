@@ -5,15 +5,14 @@
 import React from 'react';
 import request from 'superagent';
 
-//import MetadataTable from './metadata/MetadataTable';
 import SpecimenMetadataTable from './metadata/SpecimenMetadataTable';
 import HarvestMetadataTable from './metadata/HarvestMetadataTable';
 import DeterminationMetadataTable from './metadata/DeterminationMetadataTable';
 import LocationMetadataTable from './metadata/LocationMetadataTable';
 
-import MetadataActions from '../actions/MetadataActions';
+import MetadataActions from '../../actions/MetadataActions';
 
-import conf from '../conf/ApplicationConfiguration';
+import conf from '../../conf/ApplicationConfiguration';
 
 class MetadataViewer extends React.Component {
 
@@ -341,6 +340,7 @@ class MetadataViewer extends React.Component {
     this.props.toolstore.addSelectionChangeListener(this._onChangeSelection);
     this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.userstore.addLanguageChangeListener(this._forceUpdate);
+    // this._onChangeSelection();
   }
 
   componentWillReceiveProps(props) {

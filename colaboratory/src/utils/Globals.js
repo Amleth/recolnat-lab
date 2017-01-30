@@ -27,12 +27,12 @@ class GlobalFunctions {
    */
   static getNextEdge(x, y, edges, delta) {
     if(x == null || y == null || edges.length == 1) {
-      var edge = {start: {x: edges[0].start.x, y: edges[0].start.y}, end: {x: edges[0].end.x, y: edges[0].end.y}};
+      let edge = {start: {x: edges[0].start.x, y: edges[0].start.y}, end: {x: edges[0].end.x, y: edges[0].end.y}};
       edges.splice(0, 1);
       return edge;
     }
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = {start: {x: edges[i].start.x, y: edges[i].start.y}, end: {x: edges[i].end.x, y: edges[i].end.y}};
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = {start: {x: edges[i].start.x, y: edges[i].start.y}, end: {x: edges[i].end.x, y: edges[i].end.y}};
       if(edge.start.x-delta < x && edge.start.x +delta > x
         && edge.start.y-delta < y && edge.start.y +delta > y) {
         edges.splice(i, 1);
@@ -51,8 +51,8 @@ class GlobalFunctions {
    * @returns {x,y} object corresponding to the matched vertex if found, this a new object, not a reference to the existing array
    */
   static matchVertex(x, y, edges, delta) {
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-delta < x && edge.start.x +delta > x
         && edge.start.y-delta < y && edge.start.y +delta > y) {
         return {x: edge.start.x, y: edge.start.y};
@@ -74,9 +74,9 @@ class GlobalFunctions {
    * @returns {number}
    */
   static countEdges(x, y, edges, delta) {
-    var count = 0;
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    let count = 0;
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-delta < x && edge.start.x +delta > x
         && edge.start.y-delta < y && edge.start.y +delta > y) {
         count++;
@@ -99,8 +99,8 @@ class GlobalFunctions {
    * @param delta
    */
   static updateEdgesPosition(oldX, oldY, newX, newY, edges, delta) {
-    for(var i = 0; i < edges.length; ++i) {
-      var edge = edges[i];
+    for(let i = 0; i < edges.length; ++i) {
+      let edge = edges[i];
       if(edge.start.x-delta < oldX && edge.start.x +delta > oldX
         && edge.start.y-delta < oldY && edge.start.y +delta > oldY) {
         edge.start.x = newX;
@@ -124,10 +124,14 @@ class GlobalFunctions {
     if(imageMetadata) {
       if(imageMetadata.exif) {
         if(imageMetadata.exif["X Resolution"]) {
-          var xResolution = imageMetadata.exif["X Resolution"].split(" ");
-          var dotsPerUnit = _.parseInt(xResolution[0]);
-          var mmPerPixel = null;
-          var unit = imageMetadata.exif["Resolution Units"];
+          let xResolution = imageMetadata.exif["X Resolution"].split(" ");
+          let dotsPerUnit = _.parseInt(xResolution[0]);
+          let mmPerPixel = null;
+          let unit = imageMetadata.exif["Resolution Units"];
+          if(!unit) {
+            console.error("EXIF has X Resolution but no Resolution Units");
+            return mmPerPixel;
+          }
           if(unit.toUpperCase() == "INCH" || unit.toUpperCase() == "INCHES") {
             mmPerPixel = 25.4/dotsPerUnit;
           }

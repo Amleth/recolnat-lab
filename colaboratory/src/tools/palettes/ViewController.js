@@ -38,15 +38,12 @@ class ViewController extends React.Component {
       return updateView.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
 
     this.state = {
-      isVisibleInCurrentMode: false,
       zoom: 1.0
     };
 
@@ -137,24 +134,19 @@ class ViewController extends React.Component {
   }
 
   componentDidMount() {
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.viewstore.addViewportListener(this._onViewChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if (nextState.isVisibleInCurrentMode) {
-      this.compactSegmentStyle.display = '';
-    }
-    else {
-      this.compactSegmentStyle.display = 'none';
-    }
+
   }
 
   componentWillUnmount() {
     this.props.viewstore.removeViewportListener(this._onViewChange);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
   }
 
   render() {

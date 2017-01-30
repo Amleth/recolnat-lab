@@ -16,6 +16,11 @@ class AbstractTool extends React.Component {
     this.buttonStyle = {
       padding: '5px 0px 10px 10px'
     };
+
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
     
     this.state = {active: false};
   }
@@ -91,7 +96,7 @@ class AbstractTool extends React.Component {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
     $(this.refs.button.getDOMNode()).popup();
   }
   
@@ -109,7 +114,8 @@ class AbstractTool extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.finish();
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
   }
 
   render() {

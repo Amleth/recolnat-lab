@@ -9,6 +9,7 @@ import d3 from 'd3';
 import AbstractTool from '../AbstractTool';
 
 import ToolActions from '../../actions/ToolActions';
+import ViewActions from '../../actions/ViewActions';
 
 import Classes from "../../constants/CommonSVGClasses";
 
@@ -19,7 +20,7 @@ import ToolConf from '../../conf/Tools-conf';
 import ServiceMethods from '../../utils/ServiceMethods';
 import Globals from '../../utils/Globals';
 
-import icon from '../../images/protractor.svg';
+import icon from '../../images/angle.svg';
 
 class CreateAngle extends AbstractTool {
   constructor(props) {
@@ -56,6 +57,11 @@ class CreateAngle extends AbstractTool {
     this._onViewChange = () => {
       const adaptZoom = () => this.adaptElementSizeToZoom(this.props.viewstore.getView());
       return adaptZoom.apply(this);
+    };
+
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
   }
 
@@ -114,7 +120,7 @@ class CreateAngle extends AbstractTool {
   }
 
   begin() {
-    var self = this;
+    let self = this;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
     window.setTimeout(ToolActions.updateTooltipData.bind(null, <p>{this.props.userstore.getInterpolatedText('stageX', [1, 4])}<br />{this.props.userstore.getText('newAngleTooltip')}</p>), 10);
 
@@ -126,6 +132,7 @@ class CreateAngle extends AbstractTool {
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
+    window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {angles: true}), 10);
 
     d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
@@ -222,7 +229,7 @@ class CreateAngle extends AbstractTool {
   }
 
   leftClick(self, d) {
-    var coords = d3.mouse(this);
+    let coords = d3.mouse(this);
     switch(self.state.interactionState) {
       case 0:
         self.setState(
@@ -272,7 +279,6 @@ class CreateAngle extends AbstractTool {
   }
 
   activateEnter() {
-    var self = this;
     d3.select("body").on('keyup', function(d, i) {
       if(d3.event.which == 13) {
         // 'Enter' key
@@ -296,9 +302,9 @@ class CreateAngle extends AbstractTool {
 
   // Must be called only on a cleared SVG display, otherwise duplicates will appear.
   drawSVG() {
-    var view = this.props.viewstore.getView();
-    var overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
-    var toolDisplayGroup = overSheetGroup
+    let view = this.props.viewstore.getView();
+    let overSheetGroup = d3.select('#OVER-' + this.state.imageLinkId);
+    let toolDisplayGroup = overSheetGroup
       .append('g')
       .attr('class', CreateAngle.svgClasses().container);
     if(this.state.interactionState > 0) {
@@ -376,7 +382,7 @@ class CreateAngle extends AbstractTool {
         .call(this.dragVertex1);
     }
     if(this.state.interactionState > 2) {
-      var vertex2 = toolDisplayGroup.append('circle')
+      let vertex2 = toolDisplayGroup.append('circle')
         .datum({x: this.state.vertex2.x, y: this.state.vertex2.y, link: this.state.imageLinkId})
         .attr('class', CreateAngle.svgClasses().vertex)
         .attr('cx', d => d.x)
@@ -392,7 +398,7 @@ class CreateAngle extends AbstractTool {
         .call(this.dragVertex2);
     }
 
-    var self = this;
+    let self = this;
     // Append mouse move listeners for placing end positions
     switch(this.state.interactionState) {
       case 1:
@@ -414,10 +420,10 @@ class CreateAngle extends AbstractTool {
 
   setPosition(varName, d, coords) {
     //console.log('setPosition(' + varName + ',' + JSON.stringify(d) + ',' + JSON.stringify(coords));
-    var image = d3.select('#IMAGE-' + d.link);
-    var imageData = image.datum();
-    var x = this.getBoundedPosition(coords[0], imageData.width, 0);
-    var y = this.getBoundedPosition(coords[1], imageData.height, 0);
+    let image = d3.select('#IMAGE-' + d.link);
+    let imageData = image.datum();
+    let x = this.getBoundedPosition(coords[0], imageData.width, 0);
+    let y = this.getBoundedPosition(coords[1], imageData.height, 0);
 
     this.state[varName].x = x;
     this.state[varName].y = y;
@@ -438,12 +444,12 @@ class CreateAngle extends AbstractTool {
 
   vertexDragged(d) {
     //if(d3.select(this).classed('dragging') == true) {
-    var image = d3.select('#IMAGE-' + d.link);
-    var coords = d3.mouse(image.node());
-    var imageData = image.datum();
-    var x = this.getBoundedPosition(coords[0], imageData.width, 0);
-    var y = this.getBoundedPosition(coords[1], imageData.height, 0);
-    var vertex = d3.select(this);
+    let image = d3.select('#IMAGE-' + d.link);
+    let coords = d3.mouse(image.node());
+    let imageData = image.datum();
+    let x = this.getBoundedPosition(coords[0], imageData.width, 0);
+    let y = this.getBoundedPosition(coords[1], imageData.height, 0);
+    let vertex = d3.select(this);
 
     vertex.attr('cx', x)
       .attr('cy', y);
@@ -451,15 +457,15 @@ class CreateAngle extends AbstractTool {
   }
 
   getAngleInDegrees() {
-    var angleInRadians = this.getAngleInRadians(this.state.vertex1, this.state.center, this.state.vertex2);
+    let angleInRadians = this.getAngleInRadians(this.state.vertex1, this.state.center, this.state.vertex2);
     //return (Math.atan2(this.state.vertex1.x - this.state.center.x, -this.state.vertex1.y + this.state.center.y) - Math.atan2(this.state.vertex2.x - this.state.center.x, -this.state.vertex2.y + this.state.center.y)) * 180 / Math.PI;
     return angleInRadians * 180/Math.PI;
   }
 
   getAngleInRadians(v1, center, v2) {
-    var v1c = Math.sqrt(Math.pow(center.x - v1.x, 2) + Math.pow(center.y - v1.y, 2));
-    var cv2 = Math.sqrt(Math.pow(center.x - v2.x, 2) + Math.pow(center.y - v2.y, 2));
-    var v1v2 = Math.sqrt(Math.pow(v2.x - v1.x, 2) + Math.pow(v2.y - v1.y, 2));
+    let v1c = Math.sqrt(Math.pow(center.x - v1.x, 2) + Math.pow(center.y - v1.y, 2));
+    let cv2 = Math.sqrt(Math.pow(center.x - v2.x, 2) + Math.pow(center.y - v2.y, 2));
+    let v1v2 = Math.sqrt(Math.pow(v2.x - v1.x, 2) + Math.pow(v2.y - v1.y, 2));
 
     return Math.acos((cv2*cv2+v1c*v1c-v1v2*v1v2) / (2*cv2*v1c));
   }
@@ -469,9 +475,8 @@ class CreateAngle extends AbstractTool {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    ToolActions.registerTool(ToolConf.newAngle.id, this.click, this);
-    $(this.refs.button.getDOMNode()).popup();
+    super.componentDidMount();
+    window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.newAngle.id, this.click, this), 10);
   }
 
   componentWillUpdate(nextProps, nextState) {

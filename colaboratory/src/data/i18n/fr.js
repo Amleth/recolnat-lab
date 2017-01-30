@@ -4,6 +4,7 @@
 'use strict';
 
 export default {
+  exports: 'Exports',
   operationNotAvailableInVersion: "Cette fonctionnalité n'est pas disponible dans la version actuelle",
   languages: 'Langues',
   remove: 'Supprimer',
@@ -110,9 +111,9 @@ export default {
   deleteFromSet: "Retirer du set",
   deleteHelp0: "L'entité sélectionnée sera retirée de son set parent. Elle restera accessible depuis tout autre parent.",
   confirm: "Confirmer",
-  errorGettingDownloadList: "Impossible de récupérer la liste des téléchargements",
-  downloadSetImages: "Télécharger les images du set",
-  downloadSetImagesHelp0:"Les fichiers suivants issus de vos demandes d'export précédentes sont disponibles pour téléchargement :",
+  errorGettingDownloadList: "Impossible de récupérer la liste des exports",
+  downloadSetImages: "Exporter les images du set",
+  downloadSetImagesHelp0:"Les exports suivants issus de vos demandes précédentes sont disponibles pour téléchargement :",
   downloadSetImagesHelp1:"Si vous souhaitez créer un export, veuillez ouvrir cette fenêtre après avoir sélectionné un set dans le gestionnaire de sets ou avoir chargé un set dans la paillasse.",
   dropdownSelectRequired: "Vous devez choisir une option dans la liste déroulante",
   contactForm: "Formulaire de contact",

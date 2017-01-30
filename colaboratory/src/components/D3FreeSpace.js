@@ -40,11 +40,6 @@ class D3FreeSpace {
     this.benchstore = null;
     this.viewstore = null;
     this.modestore = null;
-    this.imageSourceLevel = ViewConstants.imageQuality.Low;
-    this.loadData = {
-      imagesToLoad: 0,
-      imagesLoaded: 0
-    };
     this.visibleImages = [];
 
     this._onEndDragFromInbox = () => {
@@ -57,16 +52,17 @@ class D3FreeSpace {
       xMin: Number.POSITIVE_INFINITY,
       xMax: Number.NEGATIVE_INFINITY,
       yMin: Number.POSITIVE_INFINITY,
-      yMax: Number.NEGATIVE_INFINITY};
+      yMax: Number.NEGATIVE_INFINITY
+    };
 
 // Check visible images every second and reload if necessary
-    window.setInterval(this.updateVisibleImages.bind(this), 1500);
+//     window.setInterval(this.updateVisibleImages.bind(this), 1500);
   }
 
   create(el, props) {
     this.el = el;
 
-    var self = this;
+    let self = this;
     let svg = d3.select(el).append('svg')
       .attr('width', props.width)
       .attr('height', props.height)
@@ -74,7 +70,8 @@ class D3FreeSpace {
         self.contextMenu.call(this, self);
       })
       .on('click', function(d,i) {
-        if (d3.event.button == 0) {
+        if (d3.event.button == 0 && !d3.event.defaultPrevented) {
+          d3.event.preventDefault();
           self.leftClick.call(this, self);
         }
       })
@@ -84,8 +81,8 @@ class D3FreeSpace {
       .call(this.zoom)
       .style('cursor', 'default');
 
-    var defs = svg.append('defs');
-    var dropShadowFilter = defs.append('filter')
+    let defs = svg.append('defs');
+    let dropShadowFilter = defs.append('filter')
       .attr('id', 'drop-shadow')
       .attr('height', '130%');
     dropShadowFilter.append("feGaussianBlur")
@@ -97,14 +94,14 @@ class D3FreeSpace {
       .attr("dx", 5)
       .attr("dy", 5)
       .attr("result", "offsetBlur");
-    var feMerge = dropShadowFilter.append("feMerge");
+    let feMerge = dropShadowFilter.append("feMerge");
     feMerge.append("feMergeNode")
       .attr("in", "offsetBlur");
     feMerge.append("feMergeNode")
       .attr("in", "SourceGraphic");
 
 
-    var root = svg.append('g').attr('class', Classes.ROOT_CLASS);
+    let root = svg.append('g').attr('class', Classes.ROOT_CLASS);
     root.attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
     root.append('g').attr('class', Classes.OBJECTS_CONTAINER_CLASS);
     root.append('g').attr('class', Classes.ACTIVE_TOOL_DISPLAY_CLASS);
@@ -112,10 +109,14 @@ class D3FreeSpace {
   }
 
   // External methods
+  unload() {
+    this.clearDisplay();
+    this.visibleImages = [];
+  }
+
   clearDisplay() {
     d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
-    this.imageSourceLevel = ViewConstants.imageQuality.Low;
   }
 
   setMetadataStore(store) {
@@ -147,7 +148,7 @@ class D3FreeSpace {
   }
 
   fitViewportToData() {
-    var view = this.viewstore.getView();
+    let view = this.viewstore.getView();
 
     D3ViewUtils.zoomToObject('.' + Classes.ROOT_CLASS, view);
   }
@@ -167,8 +168,6 @@ class D3FreeSpace {
   }
 
   displayShadow(data) {
-    //console.log('displayShadow');
-    //console.log(JSON.stringify(data));
     if(d3.select('#SHADOW').empty()) {
       d3.select('svg')
         .attr('pointer-events', 'all')
@@ -188,7 +187,7 @@ class D3FreeSpace {
         //.attr("xlink:href", d => d.thumbnail)
         .style('opacity', 0.3);
 
-      var appendShadowCallback = function (image) {
+      let appendShadowCallback = function (image) {
         d3.select('#SHADOW').select('image')
           .attr("xlink:href", image.src);
       };
@@ -207,11 +206,11 @@ class D3FreeSpace {
   }
 
   fixShadow() {
-    var shadow = d3.select('#SHADOW');
-    var data = shadow.datum();
-    var image = shadow.select('image');
-    var x = parseInt(image.attr('x'))+50;
-    var y = parseInt(image.attr('y'))+100;
+    let shadow = d3.select('#SHADOW');
+    let data = shadow.datum();
+    let image = shadow.select('image');
+    let x = parseInt(image.attr('x'))+50;
+    let y = parseInt(image.attr('y'))+100;
     //console.log('setting shadow to location (' + x + ',' + y + ')');
     ViewActions.placeEntity(this.benchstore.getActiveViewId(),
       data.uid,
@@ -226,8 +225,8 @@ class D3FreeSpace {
 //
 
   static updateShadowPosition() {
-    var container = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
-    var coords = d3.mouse(container.node());
+    let container = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
+    let coords = d3.mouse(container.node());
     //console.log('new shadow coords=' + JSON.stringify(coords));
     d3.select('#SHADOW').select('image')
       .attr('x', coords[0]-50)
@@ -235,13 +234,13 @@ class D3FreeSpace {
   }
 
   static sendToMinimap(id) {
-    var image = d3.select('#IMAGE-' + id);
+    let image = d3.select('#IMAGE-' + id);
     if(!image.empty()) {
-      var url = image.attr("xlink:href");
-      var width = image.datum().displayWidth;
-      var height = image.datum().displayHeight;
-      var x = image.datum().x;
-      var y = image.datum().y;
+      let url = image.attr("xlink:href");
+      let width = image.datum().displayWidth;
+      let height = image.datum().displayHeight;
+      let x = image.datum().x;
+      let y = image.datum().y;
       if(url && width != null && height !=null  && x != null && y != null) {
         MinimapActions.initMinimap(url, width, height, x, y);
         return;
@@ -255,42 +254,52 @@ class D3FreeSpace {
   }
 
   updateVisibleImages() {
+    // console.log("updateVisibleImages");
+    let storeview = this.viewstore.getView();
+    let view = {
+      xMin: -storeview.left/storeview.scale,
+      xMax: (-storeview.left + window.innerWidth)/storeview.scale,
+      yMin: -storeview.top/storeview.scale,
+      yMax: (-storeview.top + window.innerHeight)/storeview.scale
+    };
+
+    let viewData = this.buildDisplayDataElement(view);
+    if(!viewData) {
+      return;
+    } else {
+      D3ViewUtils.drawBenchData(viewData.displays, this);
+    }
     // Calculate visible images and load if necessary
     // console.log('before=' + JSON.stringify(this.visibleImages));
     let visibleImagesAfter = [];
-    let quality = this.imageSourceLevel;
-    // var urlParamName = this.getImageUrlParamName();
     let self = this;
+
+
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).each(function(d) {
-      let box = this.getBoundingClientRect();
-      if(Globals.isElementInViewport(box)) {
-        let url = D3ViewUtils.getImageUrlFromQuality(d, quality);
+      // let box = this.getBoundingClientRect();
+      // if(Globals.isElementInViewport(box)) {
+      if(D3ViewUtils.isElementInView(d, view)) {
+        // let url = D3ViewUtils.getImageUrlFromQuality(d, quality);
+        let url = D3ViewUtils.getImageUrlFromVisibleProportion(d, view);
         visibleImagesAfter.push(url);
         if(!_.contains(self.visibleImages, url)) {
           //console.log('loading image ' + url);
-          self.loadImage(d);
+          window.setTimeout(
+            ViewActions.loadImage.bind(null, url, D3ViewUtils.displayLoadedImage.bind(null, d)),
+            10);
+          // self.loadImage(d);
         }
       }
     });
+
+
     // console.log('after=' + JSON.stringify(visibleImagesAfter));
     // console.log("visible images " + visibleImagesAfterMove.length);
     this.visibleImages = visibleImagesAfter;
   }
 
   viewportTransition(animate) {
-    // If image quality is not at a certain level for the given scale, change image quality.
-    if(this.view.scale < 0.05 && this.imageSourceLevel != ViewConstants.imageQuality.Low) {
-      //console.log("Switch to thumbnail images");
-      this.switchImageSources(ViewConstants.imageQuality.Low);
-    }
-    else if(this.view.scale > 0.05 && this.view.scale < 0.2 && this.imageSourceLevel != ViewConstants.imageQuality.High) {
-      //console.log("Switch to high quality images");
-      this.switchImageSources(ViewConstants.imageQuality.High);
-    }
-    else if(this.view.scale > 0.2 && this.imageSourceLevel != ViewConstants.imageQuality.Original) {
-//console.log("Switch to full scale images");
-      this.switchImageSources(ViewConstants.imageQuality.Original);
-    }
+    this.updateVisibleImages();
 
     this.zoom.translate([this.view.x, this.view.y]);
     this.zoom.scale(this.view.scale);
@@ -301,139 +310,20 @@ class D3FreeSpace {
         .duration(1000)
         .ease('linear')
         .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
-
-      d3.selectAll('.' + Classes.RESIZE_CLASS)
-        .transition()
-        .duration(1000)
-        .ease('linear')
-        .attr('x', d => d.width - 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => d.height)
-        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.MOVE_CLASS)
-        .transition()
-        .duration(1000)
-        .ease('linear')
-        .attr('x', d => d.width/2 - 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -20 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
-
-      d3.selectAll('.' + Classes.BORDER_CLASS)
-        .transition()
-        .duration(1000)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => d.height + 10/this.view.scale * d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.TOP_BAR_CLASS)
-        .transition()
-        .duration(1000)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -20/this.view.scale * d.height/ d.displayHeight)
-        .attr('rx', d => 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('ry', d => 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 40/this.view.scale * d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.NAME_PATH_CLASS)
-        .transition()
-        .duration(1000)
-        .attr('d', d => 'M 0 ' + -5/this.view.scale + ' L ' + d.width + ' ' + -5/this.view.scale);
-
-      d3.selectAll('.' + Classes.NAME_CLASS)
-        .transition()
-        .duration(1000)
-        //.attr('y', -104/this.view.scale)
-        .attr('font-size', d => 14/this.view.scale * d.height/ d.displayHeight + 'px');
-
-      d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
-        .transition()
-        .duration(1000)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => d.height-10/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width+10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 20/this.view.scale * d.height/ d.displayHeight);
     }
     else {
       d3.select('.' + Classes.ROOT_CLASS)
         .attr('transform', 'translate(' + this.view.x + "," + this.view.y + ")scale(" + this.view.scale + ')');
-
-      d3.selectAll('.' + Classes.RESIZE_CLASS)
-        .attr('x', d => d.width - 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => d.height)
-        .attr('width', d => 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 10/this.view.scale* d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.MOVE_CLASS)
-        .attr('x', d => d.width/2 - 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -20 / this.view.scale * d.height / d.displayHeight)
-        .attr('width', d => 20 / this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 20 / this.view.scale * d.height / d.displayHeight)
-        .style('stroke-width', d => 1 / this.view.scale * d.height / d.displayHeight);
-
-      d3.selectAll('.' + Classes.BORDER_CLASS)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => d.height + 10/this.view.scale * d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.TOP_BAR_CLASS)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => -20/this.view.scale * d.height/ d.displayHeight)
-        .attr('rx', d => 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('ry', d => 5/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width + 10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 40/this.view.scale * d.height/ d.displayHeight);
-
-      d3.selectAll('.' + Classes.NAME_PATH_CLASS)
-        .attr('d', d => 'M 0 ' + -5/this.view.scale + ' L ' + d.width + ' ' + -5/this.view.scale);
-
-      d3.selectAll('.' + Classes.NAME_CLASS)
-        .attr('font-size', d => 14/this.view.scale * d.height/ d.displayHeight + 'px');
-
-      d3.selectAll('.' + Classes.BOTTOM_BAR_CLASS)
-        .attr('x', d => -5/this.view.scale * d.height/ d.displayHeight)
-        .attr('y', d => d.height-10/this.view.scale * d.height/ d.displayHeight)
-        .attr('width', d => d.width+10/this.view.scale * d.height/ d.displayHeight)
-        .attr('height', d => 20/this.view.scale * d.height/ d.displayHeight);
     }
-  }
-
-  switchImageSources(level) {
-    this.imageSourceLevel = level;
   }
 
   drawChildEntities() {
-    //console.log('drawChildEntities');
+    let viewData = this.redrawChildEntities();
 
-    var self = this;
-    let group = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
-    var viewData = this.buildDisplayDataElement();
-    if(!viewData) {
-      return;
-    }
-    //console.log(JSON.stringify(viewData));
-
-    this.loadData = {};
-    this.loadData.imagesToLoad = viewData.displays.length;
-    this.loadData.imagesLoaded = 0;
-
-    D3ViewUtils.drawBenchData(viewData.displays, this);
-
-    for(var i = 0; i < viewData.displays.length; ++i) {
-      var element = viewData.displays[i];
-      //console.log('------');
-      //console.log('url=' + element.url);
-      //console.log('thumbnail=' + element.thumbnail);
-      window.setTimeout(this.loadImage.bind(self, element), 10);
-    }
-
-    // if(this.loadData.imagesLoaded >= this.loadData.imagesToLoad) {
-    //   D3FreeSpace.endLoad();
+    // let self = this;
+    // for(let i = 0; i < viewData.displays.length; ++i) {
+    //   let element = viewData.displays[i];
+    //   window.setTimeout(this.loadImage.bind(self, element), 10);
     // }
 
     if(this.viewId != this.benchstore.getActiveViewId()) {
@@ -442,12 +332,33 @@ class D3FreeSpace {
     }
   }
 
-  buildDisplayDataElement() {
-    var viewData = this.benchstore.getActiveViewData();
+  redrawChildEntities() {
+    let viewData = this.buildDisplayDataElement();
+    if(!viewData) {
+      return null;
+    }
+    D3ViewUtils.drawBenchData(viewData.displays, this);
+
+    return viewData;
+  }
+
+  buildDisplayDataElement(iView) {
+    let viewData = this.benchstore.getActiveViewData();
+
+    let view = iView;
+    if(!iView) {
+      let storeview = this.viewstore.getView();
+      view = {
+        xMin: -storeview.left / storeview.scale,
+        xMax: (-storeview.left + storeview.width) / storeview.scale,
+        yMin: -storeview.top / storeview.scale,
+        yMax: (-storeview.top + storeview.height) / storeview.scale
+      };
+    }
     //console.log(JSON.stringify(viewData));
     if(viewData) {
-      for(var j = viewData.displays.length-1; j >= 0; --j) {
-        var posEntity = viewData.displays[j];
+      for(let j = viewData.displays.length-1; j >= 0; --j) {
+        let posEntity = viewData.displays[j];
         //console.log('posEntity =' +JSON.stringify(posEntity));
         if (posEntity.x != null && posEntity.y != null) {
           this.displayData.xMin = Math.min(this.displayData.xMin, posEntity.x - 60);
@@ -456,47 +367,58 @@ class D3FreeSpace {
           this.displayData.xMax = Math.max(posEntity.displayWidth + posEntity.x + 20, this.displayData.xMax);
           this.displayData.yMax = Math.max(posEntity.displayHeight + posEntity.y + 20, this.displayData.yMax);
         }
-        var entityMetadata = this.benchstore.getData(posEntity.entity);
+        let entityMetadata = this.benchstore.getData(posEntity.entity);
         //console.log('entityMetadata =' +JSON.stringify(entityMetadata));
         if(entityMetadata) {
           Object.keys(entityMetadata).forEach(function (key) {
-            viewData.displays[j][key] = entityMetadata[key];
+            // viewData.displays[j][key] = entityMetadata[key];
+            posEntity[key] = entityMetadata[key];
           });
 
-          for(var i = posEntity.tois.length; i > -1; --i) {
-            if(this.benchstore.getData(posEntity.tois[i])) {
-              posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
-            }
-            else {
-              posEntity.tois.splice(i, 1);
-            }
-          }
-
-          for(i = posEntity.pois.length; i > -1; --i) {
-            if(this.benchstore.getData(posEntity.pois[i])) {
-              posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
-            }
-            else {
-              posEntity.pois.splice(i, 1);
+          if(D3ViewUtils.isElementInView(posEntity, view) && (posEntity.displayHeight) / (view.yMax - view.yMin) > 0.4) {
+            // console.log("Entity is visible: " + posEntity.uid);
+            for (let i = posEntity.tois.length; i > -1; --i) {
+              if (this.benchstore.getData(posEntity.tois[i])) {
+                posEntity.tois[i] = this.benchstore.getData(posEntity.tois[i]);
+              }
+              else {
+                posEntity.tois.splice(i, 1);
+              }
             }
 
-          }
+            for (let i = posEntity.pois.length; i > -1; --i) {
+              if (this.benchstore.getData(posEntity.pois[i])) {
+                posEntity.pois[i] = this.benchstore.getData(posEntity.pois[i]);
+              }
+              else {
+                posEntity.pois.splice(i, 1);
+              }
 
-          for(i = posEntity.rois.length; i > -1 ; --i) {
-            if(this.benchstore.getData(posEntity.rois[i])) {
-              posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
             }
-            else {
-              posEntity.rois.splice(i, 1);
+
+            for (let i = posEntity.rois.length; i > -1; --i) {
+              if (this.benchstore.getData(posEntity.rois[i])) {
+                posEntity.rois[i] = this.benchstore.getData(posEntity.rois[i]);
+              }
+              else {
+                posEntity.rois.splice(i, 1);
+              }
+            }
+            for (let i = posEntity.aois.length; i > -1; --i) {
+              if (this.benchstore.getData(posEntity.aois[i])) {
+                posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
+              }
+              else {
+                posEntity.aois.splice(i, 1);
+              }
             }
           }
-          for(i = posEntity.aois.length; i > -1 ; --i) {
-            if(this.benchstore.getData(posEntity.aois[i])) {
-              posEntity.aois[i] = this.benchstore.getData(posEntity.aois[i]);
-            }
-            else {
-              posEntity.aois.splice(i, 1);
-            }
+          else {
+            // console.log("Entity is not visible: " + posEntity.uid);
+            posEntity.tois = [];
+            posEntity.rois = [];
+            posEntity.aois = [];
+            posEntity.pois = [];
           }
         }
         else {
@@ -517,7 +439,15 @@ class D3FreeSpace {
   }
 
   loadImage(elt) {
-    let source = D3ViewUtils.getImageUrlFromQuality(elt, this.imageSourceLevel);
+    let storeview = this.viewstore.getView();
+    let view = {
+      xMin: -storeview.left / storeview.scale,
+      xMax: (-storeview.left + storeview.width) / storeview.scale,
+      yMin: -storeview.top / storeview.scale,
+      yMax: (-storeview.top + storeview.height) / storeview.scale
+    };
+    // let source = D3ViewUtils.getImageUrlFromQuality(elt, ViewConstants.imageQuality.Low);
+    let source = D3ViewUtils.getImageUrlFromVisibleProportion(elt, view);
 
     window.setTimeout(
       ViewActions.loadImage.bind(null, source, D3ViewUtils.displayLoadedImage.bind(null, elt))
@@ -526,7 +456,7 @@ class D3FreeSpace {
   }
 
   findObjectsAtCoords(coordinatesFromD3Origin) {
-    var objects = {
+    let objects = {
       images: [],
       aois: [],
       pois: [],
@@ -538,45 +468,45 @@ class D3FreeSpace {
       console.error("Visualisation component not mounted");
       return objects;
     }
-    var benchstore = this.benchstore;
-    var coordinatesFromWindow = [
+    let benchstore = this.benchstore;
+    let coordinatesFromWindow = [
       coordinatesFromD3Origin[0]+this.viewstore.getView().leftFromWindow,
       coordinatesFromD3Origin[1]+this.viewstore.getView().topFromWindow
     ];
 
     // Find images, use images to narrow search
-    var groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
+    let groups = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
     groups.each(
       function(d, i) {
-        var group = d3.select(this);
-        var box = group.node().getBoundingClientRect();
+        let group = d3.select(this);
+        let box = group.node().getBoundingClientRect();
 
         if(Globals.isCoordsInBoundingBox(coordinatesFromWindow, box)) {
           objects.images.push(d);
           // Process objects in sheet
           group.selectAll('.' + Classes.ROI_CLASS).each(function(d) {
-            var roi = d3.select(this).node().getBoundingClientRect();
+            let roi = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, roi)) {
               objects.rois.push(d);
             }
           });
 
           group.selectAll('.' + Classes.PATH_CLASS).each(function(d) {
-            var path = d3.select(this).node().getBoundingClientRect();
+            let path = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, path)) {
               objects.tois.push(d);
             }
           });
 
           group.selectAll('.' + Classes.POI_CLASS).each(function(d) {
-            var poi = d3.select(this).node().getBoundingClientRect();
+            let poi = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, poi)) {
               objects.pois.push(d);
             }
           });
 
           group.selectAll('.' + Classes.AOI_CLASS).each(function(d) {
-            var aoi = d3.select(this).node().getBoundingClientRect();
+            let aoi = d3.select(this).node().getBoundingClientRect();
             if (Globals.isCoordsInBoundingBox(coordinatesFromWindow, aoi)) {
               objects.aois.push(d);
             }
@@ -588,11 +518,11 @@ class D3FreeSpace {
   }
 
   leftClick(self) {
-    var coords = d3.mouse(this);
-    var objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
+    let coords = d3.mouse(this);
+    let objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
     //console.log(JSON.stringify(objectsAtEvent));
-    var inspectorObjects = [];
-    var getIds = function(data) {return data.uid};
+    let inspectorObjects = [];
+    let getIds = function(data) {return data.uid};
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.pois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.aois.map(getIds));
     Array.prototype.push.apply(inspectorObjects, objectsAtEvent.tois.map(getIds));
@@ -627,16 +557,16 @@ class D3FreeSpace {
       return;
     }
     d3.event.preventDefault();
-    var coords = d3.mouse(this);
-    var objectsAtEvent = self.findObjectsAtCoords(coords);
-    var contextMenuObjects = {
+    let coords = d3.mouse(this);
+    let objectsAtEvent = self.findObjectsAtCoords(coords);
+    let contextMenuObjects = {
       images: [],
       aois: [],
       rois: [],
       tois: [],
       pois: []
     };
-    var buildContextMenuElement = function (elt) {
+    let buildContextMenuElement = function (elt) {
       return {
         parent: self.viewId,
         link: elt.link,

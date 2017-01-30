@@ -24,7 +24,7 @@ class ImagesLoadingStatus extends React.Component {
     };
 
     this.state = {
-      countLoadingImages: 0
+      countLoadingImages: this.props.imagestore.countLoadingImages()
     };
   }
 

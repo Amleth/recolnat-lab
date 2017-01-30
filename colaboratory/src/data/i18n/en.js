@@ -4,6 +4,7 @@
 'use strict';
 
 export default {
+  exports: 'Exports',
   languages: 'Languages',
   operationNotAvailableInVersion: "This feature is not available in the current version",
   remove: 'Delete',
@@ -110,9 +111,9 @@ export default {
   deleteFromSet: "Remove from set",
   deleteHelp0: "The selected entity will be removed from its displayed parent. It will still be accessible from its other parents.",
   confirm: "Confirmer",
-  errorGettingDownloadList: "Unable to retrieve list of downloads",
-  downloadSetImages: "Download images from set",
-  downloadSetImagesHelp0:"The following files are available for download :",
+  errorGettingDownloadList: "Unable to retrieve list of previous exports",
+  downloadSetImages: "Export images from set",
+  downloadSetImagesHelp0:"The following exports are available for download :",
   downloadSetImagesHelp1:"In order to export images from a set, reopen this window after selecting a set in the Set Manager, or loading a set in your lab bench.",
   dropdownSelectRequired: "You must select an option from the dropdown list",
   contactForm: "Contact us",

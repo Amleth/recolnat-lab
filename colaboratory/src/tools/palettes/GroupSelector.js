@@ -52,15 +52,12 @@ class GroupSelector extends React.Component {
       return changeActiveImage.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
 
     this.state = {
-      isVisibleInCurrentMode: false,
       viewId: null,
       listOfImages: [],
       isListOpen: false,
@@ -155,19 +152,12 @@ class GroupSelector extends React.Component {
   componentDidMount() {
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.addSelectionChangeListener(this._onSelectionChange);
-    this.props.modestore.addModeChangeListener(this._onModeChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.compactSegmentStyle.display = '';
-    }
-    else {
-      this.compactSegmentStyle.display = 'none';
-    }
     // Update name display, send minimap init
-
     if(nextState.selectedImageIdx != this.state.selectedImageIdx) {
       if(nextState.selectedImageIdx < 0) {
         nextState.selectedImageName = this.props.userstore.getText('selectAnImage');
@@ -198,8 +188,8 @@ class GroupSelector extends React.Component {
   componentWillUnmount() {
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchLoaded);
     this.props.toolstore.removeSelectionChangeListener(this._onSelectionChange);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
   }
 
   render() {

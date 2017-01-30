@@ -145,13 +145,6 @@ class ElementInspector extends React.Component {
       return setElementsUnderCursor.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode() || this.props.modestore.isInSetMode()
-      });
-      return setModeVisibility.apply(this);
-    };
-
     this._onEntityMetadataChange = () => {
       const processEntityMetadata = () => this.processEntityMetadata();
       return processEntityMetadata.apply(this);
@@ -172,8 +165,12 @@ class ElementInspector extends React.Component {
       return processCreatorMetadata.apply(this);
     };
 
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    };
+
     this.state = {
-      isVisibleInCurrentMode: true,
       entitiesIds: [],
       annotationsIds: [],
       tagsIds: [],
@@ -707,9 +704,9 @@ class ElementInspector extends React.Component {
   }
 
   componentDidMount() {
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.inspecstore.addContentChangeListener(this._onSelectionChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillReceiveProps(props) {
@@ -720,12 +717,6 @@ class ElementInspector extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.containerStyle.display = '';
-    }
-    else {
-      this.containerStyle.display = 'none';
-    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -734,11 +725,11 @@ class ElementInspector extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
     this.clearMetadataListeners(this.state.entitiesIds, this._onEntityMetadataChange);
     this.clearMetadataListeners(this.state.annotationsIds, this._onAnnotationMetadataChange);
     this.clearMetadataListeners(this.state.creatorsIds, this._onCreatorMetadataChange);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
     this.props.inspecstore.removeContentChangeListener(this._onSelectionChange);
   }
 

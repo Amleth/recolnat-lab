@@ -105,7 +105,7 @@ class MainMenu extends React.Component {
         </div>
         <div className={'item'} onClick={ModalActions.showModal.bind(null, ModalConstants.Modals.downloadSet, null, null, null)} style={this.optionStyle}>
           <span className='text'>
-            {this.props.userstore.getText('downloads')}
+            {this.props.userstore.getText('exports')}
             </span>
         </div>
         <div className='dropdown item' style={this.optionStyle}>

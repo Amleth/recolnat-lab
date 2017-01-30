@@ -80,6 +80,13 @@ export default {
     });
   },
 
+  updateDisplayFilters: (filters) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_FILTERS,
+      filters: filters
+    });
+  },
+
   changeLoaderState: (text) => {
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.LOADER_CHANGE_STATE,

@@ -45,33 +45,21 @@ class Toolbox extends React.Component {
       left: '10px'
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode:  this.props.modestore.isInObservationMode()
-      });
-      return setModeVisibility.apply(this);
-    };
-
-    this.state = {
-      isVisibleInCurrentMode: false
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
   }
 
   componentDidMount() {
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if (nextState.isVisibleInCurrentMode) {
-      this.componentStyle.display = '';
-    }
-    else {
-      this.componentStyle.display = 'none';
-    }
   }
 
   componentWillUnmount() {
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
   }
 
   render() {
@@ -84,12 +72,8 @@ class Toolbox extends React.Component {
         <div style={this.hiddenButtons}>
           <NoTool
             userstore={this.props.userstore}/>
-          <MoveView
-            userstore={this.props.userstore}/>
           <MoveObject viewstore={this.props.viewstore}
                       userstore={this.props.userstore}/>
-          <SelectObject
-            userstore={this.props.userstore}/>
         </div>
         <div className='ui three buttons' style={this.buttonRowsStyle}>
           <LineMeasure

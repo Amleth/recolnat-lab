@@ -43,11 +43,6 @@ class CreateMeasureStandard extends AbstractTool {
         self.setState({end: {x: coords[0], y: coords[1]}});
       });
 
-    this._onViewChange = () => {
-      const updateSVG = () => this.setState({});
-      return updateSVG.apply(this);
-    };
-
     this.state = this.initialState();
   }
 
@@ -122,7 +117,7 @@ class CreateMeasureStandard extends AbstractTool {
         self.rightClick.call(this, self, d);
       });
 
-    this.props.viewstore.addViewportListener(this._onViewChange);
+    this.props.viewstore.addViewportListener(this._forceUpdate);
 
     this.setState({active: true});
   }
@@ -150,6 +145,7 @@ class CreateMeasureStandard extends AbstractTool {
       .on('contextmenu', null);
 
     this.setState(this.initialState());
+    this.props.viewstore.removeViewportListener(this._forceUpdate);
 
     window.setTimeout(ToolActions.updateTooltipData.bind(null, ''), 10);
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, null), 10);
@@ -331,8 +327,7 @@ class CreateMeasureStandard extends AbstractTool {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    $(this.refs.button.getDOMNode()).popup();
+    super.componentDidMount();
     window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.newMeasureStandard.id, this.click, this), 10);
   }
 

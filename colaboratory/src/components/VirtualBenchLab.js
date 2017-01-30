@@ -12,6 +12,7 @@ import Inbox from './Inbox';
 import BenchLabBorders from './BenchLabBorders';
 import ActiveSetNameDisplay from './ActiveSetNameDisplay';
 import ImagesLoadingStatus from './ImagesLoadingStatus';
+import EntityFilters from './EntityFilters';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
@@ -52,31 +53,32 @@ class VirtualBenchLab extends React.Component {
     };
 
     this.state = {
-      isVisibleInCurrentMode: false,
+      isVisibleInCurrentMode: this.isComponentVisibleInCurrentMode(),
       loader: null,
       loading: ''
     };
 
     this._onModeChange = () => {
       const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()
+        isVisibleInCurrentMode: this.isComponentVisibleInCurrentMode()
       });
       return setModeVisibility.apply(this);
     };
   }
 
+  isComponentVisibleInCurrentMode() {
+    return this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode();
+  }
+
   componentDidMount() {
     this.props.modestore.addModeChangeListener(this._onModeChange);
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    $(this.refs.import.getDOMNode()).popup({
+      position: 'top center'
+    });
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.componentContainerStyle.display = 'block';
-    }
-    else {
-      this.componentContainerStyle.display = 'none';
-    }
     if(nextState.loader) {
       nextState.loading = 'active'
     }
@@ -86,11 +88,7 @@ class VirtualBenchLab extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.isVisibleInCurrentMode && !prevState.isVisibleInCurrentMode) {
-      $(this.refs.import.getDOMNode()).popup({
-        position: 'top center'
-      });
-    }
+
   }
 
   componentWillUnmount() {
@@ -140,6 +138,11 @@ class VirtualBenchLab extends React.Component {
         <BenchLabBorders
           userstore={this.props.userstore}
           viewstore={this.props.viewstore}
+        />
+        <EntityFilters
+          userstore={this.props.userstore}
+          viewstore={this.props.viewstore}
+          benchstore={this.props.benchstore}
         />
         <BenchLabFreeSpace
           width='100%'

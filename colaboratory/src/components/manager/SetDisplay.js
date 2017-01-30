@@ -90,6 +90,11 @@ class SetDisplay extends React.Component {
       height: '5px'
     };
 
+    this._onItemOrSubsetUpdate = () => {
+      const update = () => this.itemOrSubSetUpdated();
+      return update.apply(this);
+    };
+
     let subSets = [];
     let items = [];
     if(this.props.set.subsets) {
@@ -103,11 +108,10 @@ class SetDisplay extends React.Component {
       displayName: this.props.index === 0 ? this.props.userstore.getText('mySets') : this.props.set.name,
       subSets: subSets,
       items: items,
-      validEntityDraggedOverSelf: false
-      //selectedId: null
+      validEntityDraggedOverSelf: false,
+      offset: 0,
+      limit: window.innerHeight/30
     };
-
-    //console.log(JSON.stringify(props.set));
   }
 
   itemOrSubSetUpdated() {
@@ -174,6 +178,7 @@ class SetDisplay extends React.Component {
             return;
           }
         }
+        // No break here, fallthrough is voluntary
       case 'managerDragItem':
         data = this.props.dragstore.getData();
         for(let i = 0; i < this.props.set.items.length; ++i) {
@@ -217,16 +222,23 @@ class SetDisplay extends React.Component {
     );
   }
 
+  scrolled(e) {
+    let node = React.findDOMNode(this.refs.scroller);
+    if(node.offsetHeight + node.scrollTop >= node.scrollHeight-20) {
+      this.setState({limit: Math.min(this.state.items.length + this.state.subSets.length, this.state.limit+10)});
+    }
+  }
+
   addMetadataUpdateListeners(s) {
     if(s.subsets) {
       for (let i = 0; i < s.subsets.length; ++i) {
-        this.props.metastore.addMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
+        this.props.metastore.addMetadataUpdateListener(s.subsets[i].uid, this._onItemOrSubsetUpdate);
       }
     }
 
     if(s.items) {
       for (let i = 0; i < s.items.length; ++i) {
-        this.props.metastore.addMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
+        this.props.metastore.addMetadataUpdateListener(s.items[i].uid, this._onItemOrSubsetUpdate);
       }
     }
   }
@@ -234,13 +246,13 @@ class SetDisplay extends React.Component {
   removeMetadataUpdateListeners(s) {
     if(s.subsets) {
       for (let i = 0; i < s.subsets.length; ++i) {
-        this.props.metastore.removeMetadataUpdateListener(s.subsets[i].uid, this.itemOrSubSetUpdated.bind(this));
+        this.props.metastore.removeMetadataUpdateListener(s.subsets[i].uid, this._onItemOrSubsetUpdate);
       }
     }
 
     if(s.items) {
       for (let i = 0; i < s.items.length; ++i) {
-        this.props.metastore.removeMetadataUpdateListener(s.items[i].uid, this.itemOrSubSetUpdated.bind(this));
+        this.props.metastore.removeMetadataUpdateListener(s.items[i].uid, this._onItemOrSubsetUpdate);
       }
     }
   }
@@ -248,6 +260,7 @@ class SetDisplay extends React.Component {
   componentDidMount() {
     //this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
     this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.itemOrSubSetUpdated();
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -276,6 +289,8 @@ class SetDisplay extends React.Component {
     if(nextProps.set.hash != this.props.set.hash) {
       nextState.subSets = nextProps.set.subsets;
       nextState.items = nextProps.set.items;
+      nextState.offset = 0;
+      nextState.limit = window.innerHeight/30;
     }
   }
 
@@ -292,7 +307,7 @@ class SetDisplay extends React.Component {
   }
 
   render() {
-    var self = this;
+    let self = this;
     // No content yet, show a loader
     if(this.props.set.loading) {
       return <div className='ui segment' style={this.containerStyle}>
@@ -339,9 +354,11 @@ class SetDisplay extends React.Component {
         onDragOver={this.preventDefault.bind(this)}
         onDragLeave={this.removeDraggedEntity.bind(this)}
         onDrop={this.addDraggedEntity.bind(this)}
+        onScroll={this.scrolled.bind(this)}
+        ref='scroller'
         style={this.listContainerStyle}>
         <div className='ui selection list' style={this.noMarginPaddingStyle}>
-          {this.state.subSets.map(function(subSet, idx) {
+          {this.state.subSets.slice(this.state.offset, this.state.limit).map(function(subSet, idx) {
             return <SetDisplaySubSet key={'S-' + subSet.link}
                                      managerstore={self.props.managerstore}
                                      metastore={self.props.metastore}
@@ -352,7 +369,7 @@ class SetDisplay extends React.Component {
                                      set={subSet}
                                      />
           })}
-          {this.state.items.map(function(item, idx) {
+          {this.state.items.slice(this.state.offset, this.state.limit - this.state.subSets.length).map(function(item, idx) {
             return <SetDisplayItem
               key={'K-' + item.link}
               managerstore={self.props.managerstore}

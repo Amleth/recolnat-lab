@@ -10,6 +10,7 @@ import Popup from "../popups/LineMeasurePopup";
 import AbstractTool from "../AbstractTool";
 
 import ToolActions from "../../actions/ToolActions";
+import ViewActions from '../../actions/ViewActions';
 
 import ToolConf from "../../conf/Tools-conf";
 
@@ -247,7 +248,7 @@ class LineMeasure extends AbstractTool {
   }
 
   begin() {
-    var popup = <Popup
+    let popup = <Popup
       userstore={this.props.userstore}
       toolstore={this.props.toolstore}
       metastore={this.props.metastore}
@@ -256,8 +257,9 @@ class LineMeasure extends AbstractTool {
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
 
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip')), 10);
+    window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {trails: true}), 10);
 
-    var self = this;
+    let self = this;
     d3.selectAll('.' + Classes.IMAGE_CLASS)
       .style('cursor', 'crosshair')
       .on('click', function(d, i) {
@@ -312,7 +314,7 @@ class LineMeasure extends AbstractTool {
   }
 
   startLine(x, y, data) {
-    var uuid = UUID.v4();
+    let uuid = UUID.v4();
     window.setTimeout(ToolActions.updateTooltipData.bind(null, this.props.userstore.getText('lineMeasureTooltip1')), 10);
     this.createActiveMeasure(x, y, uuid, data);
     this.setState({
@@ -345,7 +347,7 @@ class LineMeasure extends AbstractTool {
       self.endLine.call(self, coords[0], coords[1], d);
     }
     else {
-      ToolActions.updateTooltipData(this.props.userstore.getText('lineMeasureTooltip2'));
+      ToolActions.updateTooltipData(self.props.userstore.getText('lineMeasureTooltip2'));
     }
   }
 
@@ -353,7 +355,12 @@ class LineMeasure extends AbstractTool {
     self.reset.call(self);
   }
 
+  canSave() {
+    return false;
+  }
+
   save(d) {
+    // The save action is called from/by the popup in the current ergonomy.
   }
 
   static updateLineDisplay(id) {
@@ -427,10 +434,10 @@ class LineMeasure extends AbstractTool {
   }
 
   setLineEndPosition(self) {
-    var coords = d3.mouse(this);
+    let coords = d3.mouse(this);
 
-    var measure = d3.select('#MEASURE-' + self.state.uuid);
-    var lineData = measure.datum();
+    let measure = d3.select('#MEASURE-' + self.state.uuid);
+    let lineData = measure.datum();
     lineData.x2 = coords[0];
     lineData.y2 = coords[1];
     measure.datum(lineData);
@@ -459,26 +466,6 @@ class LineMeasure extends AbstractTool {
   }
 
   setScale(scaleId) {
-    // if(scaleId) {
-    //   d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-    //     //console.log('setting scale for ' + JSON.stringify(d));
-    //     if(d.scales[scaleId]) {
-    //       d.mmPerPixel = d.scales[scaleId].mmPerPixel;
-    //       d.unit = 'mm';
-    //     }
-    //     else {
-    //       d.mmPerPixel = null;
-    //       d.unit = 'px';
-    //     }
-    //   });
-    // }
-    // else {
-    //   d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).selectAll('*').each(function (d) {
-    //     //console.log('setting scale for ' + JSON.stringify(d));
-    //     d.mmPerPixel = null;
-    //     d.unit = 'px';
-    //   });
-    // }
     d3.selectAll('.' + LineMeasure.classes().selfGroupSvgClass).each(function(d) {
       LineMeasure.updateLineDisplay(d.id);
     });
@@ -486,9 +473,8 @@ class LineMeasure extends AbstractTool {
   }
 
   componentDidMount() {
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    super.componentDidMount();
     this.props.viewstore.addViewportListener(this._onZoom);
-    $(this.refs.button.getDOMNode()).popup();
     window.setTimeout(ToolActions.registerTool.bind(null, ToolConf.lineMeasure.id, this.click, this), 10);
   }
 
@@ -502,7 +488,7 @@ class LineMeasure extends AbstractTool {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    super.componentWillUnmount();
     this.props.viewstore.removeViewportListener(this._onZoom);
     window.setTimeout(ToolActions.activeToolPopupUpdate, 10);
   }

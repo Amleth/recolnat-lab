@@ -34,49 +34,118 @@ class LeftPane extends React.Component {
       //boxShadow: '0 0 0 0'
       //overflow: 'none'
     };
+
+    this._onModeChange = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
+    }
+  }
+
+  componentDidMount() {
+    this.props.modestore.addModeChangeListener(this._onModeChange);
+  }
+
+  componentWillUnmount() {
+    this.props.modestore.removeModeChangeListener(this._onModeChange);
   }
 
   render() {
-    return(
-      <div ref='self'
-           style={this.containerStyle}
-           className='ui container'>
-        <div className='ui divider'></div>
-        <ModeSwitcher modestore={this.props.modestore}
-                      userstore={this.props.userstore}/>
-        <SetManagerMainButtons
-          userstore={this.props.userstore}
-          managerstore={this.props.managerstore}
-          modestore={this.props.modestore} />
-        <SetSelectorDisplay modestore={this.props.modestore}
-                            userstore={this.props.userstore}
-                            managerstore={this.props.managerstore} />
-        <GroupSelector
-          modestore={this.props.modestore}
-          userstore={this.props.userstore}
-          toolstore={this.props.toolstore}
-          benchstore={this.props.benchstore} />
-        <Minimap ministore={this.props.ministore}
-                 userstore={this.props.userstore}
-                 viewstore={this.props.viewstore}
-                 modestore={this.props.modestore}
-                 toolstore={this.props.toolstore}
-                 benchstore={this.props.benchstore}/>
-        <ViewController
-          ministore={this.props.ministore}
-          userstore={this.props.userstore}
-          modestore={this.props.modestore}
-          toolstore={this.props.toolstore}
-          viewstore={this.props.viewstore} />
-        <Toolbox ministore={this.props.ministore}
-                 userstore={this.props.userstore}
-                 modestore={this.props.modestore}
-                 viewstore={this.props.viewstore}
-                 toolstore={this.props.toolstore}
-                 metastore={this.props.metastore}
-                 benchstore={this.props.benchstore}/>
-      </div>
-    );
+    if(this.props.modestore.isInSetMode()) {
+      return(
+        <div ref='self'
+             style={this.containerStyle}
+             className='ui container'>
+          <div className='ui divider'></div>
+          <ModeSwitcher
+            key='ModeSwitcher'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}/>
+          <SetManagerMainButtons
+            key='SetManagerMainButtons'
+            userstore={this.props.userstore}
+            managerstore={this.props.managerstore}
+            modestore={this.props.modestore} />
+          <SetSelectorDisplay
+            key='SetSelectorDisplay'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}
+            managerstore={this.props.managerstore} />
+        </div>
+      );
+    }
+    else if(this.props.modestore.isInObservationMode()) {
+      return(
+        <div ref='self'
+             style={this.containerStyle}
+             className='ui container'>
+          <div className='ui divider'></div>
+          <ModeSwitcher
+            key='ModeSwitcher'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}/>
+          <GroupSelector
+            key='GroupSelector'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}
+            toolstore={this.props.toolstore}
+            benchstore={this.props.benchstore} />
+          <Minimap
+            key='Minimap'
+            ministore={this.props.ministore}
+            userstore={this.props.userstore}
+            viewstore={this.props.viewstore}
+            modestore={this.props.modestore}
+            toolstore={this.props.toolstore}
+            benchstore={this.props.benchstore}/>
+          <ViewController
+            key='ViewController'
+            ministore={this.props.ministore}
+            userstore={this.props.userstore}
+            modestore={this.props.modestore}
+            toolstore={this.props.toolstore}
+            viewstore={this.props.viewstore} />
+          <Toolbox
+            key='Toolbox'
+            ministore={this.props.ministore}
+            userstore={this.props.userstore}
+            modestore={this.props.modestore}
+            viewstore={this.props.viewstore}
+            toolstore={this.props.toolstore}
+            metastore={this.props.metastore}
+            benchstore={this.props.benchstore}/>
+        </div>
+      );
+    }
+    else if(this.props.modestore.isInOrganisationMode()) {
+      return(
+        <div ref='self'
+             style={this.containerStyle}
+             className='ui container'>
+          <div className='ui divider'></div>
+          <ModeSwitcher
+            key='ModeSwitcher'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}/>
+          <GroupSelector
+            key='GroupSelector'
+            modestore={this.props.modestore}
+            userstore={this.props.userstore}
+            toolstore={this.props.toolstore}
+            benchstore={this.props.benchstore} />
+          <ViewController
+            key='ViewController'
+            ministore={this.props.ministore}
+            userstore={this.props.userstore}
+            modestore={this.props.modestore}
+            toolstore={this.props.toolstore}
+            viewstore={this.props.viewstore} />
+        </div>
+      );
+    }
+    else {
+      console.error('No render handler in mode ' + this.props.modestore.getMode());
+      return null;
+    }
   }
 }
 

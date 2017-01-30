@@ -195,6 +195,9 @@ class ToolStore extends EventEmitter {
 
   addSelectionChangeListener(callback) {
     this.on(ViewEvents.SELECTION_CHANGE, callback);
+    if(this.imageId) {
+      window.setTimeout(function(){callback();}, 10);
+    }
   }
 
   removeSelectionChangeListener(callback) {

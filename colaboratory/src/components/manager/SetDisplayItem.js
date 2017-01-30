@@ -38,6 +38,21 @@ class SetDisplayItem extends React.Component {
       isActive: false,
       isSelected: false
     };
+
+    if(props.item) {
+      if(props.item.name) {
+        this.state.item = props.item;
+        switch (props.item.type) {
+          case 'Specimen':
+            this.state.icon = 'ui icon barcode';
+            break;
+          case 'Image':
+            this.state.icon = 'ui icon file image outline';
+            break;
+        }
+      }
+    }
+
   }
 
 

@@ -49,11 +49,9 @@ class SpecimenMetadataDisplay extends React.Component {
       updateMetadataDisplay.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
 
     this.state = this.initialState();
@@ -62,7 +60,6 @@ class SpecimenMetadataDisplay extends React.Component {
   initialState() {
     return {
       id: null,
-      isVisibleInCurrentMode: true,
       metadata: null,
       source: null,
       scientificName: null,
@@ -114,9 +111,9 @@ class SpecimenMetadataDisplay extends React.Component {
       return;
     }
 
-    var id = colabMetadata.idInOriginSource;
-    var type = colabMetadata.typeInOriginSource;
-    var source = colabMetadata.origin;
+    let id = colabMetadata.idInOriginSource;
+    let type = colabMetadata.typeInOriginSource;
+    let source = colabMetadata.origin;
     switch(source.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
@@ -185,13 +182,13 @@ class SpecimenMetadataDisplay extends React.Component {
           });
         }
         else {
-          var determinations = JSON.parse(res.text);
-          var scName = this.props.userstore.getText('dataUnavailable');
-          var scNameAuth = this.props.userstore.getText('dataUnavailable');
-          var determinationStatusWarning = 'warning';
+          let determinations = JSON.parse(res.text);
+          let scName = this.props.userstore.getText('dataUnavailable');
+          let scNameAuth = this.props.userstore.getText('dataUnavailable');
+          let determinationStatusWarning = 'warning';
           //console.log('determinations=' + res.text);
-          for(var i = 0; i < determinations.length; ++i) {
-            var determination = determinations[i];
+          for(let i = 0; i < determinations.length; ++i) {
+            let determination = determinations[i];
             if(determination.taxon.scientificName) {
               scName = determination.taxon.scientificName;
             }
@@ -290,8 +287,8 @@ class SpecimenMetadataDisplay extends React.Component {
 
   componentDidMount() {
     this.props.managerstore.addSelectionChangeListener(this._onSelectionChange);
-    this.props.modestore.addModeChangeListener(this._onModeChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillReceiveProps(props) {
@@ -302,12 +299,6 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.containerStyle.display = '';
-    }
-    else {
-      this.containerStyle.display = 'none';
-    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -324,8 +315,8 @@ class SpecimenMetadataDisplay extends React.Component {
       this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
     }
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
   }
 
   render() {

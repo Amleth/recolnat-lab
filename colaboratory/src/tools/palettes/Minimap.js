@@ -13,9 +13,6 @@ class Minimap extends React.Component {
     super(props);
 
     this.componentStyle = {
-      display: "none",
-      // display: 'flex',
-      // flexDirection: "column",
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important'
     };
@@ -28,8 +25,6 @@ class Minimap extends React.Component {
 
     this.imageContainerStyle = {
       position: "relative",
-      //left: "0px",
-      //top: "0px",
       overflow: "hidden"
     };
 
@@ -64,15 +59,12 @@ class Minimap extends React.Component {
       return updateStoreWithPosition.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInObservationMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => this.setState({});
+      return update.apply(this);
     };
 
     this.state = {
-      isVisibleInCurrentMode: false,
       imgUrl: null,
       view: {
         top: 0,
@@ -104,7 +96,7 @@ class Minimap extends React.Component {
 
     for(let i = 0; i < viewData.displays.length; ++i) {
       if(viewData.displays[i].link == imageId) {
-        var displayData = viewData.displays[i];
+        let displayData = viewData.displays[i];
         window.setTimeout(
         MinimapActions.initMinimap.bind(null, imageUrl, displayData.displayWidth, displayData.displayHeight, displayData.x, displayData.y), 10);
         break;
@@ -205,21 +197,15 @@ class Minimap extends React.Component {
   }
 
   componentDidMount() {
-    this.props.modestore.addModeChangeListener(this._onModeChange);
+    this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.ministore.addInitListener(this._onImageInit);
     this.props.viewstore.addViewportListener(this._onViewChange);
     this.props.benchstore.addLabBenchLoadListener(this._onLabBenchUpdate);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
     $('.ui.button.small.compact', this.refs.component.getDOMNode()).popup();
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.componentStyle.display = '';
-    }
-    else {
-      this.componentStyle.display = 'none';
-    }
     if(nextState.view.left != null) {
       this.boundingBoxStyle.left = nextState.view.left + "px";
     }
@@ -241,11 +227,11 @@ class Minimap extends React.Component {
   }
 
   componentWillUnmount() {
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
     this.props.ministore.removeInitListener(this._onImageInit);
     this.props.viewstore.removeViewportListener(this._onViewChange);
     this.props.benchstore.removeLabBenchLoadListener(this._onLabBenchUpdate);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
+    this.props.modestore.removeModeChangeListener(this._forceUpdate);
   }
 
   render() {

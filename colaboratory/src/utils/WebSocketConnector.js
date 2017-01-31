@@ -78,8 +78,8 @@ class Connector extends EventEmitter {
   openWebsocket() {
     if(this.websocket == null) {
       window.clearInterval(this.openInterval);
-      var self = this;
-      var websocket = new W3CWebSocket(conf.wss, this.websocketServerMethod, conf.wss);
+      let self = this;
+      let websocket = new W3CWebSocket(conf.wss, this.websocketServerMethod, conf.wss);
 
       websocket.onerror = function (message) {
         console.error('Connection failed with error: ' + JSON.stringify(message));
@@ -92,8 +92,8 @@ class Connector extends EventEmitter {
 
         self.ping = window.setInterval(self.sendPing.bind(self), 60000);
         // If ids are present, re-subscribe to them as it means the socket was closed prematurely
-        var ids = Object.keys(self.idToData);
-        for(var i = 0; i < ids.length; ++i) {
+        let ids = Object.keys(self.idToData);
+        for(let i = 0; i < ids.length; ++i) {
           self.subscribe(ids[i]);
         }
         self.emit(SocketEvents.STATUS_CHANGE);
@@ -125,7 +125,7 @@ class Connector extends EventEmitter {
       return;
     }
     console.log('got message ' + message.data);
-    var jsonMessage = JSON.parse(message.data);
+    let jsonMessage = JSON.parse(message.data);
     if(jsonMessage.id) {
       delete this.pendingMessages[jsonMessage.id];
       this.emit(SocketEvents.STATUS_CHANGE);
@@ -141,7 +141,7 @@ class Connector extends EventEmitter {
     }
     switch(jsonMessage.action) {
       case ServerConstants.ActionTypes.Receive.RESOURCE:
-        var resource = jsonMessage.resource;
+        let resource = jsonMessage.resource;
         if(resource.type === "User" && this.user === null) {
           console.log('User data received');
           this.idToData['user'] = resource;
@@ -178,7 +178,7 @@ class Connector extends EventEmitter {
     this.messageCounter++;
     this.pendingMessages[this.messageCounter] = 'loading';
     this.emit(SocketEvents.STATUS_CHANGE);
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.SUBSCRIBE,
       messageId: this.messageCounter,
       id: id
@@ -188,7 +188,7 @@ class Connector extends EventEmitter {
   }
 
   unsubscribe(id) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UNSUBSCRIBE,
       id: id
     };
@@ -216,7 +216,7 @@ class Connector extends EventEmitter {
   }
 
   countPendingMessages() {
-    var ids = Object.keys(this.pendingMessages);
+    let ids = Object.keys(this.pendingMessages);
     return ids.length;
   }
 

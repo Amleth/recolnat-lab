@@ -304,10 +304,6 @@ public class SetResource {
           throw new AccessForbiddenException(user, (String) vTargetItemOrSet.getProperty(DataModel.Properties.id));
         }
 
-        List<String> deletionChanges = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
-
-        vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
-
         // Link new version of target with new parent
         switch ((String) vTargetItemOrSet.getProperty("@class")) {
           case DataModel.Classes.set:
@@ -318,6 +314,9 @@ public class SetResource {
             break;
         }
 
+//        g.commit();
+//        vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
+        List<String> deletionChanges = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
 
         for(String id: deletionChanges) {

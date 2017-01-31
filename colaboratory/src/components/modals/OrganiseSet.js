@@ -135,27 +135,56 @@ class OrganiseSet extends AbstractModal {
     this.removeAllListeners();
     let newSetNames = Object.keys(this.state.newSets);
     for(let i = 0; i < newSetNames.length; ++i) {
-      ServiceMethods.createSet(newSetNames[i], this.state.setId, this.moveItems.bind(this, newSetNames[i]));
+      ServiceMethods.createSet(newSetNames[i], this.state.setId, this.setCreated.bind(this, newSetNames[i]));
     }
     this.setState({phase: 2});
   }
 
-  moveItems(setName, msg) {
+  setCreated(setName, msg) {
     let log = JSON.parse(JSON.stringify(this.state.log));
+    let sets = JSON.parse(JSON.stringify(this.state.newSets));
     if(msg.clientProcessError) {
-      // alert('Impossible de créer le set ' + setName);
       log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [setName]));
-      this.setState({log: log});
+      delete sets[setName];
     }
     else {
       log.push(this.props.userstore.getInterpolatedText('emptySetCreated', [setName]));
-      this.setState({log: log});
-      for(let i = 0; i < this.state.newSets[setName].length; ++i) {
-        let item = this.state.newSets[setName][i];
-        ServiceMethods.cutPaste(item.link, msg.data.subSet, this.itemMoved.bind(this, item.name, item.uid));
-      }
+      // sets[setName].uid = msg.data.subSet;
+      sets[setName] = {
+        uid: msg.data.subSet,
+        items: sets[setName]
+      };
+    }
+    this.setState({log: log, newSets: sets});
+  }
+
+  moveItems(set) {
+    if(!set.uid) {
+      return;
+    }
+
+    for(let i = 0; i < set.items.length; ++i) {
+      let item = set.items[i];
+      ServiceMethods.cutPaste(item.link, set.uid, this.itemMoved.bind(this, item.name, item.uid));
     }
   }
+
+  // moveItems(setName, msg) {
+  //   let log = JSON.parse(JSON.stringify(this.state.log));
+  //   if(msg.clientProcessError) {
+  //     // alert('Impossible de créer le set ' + setName);
+  //     log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [setName]));
+  //     this.setState({log: log});
+  //   }
+  //   else {
+  //     log.push(this.props.userstore.getInterpolatedText('emptySetCreated', [setName]));
+  //     this.setState({log: log});
+  //     for(let i = 0; i < this.state.newSets[setName].length; ++i) {
+  //       let item = this.state.newSets[setName][i];
+  //       ServiceMethods.cutPaste(item.link, msg.data.subSet, this.itemMoved.bind(this, item.name, item.uid));
+  //     }
+  //   }
+  // }
 
   itemMoved(name, id, msg) {
     let log = JSON.parse(JSON.stringify(this.state.log));
@@ -190,6 +219,13 @@ class OrganiseSet extends AbstractModal {
         }
         nextState.setDisplayName = nextState.setData.name;
 
+      }
+    }
+
+    if(nextState.active) {
+      if(nextState.phase === 2 && _.isUndefined(_.find(nextState.newSets, s => s.uid === undefined)) && !nextState.waiting) {
+        _.each(nextState.newSets, this.moveItems, this);
+        nextState.waiting = true;
       }
     }
 

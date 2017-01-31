@@ -165,7 +165,7 @@ class Inbox extends React.Component {
     this.imagesToPlace = this.state.content.length;
     this.imagesPlaced = 0;
     for(let i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(this, viewId));
       y = y + this.state.content[i].height + 200;
     }
   }
@@ -194,7 +194,7 @@ class Inbox extends React.Component {
     this.imagesToPlace = this.state.content.length;
     this.imagesPlaced = 0;
     for(let i = 0; i < this.state.content.length; ++i) {
-      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(null, viewId));
+      ServiceMethods.place(viewId, this.state.content[i].uid, x, y, this.imagePlaced.bind(this, viewId));
 
       x = x + maxWidth + 200;
       if((i+1) % 5 == 0) {

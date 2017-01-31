@@ -1,5 +1,8 @@
 database:
   dbPath: /tmp/db/ReColNat
+  pathToUserAccessDatabase: /tmp/db/uac.db
+  pathToUserExportsDatabase: /tmp/db/uexports.db
+  exportsDirectory: /tmp/exports/
   dbUser: root
   password: root
   minConnectorPoolSize: 1
@@ -20,3 +23,5 @@ server:
   port: 10001
 logging:
   level: INFO
+  loggers:
+    "fr.recolnat.database": ERROR

@@ -10,7 +10,9 @@ let Application = {
 
 let Integration = {
   recolnatMenuBarOrigin: 'https://wp5test.recolnat.org',
-  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
+  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu',
+  casLoginUrl: 'https://cas.recolnat.org/login',
+  casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };
 
 let Services = {

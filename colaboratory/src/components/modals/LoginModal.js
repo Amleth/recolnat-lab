@@ -8,6 +8,8 @@ import React from 'react';
 import ModalConstants from '../../constants/ModalConstants';
 import ViewConstants from '../../constants/ViewConstants';
 
+import conf from '../../conf/ApplicationConfiguration';
+
 class LoginModal extends React.Component {
   constructor(props) {
     super(props);
@@ -45,12 +47,12 @@ class LoginModal extends React.Component {
   }
 
   openLoginPopup() {
-    this.loginWindow = window.open('https://cas.recolnat.org/login',
+    this.loginWindow = window.open(conf.integration.casLoginUrl,
        'casLogin', 'menubar=no,status=no,titlebar=no,toolbar=no,width=700,height=800,top=' + window.self.screenY + ',left=' + window.self.screenX);
   }
 
   openRegisterPopup() {
-    window.open('http://signup.recolnat.org/#/register', 'menubar=no,status=no,titlebar=no,toolbar=no,width=700,height=800,top=' + window.self.screenY + ',left=' + window.self.screenX);
+    window.open(conf.integration.casSignupUrl, 'menubar=no,status=no,titlebar=no,toolbar=no,width=700,height=800,top=' + window.self.screenY + ',left=' + window.self.screenX);
   }
 
   componentDidMount() {

@@ -8,18 +8,20 @@ let Application = {
   ]
 };
 
-var Integration = {
+let Integration = {
   recolnatMenuBarOrigin: 'https://www.recolnat.org',
-  recolnatMenuBarUrl: 'https://www.recolnat.org/menu'
+  recolnatMenuBarUrl: 'https://www.recolnat.org/menu',
+  casLoginUrl: 'https://cas.recolnat.org/login',
+  casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };
 
-var Services = {
+let Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/test',
   laboratorySocketService: 'wss://wp5test.recolnat.org/services/test/websockets/colaboratory',
   downloadsBaseURL: 'https://wp5test.recolnat.org/exports-test/'
 };
 
-var Endpoints = {
+let Endpoints = {
   authenticationService: Services.laboratoryRESTService + '/authentication',
   dataAccessService: Services.laboratoryRESTService + '/database',
   imageService: Services.laboratoryRESTService + '/image',
@@ -31,7 +33,7 @@ var Endpoints = {
   virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
 };
 
-var Actions = {
+let Actions = {
   imageServiceActions: {
     getImage: Endpoints.imageService + "/get-image",
     getSpecimen: Endpoints.imageService + "/get-specimen",
@@ -85,7 +87,7 @@ var Actions = {
   }
 };
 
-var SocketActions = {
+let SocketActions = {
   createRegionOfInterest: "create-roi",
   createPointOfInterest: "create-poi",
   createTrailOfInterest: "create-toi",

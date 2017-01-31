@@ -209,7 +209,7 @@ class SpecimenMetadataDisplay extends React.Component {
         }
       });
 
-    request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/recolte')
+    request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/recoltes')
       //.withCredentials()
       .end((err, res) => {
         if(err) {

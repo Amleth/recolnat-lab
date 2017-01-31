@@ -3,7 +3,7 @@ package fr.recolnat.database;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import fr.recolnat.database.model.StructureBuilder;
-import fr.recolnat.database.utils.DatabaseTester;
+import fr.recolnat.database.utils.DatabaseUtils;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ public class TestRunner {
 
     OrientBaseGraph g = conn.getTransactionalGraph();
     try {
-//      DatabaseTester.createTestWorkbench(g);
+//      DatabaseUtils.createTestWorkbench(g);
       g.commit();
     }
     finally {

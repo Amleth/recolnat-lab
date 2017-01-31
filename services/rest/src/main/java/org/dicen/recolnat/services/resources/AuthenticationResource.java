@@ -8,7 +8,7 @@ import fr.recolnat.authentication.CASAuthentication;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
-import fr.recolnat.database.utils.DatabaseTester;
+import fr.recolnat.database.utils.DatabaseUtils;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.AccessDeniedException;

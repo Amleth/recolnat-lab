@@ -8,7 +8,7 @@ import fr.recolnat.database.model.DataModel;
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 10/04/15.
  */
-public class DatabaseTester {
+public class DatabaseUtils {
 
   public static void createTestWorkbench(OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
 //    OrientVertex user = CreatorUtils.createUser("Robert LeRouge", g);

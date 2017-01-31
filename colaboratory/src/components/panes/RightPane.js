@@ -11,7 +11,7 @@ import TagCloud from './../../tools/palettes/TagCloud';
 import SimpleImageDisplay from './../../tools/palettes/SimpleImageDisplay';
 import AnnotationList from './../../tools/palettes/AnnotationList';
 
-import SpecimenMetadataDisplay from './../manager/SpecimenMetadataDisplay';
+import SpecimenMetadataDisplay from '../../tools/palettes/SpecimenMetadataDisplay';
 import SetMetadataDisplay from './../manager/SetMetadataDisplay';
 
 import ModeConstants from '../../constants/ModeConstants'

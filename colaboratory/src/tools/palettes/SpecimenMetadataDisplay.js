@@ -6,7 +6,7 @@
 import React from 'react';
 import request from 'superagent';
 
-import AbstractMetadataDisplay from './AbstractManagerMetadataDisplay';
+import AbstractMetadataDisplay from '../../components/manager/AbstractManagerMetadataDisplay';
 
 import MetadataActions from '../../actions/MetadataActions';
 import SocketActions from '../../actions/SocketActions';

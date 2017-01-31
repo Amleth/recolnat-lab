@@ -28,7 +28,7 @@ import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
-import fr.recolnat.database.utils.DatabaseTester;
+import fr.recolnat.database.utils.DatabaseUtils;
 import fr.recolnat.database.utils.DeleteUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import java.nio.file.AccessDeniedException;
@@ -61,7 +61,7 @@ public class DatabaseResource {
         if (vUser == null) {
           // Create user
           vUser = CreatorUtils.createNewUserAndUserData(userLogin, g, DatabaseAccess.rightsDb);
-          DatabaseTester.createTestWorkbench(vUser, g, DatabaseAccess.rightsDb);
+          DatabaseUtils.createTestWorkbench(vUser, g, DatabaseAccess.rightsDb);
           g.commit();
         }
         ColaboratoryUser user = new ColaboratoryUser(vUser, vUser, g, DatabaseAccess.rightsDb);

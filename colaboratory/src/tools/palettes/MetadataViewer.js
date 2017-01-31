@@ -279,7 +279,7 @@ class MetadataViewer extends React.Component {
                     });
                   }
                 break;
-                case "recolte":
+                case "recoltes":
                 if(this.state.loadingHarvest) {
                   request.get(link.href)
                     //.withCredentials()

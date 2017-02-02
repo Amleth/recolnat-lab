@@ -10,7 +10,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
-import org.codehaus.plexus.util.FileUtils;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

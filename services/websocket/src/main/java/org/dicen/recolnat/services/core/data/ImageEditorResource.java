@@ -123,10 +123,10 @@ public class ImageEditorResource {
         AccessRights.grantAccessRights(vUser, vArea, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
         AccessRights.grantAccessRights(vUser, vPerim, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
-        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vROI.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vArea.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vPerim.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vROI.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vArea.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vPerim.getProperty(DataModel.Properties.id));
         res.setResponse("id", vROI.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -171,8 +171,8 @@ public class ImageEditorResource {
         
         AccessRights.grantAccessRights(vUser, vPoI, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
         
-        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vPoI.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vPoI.getProperty(DataModel.Properties.id));
         res.setResponse("id", vPoI.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -226,14 +226,14 @@ public class ImageEditorResource {
         AccessRights.grantAccessRights(vUser, vStandard, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
         
         
-        res.addModifiedId(vMeasurement.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vStandard.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vMeasurement.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vStandard.getProperty(DataModel.Properties.id));
         res.setResponse("id", vStandard.getProperty(DataModel.Properties.id));
         // In this case the grandparent image has changed as well
         OrientVertex vTrail = AccessUtils.findLatestVersion(vMeasurement.getVertices(Direction.IN, DataModel.Links.hasMeasurement).iterator(), g);
         OrientVertex vImage = AccessUtils.findLatestVersion(vTrail.getVertices(Direction.IN, DataModel.Links.toi).iterator(), g);
-        res.addModifiedId(vTrail.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vTrail.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -309,9 +309,9 @@ public class ImageEditorResource {
 
         
         
-        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vPath.getProperty(DataModel.Properties.id));
-        res.addModifiedId(mRefPx.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vPath.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) mRefPx.getProperty(DataModel.Properties.id));
         res.setResponse("id", vPath.getProperty(DataModel.Properties.id));
         res.setResponse("measurementId", mRefPx.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
@@ -387,9 +387,9 @@ public class ImageEditorResource {
 
         
         
-        res.addModifiedId(vImage.getProperty(DataModel.Properties.id));
-        res.addModifiedId(vAngle.getProperty(DataModel.Properties.id));
-        res.addModifiedId(mRefDeg.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) vAngle.getProperty(DataModel.Properties.id));
+        res.addModifiedId((String) mRefDeg.getProperty(DataModel.Properties.id));
         res.setResponse("id", vAngle.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");

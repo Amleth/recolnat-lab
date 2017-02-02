@@ -9,7 +9,6 @@ import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.backup.BackupTask;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.dicen.recolnat.services.resources.ColaboratorySocket;
-import org.glassfish.tyrus.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

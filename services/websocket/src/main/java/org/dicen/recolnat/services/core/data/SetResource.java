@@ -24,7 +24,6 @@ import fr.recolnat.database.utils.UpdateUtils;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -39,15 +38,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URLConnection;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.UUID;
-import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.httpclient.HttpClient;
@@ -56,7 +49,6 @@ import org.apache.commons.io.FileUtils;
 import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.dicen.recolnat.services.core.format.DateFormatUtils;
-import org.glassfish.grizzly.utils.BufferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +127,7 @@ public class SetResource {
         OrientEdge eParentToChildLink = null;
         // Add new set to parent
         eParentToChildLink = UpdateUtils.addSubsetToSet(vParentSet, vSet, vUser, g);
-        UpdateUtils.link(vSet, vView, DataModel.Links.hasView, vUser.getProperty(DataModel.Properties.id), g);
+        UpdateUtils.link(vSet, vView, DataModel.Links.hasView, (String) vUser.getProperty(DataModel.Properties.id), g);
         g.commit();
 
         // Grant creator rights on new set & default view
@@ -143,9 +135,9 @@ public class SetResource {
         AccessRights.grantAccessRights(vUser, vView, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
 
         // Build return object
-        result.addModifiedId(vParentSet.getProperty(DataModel.Properties.id));
-        result.addModifiedId(vSet.getProperty(DataModel.Properties.id));
-        result.addModifiedId(vView.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vParentSet.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
+        result.addModifiedId((String) vView.getProperty(DataModel.Properties.id));
 
         result.setResponse("parentSet", vParentSet.getProperty(DataModel.Properties.id));
         result.setResponse("subSet", vSet.getProperty(DataModel.Properties.id));
@@ -220,8 +212,8 @@ public class SetResource {
         }
         g.commit();
 
-        changes.addModifiedId(vSet.getProperty(DataModel.Properties.id));
-        changes.addModifiedId(vTarget.getProperty(DataModel.Properties.id));
+        changes.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
+        changes.addModifiedId((String) vTarget.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -264,7 +256,7 @@ public class SetResource {
         g.commit();
 
         // Do not include newly created item : we don't know what that item type is and no-one has subscribed to it anyway
-        changes.add(vDestination.getProperty(DataModel.Properties.id));
+        changes.add((String) vDestination.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -619,7 +611,7 @@ public class SetResource {
         String imageUrlString = vItem.getProperty(DataModel.Properties.imageUrl);
         File imageFile;
         try {
-          imageFile = File.createTempFile(vItem.getProperty(DataModel.Properties.name), ".jpg");
+          imageFile = File.createTempFile((String) vItem.getProperty(DataModel.Properties.name), ".jpg");
         } catch (IOException ex) {
           log.error("Could not create temporary file.");
           return;

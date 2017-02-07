@@ -1,7 +1,9 @@
 package org.dicen.recolnat.services.core.data;
 
+import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.db.ODatabase;
 import com.orientechnologies.orient.core.exception.ODatabaseException;
+import com.orientechnologies.orient.core.intent.OIntent;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import fr.recolnat.database.ExportsDatabase;
@@ -39,6 +41,8 @@ public class DatabaseAccess {
   
   public static RightsManagementDatabase rightsDb = null;
   public static ExportsDatabase exportsDb = null;
+  
+  private static boolean shutdown = false;
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseAccess.class);
 
@@ -49,8 +53,7 @@ public class DatabaseAccess {
     DatabaseAccess.minConnectorPoolSize = minPoolSize;
     DatabaseAccess.maxConnectorPoolSize = maxPoolSize;
     DatabaseAccess.backupDir = backupDir;
-
-//    DatabaseAccess.factory = new OrientGraphFactory("remote:" + host + ":" + port + "/" + dbName, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
+    
     DatabaseAccess.readerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
     DatabaseAccess.writerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
   }
@@ -78,6 +81,9 @@ public class DatabaseAccess {
   }
   
   public static OrientBaseGraph getReadOnlyGraph() {
+    if(shutdown) {
+      return null;
+    }
     try {
       if (log.isDebugEnabled()) {
         log.debug("getTransactionalGraph status " + readerFactory.getAvailableInstancesInPool() + " available, " + readerFactory.getCreatedInstancesInPool() + " created");
@@ -85,13 +91,15 @@ public class DatabaseAccess {
       return (OrientBaseGraph) DatabaseAccess.readerFactory.getTx();
     } catch (ODatabaseException e) {
       log.error("Database exception getting new reader graph", e);
-//      DatabaseAccess.factory = new OrientGraphFactory("remote:" + host + ":" + port + "/" + dbName, dbUser, dbPass).setupPool(minConnectorPoolSize, maxConnectorPoolSize);
       DatabaseAccess.readerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minConnectorPoolSize, maxConnectorPoolSize);
       return (OrientBaseGraph) DatabaseAccess.readerFactory.getTx();
     }
   }
   
   public static OrientBaseGraph getReaderWriterGraph() {
+    if(shutdown) {
+      return null;
+    }
     try {
       if (log.isDebugEnabled()) {
         log.debug("getTransactionalGraph status " + writerFactory.getAvailableInstancesInPool() + " available, " + writerFactory.getCreatedInstancesInPool() + " created");
@@ -99,13 +107,15 @@ public class DatabaseAccess {
       return (OrientBaseGraph) DatabaseAccess.writerFactory.getTx();
     } catch (ODatabaseException e) {
       log.error("Database exception getting new transactional graph", e);
-//      DatabaseAccess.factory = new OrientGraphFactory("remote:" + host + ":" + port + "/" + dbName, dbUser, dbPass).setupPool(minConnectorPoolSize, maxConnectorPoolSize);
       DatabaseAccess.writerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minConnectorPoolSize, maxConnectorPoolSize);
       return (OrientBaseGraph) DatabaseAccess.writerFactory.getTx();
     }
   }
   
   public static void backup() throws IOException {
+    if(shutdown) {
+      return;
+    }
     log.info("Beginning database backup.");
     FileOutputStream backupFile = null;
     ODatabase database = DatabaseAccess.readerFactory.getDatabase();
@@ -136,5 +146,20 @@ public class DatabaseAccess {
     rightsDb.backup(exportBackupFilePath);
     
     log.info("Database backup finished.");
+  }
+  
+  public static void shutdown() {
+    
+    DatabaseAccess.shutdown = true;
+    DatabaseAccess.readerFactory.getDatabase().close();
+    DatabaseAccess.writerFactory.getDatabase().close();
+    
+    DatabaseAccess.readerFactory.close();
+    DatabaseAccess.writerFactory.close();
+    Orient.instance().shutdown();
+    Orient.instance().closeAllStorages();
+    DatabaseAccess.rightsDb.shutdown();
+    DatabaseAccess.exportsDb.shutdown();
+    
   }
 }

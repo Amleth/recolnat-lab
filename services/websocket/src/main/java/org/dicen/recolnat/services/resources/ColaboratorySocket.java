@@ -261,6 +261,7 @@ public class ColaboratorySocket {
     }
 
     // User is now authenticated. Carry on as usual.
+    session.getAsyncRemote().setSendTimeout(1000);
     String sessionId = session.getId();
     ColaboratorySocket.mapAccessLock.lock();
     try {

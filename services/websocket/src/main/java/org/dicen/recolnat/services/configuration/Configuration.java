@@ -83,6 +83,17 @@ public class Configuration {
     Yaml yaml = new Yaml();
     InputStream input = new FileInputStream(new File(configurationFileName));
     Map conf = (Map) yaml.load(input);
+    
+    // configure logging
+//    Map logConf = (Map) conf.get("logging");
+//    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", (String) logConf.get("level"));
+//    Map fineLoggersConf = (Map) logConf.get("loggers");
+//    for (Object logClass : fineLoggersConf.keySet()) {
+//      log.info((String) logClass + " set to " + (String) fineLoggersConf.get(logClass));
+//      System.setProperty("org.slf4j.simpleLogger.log." + (String) logClass, (String) fineLoggersConf.get(logClass));
+//    }
+    
+    // Configure databases and backup
     Map dbConf = (Map) conf.get("database");
     Databases.UserAccess.PATH = (String) dbConf.get("pathToUserAccessDatabase");
     Databases.UserExports.PATH = (String) dbConf.get("pathToUserExportsDatabase");
@@ -120,14 +131,7 @@ public class Configuration {
     Map serverConf = (Map) conf.get("server");
     Server.PORT = (Integer) serverConf.get("port");
 
-    // configure logging
-    Map logConf = (Map) conf.get("logging");
-    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", (String) logConf.get("level"));
-    Map fineLoggersConf = (Map) logConf.get("loggers");
-    for (Object logClass : fineLoggersConf.keySet()) {
-      log.info((String) logClass + " set to " + (String) fineLoggersConf.get(logClass));
-      System.setProperty("org.slf4j.simpleLogger.log." + (String) logClass, (String) fineLoggersConf.get(logClass));
-    }
+    
   }
 
   public static void configureDatabases() {

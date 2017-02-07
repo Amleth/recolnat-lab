@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import javax.websocket.Session;
 import org.codehaus.jettison.json.JSONArray;
@@ -27,7 +26,6 @@ import org.dicen.recolnat.services.core.data.SetResource;
 import org.dicen.recolnat.services.core.data.UserProfileResource;
 import org.dicen.recolnat.services.core.data.ViewResource;
 import org.dicen.recolnat.services.resources.ColaboratorySocket;
-import static org.dicen.recolnat.services.resources.ColaboratorySocket.log;
 import static org.dicen.recolnat.services.resources.ColaboratorySocket.mapAccessLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +81,7 @@ public class MessageProcessorThread implements Runnable {
               entityData = DatabaseResource.getData(entityId, userLogin);
               this.subscribe(session, entityId);
             }
-            this.sendResource(entityData, session);
+            this.sendResource(entityData, session, messageId);
             break;
           case Action.ClientActionType.UNSUBSCRIBE:
             entityId = jsonIn.getString("id");
@@ -296,53 +294,54 @@ public class MessageProcessorThread implements Runnable {
         if (result != null) {
           done.put("data", result.getResponse());
         }
-        session.getAsyncRemote().sendText(done.toString());
+        this.sendMessage(done.toString(), session);
         // If the operation modified any resources, inform all listening clients.
         if (modified != null) {
           this.broadcastModifications(modified);
         }
       } catch (IOException e) {
         log.error("I/O exception.", e);
-        this.sendInternalServerError(session);
+        this.sendInternalServerError(session, messageId);
       } catch (AccessForbiddenException ex) {
         JSONObject forbidden = new JSONObject();
         forbidden.put("forbidden", ex.getMessage());
         forbidden.put("action", Action.ServerActionType.DENIED);
         forbidden.put("id", messageId);
         forbidden.put("request", jsonIn);
-        session.getAsyncRemote().sendText(forbidden.toString());
+        this.sendMessage(forbidden.toString(), session);
       } catch (ObsoleteDataException ex) {
         JSONObject obsolete = new JSONObject();
         obsolete.put("action", Action.ServerActionType.DENIED);
         obsolete.put("obsolete", ex.getObsoleteIdsAsJSON());
         obsolete.put("id", messageId);
         obsolete.put("request", jsonIn);
-        session.getAsyncRemote().sendText(obsolete.toString());
+        this.sendMessage(obsolete.toString(), session);
       } catch (ResourceNotExistsException ex) {
         JSONObject inputError = new JSONObject();
         inputError.put("action", Action.ServerActionType.DENIED);
         inputError.put("input", ex.getMessage());
         inputError.put("id", messageId);
         inputError.put("request", jsonIn);
-        session.getAsyncRemote().sendText(inputError.toString());
+        this.sendMessage(inputError.toString(), session);
       }
     } catch (JSONException | InterruptedException ex) {
       log.error("Internal server error", ex);
-      this.sendInternalServerError(session);
+      this.sendInternalServerError(session, messageId);
     }
   }
   
-  private void sendResource(JSONObject resource, Session session) throws JSONException {
-    JSONObject response = new JSONObject();
-    response.put("action", Action.ServerActionType.RESOURCE);
-    response.put("resource", resource);
-    response.put("timestamp", new Date().getTime());
-    
-    if (log.isDebugEnabled()) {
-      log.debug("Sending resource on subscription " + response.toString());
-    }
-    
-    session.getAsyncRemote().sendText(response.toString());
+  private void sendResource(JSONObject resource, Session session, Integer messageId) throws JSONException {
+      JSONObject response = new JSONObject();
+      response.put("id", messageId);
+      response.put("action", Action.ServerActionType.RESOURCE);
+      response.put("resource", resource);
+      response.put("timestamp", new Date().getTime());
+      
+      if (log.isDebugEnabled()) {
+        log.debug("Sending resource on subscription " + response.toString());
+      }
+      
+      this.sendMessage(response.toString(), session);
   }
   
   private void broadcastModifications(Collection<String> resourcesModified) throws IOException, JSONException {
@@ -374,11 +373,24 @@ public class MessageProcessorThread implements Runnable {
               message.put("action", Action.ServerActionType.RESOURCE);
             }
             
-            session.getAsyncRemote().sendText(message.toString());
+            this.sendMessage(message.toString(), session);
           }
         }
       } finally {
         mapAccessLock.unlock();
+      }
+    }
+  }
+  
+  private void sendMessage(String message, Session session) {
+    // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
+    // Randomness is more frequent if not synchronized.
+    // Randomness seems to come from using Async, so let's stick with Basic for now.
+    synchronized(session) {
+      try {
+        session.getBasicRemote().sendText(message);
+      } catch (IOException ex) {
+        log.error("Could not send message to client", ex);
       }
     }
   }
@@ -420,7 +432,15 @@ public class MessageProcessorThread implements Runnable {
     return true;
   }
   
-  private void sendInternalServerError(Session session) {
-    session.getAsyncRemote().sendText("500");
+  private void sendInternalServerError(Session session, Integer messageId) {
+    String error;
+    if(messageId == null) {
+      error = "{'error':'500'}";
+    }
+    else {
+      error = "{'error':'500',id:"+ messageId + "}";
+    }
+    
+    this.sendMessage(error, session);
   }
 }

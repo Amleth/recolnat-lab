@@ -104,8 +104,11 @@ class Connector extends EventEmitter {
         window.clearInterval(self.ping);
         self.user = null;
         self.idToData['user'] = null;
+        self.pendingMessages = {};
         self.websocket = null;
+
         self.emitResourceUpdate('user');
+        self.emit(SocketEvents.STATUS_CHANGE);
         self.openInterval = window.setInterval(self.openWebsocket.bind(self), 1000);
       };
 

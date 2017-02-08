@@ -57,7 +57,7 @@ public class ColaboratorySocket {
     }
 
     if (message.equals("PING")) {
-      session.getAsyncRemote().sendText("PONG");
+      this.sendMessage("PONG", session);
       return;
     }
 //
@@ -76,8 +76,8 @@ public class ColaboratorySocket {
       sessionId = session.getId();
       userLogin = sessionIdToUser.get(sessionId);
       if (userLogin == null) {
-        // @TODO We need to clean up too. Close session, stuff like that.
-        session.getAsyncRemote().sendText("You do not exist");
+        // @TODO We need to clean up too. Close session, stuff like that. As this should never happen this code might not be useful.
+        this.sendMessage("You do not exist", session);
         session.close();
         log.error("Message received from client with no corresponding user (OnMessage before OnOpen)");
         return;
@@ -261,7 +261,6 @@ public class ColaboratorySocket {
     }
 
     // User is now authenticated. Carry on as usual.
-    session.getAsyncRemote().setSendTimeout(1000);
     String sessionId = session.getId();
     ColaboratorySocket.mapAccessLock.lock();
     try {
@@ -277,13 +276,34 @@ public class ColaboratorySocket {
       response.put("action", Action.ServerActionType.RESOURCE);
       response.put("resource", data);
       response.put("timestamp", new Date().getTime());
-      session.getAsyncRemote().sendText(response.toString());
+      this.sendMessage(response.toString(), session);
     } catch (JSONException ex) {
       log.error("JSON exception when sending user data on connection.");
     }
   }
+  
+  private void sendMessage(String message, Session session) {
+    // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
+    // Randomness is more frequent if not synchronized.
+    // Randomness seems to come from using Async, so let's stick with Basic for now.
+    synchronized(session) {
+      try {
+        session.getBasicRemote().sendText(message);
+      } catch (IOException ex) {
+        log.error("Could not send message to client", ex);
+      }
+    }
+  }
 
-  private void sendInternalServerError(Session session) {
-    session.getAsyncRemote().sendText("500");
+  private void sendInternalServerError(Session session, Integer messageId) {
+    String error;
+    if(messageId == null) {
+      error = "{'error':'500'}";
+    }
+    else {
+      error = "{'error':'500',id:"+ messageId + "}";
+    }
+    
+    this.sendMessage(error, session);
   }
 }

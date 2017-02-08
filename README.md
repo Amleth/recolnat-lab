@@ -49,7 +49,7 @@ Chaque utilisateur dispose de 3 pools de threads pour ses requêtes selon le niv
 - highConcurrencyWriteThreadsPerUser: Pool de threads pour les requêtes à fort taux d'interblocage (par exemple suppression). Augmenter la taille de ce pool au-delà de 1 peut fortement réduire les performances.
 
 #### Authentification
-La section "authentification" permet de configurer le système d'authentification utilisé. Pour l'instant seul CAS est disponible.
+La section "authentication" permet de configurer le système d'authentification utilisé. Pour l'instant seul CAS est disponible.
 
 - ticketUrl: URL du service d'obtention de tickets
 - serviceValidateUrl: URL du service de validation de tickets

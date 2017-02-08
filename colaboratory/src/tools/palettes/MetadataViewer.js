@@ -99,6 +99,9 @@ class MetadataViewer extends React.Component {
     let imageId = null;
 
     //console.log(imageLinkId);
+    if(!view) {
+      return;
+    }
 
     for(let i = 0; i < view.displays.length; ++i) {
       let dEntity = view.displays[i];

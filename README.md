@@ -6,7 +6,7 @@ reporting -> simple page de reporting sur l'état des serveurs (JS)
 services -> les APIs WebSocket et REST permettant d'accéder à la base (Java)
 
 ## API
-Nécessite Maven.
+Nécessite Maven & Java 8+.
 
 Deux version sont disponibles pour le moment. Les branches "master" et "production" permettent d'obtenir un package JAR. La branche "tomcat" permet d'obtenir un WAR.
 
@@ -35,10 +35,10 @@ Le Collaboratoire repose sur une base de données OrientDB directement intégré
 - dbUser: login de l'utilisateur de la base OrientDB.
 - password: mot de passe de la base OrientDB.
 - minConnectorPoolSize & maxConnectorPoolSize: indique le nombre de connexions simultanées vers la base OrientDB. Ces connexions sont partagées entre tous les utilisateurs.
--- backup: informations pour la sauvegarde périodique des bases de données
--- directory: répertoire où les sauvegardes sont créées
--- firstExecutionDate: jour et heure où la sauvegarde est effectuée
--- frequency: fréquence des sauvegardes (en jours)
+  - backup: informations pour la sauvegarde périodique des bases de données
+  - directory: répertoire où les sauvegardes sont créées
+  - firstExecutionDate: jour et heure où la sauvegarde est effectuée
+  - frequency: fréquence des sauvegardes (en jours)
 
 #### Performances
 Des options de tuning sont disponibles pour gérer les performances du service dans la section "performance".

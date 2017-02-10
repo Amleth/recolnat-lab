@@ -7,7 +7,7 @@ import React from 'react';
 
 import ToolActions from '../../actions/ToolActions';
 
-import Tooltip from '../../components/ActiveToolTooltip';
+import Tooltip from '../../components/bench/ActiveToolTooltip';
 
 import Globals from '../../utils/Globals';
 

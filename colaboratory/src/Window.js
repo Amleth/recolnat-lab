@@ -28,7 +28,7 @@ import BasketStore from './stores/BasketStore';
 import WebSocketConnector from './utils/WebSocketConnector';
 
 import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
-import WebSocketStatus from './components/WebSocketStatus';
+import WebSocketStatus from './components/common/WebSocketStatus';
 
 import ViewActions from './actions/ViewActions';
 import MetadataActions from './actions/MetadataActions';

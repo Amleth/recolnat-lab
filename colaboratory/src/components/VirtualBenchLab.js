@@ -5,18 +5,18 @@
 
 import React from 'react';
 
-import BenchLabFreeSpace from './FreeSpace';
+import BenchLabFreeSpace from './bench/FreeSpace';
 
 import OrbalContextMenu from './context-menu/OrbalContextMenu';
-import Inbox from './Inbox';
-import BenchLabBorders from './BenchLabBorders';
-import ActiveSetNameDisplay from './ActiveSetNameDisplay';
-import ImagesLoadingStatus from './ImagesLoadingStatus';
-import EntityFilters from './EntityFilters';
+import Inbox from './bench/Inbox';
+import BenchLabBorders from './bench/BenchLabBorders';
+import ActiveSetNameDisplay from './bench/ActiveSetNameDisplay';
+import ImagesLoadingStatus from './common/ImagesLoadingStatus';
+import EntityFilters from './bench/EntityFilters';
 
 import DragNDropStore from '../stores/DragNDropStore';
 
-import Popup from "../components/PopupToolComponent";
+import Popup from "./bench/PopupToolComponent";
 
 import ModalActions from '../actions/ModalActions';
 

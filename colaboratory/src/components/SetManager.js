@@ -5,15 +5,17 @@
 
 import React from 'react';
 
-import SetDisplay from './SetDisplay';
+import SetDisplay from './manager/SetDisplay';
 
-import ManagerActions from '../../actions/ManagerActions';
+import ManagerActions from '../actions/ManagerActions';
 
-import conf from '../../conf/ApplicationConfiguration';
+import conf from '../conf/ApplicationConfiguration';
 
 class SetManager extends React.Component {
   constructor(props) {
     super(props);
+
+    this.mounted = false;
 
     this.containerStyle = {
       display: 'flex',
@@ -72,15 +74,12 @@ class SetManager extends React.Component {
       return updateDisplay.apply(this);
     };
 
-    this._onModeChange = () => {
-      const setModeVisibility = () => this.setState({
-        isVisibleInCurrentMode: this.props.modestore.isInSetMode()
-      });
-      return setModeVisibility.apply(this);
+    this._forceUpdate = () => {
+      const update = () => {if(this.mounted) this.setState({})};
+      return update.apply(this);
     };
 
     this.state = {
-      isVisibleInCurrentMode: this.props.modestore.isInSetMode(),
       userLoggedIn: false,
       coreSet: this.props.managerstore.getCoreSet(),
       displayedSets: this.props.managerstore.getSets()
@@ -100,20 +99,15 @@ class SetManager extends React.Component {
   }
 
   componentDidMount() {
+    this.mounted = true;
     this.props.userstore.addUserLogInListener(this._onUserLogIn);
     this.props.userstore.addUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.addManagerUpdateListener(this._onSetUpdate);
-    this.props.modestore.addModeChangeListener(this._onModeChange);
-    this.props.userstore.addLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.addLanguageChangeListener(this._forceUpdate);
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if(nextState.isVisibleInCurrentMode) {
-      this.containerStyle.display = 'flex';
-    }
-    else {
-      this.containerStyle.display = 'none';
-    }
+
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -136,15 +130,12 @@ class SetManager extends React.Component {
     this.props.userstore.removeUserLogInListener(this._onUserLogIn);
     this.props.userstore.removeUserLogOutListener(this._onUserLogOut);
     this.props.managerstore.removeManagerUpdateListener(this._onSetUpdate);
-    this.props.modestore.removeModeChangeListener(this._onModeChange);
-    this.props.userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
+    this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
+    this.mounted = false;
   }
 
   render() {
-    // if(!this.state.isVisibleInCurrentMode) {
-    //   return null;
-    // }
-    var self = this;
+    let self = this;
     return <div style={this.containerStyle} >
     <i className='ui big blue help circle icon'
        ref='helpIcon'

@@ -5,15 +5,15 @@
 
 import React from 'react';
 
-import ViewActions from '../actions/ViewActions';
+import ViewActions from '../../actions/ViewActions';
 
-import ProgressBar from './ProgressBar';
+import ProgressBar from '../common/ProgressBar';
 
-import angle from '../images/angle.svg';
-import area from '../images/perimeter.svg';
-import point from '../images/poi.svg';
-import trail from '../images/polyline.png';
-import border from '../images/border.svg';
+import angle from '../../images/angle.svg';
+import area from '../../images/perimeter.svg';
+import point from '../../images/poi.svg';
+import trail from '../../images/polyline.png';
+import border from '../../images/border.svg';
 
 class EntityFilters extends React.Component {
   constructor(props) {

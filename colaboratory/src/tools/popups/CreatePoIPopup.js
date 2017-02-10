@@ -6,7 +6,7 @@
 import React from "react";
 import d3 from "d3";
 
-import Tooltip from '../../components/ActiveToolTooltip';
+import Tooltip from '../../components/bench/ActiveToolTooltip';
 
 import EditorActions from "../../actions/ManagerActions";
 import ToolActions from "../../actions/ToolActions";

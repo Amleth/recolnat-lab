@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import ViewConstants from '../constants/ViewConstants';
+import ViewConstants from '../../constants/ViewConstants';
 
 export default class ActiveSetNameDisplay extends React.Component {
   constructor(props) {

@@ -8,7 +8,7 @@ import uuid from 'node-uuid';
 
 import LineMeasure from '../impl/LineMeasure';
 
-import Tooltip from '../../components/ActiveToolTooltip';
+import Tooltip from '../../components/bench/ActiveToolTooltip';
 
 import Globals from '../../utils/Globals';
 

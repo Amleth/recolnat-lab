@@ -169,23 +169,6 @@ class OrganiseSet extends AbstractModal {
     }
   }
 
-  // moveItems(setName, msg) {
-  //   let log = JSON.parse(JSON.stringify(this.state.log));
-  //   if(msg.clientProcessError) {
-  //     // alert('Impossible de créer le set ' + setName);
-  //     log.push(this.props.userstore.getInterpolatedText('errorCreatingSet', [setName]));
-  //     this.setState({log: log});
-  //   }
-  //   else {
-  //     log.push(this.props.userstore.getInterpolatedText('emptySetCreated', [setName]));
-  //     this.setState({log: log});
-  //     for(let i = 0; i < this.state.newSets[setName].length; ++i) {
-  //       let item = this.state.newSets[setName][i];
-  //       ServiceMethods.cutPaste(item.link, msg.data.subSet, this.itemMoved.bind(this, item.name, item.uid));
-  //     }
-  //   }
-  // }
-
   itemMoved(name, id, msg) {
     let log = JSON.parse(JSON.stringify(this.state.log));
     if(msg.clientProcessError) {
@@ -209,8 +192,6 @@ class OrganiseSet extends AbstractModal {
         window.setTimeout(ModalActions.showModal.bind(null, null), 10);
       }
       else {
-        //this.props.metastore.addMetadataUpdateListener(nextState.setId, this.storeSetData.bind(this));
-        //nextState.setData = this.props.metastore.getMetadataAbout(nextState.setId);
         nextState.setData = this.props.metastore.getMetadataAbout(nextState.setId);
         for(let i = 0; i < nextState.setData.items.length; ++i) {
           let id = nextState.setData.items[i].uid;

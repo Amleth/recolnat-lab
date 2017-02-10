@@ -8,7 +8,7 @@ import React from 'react';
 import AbstractTool from "../AbstractTool";
 import MoveObject from "../impl/MoveObject";
 
-import Popup from "../../components/PopupToolComponent";
+import Popup from "../../components/bench/PopupToolComponent";
 
 class Organisation extends React.Component {
   constructor(props) {

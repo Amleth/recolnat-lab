@@ -20,6 +20,8 @@ class SetSelectorDisplay extends React.Component {
   constructor(props) {
     super(props);
 
+    this.mounted = false;
+
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
       //margin: 0,
@@ -55,7 +57,7 @@ class SetSelectorDisplay extends React.Component {
     };
 
     this._forceUpdate = () => {
-      const update = () => this.setState({});
+      const update = () => {if(this.mounted) this.setState({})};
       return update.apply(this);
     };
 
@@ -68,15 +70,16 @@ class SetSelectorDisplay extends React.Component {
   }
 
   loadRootSet() {
-    var user = this.props.userstore.getUserData();
+    let user = this.props.userstore.getUserData();
     if(user) {
-      var coreSetId = user.coreSet;
+      let coreSetId = user.coreSet;
       window.setTimeout(this.props.managerstore.requestGraphAround.bind(this.props.managerstore, coreSetId, 'Set', 0, true)
         , 10);
     }
   }
 
   componentDidMount() {
+    this.mounted = true;
     this.props.modestore.addModeChangeListener(this._forceUpdate);
   }
 
@@ -86,6 +89,7 @@ class SetSelectorDisplay extends React.Component {
 
   componentWillUnmount() {
     this.props.modestore.removeModeChangeListener(this._forceUpdate);
+    this.mounted = false;
   }
 
   render() {

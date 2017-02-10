@@ -5,12 +5,12 @@
 
 import React from 'react';
 
-import StudyManager from '../manager/SetManager';
+import StudyManager from '../SetManager';
 import VirtualBenchLab from '../VirtualBenchLab';
 
 
 
-import Tooltip from '../ActiveToolTooltip';
+import Tooltip from '../bench/ActiveToolTooltip';
 
 import ModeConstants from '../../constants/ModeConstants';
 

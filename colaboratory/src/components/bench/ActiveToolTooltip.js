@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import Styles from '../constants/Styles';
+import Styles from '../../constants/Styles';
 
 class ActiveToolTooltip extends React.Component {
   constructor(props) {

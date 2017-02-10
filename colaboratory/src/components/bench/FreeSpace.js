@@ -5,14 +5,14 @@ import _ from 'lodash';
 
 import D3FreeSpace from './D3FreeSpace';
 
-import MinimapActions from "../actions/MinimapActions";
-import MetadataActions from '../actions/MetadataActions';
-import ViewActions from '../actions/ViewActions';
-import ToolActions from '../actions/ToolActions';
+import MinimapActions from "../../actions/MinimapActions";
+import MetadataActions from '../../actions/MetadataActions';
+import ViewActions from '../../actions/ViewActions';
+import ToolActions from '../../actions/ToolActions';
 
-import ModeConstants from '../constants/ModeConstants';
+import ModeConstants from '../../constants/ModeConstants';
 
-import ToolConf from '../conf/Tools-conf';
+import ToolConf from '../../conf/Tools-conf';
 
 const d3Component = new D3FreeSpace();
 

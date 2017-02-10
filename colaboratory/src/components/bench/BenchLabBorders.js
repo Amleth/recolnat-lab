@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-import ViewActions from '../actions/ViewActions';
+import ViewActions from '../../actions/ViewActions';
 
 class WorkbenchBorders extends React.Component {
   constructor(props) {

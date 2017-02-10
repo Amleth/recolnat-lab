@@ -3,18 +3,18 @@
 import {EventEmitter} from 'events';
 import d3 from 'd3';
 
-import ViewActions from '../actions/ViewActions.js';
-import MinimapActions from "../actions/MinimapActions.js";
-import ToolActions from "../actions/ToolActions.js";
-import MenuActions from '../actions/MenuActions';
-import InspectorActions from '../actions/InspectorActions';
+import ViewActions from '../../actions/ViewActions.js';
+import MinimapActions from "../../actions/MinimapActions.js";
+import ToolActions from "../../actions/ToolActions.js";
+import MenuActions from '../../actions/MenuActions';
+import InspectorActions from '../../actions/InspectorActions';
 
-import Classes from '../constants/CommonSVGClasses';
-import TypeConstants from '../constants/TypeConstants';
-import ViewConstants from '../constants/ViewConstants';
+import Classes from '../../constants/CommonSVGClasses';
+import TypeConstants from '../../constants/TypeConstants';
+import ViewConstants from '../../constants/ViewConstants';
 
-import D3ViewUtils from '../utils/D3ViewUtils';
-import Globals from '../utils/Globals';
+import D3ViewUtils from '../../utils/D3ViewUtils';
+import Globals from '../../utils/Globals';
 
 class D3FreeSpace {
   constructor() {

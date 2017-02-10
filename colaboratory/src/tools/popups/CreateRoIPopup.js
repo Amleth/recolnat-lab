@@ -9,7 +9,7 @@ import d3 from "d3";
 import EditorActions from "../../actions/ManagerActions";
 import ToolActions from "../../actions/ToolActions";
 
-import Tooltip from '../../components/ActiveToolTooltip';
+import Tooltip from '../../components/bench/ActiveToolTooltip';
 
 import Globals from '../../utils/Globals';
 

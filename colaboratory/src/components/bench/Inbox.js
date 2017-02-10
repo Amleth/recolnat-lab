@@ -5,10 +5,10 @@
 
 import React from 'react';
 
-import MetadataActions from '../actions/MetadataActions';
-import ViewActions from '../actions/ViewActions';
+import MetadataActions from '../../actions/MetadataActions';
+import ViewActions from '../../actions/ViewActions';
 
-import ServiceMethods from '../utils/ServiceMethods';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class Inbox extends React.Component {
   constructor(props) {

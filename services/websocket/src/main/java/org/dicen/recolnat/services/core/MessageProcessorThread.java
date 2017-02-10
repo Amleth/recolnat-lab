@@ -435,10 +435,10 @@ public class MessageProcessorThread implements Runnable {
   private void sendInternalServerError(Session session, Integer messageId) {
     String error;
     if(messageId == null) {
-      error = "{'error':'500'}";
+      error = "{\"error\":500}";
     }
     else {
-      error = "{'error':'500',id:"+ messageId + "}";
+      error = "{\"error\":500,\"id\":"+ messageId + "}";
     }
     
     this.sendMessage(error, session);

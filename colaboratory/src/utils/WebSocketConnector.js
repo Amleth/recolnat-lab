@@ -133,6 +133,16 @@ class Connector extends EventEmitter {
       delete this.pendingMessages[jsonMessage.id];
       this.emit(SocketEvents.STATUS_CHANGE);
     }
+    if(jsonMessage.error) {
+      switch(jsonMessage.error) {
+        case 500:
+          console.error("Internal server error");
+          break;
+        default:
+          console.error("No error handler for code " + jsonMessage.error);
+      }
+      return;
+    }
     if(jsonMessage.forbidden) {
       this.idToData[jsonMessage.forbidden] = {
         uid: jsonMessage.forbidden,

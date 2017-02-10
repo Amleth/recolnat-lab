@@ -150,7 +150,7 @@ class D3FreeSpace {
   fitViewportToData() {
     let view = this.viewstore.getView();
 
-    D3ViewUtils.zoomToObject('.' + Classes.ROOT_CLASS, view);
+    D3ViewUtils.zoomToObjectBySelector('.' + Classes.ROOT_CLASS, view);
   }
 
   updateViewport(x, y, scale, animate) {

@@ -390,7 +390,7 @@ class OrbalContextMenu extends React.Component {
       console.error('No active item in menu');
       return;
     }
-    var metadata = this.props.metastore.getMetadataAbout(this.state.activeItemId);
+    let metadata = this.props.metastore.getMetadataAbout(this.state.activeItemId);
     this.displayText = metadata.name;
     if(!this.displayText) {
       this.displayText = this.props.userstore.getText('namelessEntity');
@@ -399,7 +399,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.point:
         this.displayText = '(PoI) ' + this.displayText;
         this.northWestAction = EditPoI.startEdit.bind(null, metadata);
-        this.northAction = D3ViewUtils.zoomToObject.bind(null, '#POI-' + metadata.uid, this.props.viewstore.getView());
+        this.northAction = D3ViewUtils.zoomToObject.bind(null, metadata, this.props.benchstore, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
         this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
@@ -434,7 +434,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.trail:
         this.displayText = '(ToI) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
-        this.northAction = D3ViewUtils.zoomToObject.bind(null, '#PATH-' + metadata.uid, this.props.viewstore.getView());
+        this.northAction = D3ViewUtils.zoomToObject.bind(null, metadata, this.props.benchstore, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
         this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
@@ -467,7 +467,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.region:
         this.displayText = '(RoI) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
-        this.northAction = D3ViewUtils.zoomToObject.bind(null, '#ROI-' + metadata.uid, this.props.viewstore.getView());
+        this.northAction = D3ViewUtils.zoomToObject.bind(null, metadata, this.props.benchstore, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
         this.southWestAction = OrbOptions.showMetadata.bind(null, metadata);
         if(metadata.deletable) {
@@ -501,7 +501,7 @@ class OrbalContextMenu extends React.Component {
       case TypeConstants.image:
         this.displayText = '(Image) ' + this.displayText;
         this.northWestAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
-        this.northAction = D3ViewUtils.zoomToObject.bind(null, '#GROUP-' + this.state.activeItemLinkId, this.props.viewstore.getView());
+        this.northAction = D3ViewUtils.zoomToObjectBySelector.bind(null, '#GROUP-' + this.state.activeItemLinkId, this.props.viewstore.getView());
         this.northEastAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
         this.southWestAction = OrbOptions.notAvailable.bind(null, this.props.userstore);
         if(metadata.deletable) {

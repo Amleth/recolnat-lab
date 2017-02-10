@@ -123,14 +123,12 @@ class ViewController extends React.Component {
   }
 
   fitViewToImage() {
-    // var image = this.props.ministore.getImage();
-    let view = this.props.viewstore.getView();
     let linkId = this.props.toolstore.getSelectedImageId();
     if(!linkId) {
       return;
     }
 
-    D3ViewUtils.zoomToObject('#GROUP-' + linkId, this.props.viewstore.getView());
+    D3ViewUtils.zoomToObjectBySelector('#GROUP-' + linkId, this.props.viewstore.getView());
   }
 
   componentDidMount() {

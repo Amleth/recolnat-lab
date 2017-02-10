@@ -284,11 +284,64 @@ export default class D3ViewUtils {
     d3.select('#' + id).classed('outline', false).interrupt().transition()
       .style('outline-color', null)
       .style('outline-width', null)
-      .style('outline-style', 'none')
-      ;
+      .style('outline-style', 'none');
   }
 
-  static zoomToObject(d3selector, view) {
+  static zoomToObject(objectData, benchstore, view) {
+    let d3linkId = null;
+    let coords = null;
+    switch(objectData.type) {
+      case 'Image':
+        if(objectData.link) {
+          d3linkId = objectData.link;
+        } else {
+          let displayData = benchstore.getDisplayData(objectData.uid);
+          d3linkId = displayData.link;
+        }
+        D3ViewUtils.zoomToObjectInternal('#GROUP-' + d3linkId, view);
+        return;
+      case 'PointOfInterest':
+        coords = {
+          x: objectData.x - 30,
+          y: objectData.y - 100,
+          width: 60,
+          height: 100
+        };
+        break;
+      case 'RegionOfInterest':
+      case 'AngleOfInterest':
+      case 'TrailOfInterest':
+        let vertices = JSON.parse(objectData.polygonVertices);
+        coords = {
+          x: _.chain(vertices).map(v => v[0]).reduce((m,n) => Math.min(m,n)).value(),
+          y: _.chain(vertices).map(v => v[1]).reduce((m,n) => Math.min(m,n)).value(),
+        };
+        coords.width = _.chain(vertices).map(v => v[0]).reduce((m,n) => Math.max(m,n)).value() - coords.x;
+        coords.height = _.chain(vertices).map(v => v[1]).reduce((m,n) => Math.max(m,n)).value() - coords.y;
+        break;
+      default:
+        console.error('No handler for type ' + objectData.type);
+        return;
+    }
+
+    let imageId = objectData.parents[0];
+    let displayData = benchstore.getDisplayData(imageId);
+    d3linkId = displayData.link;
+
+    // Draw useless item on this image and zoom on it, letting automatic draw-on-pan take over
+    d3.select('#ANNOTATIONS-' + d3linkId)
+      .append('rect')
+      .attr('id', 'ZOOMER')
+      .attr('x', coords.x)
+      .attr('y', coords.y)
+      .attr('height', coords.height)
+      .attr('width', coords.width);
+
+    D3ViewUtils.zoomToObjectBySelector('#ZOOMER', view);
+    d3.select('#ZOOMER').remove();
+  }
+
+  static zoomToObjectBySelector(d3selector, view) {
     // Retrieve object coordinates and size in browser window
     let object = d3.select(d3selector);
     let winLoc = object.node().getBoundingClientRect();

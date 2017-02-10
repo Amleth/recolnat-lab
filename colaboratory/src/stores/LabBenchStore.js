@@ -124,8 +124,8 @@ class LabBenchStore extends EventEmitter {
   getDisplayData(id) {
     if(this.labBench) {
       if (this.labBench.views && this.activeView) {
-        var displayedStuff = this.labBench.views[this.activeView].displays;
-        for (var i = 0; i < displayedStuff.length; ++i) {
+        let displayedStuff = this.labBench.views[this.activeView].displays;
+        for (let i = 0; i < displayedStuff.length; ++i) {
           if (displayedStuff[i].link == id || displayedStuff[i].entity == id) {
             return JSON.parse(JSON.stringify(displayedStuff[i]));
           }

@@ -92,7 +92,7 @@ class MoveObject extends AbstractTool {
   }
 
   switchToSheetInObservationMode(d) {
-    D3ViewUtils.zoomToObject("#GROUP-" + d.link, this.props.viewstore.getView());
+    D3ViewUtils.zoomToObjectBySelector("#GROUP-" + d.link, this.props.viewstore.getView());
     window.setTimeout(ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION), 10);
   }
 

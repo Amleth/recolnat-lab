@@ -799,16 +799,10 @@ class AnnotationList extends React.Component {
     }
     switch(meta.type) {
       case 'RegionOfInterest':
-        D3ViewUtils.zoomToObject('#ROI-' + entityId, this.props.viewstore.getView());
-        break;
       case 'TrailOfInterest':
-        D3ViewUtils.zoomToObject('#PATH-' + entityId, this.props.viewstore.getView());
-        break;
       case 'PointOfInterest':
-        D3ViewUtils.zoomToObject('#POI-' + entityId, this.props.viewstore.getView());
-        break;
       case 'AngleOfInterest':
-        D3ViewUtils.zoomToObject('#AOI-' + entityId, this.props.viewstore.getView());
+        D3ViewUtils.zoomToObject(meta, this.props.benchstore, this.props.viewstore.getView());
         break;
       default:
         console.warn('Annotation type not handled: ' + meta.type);

@@ -99,6 +99,7 @@ class RightPane extends React.Component {
             metastore={this.props.metastore}
             viewstore={this.props.viewstore}
             userstore={this.props.userstore}
+            benchstore={this.props.benchstore}
           />
           <ElementInspector
             key='ElementInspector'
@@ -135,6 +136,7 @@ class RightPane extends React.Component {
             metastore={this.props.metastore}
             viewstore={this.props.viewstore}
             userstore={this.props.userstore}
+            benchstore={this.props.benchstore}
           />
           <ElementInspector
             key='ElementInspector'

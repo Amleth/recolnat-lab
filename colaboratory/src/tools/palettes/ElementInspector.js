@@ -464,12 +464,12 @@ class ElementInspector extends React.Component {
     this.setState({annotationTextInput: e.target.value});
   }
 
-  centerViewOn(d3id) {
-    if(!d3id) {
+  centerViewOn(meta) {
+    if(!meta) {
       alert('Internal error: action unavailable for this entity');
       return;
     }
-    D3ViewUtils.zoomToObject('#' + d3id, this.props.viewstore.getView());
+    D3ViewUtils.zoomToObject(meta, this.props.benchstore, this.props.viewstore.getView());
   }
 
   toggleOutline(d3id) {
@@ -592,7 +592,7 @@ class ElementInspector extends React.Component {
             <i className='grey small eye icon'
                style={eyeIconStyle}
                data-content={this.props.userstore.getText('zoomOnEntity')}
-               onClick={this.centerViewOn.bind(this, d3id)}
+               onClick={this.centerViewOn.bind(this, entityMetadata)}
             />
             <i className='grey small write icon'
                style={this.addAnnotationStyle}

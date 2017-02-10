@@ -330,7 +330,7 @@ class LineMeasurePopup extends React.Component {
 
   zoomOnMeasure(idx) {
     let data = this.state.measures[idx];
-    ViewUtils.zoomToObject('#MEASURE-' + data.id, this.props.viewstore.getView());
+    ViewUtils.zoomToObjectBySelector('#MEASURE-' + data.id, this.props.viewstore.getView());
   }
 
   editName(idx) {

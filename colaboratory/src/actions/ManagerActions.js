@@ -44,12 +44,6 @@ export default {
     })
   },
 
-  // reloadDisplayedSets: () => {
-  //   AppDispatcher.dispatch({
-  //     actionType: ManagerConstants.ActionTypes.RELOAD_DISPLAYED_SETS
-  //   });
-  // },
-
   changeBasketSelectionState: (id, state) => {
     AppDispatcher.dispatch({
       actionType: ManagerConstants.ActionTypes.BASKET_CHANGE_SELECTION,

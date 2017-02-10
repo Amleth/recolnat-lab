@@ -41,24 +41,18 @@ class ModeStore extends EventEmitter {
 
   setMode(mode) {
     if(mode === this.mode) return;
-
-    // window.setTimeout(
-    //   ModeActions.changeMode.bind(null, mode), 10
-    // );
     window.setTimeout(
       ToolActions.setTool.bind(null, null), 10
     );
     switch(mode) {
       case ModeConstants.Modes.OBSERVATION:
-      // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
         window.setTimeout(MetadataActions.loadLabBench, 10);
         break;
       case ModeConstants.Modes.ORGANISATION:
-      // window.setTimeout(ViewActions.changeLoaderState.bind(null, "Chargement en cours."), 10);
         window.setTimeout(MetadataActions.loadLabBench, 10);
+        window.setTimeout(ViewActions.updateDisplayFilters.bind(null, {borders:true, regions: false, points: false, trails: false, angles: false}), 10);
         break;
       case ModeConstants.Modes.SET:
-        window.setTimeout(ManagerActions.reloadDisplayedSets, 10);
         break;
       case ModeConstants.Modes.TABULAR:
         break;

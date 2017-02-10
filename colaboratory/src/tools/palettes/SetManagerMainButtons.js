@@ -16,6 +16,8 @@ class SetManagerMainButtons extends React.Component {
   constructor(props) {
     super(props);
 
+    this.mounted = false;
+
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important'
@@ -42,7 +44,7 @@ class SetManagerMainButtons extends React.Component {
     };
 
     this._forceUpdate = () => {
-      const update = () => this.setState({});
+      const update = () => {if(!this.mounted) return; this.setState({});};
       return update.apply(this);
     };
 
@@ -86,6 +88,7 @@ class SetManagerMainButtons extends React.Component {
   }
 
   componentDidMount() {
+    this.mounted = true;
     this.props.userstore.addLanguageChangeListener(this._forceUpdate);
     this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.managerstore.addSelectionChangeListener(this._onSetSelectionChange);
@@ -97,6 +100,7 @@ class SetManagerMainButtons extends React.Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false;
     this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
     this.props.modestore.removeModeChangeListener(this._forceUpdate);
     this.props.managerstore.removeSelectionChangeListener(this._onSetSelectionChange);

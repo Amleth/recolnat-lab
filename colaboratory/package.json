@@ -9,6 +9,7 @@
     "test": "gulp deploy-test",
     "test-demo": "gulp deploy-demo-test",
     "demo": "gulp deploy-demo",
+    "build": "gulp build-prod-vm",
     "prod-vm": "gulp deploy-prod-vm"
   },
   "author": "DICEN",

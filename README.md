@@ -6,7 +6,9 @@ reporting -> simple page de reporting sur l'état des serveurs (JS)
 services -> les APIs WebSocket et REST permettant d'accéder à la base (Java)
 
 ## API
-Nécessite Maven & Java 8+.
+Dépendences : 
+  * Apache Maven >3.2.2
+  * Java >8.
 
 Deux version sont disponibles pour le moment. Les branches "master" et "production" permettent d'obtenir un package JAR. La branche "tomcat" permet d'obtenir un WAR.
 
@@ -54,26 +56,31 @@ La section "authentication" permet de configurer le système d'authentification 
 - ticketUrl: URL du service d'obtention de tickets
 - serviceValidateUrl: URL du service de validation de tickets
 
-#### Server
+#### Serveur
 La section "server" sert à configurer les informations du serveur quand l'application tourne en mode stand-alone. Cette section n'est pas utilisée quand l'application tourne sur un conteneur applicatif (type Tomcat ou Glassfish).
 
-#### Logging
+#### Logs
 La section "logging" permet de configurer le contenu des fichiers de log (qui sont stockés dans `$COLABORATORY_HOME/logs`. Voir la documentation de slf4j.
 
 ## IHM
-Nécessite npm.
-
-Editer le fichier gulpfile.js pour spécifier les URLs de déploiement.
+Dépendences :
+  * NodeJS >4.2.0
+  * npm >2.14.7
 
 Si nécessaire, éditer les fichiers du répertoire /conf/ (tout changement doit être fait avant le packaging).
 
 "npm i" pour télécharger les dépendences (nécessaire seulement la première fois ou en cas de changement des dépendences).
+
+### Packaging & déploiement
+#### Automatique
 "npm run <server>" pour packaging et upload sur le bon serveur, parmi dev (local), ddev (serveur dev ReColNat), test (serveur test ReColNat), prod-vm (serveur pré-prod ReColNat)
 
-### Déploiement manuel
+Editer le fichier gulpfile.js pour spécifier les URLs de déploiement si nécessaire.
+
+#### Manuel
 Pour un déploiement manuel, lancer la commande `npm run build`.
 
-Ceci va génerer du contenu dans le répertoire /dist/. Copier tout le contenu de ce répertoire vers le serveur de contenu web.
+Ceci va génerer du contenu (html, js, images) dans le répertoire /dist/. Copier tout le contenu de ce répertoire vers le serveur de contenu web.
 
 ## Notes
 Pour l'instant pas d'option pour lancer en local suite aux restrictions sur le nom de domaine pour l'authentification.

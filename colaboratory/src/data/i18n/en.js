@@ -250,6 +250,7 @@ export default {
   currentMeasure: "Current measure",
   newMeasuresUnsaved: "New measures (not saved yet)",
   unsavedChangesWillBeLost: "Unsaved changes will be lost if you continue. Continue ?",
+  notRecolnat: 'Not ReColNat',
   interpolated: {
     addNSheetsToSet: "Add the %0 sheets selected in basket to set %1",
     fileHasBeenProcessed: "File %0 has been processed",

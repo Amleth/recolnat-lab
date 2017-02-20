@@ -251,6 +251,7 @@ export default {
   currentMeasure: "Mesure courante",
   newMeasuresUnsaved: "Nouvelles mesures (pas encore enregistrées)",
   unsavedChangesWillBeLost: "Les changements non sauvegardés seront perdus. Voulez-vous continuer ?",
+  notRecolnat: 'Hors ReColNat',
   interpolated: {
     addNSheetsToSet: "Ajouter les %0 planches sélectionnées dans le panier au set %1",
     fileHasBeenProcessed: "Le fichier %0 a été traité",

@@ -434,7 +434,7 @@ class AnnotationList extends React.Component {
       .each((a, idx, list) => this.enrichAnnotation(a, state), [this])
       // .sortBy(Globals.getCreationDate)
       .value();
-      // .reverse();
+    // .reverse();
   }
 
   enrichAnnotation(annotation, state) {
@@ -464,13 +464,17 @@ class AnnotationList extends React.Component {
     }
     annotation.inSpecimen = state.data[annotation.inImage].specimens[0];
     if(!annotation.inSpecimen) {
-      return;
+      // return;
+      annotation.barcode = this.props.userstore.getText('notRecolnat');
+      annotation.inSet = state.data[annotation.inImage].inSets[0];
+    }
+    else {
+      if(!state.data[annotation.inSpecimen]) {
+        return;
+      }
+      annotation.inSet = state.data[annotation.inSpecimen].inSets[0];
     }
 
-    if(!state.data[annotation.inSpecimen]) {
-      return;
-    }
-    annotation.inSet = state.data[annotation.inSpecimen].inSets[0];
     if(!annotation.inSet) {
       return;
     }
@@ -556,7 +560,7 @@ class AnnotationList extends React.Component {
         }
       }
     }
-      return Globals.getEXIFScalingData(this.state.data[imageId]);
+    return Globals.getEXIFScalingData(this.state.data[imageId]);
   }
 
   enrichPoIAnnotation(annotation, state) {

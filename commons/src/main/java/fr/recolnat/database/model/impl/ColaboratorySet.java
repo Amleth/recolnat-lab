@@ -7,7 +7,6 @@ package fr.recolnat.database.model.impl;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdge;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -17,8 +16,6 @@ import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DeleteUtils;
-import fr.recolnat.database.utils.UpdateUtils;
-import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -32,20 +29,20 @@ import org.slf4j.LoggerFactory;
  *
  * @author dmitri
  */
-public class StudySet extends AbstractObject {
+public class ColaboratorySet extends AbstractObject {
 
   private final Set<LinkedEntity> parentIds = new HashSet<>();
   private final Set<LinkedEntity> subSetIds = new HashSet<>();
   private final Set<LinkedEntity> itemIds = new HashSet<>();
   private String viewId = null;
   
-  private static final Logger log = LoggerFactory.getLogger(StudySet.class);
+  private static final Logger log = LoggerFactory.getLogger(ColaboratorySet.class);
 
 //  private String id;
 //  private String linkId = null;
 //  private final String type = "bag";
 //  private String name;
-  public StudySet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+  public ColaboratorySet(OrientVertex vSet, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
     super(vSet, vUser, g, rightsDb);
     if (!AccessRights.canRead(vUser, vSet, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vSet.getProperty(DataModel.Properties.id));

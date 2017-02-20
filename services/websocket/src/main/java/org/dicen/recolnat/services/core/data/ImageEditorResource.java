@@ -5,7 +5,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.model.impl.RecolnatImage;
+import fr.recolnat.database.model.impl.ColaboratoryImage;
 import fr.recolnat.database.model.impl.Specimen;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -37,11 +37,11 @@ public class ImageEditorResource {
 
   public static JSONObject getImage(String id, String user) throws InternalServerErrorException, AccessForbiddenException {
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-    RecolnatImage img = null;
+    ColaboratoryImage img = null;
     try {
       OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
       OrientVertex vImage = (OrientVertex) AccessUtils.getNodeById(id, g);
-      img = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
+      img = new ColaboratoryImage(vImage, vUser, g, DatabaseAccess.rightsDb);
       return img.toJSON();
     } catch (JSONException e) {
       log.error("Unable to convert object to JSON for id " + id);

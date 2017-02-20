@@ -60,12 +60,7 @@ public class RegionOfInterest extends AbstractObject {
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
 
-    JSONArray jMeasurements = new JSONArray();
-    Iterator<String> itAnnot = measurements.iterator();
-    while(itAnnot.hasNext()) {
-      jMeasurements.put(itAnnot.next());
-    }
-    ret.put("measurements", jMeasurements);
+    ret.put("measurements", this.measurements);
 
     return ret;
   }

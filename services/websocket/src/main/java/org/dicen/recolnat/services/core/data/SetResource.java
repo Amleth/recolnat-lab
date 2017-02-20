@@ -14,7 +14,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.model.impl.StudySet;
+import fr.recolnat.database.model.impl.ColaboratorySet;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.BranchUtils;
@@ -32,7 +32,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
-import fr.recolnat.database.model.impl.RecolnatImage;
+import fr.recolnat.database.model.impl.ColaboratoryImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,15 +62,15 @@ public class SetResource {
 
   public static JSONObject getSet(String setId, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException, InternalServerErrorException {
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-    StudySet set = null;
+    ColaboratorySet set = null;
     try {
       OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
       if (setId == null) {
         OrientVertex vCoreSet = AccessUtils.getCoreSet(vUser, g);
-        set = new StudySet(vCoreSet, vUser, g, DatabaseAccess.rightsDb);
+        set = new ColaboratorySet(vCoreSet, vUser, g, DatabaseAccess.rightsDb);
       } else {
         OrientVertex vSet = AccessUtils.getNodeById(setId, g);
-        set = new StudySet(vSet, vUser, g, DatabaseAccess.rightsDb);
+        set = new ColaboratorySet(vSet, vUser, g, DatabaseAccess.rightsDb);
       }
     } finally {
       g.rollback();
@@ -434,7 +434,7 @@ public class SetResource {
           OrientVertex vImage = (OrientVertex) itImages.next();
           if (AccessUtils.isLatestVersion(vImage)) {
             if (AccessRights.canRead(vUser, vImage, g, DatabaseAccess.rightsDb)) {
-              RecolnatImage image = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
+              ColaboratoryImage image = new ColaboratoryImage(vImage, vUser, g, DatabaseAccess.rightsDb);
               jImages.put(image.toJSON());
             }
           }
@@ -500,7 +500,7 @@ public class SetResource {
         result.addModifiedId((String) vImage.getProperty(DataModel.Properties.id));
         result.addModifiedId((String) vSet.getProperty(DataModel.Properties.id));
 
-        RecolnatImage img = new RecolnatImage(vImage, vUser, g, DatabaseAccess.rightsDb);
+        ColaboratoryImage img = new ColaboratoryImage(vImage, vUser, g, DatabaseAccess.rightsDb);
         result.setResponse("image", img.toJSON());
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");

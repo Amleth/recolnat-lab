@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import javax.websocket.Session;
+import org.apache.commons.lang.NotImplementedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -35,19 +36,19 @@ import org.slf4j.LoggerFactory;
  * @author dmitri
  */
 public class MessageProcessorThread implements Runnable {
-  
+
   private static final Logger log = LoggerFactory.getLogger(MessageProcessorThread.class);
-  
+
   private JSONObject jsonIn = null;
   private Session session = null;
   private String userLogin = null;
-  
+
   public MessageProcessorThread(Session session, JSONObject message, String userLogin) {
     this.jsonIn = message;
     this.session = session;
     this.userLogin = userLogin;
   }
-  
+
   @Override
   public void run() {
     Integer messageId;
@@ -56,7 +57,7 @@ public class MessageProcessorThread implements Runnable {
     } catch (JSONException ex) {
       messageId = null;
     }
-    
+
     try {
       try {
         int action = jsonIn.getInt("action");
@@ -68,7 +69,7 @@ public class MessageProcessorThread implements Runnable {
         JSONObject payload;
         String elementToCopyId, futureParentId;
         Integer x, y;
-        
+
         switch (action) {
           case Action.ClientActionType.SUBSCRIBE:
             entityId = jsonIn.getString("id");
@@ -244,6 +245,10 @@ public class MessageProcessorThread implements Runnable {
                 JSONArray properties = jsonIn.getJSONArray("properties");
                 modified = DatabaseResource.editProperties(entityId, properties, userLogin);
                 break;
+              case "create-tag-definition":
+                throw new NotImplementedException();
+              case "tag-entity":
+                throw new NotImplementedException();
             }
             break;
           case Action.ClientActionType.GET:
@@ -329,21 +334,21 @@ public class MessageProcessorThread implements Runnable {
       this.sendInternalServerError(session, messageId);
     }
   }
-  
+
   private void sendResource(JSONObject resource, Session session, Integer messageId) throws JSONException {
-      JSONObject response = new JSONObject();
-      response.put("id", messageId);
-      response.put("action", Action.ServerActionType.RESOURCE);
-      response.put("resource", resource);
-      response.put("timestamp", new Date().getTime());
-      
-      if (log.isDebugEnabled()) {
-        log.debug("Sending resource on subscription " + response.toString());
-      }
-      
-      this.sendMessage(response.toString(), session);
+    JSONObject response = new JSONObject();
+    response.put("id", messageId);
+    response.put("action", Action.ServerActionType.RESOURCE);
+    response.put("resource", resource);
+    response.put("timestamp", new Date().getTime());
+
+    if (log.isDebugEnabled()) {
+      log.debug("Sending resource on subscription " + response.toString());
+    }
+
+    this.sendMessage(response.toString(), session);
   }
-  
+
   private void broadcastModifications(Collection<String> resourcesModified) throws IOException, JSONException {
     for (String resourceId : resourcesModified) {
       ColaboratorySocket.mapAccessLock.lock();
@@ -358,13 +363,13 @@ public class MessageProcessorThread implements Runnable {
               log.error("Session " + sessionId + " is listed as listening to a resource but is not mapped to an existing session");
               continue;
             }
-            
+
             String userLogin = ColaboratorySocket.sessionIdToUser.get(sessionId);
             JSONObject message = new JSONObject();
-            
+
             try {
               JSONObject metadata = DatabaseResource.getData(resourceId, userLogin);
-              
+
               message.put("action", Action.ServerActionType.RESOURCE);
               message.put("timestamp", new Date().getTime());
               message.put("resource", metadata);
@@ -372,7 +377,7 @@ public class MessageProcessorThread implements Runnable {
               message.put("forbidden", resourceId);
               message.put("action", Action.ServerActionType.RESOURCE);
             }
-            
+
             this.sendMessage(message.toString(), session);
           }
         }
@@ -381,12 +386,12 @@ public class MessageProcessorThread implements Runnable {
       }
     }
   }
-  
+
   private void sendMessage(String message, Session session) {
     // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
     // Randomness is more frequent if not synchronized.
     // Randomness seems to come from using Async, so let's stick with Basic for now.
-    synchronized(session) {
+    synchronized (session) {
       try {
         session.getBasicRemote().sendText(message);
       } catch (IOException ex) {
@@ -394,7 +399,7 @@ public class MessageProcessorThread implements Runnable {
       }
     }
   }
-  
+
   private boolean subscribe(Session session, String entityId) {
     ColaboratorySocket.mapAccessLock.lock();
     try {
@@ -405,7 +410,7 @@ public class MessageProcessorThread implements Runnable {
     }
     return true;
   }
-  
+
   private boolean unsubscribe(Session session, String entityId) {
     ColaboratorySocket.mapAccessLock.lock();
     try {
@@ -417,7 +422,7 @@ public class MessageProcessorThread implements Runnable {
           itSess.remove();
         }
       }
-      
+
       mapping = (Collection) ColaboratorySocket.sessionIdToResources.get(session.getId());
       Iterator<String> itResources = mapping.iterator();
       while (itResources.hasNext()) {
@@ -431,16 +436,15 @@ public class MessageProcessorThread implements Runnable {
     }
     return true;
   }
-  
+
   private void sendInternalServerError(Session session, Integer messageId) {
     String error;
-    if(messageId == null) {
+    if (messageId == null) {
       error = "{\"error\":500}";
+    } else {
+      error = "{\"error\":500,\"id\":" + messageId + "}";
     }
-    else {
-      error = "{\"error\":500,\"id\":"+ messageId + "}";
-    }
-    
+
     this.sendMessage(error, session);
   }
 }

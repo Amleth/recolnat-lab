@@ -180,6 +180,12 @@ public class ColaboratorySocket {
           case "edit-properties":
             lightExecutor.submit(t);
             return;
+          case "create-tag-definition":
+            lightExecutor.submit(t);
+            return;
+          case "tag-entity":
+            lightExecutor.submit(t);
+            return;
         }
         break;
       case Action.ClientActionType.GET:

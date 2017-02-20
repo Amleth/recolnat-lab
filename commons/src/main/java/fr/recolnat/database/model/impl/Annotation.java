@@ -67,11 +67,7 @@ public class Annotation extends AbstractObject{
     ret.put("creator", this.creator);
     
     if(!standards.isEmpty()) {
-      JSONArray jStandards = new JSONArray();
-      for(String id: standards) {
-        jStandards.put(id);
-      }
-      ret.put("standards", jStandards);
+      ret.put("standards", this.standards);
     }
     
     return ret;

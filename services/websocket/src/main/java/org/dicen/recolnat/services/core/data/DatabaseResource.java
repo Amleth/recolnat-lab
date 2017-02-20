@@ -18,12 +18,11 @@ import fr.recolnat.database.model.impl.ColaboratoryUser;
 import fr.recolnat.database.model.impl.MeasureStandard;
 import fr.recolnat.database.model.impl.OriginalSource;
 import fr.recolnat.database.model.impl.PointOfInterest;
-import fr.recolnat.database.model.impl.RecolnatImage;
+import fr.recolnat.database.model.impl.ColaboratoryImage;
 import fr.recolnat.database.model.impl.RegionOfInterest;
 import fr.recolnat.database.model.impl.SetView;
 import fr.recolnat.database.model.impl.Specimen;
-import fr.recolnat.database.model.impl.Study;
-import fr.recolnat.database.model.impl.StudySet;
+import fr.recolnat.database.model.impl.ColaboratorySet;
 import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -393,7 +392,7 @@ public class DatabaseResource {
     String cl = v.getProperty("@class");
     switch (cl) {
       case DataModel.Classes.set:
-        return new StudySet(v, vUser, g, DatabaseAccess.rightsDb);
+        return new ColaboratorySet(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.originalSource:
         return new OriginalSource(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.angleOfInterest:
@@ -413,9 +412,7 @@ public class DatabaseResource {
             return new Annotation(v, vUser, g, DatabaseAccess.rightsDb);
         }
       case DataModel.Classes.image:
-        return new RecolnatImage(v, vUser, g, DatabaseAccess.rightsDb);
-      case DataModel.Classes.study:
-        return new Study(v, vUser, g, DatabaseAccess.rightsDb);
+        return new ColaboratoryImage(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.specimen:
         return new Specimen(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.setView:

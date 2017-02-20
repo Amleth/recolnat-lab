@@ -27,16 +27,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.logging.Level;
 
 /**
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 22/05/15.
  */
-public class RecolnatImage extends AbstractObject {
+public class ColaboratoryImage extends AbstractObject {
   
   private Set<String> specimensReferencingThisImage = new HashSet<>();
   private Set<String> anglesOfInterest = new HashSet<>();
@@ -46,10 +44,11 @@ public class RecolnatImage extends AbstractObject {
   private Set<String> measureStandards = new HashSet<>();
   private Metadata rawImageMetadata = null;
   private String source = null;
+  private final Set<String> containedInSets = new HashSet<>();
   
-  private final static Logger log = LoggerFactory.getLogger(RecolnatImage.class);
+  private final static Logger log = LoggerFactory.getLogger(ColaboratoryImage.class);
   
-  public RecolnatImage(OrientVertex vImage, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
+  public ColaboratoryImage(OrientVertex vImage, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
     super(vImage, vUser, g, rightsDb);
     
     if (!AccessRights.canRead(vUser, vImage, g, rightsDb)) {
@@ -124,6 +123,15 @@ public class RecolnatImage extends AbstractObject {
       }
     }
     
+    // Get parent sets
+    Iterator<Vertex> itParentSets = vImage.getVertices(Direction.IN, DataModel.Links.containsItem).iterator();
+    while(itParentSets.hasNext()) {
+      OrientVertex vSet = (OrientVertex) itParentSets.next();
+      if(AccessRights.isLatestVersionAndHasRights(vUser, vSet, DataModel.Enums.AccessRights.READ, g, rightsDb)) {
+        this.containedInSets.add((String) vSet.getProperty(DataModel.Properties.id));
+      }
+    }
+    
     String url = (String) this.properties.get(DataModel.Properties.imageUrl);
     File imageFile = null;
     if (url != null) {
@@ -158,47 +166,13 @@ public class RecolnatImage extends AbstractObject {
       ret.put("originalSource", this.source);
     }
     
-    JSONArray jSpecimens = new JSONArray();
-    Iterator<String> itSpecimens = this.specimensReferencingThisImage.iterator();
-    while(itSpecimens.hasNext()) {
-      jSpecimens.put(itSpecimens.next());
-    }
-    ret.put("specimens", jSpecimens);
-    
-    JSONArray jRois = new JSONArray();
-    Iterator<String> itRois = this.regionsOfInterest.iterator();
-    while (itRois.hasNext()) {
-      jRois.put(itRois.next());
-    }
-    ret.put("rois", jRois);
-    
-    JSONArray jAois = new JSONArray();
-    Iterator<String> itAois = this.anglesOfInterest.iterator();
-    while (itAois.hasNext()) {
-      jAois.put(itAois.next());
-    }
-    ret.put("aois", jAois);
-    
-    JSONArray jPois = new JSONArray();
-    Iterator<String> itPois = this.pointsOfInterest.iterator();
-    while (itPois.hasNext()) {
-      jPois.put(itPois.next());
-    }
-    ret.put("pois", jPois);
-    
-    JSONArray jPaths = new JSONArray();
-    Iterator<String> itPaths = this.trailsOfInterest.iterator();
-    while (itPaths.hasNext()) {
-      jPaths.put(itPaths.next());
-    }
-    ret.put("tois", jPaths);
-    
-    JSONArray jScales = new JSONArray();
-    Iterator<String> itScales = this.measureStandards.iterator();
-    while (itScales.hasNext()) {
-      jScales.put(itScales.next());
-    }
-    ret.put("scales", jScales);
+    ret.put("specimens", this.specimensReferencingThisImage);
+    ret.put("rois", this.regionsOfInterest);
+    ret.put("aois", this.anglesOfInterest);
+    ret.put("pois", this.pointsOfInterest);
+    ret.put("tois", this.trailsOfInterest);
+    ret.put("scales", this.measureStandards);
+    ret.put("inSets", this.containedInSets);
     
     if (this.rawImageMetadata != null) {
       JSONObject jMetadata = new JSONObject();

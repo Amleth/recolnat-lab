@@ -109,20 +109,8 @@ public class AbstractObject {
     ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
     ret.put("deleted", this.deleted);
-
-    JSONArray jAnnots = new JSONArray();
-    Iterator<String> itAnnots = annotations.iterator();
-    while (itAnnots.hasNext()) {
-      jAnnots.put(itAnnots.next());
-    }
-    ret.put("annotations", jAnnots);
-
-    JSONArray jParents = new JSONArray();
-    Iterator<String> itParents = parents.iterator();
-    while (itParents.hasNext()) {
-      jParents.put(itParents.next());
-    }
-    ret.put("parents", jParents);
+    ret.put("annotations", annotations);
+    ret.put("parents", parents);
 
     return ret;
   }

@@ -80,8 +80,8 @@ public class Specimen extends AbstractObject {
     JSONObject ret = super.toJSON();
     
     ret.put("originalSource", this.originalSource);
-    ret.put("images", new JSONArray(this.images));
-    ret.put("inSets", new JSONArray(this.containedInSets));
+    ret.put("images", this.images);
+    ret.put("inSets", this.containedInSets);
     
     return ret;
   }

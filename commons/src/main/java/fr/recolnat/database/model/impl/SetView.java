@@ -15,7 +15,6 @@ import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
-import java.nio.file.AccessDeniedException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;

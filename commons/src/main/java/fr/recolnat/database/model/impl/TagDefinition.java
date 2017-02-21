@@ -50,10 +50,6 @@ public class TagDefinition extends AbstractObject {
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
     
-    JSONArray jTags = new JSONArray();
-    for(String tag : tags) {
-      jTags.put(tag);
-    }
     ret.put("tags", tags);
     
     return ret;

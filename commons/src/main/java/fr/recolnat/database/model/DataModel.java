@@ -20,7 +20,7 @@ public class DataModel {
       // A Tag is the definition of a tag in the database. The TagAssociation is an intermediate node between the tag and the tagged object.
       // This distinction exists in order for each to be able to have different sharing and ownership status.
       // For example a Tag may be public, however a user may choose to keep private that he has associated the Tag with another object (for example if the user is uncertain).
-      public static final String tag = "Tag";
+      public static final String tag = "TagDefinition";
       public static final String tagging = "TagAssociation";
       
       public static final String annotation = "Annotation";
@@ -149,6 +149,10 @@ public class DataModel {
     // Image & displays
     public static final String width = "width";
     public static final String height = "height";
+    
+    // Tags
+    public static final String key = "key";
+    public static final String value = "value";
     
     // Unsorted
     public static final String content = "content";

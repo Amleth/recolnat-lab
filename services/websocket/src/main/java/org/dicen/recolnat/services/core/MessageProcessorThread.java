@@ -24,6 +24,7 @@ import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.dicen.recolnat.services.core.data.DatabaseResource;
 import org.dicen.recolnat.services.core.data.ImageEditorResource;
 import org.dicen.recolnat.services.core.data.SetResource;
+import org.dicen.recolnat.services.core.data.TagResource;
 import org.dicen.recolnat.services.core.data.UserProfileResource;
 import org.dicen.recolnat.services.core.data.ViewResource;
 import org.dicen.recolnat.services.resources.ColaboratorySocket;
@@ -246,9 +247,16 @@ public class MessageProcessorThread implements Runnable {
                 modified = DatabaseResource.editProperties(entityId, properties, userLogin);
                 break;
               case "create-tag-definition":
-                throw new NotImplementedException();
+                String descrName = jsonIn.getString("descriptorName");
+                String descrVal = jsonIn.getString("descriptorValue");
+                result = TagResource.createTagDefinition(descrName, descrVal, userLogin);
+                // Nothing modified, only stuff created so far
+                break;
               case "tag-entity":
-                throw new NotImplementedException();
+                entityId = jsonIn.getString("entity");
+                String tagId = jsonIn.getString("tag");
+                result = TagResource.linkTagToEntity(tagId, entityId, userLogin);
+                modified = result.getModified();
             }
             break;
           case Action.ClientActionType.GET:

@@ -38,6 +38,7 @@ public class AbstractObject {
   protected boolean userCanDelete = false;
   protected boolean deleted = false;
   protected final Set<String> annotations = new HashSet<>();
+  protected final Set<String> taggings = new HashSet<>();
   private String type = null;
 
   private final Logger log = LoggerFactory.getLogger(AbstractObject.class);
@@ -68,7 +69,7 @@ public class AbstractObject {
     }
     this.type = e.getProperty("@class");
 
-    // Get annotations
+    // Get annotations & tags
     if (e.getElementType().equals("Vertex")) {
       OrientVertex v = (OrientVertex) e;
       if(v.countEdges(Direction.OUT, DataModel.Links.hasNewerVersion) == 1) {
@@ -80,6 +81,16 @@ public class AbstractObject {
         if (AccessUtils.isLatestVersion(vAnnotation)) {
           if (AccessRights.canRead(vUser, vAnnotation, g, rightsDb)) {
             this.annotations.add((String) vAnnotation.getProperty(DataModel.Properties.id));
+          }
+        }
+      }
+      
+      Iterator<Vertex> itTaggings = v.getVertices(Direction.OUT, DataModel.Links.isTagged).iterator();
+      while(itTaggings.hasNext()) {
+        OrientVertex vTagging = (OrientVertex) itTaggings.next();
+        if(AccessUtils.isLatestVersion(vTagging)) {
+          if(AccessRights.canRead(vUser, vTagging, g, rightsDb)) {
+            taggings.add(vTagging.getProperty(DataModel.Properties.id));
           }
         }
       }
@@ -109,8 +120,9 @@ public class AbstractObject {
     ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
     ret.put("deleted", this.deleted);
-    ret.put("annotations", annotations);
-    ret.put("parents", parents);
+    ret.put("annotations", this.annotations);
+    ret.put("parents", this.parents);
+    ret.put("taggings", this.taggings);
 
     return ret;
   }

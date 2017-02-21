@@ -10,8 +10,6 @@ import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.DeleteUtils;
-import java.nio.file.AccessDeniedException;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -59,12 +57,7 @@ public class TrailOfInterest extends AbstractObject {
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
 
-    JSONArray jMeasurements = new JSONArray();
-    Iterator<String> itAnnot = measurements.iterator();
-    while(itAnnot.hasNext()) {
-      jMeasurements.put(itAnnot.next());
-    }
-    ret.put("measurements", jMeasurements);
+    ret.put("measurements", this.measurements);
 
     return ret;
   }

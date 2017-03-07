@@ -12,9 +12,10 @@ Dépendences :
 
 Deux version sont disponibles pour le moment. Les branches "master" et "production" permettent d'obtenir un package JAR. La branche "tomcat" permet d'obtenir un WAR.
 
-commons -> `mvn clean package install`
-services/websocket -> `mvn clean package`, dépend de commons
-services/rest -> pas maintenu
+### Packaging
+La compilation et packaging (en JAR ou WAR) se fait via Maven, dans l'ordre :
+  - commons -> `mvn clean package install`
+  - services/websocket -> `mvn clean package`, dépend de commons
 
 ### JAR
 Le script `upload.sh` permet de copier vers le bon serveur (dev, test, vm). Lancement du jar via la commande `java -jar colaboratory-socket.jar colaboratory-socket.yml` après vérification de la configuration dans le fichier YAML mentionné.
@@ -22,7 +23,9 @@ Le script `upload.sh` permet de copier vers le bon serveur (dev, test, vm). Lanc
 ### WAR
 Modifier le script `upload.sh` pour que la destination corresponde au répertoire de déploiement des wars.
 
-Le service attend une variable d'environnement COLABORATORY_HOME qui doit pointer vers un répertoire contenant le fichier de configuration `colaboratory-socket.yml`.
+Le service attend une variable d'environnement système COLABORATORY_HOME qui doit pointer vers un répertoire contenant le fichier de configuration `colaboratory-socket.yml`.
+
+Cette variable est à définir au niveau du conteneur applicatif. Par exemple pour Tomcat, au moment du lancement du catalina.sh ou dans le script de lancement du daemon.
 
 ### Configuration WebSocket (colaboratory-socket.yml)
 Un squelette de configuration est disponible dans `websocket/src/main/resources/colaboratory-socket.yml`
@@ -62,6 +65,36 @@ La section "server" sert à configurer les informations du serveur quand l'appli
 #### Logs
 La section "logging" permet de configurer le contenu des fichiers de log (qui sont stockés dans `$COLABORATORY_HOME/logs`. Voir la documentation de slf4j.
 
+### Proxy
+Il sera probablement nécessaire de configurer le proxy du serveur afin de permettre/rediriger les connexions WebSocket vers le bon port.
+
+Par exemple avec Nginx, rajouter les lignes suivantes dans le bloc correspondant (80 ou 443 selon si http ou https) pour un Tomcat qui tourne sur le port 8888 et un service déployé sur le contexte colaboratory-socket-dev-0.9.3 :
+```apacheconf
+location /services/labo-dev/websockets {
+  proxy_pass http://127.0.0.1:8888/colaboratory-socket-dev-0.9.3;
+  access_log on;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-NginX-Proxy true;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  proxy_http_version 1.1;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "Upgrade";
+
+  proxy_buffering off;
+
+  proxy_connect_timeout   43200000;
+  proxy_read_timeout      43200000;
+  proxy_send_timeout      43200000;
+}
+
+location /services/labo-dev/rest {
+  proxy_pass http://127.0.0.1:8888/colaboratory-socket-dev-0.9.3/rest;
+}
+```
+
 ## IHM
 Dépendences :
   * NodeJS >4.2.0
@@ -75,7 +108,46 @@ Si nécessaire, éditer les fichiers du répertoire /conf/ (tout changement doit
 #### Automatique
 "npm run <server>" pour packaging et upload sur le bon serveur, parmi dev (local), ddev (serveur dev ReColNat), test (serveur test ReColNat), prod-vm (serveur pré-prod ReColNat)
 
-Editer le fichier gulpfile.js pour spécifier les URLs de déploiement si nécessaire.
+##### Déployer ailleurs
+Pour définir un autre serveur, éditer les fichiers `gulpfile.js` et `package.json`
+
+Dans `gulpfile.js` ajouter les lignes suivantes en remplaçant `mytask` par un nouveau nom de tâche et `host`, `remotePath`, `user`, `pass` par les bonnes informations:
+```js
+gulp.task('build-mytask', ['conf-mytask', 'copy'], shell.task([
+  'webpack -p --config webpack.production.config.js --progress --colors'
+]));
+
+gulp.task('conf-mytask', function() {
+  gulp.src('./conf/ApplicationConfiguration-mytask.js')
+    .pipe(rename('ApplicationConfiguration.js'))
+    .pipe(gulp.dest('./src/conf'));
+});
+
+gulp.task('deploy-mytask', ['build-mytask'], function() {
+  gulp.src(distSrc)
+    .pipe(sftp({
+      host: 'myurl.example.com',
+      remotePath: '/path/to/www/lab',
+      user: 'user',
+      pass: "password"
+    }));
+});
+```
+
+Dans `package.json`, dans la section `scripts` ajouter :
+```js
+"mytask": "gulp deploy-mytask"
+```
+
+Ajouter un fichier `conf/ApplicationConfiguration-mytask.js` sur la base d'un des fichier de configuration existant dans ce répértoire. Dans ce fichier modifier la partie Services en fonction du WAR déployé antérieurement:
+```js
+let Services = {
+  laboratoryRESTService: 'https://myurl.example.com/services/myservice',
+  laboratorySocketService: 'wss://myurl.example.com/services/myservice/websockets/colaboratory',
+  downloadsBaseURL: 'https://wp5test.recolnat.org/myservice-exports/'
+};
+```
+Pour `downloadsBaseUrl`, indiquer l'URL correspondant au dossier configuré dans `colaboratory-socket.yml`.
 
 #### Manuel
 Pour un déploiement manuel, lancer la commande `npm run build`.

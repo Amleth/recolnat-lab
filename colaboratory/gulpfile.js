@@ -40,7 +40,7 @@ gulp.task('conf-deploy-dev', function() {
 gulp.task('deploy-dev', ['build-deploy-dev'], function() {
   gulp.src(distSrc)
     .pipe(sftp({
-      host: 'wp5test.mnhn.fr',
+      host: 'wp5test.recolnat.org',
       remotePath: '/home/cnamuser/www/labo-dev',
       user: 'cnamuser',
       pass: ""
@@ -64,7 +64,7 @@ gulp.task('conf-test', function() {
 gulp.task('deploy-test', ['build-test'], function() {
   gulp.src(distSrc)
     .pipe(sftp({
-      host: 'wp5test.mnhn.fr',
+      host: 'wp5test.recolnat.org',
       remotePath: '/home/cnamuser/www/labo-test',
       user: 'cnamuser',
       pass: ""
@@ -72,7 +72,7 @@ gulp.task('deploy-test', ['build-test'], function() {
 });
 
 //
-// PROD
+// PROD-VM
 //
 gulp.task('build-prod-vm', ['conf-prod-vm', 'copy'], shell.task([
   'webpack -p --config webpack.production.config.js --progress --colors'
@@ -87,9 +87,32 @@ gulp.task('conf-prod-vm', function() {
 gulp.task('deploy-prod-vm', ['build-prod-vm'], function() {
   gulp.src(distSrc)
     .pipe(sftp({
-      host: 'wp5test.mnhn.fr',
+      host: 'wp5test.recolnat.org',
       remotePath: '/apps/recolnat/lab/vm/www',
       user: 'cnamuser',
+      pass: ""
+    }));
+});
+
+//
+// PROD
+//
+gulp.task('build-prod', ['conf-prod', 'copy'], shell.task([
+  'webpack -p --config webpack.production.config.js --progress --colors'
+]));
+
+gulp.task('conf-prod', function() {
+  gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
+    .pipe(rename('ApplicationConfiguration.js'))
+    .pipe(gulp.dest('./src/conf'));
+});
+
+gulp.task('deploy-prod', ['build-prod'], function() {
+  gulp.src(distSrc)
+    .pipe(sftp({
+      host: 'wp5prod.recolnat.org',
+      remotePath: '/path/to/www/recolnat',
+      user: '',
       pass: ""
     }));
 });

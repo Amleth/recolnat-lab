@@ -7,10 +7,9 @@
     "dev": "gulp build-dev",
     "ddev": "gulp deploy-dev",
     "test": "gulp deploy-test",
-    "test-demo": "gulp deploy-demo-test",
-    "demo": "gulp deploy-demo",
-    "build": "gulp build-prod-vm",
-    "prod-vm": "gulp deploy-prod-vm"
+    "build": "gulp build-prod",
+    "prod-vm": "gulp deploy-prod-vm",
+    "prod": "gulp deploy-prod"
   },
   "author": "DICEN",
   "license": "ISC",

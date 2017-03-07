@@ -23,6 +23,11 @@ class DownloadSetImages extends AbstractModal {
       display: 'none'
     };
 
+    this.scrollerStyle = {
+      height: '130px',
+      overflow: 'auto'
+    };
+
     this.launchButtonStyle = {
       display: 'none'
     };
@@ -104,9 +109,15 @@ class DownloadSetImages extends AbstractModal {
       <div className="content" onKeyUp={this.checkKey.bind(this)}>
         <div className="ui message">
           <p>{this.props.userstore.getText('downloadSetImagesHelp0')}</p>
-          <div clssName='ui divided list'>
+          <div className='ui divided list' style={this.scrollerStyle}>
           {this.state.downloadableFiles.map(function(file, index) {
-            return <p key={index}><a href={file.url} download>{file.fileName}</a></p>
+            return <div className='item'
+                      key={index}>
+              <a href={conf.actions.downloads.exports + '?file=' + file.fileName}
+                 download>
+                {file.fileName}
+                </a>
+            </div>
           })}
           </div>
         </div>

@@ -4,12 +4,17 @@
 'use strict';
 
 import React from 'react';
-//import select from 'select';
 import Clipboard from 'clipboard';
 import downloadCSV from 'download-csv';
 
 import Globals from '../../utils/Globals';
 import D3ViewUtils from '../../utils/D3ViewUtils';
+import ServiceMethods from '../../utils/ServiceMethods';
+
+import TagInput from '../../components/common/TagInput';
+import Tag from '../../components/common/Tag';
+
+import Styles from '../../constants/Styles';
 
 import measureIcon from '../../images/measure.svg';
 import polylineIcon from '../../images/polyline.png';
@@ -22,17 +27,25 @@ class AnnotationList extends React.Component {
   constructor(props) {
     super(props);
 
+    console.log('Received height ' + this.props.height);
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important',
-      height: this.props.height
+      height: this.props.height-10
       //overflow: 'hidden'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
     };
 
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.scrollerStyle = {
@@ -62,8 +75,8 @@ class AnnotationList extends React.Component {
     };
 
     this.buttonStyle = {
-      height: '30px',
-      width: '30px',
+      height: '20px',
+      width: '20px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center'
@@ -132,6 +145,9 @@ class AnnotationList extends React.Component {
               this.receiveAnnotation(id);
             }
             break;
+          case 'TagAssociation':
+            this.receiveTag(id);
+            break;
           default:
             console.warn('No handler for ' + meta.type);
         }
@@ -157,11 +173,11 @@ class AnnotationList extends React.Component {
     this.state = {
       selectedImageId: null,
       selectedSetId: null,
-      display: 'measures',
+      display: 'tags',
       subject: 'set',
       buttons: {
-        measures: 'active',
-        tags: 'disabled',
+        measures: '',
+        tags: 'active',
         image: 'disabled',
         set: 'disabled'
       },
@@ -171,8 +187,14 @@ class AnnotationList extends React.Component {
       updateAnnotations: [],
       selection: {},
       tags: {},
+      tagInputEntity: null,
       offset: 0,
       limit: this.props.height/12,
+    };
+
+    this.position = {
+      top: null,
+      left: null
     };
   }
 
@@ -181,6 +203,8 @@ class AnnotationList extends React.Component {
       selectedSetId: selection.setId,
       selectedImageId: selection.imageId,
       selection: {},
+      tags: {},
+      tagInputEntity: null,
       offset: 0,
       limit: this.props.height/12
     });
@@ -189,12 +213,10 @@ class AnnotationList extends React.Component {
       case 'image':
         this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.imageId, this._onMetadataUpdate);
-        //window.setTimeout(this._onMetadataUpdate.bind(this, selection.imageId), 100);
         break;
       case 'set':
         this.removeListeners();
         this.props.metastore.addMetadataUpdateListener(selection.setId, this._onMetadataUpdate);
-        //window.setTimeout(this.receiveSet.bind(this, selection.setId), 100);
         break;
       default:
         console.warning('Unknown subject ' + this.state.subject);
@@ -207,18 +229,42 @@ class AnnotationList extends React.Component {
     if(!meta) {
       return;
     }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
+      return;
+    }
     let data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
 
     if(this.state.subject === 'set') {
       let ids = _.keys(data);
-      let itemIds = meta.items.map(i => i.uid);
-      let newIds = _.without(itemIds, ids);
-      for (let i = 0; i < newIds.length; ++i) {
-        if (!data[newIds[i]]) {
-          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
-          data[newIds[i]] = null;
-          //window.setTimeout(this.receiveItem.bind(this, newIds[i]), 100);
+
+      if(this.state.display === 'measures') {
+        let itemIds = meta.items.map(i => i.uid);
+        let newIds = _.without(itemIds, ids);
+        for (let i = 0; i < newIds.length; ++i) {
+          if (!data[newIds[i]]) {
+            this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+            data[newIds[i]] = null;
+          }
+        }
+      }
+
+      if(this.state.display === 'tags') {
+        let newTags = _.without(meta.tags, ids);
+        for(let i = 0; i < newTags.length; ++i) {
+          if(!data[newTags[i]]) {
+            this.props.metastore.addMetadataUpdateListener(newTags[i], this._onMetadataUpdate);
+            data[newTags[i]] = null;
+          }
+        }
+
+        let newItems = _.without(meta.items.map(i => i.uid), ids);
+        for(let i = 0; i < newItems.length; ++i) {
+          this.props.metastore.addMetadataUpdateListener(newItems[i], this._onMetadataUpdate);
+          data[newItems[i]] = null;
         }
       }
     }
@@ -248,46 +294,70 @@ class AnnotationList extends React.Component {
     if(!meta) {
       return;
     }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
+      return;
+    }
     let data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
 
-    if(this.state.subject === 'set' || this.state.subject === 'image' && this.state.selectedImageId === id) {
-      let ids = _.keys(data);
-      let newIds = _.without(meta.images, ids);
-      for (let i = 0; i < newIds.length; ++i) {
-        if (!data[newIds[i]]) {
-          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
-          data[newIds[i]] = null;
-          //window.setTimeout(this.receiveImage.bind(this, newIds[i]), 100);
-        }
-      }
-    }
-    if(this.state.subject === 'image') {
-      let newSetIds = _.without(meta.inSets, ids);
-      for (let i = 0; i < newSetIds.length; ++i) {
-        if (!data[newSetIds[i]]) {
-          this.props.metastore.addMetadataUpdateListener(newSetIds[i], this._onMetadataUpdate);
-          data[newSetIds[i]] = null;
-          //window.setTimeout(this.receiveSet.bind(this, newSetIds[i]), 100);
-        }
-      }
-    }
+    let updateAnnotations = [];
 
-    // Get barcode for inSpecimen data
-    this.props.metastore.addExternalMetadataUpdateListener(id, this._onExternalMetadataUpdate);
-
-    // Update all measures of all images of this specimen (if available)
-    let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
-    for(let i = 0; i < meta.images.length; ++i) {
-      let imageMeta = this.props.metastore.getMetadataAbout(meta.images[i]);
-      if(imageMeta) {
-        let imageAnchors = _.flatten(imageMeta.aois, imageMeta.pois, imageMeta.rois, imageMeta.tois);
-        for(let j = 0; j < imageAnchors.length; ++j) {
-          let anchorMeta = this.props.metastore.getMetadataAbout(imageAnchors[j]);
-          if(anchorMeta) {
-            updateAnnotations.push(...anchorMeta.annotations);
+    if(this.state.display === 'measures') {
+      if (this.state.subject === 'set'
+        || this.state.subject === 'image' && this.state.selectedImageId === id) {
+        let ids = _.keys(data);
+        let newIds = _.without(meta.images, ids);
+        for (let i = 0; i < newIds.length; ++i) {
+          if (!data[newIds[i]]) {
+            this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+            data[newIds[i]] = null;
           }
         }
+      }
+      if (this.state.subject === 'image') {
+        let newSetIds = _.without(meta.inSets, ids);
+        for (let i = 0; i < newSetIds.length; ++i) {
+          if (!data[newSetIds[i]]) {
+            this.props.metastore.addMetadataUpdateListener(newSetIds[i], this._onMetadataUpdate);
+            data[newSetIds[i]] = null;
+          }
+        }
+      }
+
+      // Get barcode for inSpecimen data
+      this.props.metastore.addExternalMetadataUpdateListener(id, this._onExternalMetadataUpdate);
+
+      // Update all measures of all images of this specimen (if available)
+      updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
+      for (let i = 0; i < meta.images.length; ++i) {
+        let imageMeta = this.props.metastore.getMetadataAbout(meta.images[i]);
+        if (imageMeta) {
+          let imageAnchors = _.flatten(imageMeta.aois, imageMeta.pois, imageMeta.rois, imageMeta.tois);
+          for (let j = 0; j < imageAnchors.length; ++j) {
+            let anchorMeta = this.props.metastore.getMetadataAbout(imageAnchors[j]);
+            if (anchorMeta) {
+              updateAnnotations.push(...anchorMeta.annotations);
+            }
+          }
+        }
+      }
+    }
+    else if (this.state.display === 'tags') {
+      let ids = _.keys(data);
+      let newTags = _.without(meta.tags, ids);
+      for(let i = 0; i < newTags.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(newTags[i], this._onMetadataUpdate);
+        data[newTags[i]] = null;
+      }
+
+      // Get tags of images
+      let newImages = _.without(meta.images, ids);
+      for(let i = 0; i < newImages.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(newImages[i], this._onMetadataUpdate);
+        data[newImages[i]] = null;
       }
     }
     this.setState({data: data, updateAnnotations: updateAnnotations});
@@ -298,39 +368,59 @@ class AnnotationList extends React.Component {
     if(!meta) {
       return;
     }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
+      return;
+    }
     let data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
-
+    let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
 
     let ids = _.keys(data);
 
-    let itemIds = _.union(meta.pois, meta.rois, meta.aois, meta.tois);
-    let newIds = _.without(itemIds, ids);
-    for (let i = 0; i < newIds.length; ++i) {
-      if(!data[newIds[i]]) {
-        this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
-        data[newIds[i]] = null;
-        //window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+    if(this.state.display === 'measures') {
+      let itemIds = _.union(meta.pois, meta.rois, meta.aois, meta.tois);
+      let newIds = _.without(itemIds, ids);
+      for (let i = 0; i < newIds.length; ++i) {
+        if (!data[newIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+          data[newIds[i]] = null;
+        }
       }
-    }
 
-    if(this.state.subject === 'image' && this.state.selectedImageId === id) {
-      let newSpecimenIds = _.without(meta.specimens, ids);
-      for (let i = 0; i < newSpecimenIds.length; ++i) {
-        if(!data[newSpecimenIds[i]]) {
-          this.props.metastore.addMetadataUpdateListener(newSpecimenIds[i], this._onMetadataUpdate);
-          data[newSpecimenIds[i]] = null;
-          //window.setTimeout(this.receiveSpecimen.bind(this, newSpecimenIds[i]), 100);
+      if (this.state.subject === 'image' && this.state.selectedImageId === id) {
+        let newSpecimenIds = _.without(meta.specimens, ids);
+        for (let i = 0; i < newSpecimenIds.length; ++i) {
+          if (!data[newSpecimenIds[i]]) {
+            this.props.metastore.addMetadataUpdateListener(newSpecimenIds[i], this._onMetadataUpdate);
+            data[newSpecimenIds[i]] = null;
+          }
+        }
+      }
+
+      // let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
+      let imageAnchors = _.flatten(meta.aois, meta.pois, meta.rois, meta.tois);
+      for (let i = 0; i < imageAnchors.length; ++i) {
+        let anchorMeta = this.props.metastore.getMetadataAbout(imageAnchors[i]);
+        if (anchorMeta) {
+          updateAnnotations.push(...anchorMeta.annotations);
         }
       }
     }
+    else if(this.state.display === 'tags') {
+      let tagIds = _.without(meta.tags, ids);
+      for (let i = 0; i < tagIds.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(tagIds[i], this._onMetadataUpdate);
+        data[tagIds[i]] = null;
+      }
 
-    let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
-    let imageAnchors = _.flatten(meta.aois, meta.pois, meta.rois, meta.tois);
-    for(let i = 0; i < imageAnchors.length; ++i) {
-      let anchorMeta = this.props.metastore.getMetadataAbout(imageAnchors[i]);
-      if(anchorMeta) {
-        updateAnnotations.push(...anchorMeta.annotations);
+      let anchorIds = _.union(meta.pois, meta.rois, meta.aois, meta.tois);
+      let newAnchorIds = _.without(anchorIds, ids);
+      for(let i = 0; i < newAnchorIds.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(newAnchorIds[i], this._onMetadataUpdate);
+        data[newAnchorIds[i]] = null;
       }
     }
 
@@ -342,29 +432,49 @@ class AnnotationList extends React.Component {
     if(!meta) {
       return;
     }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
+      return;
+    }
     let data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
 
+    let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
     let ids = _.keys(data);
 
-    let newIds = _.without(meta.measurements, ids);
-    for (let i = 0; i < newIds.length; ++i) {
-      if(!data[newIds[i]]) {
-        this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
-        data[newIds[i]] = null;
-        //window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+    if(this.state.display === 'measures') {
+      let newIds = _.without(meta.measurements, ids);
+      for (let i = 0; i < newIds.length; ++i) {
+        if (!data[newIds[i]]) {
+          this.props.metastore.addMetadataUpdateListener(newIds[i], this._onMetadataUpdate);
+          data[newIds[i]] = null;
+          //window.setTimeout(this.receiveAnchor.bind(this, newIds[i]), 100);
+        }
+      }
+
+      updateAnnotations.push(...meta.annotations);
+    }
+    else if(this.state.display === 'tags') {
+      let tagIds = _.without(meta.tags, ids);
+      for(let i = 0 ; i < tagIds.length; ++i) {
+        this.props.metastore.addMetadataUpdateListener(tagIds[i], this._onMetadataUpdate);
+        data[tagIds[i]] = null;
       }
     }
-
-    let updateAnnotations = JSON.parse(JSON.stringify(this.state.updateAnnotations));
-    updateAnnotations.push(...meta.annotations);
-
     this.setState({data: data, updateAnnotations: updateAnnotations});
   }
 
   receiveAnnotation(id) {
     let meta = this.props.metastore.getMetadataAbout(id);
     if(!meta) {
+      return;
+    }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
       return;
     }
     let data = JSON.parse(JSON.stringify(this.state.data));
@@ -388,6 +498,12 @@ class AnnotationList extends React.Component {
     if(!meta) {
       return;
     }
+    if(meta.deleted) {
+      let data = JSON.parse(JSON.stringify(this.state.data));
+      data[id].deleted = true;
+      this.setState({data: data});
+      return;
+    }
     let data = JSON.parse(JSON.stringify(this.state.data));
     data[id] = meta;
 
@@ -407,6 +523,48 @@ class AnnotationList extends React.Component {
     let extData = JSON.parse(JSON.stringify(this.state.extData));
     extData[id] = meta;
     this.setState({extData: extData, updateAnnotations: this.state.annotations.map(d => d.uid)});
+  }
+
+  receiveTag(id) {
+    let meta = this.props.metastore.getMetadataAbout(id);
+    if(!meta) {
+      return;
+    }
+    let tags = JSON.parse(JSON.stringify(this.state.tags));
+    let data = JSON.parse(JSON.stringify(this.state.data));
+
+    if(meta.deleted) {
+      delete data[id];
+      tags[meta.definition].entities = _.without(tags[meta.definition].entities, id);
+      if(tags[meta.definition].entities.length === 0) {
+        delete tags[meta.definition];
+      }
+      this.setState({data: data, tags: tags});
+      return;
+    }
+
+    if(tags[meta.definition]) {
+      if(!_.contains(tags[meta.definition].entities, id)) {
+        tags[meta.definition].entities.push(id);
+      }
+    } else {
+      tags[meta.definition] = meta;
+      tags[meta.definition].entities = [id];
+    }
+    data[id] = meta;
+
+    this.setState({tags: tags, data: data});
+  }
+
+  activateTagInput() {
+    switch(this.state.subject) {
+      case 'set':
+        this.setState({tagInputEntity: this.state.selectedSetId});
+        break;
+      case 'image':
+        this.setState({tagInputEntity: this.state.selectedImageId});
+        break;
+    }
   }
 
   removeListeners() {
@@ -594,7 +752,7 @@ class AnnotationList extends React.Component {
     }
 
     if(annotation.inSpecimen) {
-      var data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
+      let data = this.props.metastore.getExternalMetadata(annotation.inSpecimen);
       if(data === 'loading') {
         annotation.barcode = this.props.userstore.getText('loading');
       }
@@ -622,11 +780,9 @@ class AnnotationList extends React.Component {
     switch(subject) {
       case 'image':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedImageId, this._onMetadataUpdate);
-        //window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedImageId), 100);
         break;
       case 'set':
         this.props.metastore.addMetadataUpdateListener(this.state.selectedSetId, this._onMetadataUpdate);
-        //window.setTimeout(this._onMetadataUpdate.bind(this, this.state.selectedSetId), 100);
         break;
       default:
         console.warning('Unknown subject ' + subject);
@@ -892,16 +1048,66 @@ class AnnotationList extends React.Component {
     )
   }
 
+  displayMeasures() {
+    let selectAllIcon = null;
+    if(this.state.annotations.length === 0) {
+      selectAllIcon = <i className='ui square icon' />;
+    }
+    else if (this.state.annotations[0].selected) {
+      selectAllIcon = <i className='ui checkmark box icon' onClick={this.toggleSelectAll.bind(this, false)}/>;
+    }
+    else {
+      selectAllIcon = <i className='ui square outline icon' onClick={this.toggleSelectAll.bind(this, true)}/>;
+    }
+
+    return (
+      <div key='MEASURES'>
+        <table style={this.tableStyle}
+               ref='table'
+               className='ui selectable sortable unstackable striped celled collapsing compact small fixed table'>
+          <thead>
+          <tr>
+            <th className='one wide disabled' style={this.cellStyle}>{selectAllIcon}</th>
+            <th className='one wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'type')}></th>
+            <th className='five wide' style={this.cellLfAlignStyle} onClick={this.sortAnnotationsBy.bind(this, 'name')}>{this.props.userstore.getText('name')}</th>
+            <th className='four wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'valueInPx')}>{this.props.userstore.getText('value')}</th>
+            <th className='four wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'barcode')}>{this.props.userstore.getText('sheet')}</th>
+            <th className='one wide disabled' style={this.cellStyle}></th>
+          </tr>
+          </thead>
+          <tbody>
+          {this.state.annotations.slice(this.state.offset, this.state.limit).map(this.buildAnnotationRow.bind(this))}
+          </tbody>
+        </table>
+        <div style={this.nothingStyle}>{this.props.userstore.getText('noDataForSelection')}</div>
+      </div>
+    );
+  }
+
+  displayTags() {
+    let self = this;
+    return(
+      <div key='TAGS' className='ui mini labels'>
+        {_.chain(this.state.tags).values(this.state.tags).sortBy(t => t.key.toLowerCase()).value().map(function(tag, index) {
+          return <Tag key={tag.definition} tag={tag} showDelete={false}/>;
+        })}
+      </div>
+    );
+  }
+
   componentDidMount() {
     this.props.userstore.addLanguageChangeListener(this._forceUpdate);
     this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.inspecstore.addAnnotationSelectionListener(this._onEntitySelected);
     // this._onEntitySelected();
+    let pos = React.findDOMNode(this).getBoundingClientRect();
+    this.position.top = pos.top;
+    this.position.left = pos.left;
   }
 
   componentWillReceiveProps(props) {
     if(props.height != this.props.height) {
-      this.containerStyle.height = props.height;
+      this.containerStyle.height = props.height-10;
       this.scrollerStyle.height = props.height-35;
     }
   }
@@ -913,15 +1119,10 @@ class AnnotationList extends React.Component {
     nextState.buttons.image += nextState.subject == 'image'? ' active': '';
     nextState.buttons.set += nextState.subject == 'set'? ' active': '';
 
-    //console.log('updatding state');
-
     if(nextState.updateAnnotations.length > 0) {
       let newAnnotations = this.createAnnotations(nextState);
       nextState.annotations.push(...newAnnotations);
       nextState.annotations = _.sortBy(nextState.annotations, Globals.getCreationDate).reverse();
-      // nextState.annotations = _.chain(nextState.annotations)
-      //   .sortBy(Globals.getCreationDate)
-      //   .reverse();
       nextState.updateAnnotations = [];
     }
 
@@ -936,11 +1137,24 @@ class AnnotationList extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    let pos = React.findDOMNode(this).getBoundingClientRect();
+    this.position.top = pos.top;
+    this.position.left = pos.left;
+
     if(this.state.annotations.length > 0) {
       // $(this.refs.table.getDOMNode()).tablesort();
-      $('.tooltip.title', $(React.findDOMNode(this.refs.table)).popup());
+      $('.tooltip.title', $(React.findDOMNode(this.refs.table))).popup();
     }
-    $('.button', $(React.findDOMNode(this.refs.menu)).popup());
+
+    $('.button', $(React.findDOMNode(this.refs.menu))).popup();
+
+    if(this.state.display === 'tags') {
+      $(React.findDOMNode(this.refs.activateTag)).popup();
+    }
+
+    if(this.state.display != prevState.display) {
+      this.updateSelection({setId: this.state.selectedSetId, imageId: this.state.selectedImageId});
+    }
 
     //var copyText = this.copySelected();
     new Clipboard(this.refs.copyButton.getDOMNode(), {
@@ -957,45 +1171,38 @@ class AnnotationList extends React.Component {
 
   render() {
     // note to self: sort/date, sort/type
-    let selectAllIcon = null;
-    if(this.state.annotations.length === 0) {
-      selectAllIcon = <i className='ui square icon' />;
-    }
-    else if (this.state.annotations[0].selected) {
-      selectAllIcon = <i className='ui checkmark box icon' onClick={this.toggleSelectAll.bind(this, false)}/>;
-    }
-    else {
-      selectAllIcon = <i className='ui square outline icon' onClick={this.toggleSelectAll.bind(this, true)}/>;
-    }
-    let self = this;
     return <div className='ui segment container' ref='component' style={this.containerStyle}>
-      <div className='ui blue tiny basic label'
-           style={this.labelStyle}>
-        {this.props.userstore.getText('tagsAndMeasures')}
+      <div style={this.labelContainerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          {this.props.userstore.getText('tagsAndMeasures')}
+        </div>
       </div>
       <div style={this.scrollerStyle} onScroll={this.tableScrolled.bind(this)} ref="scroller">
         <div style={this.menuStyle} ref='menu'>
-          <div style={this.upperButtonsStyle} className='ui buttons'>
+          <div style={this.upperButtonsStyle} className='ui mini buttons'>
             <div style={this.buttonStyle}
+                 onClick={this.setState.bind(this, {display: 'measures'}, null)}
                  data-content={this.props.userstore.getText('measures')}
-                 className={'ui tiny compact button ' + this.state.buttons.measures}>
-              <img src={measureIcon} style={this.iconButtonStyle} height='20px' width='20px' />
+                 className={'ui compact button ' + this.state.buttons.measures}>
+              <img src={measureIcon} style={this.iconButtonStyle} height='15px' width='15px' />
             </div>
             <div style={this.buttonStyle}
+                 onClick={this.setState.bind(this, {display: 'tags'}, null)}
                  data-content={this.props.userstore.getText('tags')}
-                 className={'ui tiny compact icon button ' + this.state.buttons.tags}>
+                 className={'ui compact mini icon button ' + this.state.buttons.tags}>
               <i className="tags icon"/>
             </div>
           </div>
-          <div style={this.upperButtonsStyle} className='ui buttons'>
+          <div style={this.upperButtonsStyle} className='ui mini buttons'>
             <div style={this.buttonStyle}
-                 className={'ui tiny compact button ' + this.state.buttons.image}
+                 className={'ui compact button ' + this.state.buttons.image}
                  data-content={this.props.userstore.getText('imageSheet')}
                  onClick={this.setSubject.bind(this, 'image')}>
               <i className='file icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
-                 className={'ui tiny compact button ' + this.state.buttons.set}
+                 className={'ui compact button ' + this.state.buttons.set}
                  data-content={this.props.userstore.getText('set')}
                  onClick={this.setSubject.bind(this, 'set')}>
               <i className='folder icon'  style={this.iconButtonStyle} />
@@ -1005,43 +1212,23 @@ class AnnotationList extends React.Component {
             <div style={this.buttonStyle}
                  data-content={this.props.userstore.getText('copyToClipboard')}
                  ref='copyButton'
-                 className='ui tiny compact button'>
+                 className='ui mini compact button'>
               <i className='copy icon'  style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
                  data-content={this.props.userstore.getText('exportAsCsv')}
                  onClick={this.exportAsCSV.bind(this)}
-                 className='ui tiny compact button'>
+                 className='ui mini compact button'>
               <i className='download icon' style={this.iconButtonStyle} />
             </div>
             <div style={this.buttonStyle}
                  data-content={this.props.userstore.getText('displayOptions')}
-                 className='ui tiny compact button disabled'>
+                 className='ui mini compact button disabled'>
               <i style={this.iconButtonStyle} className='setting icon' />
             </div>
           </div>
         </div>
-
-        <div>
-          <table style={this.tableStyle}
-                 ref='table'
-                 className='ui selectable sortable unstackable striped celled collapsing compact small fixed table'>
-            <thead>
-            <tr>
-              <th className='one wide disabled' style={this.cellStyle}>{selectAllIcon}</th>
-              <th className='one wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'type')}></th>
-              <th className='five wide' style={this.cellLfAlignStyle} onClick={this.sortAnnotationsBy.bind(this, 'name')}>{this.props.userstore.getText('name')}</th>
-              <th className='four wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'valueInPx')}>{this.props.userstore.getText('value')}</th>
-              <th className='four wide' style={this.cellStyle} onClick={this.sortAnnotationsBy.bind(this, 'barcode')}>{this.props.userstore.getText('sheet')}</th>
-              <th className='one wide disabled' style={this.cellStyle}></th>
-            </tr>
-            </thead>
-            <tbody>
-            {this.state.annotations.slice(this.state.offset, this.state.limit).map(this.buildAnnotationRow.bind(this))}
-            </tbody>
-          </table>
-          <div style={this.nothingStyle}>{this.props.userstore.getText('noDataForSelection')}</div>
-        </div>
+        {this.state.display === 'measures'?this.displayMeasures():this.displayTags()}
       </div>
     </div>
   }

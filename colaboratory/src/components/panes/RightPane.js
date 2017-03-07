@@ -21,6 +21,9 @@ class RightPane extends React.Component {
   constructor(props) {
     super(props);
 
+    this.setModeHeights = [3/16, 0, 5/16, 5/16, 3/16];
+    this.orgModeHeights = [0, 6/16, 0, 6/16, 4/16];
+
     this.containerStyle = {
       backgroundColor: '#F2F2F2',
       height: '100%',
@@ -46,10 +49,10 @@ class RightPane extends React.Component {
       return;
     }
     if(this.props.modestore.isInSetMode()) {
-      this.setState({componentHeights: [3*totalHeight/16, 0, 5*totalHeight/16, 5*totalHeight/16, 2*totalHeight/16]});
+      this.setState({componentHeights: [totalHeight*this.setModeHeights[0], totalHeight*this.setModeHeights[1], totalHeight*this.setModeHeights[2], totalHeight*this.setModeHeights[3], totalHeight*this.setModeHeights[4]]});
     }
     else if(this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode()) {
-      this.setState({componentHeights: [0, 6*totalHeight/16, 0, 6*totalHeight/16, 3*totalHeight/16]});
+      this.setState({componentHeights: [totalHeight*this.orgModeHeights[0], totalHeight*this.orgModeHeights[1], totalHeight*this.orgModeHeights[2], totalHeight*this.orgModeHeights[3], totalHeight*this.orgModeHeights[4]]});
     }
     else {
       console.warn('Mode not handled: ' + this.props.modestore.getMode());

@@ -6,8 +6,10 @@ import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.orientechnologies.orient.core.intent.OIntent;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import fr.recolnat.database.ExportsDatabase;
 import fr.recolnat.database.RightsManagementDatabase;
+import fr.recolnat.database.model.StructureBuilder;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import org.dicen.recolnat.services.core.backup.RecolnatDatabaseBackupCallable;
 import org.dicen.recolnat.services.core.backup.RecolnatDatabaseBackupListener;
 import org.slf4j.Logger;
@@ -56,6 +59,16 @@ public class DatabaseAccess {
     
     DatabaseAccess.readerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
     DatabaseAccess.writerFactory = new OrientGraphFactory("plocal:" + dbPath, dbUser, dbPass).setupPool(minPoolSize, maxPoolSize);
+    
+    // Check that all classes defined in model exist in OrientDB
+    OrientGraphNoTx g = new OrientGraphNoTx("plocal:" + dbPath, dbUser, dbPass);
+    try {
+      StructureBuilder.createRecolnatDataModel(g);
+    } catch (IllegalAccessException ex) {
+      log.error("Error while checking database structure", ex);
+    } finally {
+      g.shutdown(false);
+    }
   }
   
   public static void configureRightsDatabase(String dbPath) {

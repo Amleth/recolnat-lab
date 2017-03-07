@@ -19,15 +19,22 @@ class SpecimenMetadataDisplay extends React.Component {
 
     this.containerStyle = {
       //overflowY: 'auto',
-      height: this.props.height,
+      height: this.props.height-10,
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
     };
 
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.scrollerStyle = {
@@ -293,7 +300,7 @@ class SpecimenMetadataDisplay extends React.Component {
 
   componentWillReceiveProps(props) {
     if(props.height != this.props.height) {
-      this.containerStyle.height = props.height;
+      this.containerStyle.height = props.height-10;
       this.scrollerStyle.height = props.height-35;
     }
   }
@@ -321,9 +328,11 @@ class SpecimenMetadataDisplay extends React.Component {
 
   render() {
     return (<div style={this.containerStyle} className='ui segment container'>
+      <div style={this.labelContainerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
         Specimen
+      </div>
       </div>
       <div style={this.scrollerStyle}>
       {this.createMetadataTable()}

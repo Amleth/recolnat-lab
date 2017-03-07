@@ -21,11 +21,25 @@ class MetadataViewer extends React.Component {
 
     this.placeholderStyle = {
       backgroundColor: '#F2F2F2',
-      height: this.props.height,
-      margin: '1%',
-      padding: '5px 5px 5px 5px',
-      overflowY: 'auto',
-      width: '100%'
+      height: this.props.height-10,
+      // margin: '1%',
+      padding: '5px 5px 15px 5px',
+      // overflowY: 'auto',
+      // width: '100%',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.titleStyle = {
@@ -348,7 +362,7 @@ class MetadataViewer extends React.Component {
 
   componentWillReceiveProps(props) {
     if(props.height != this.props.height) {
-      this.placeholderStyle.height = props.height;
+      this.placeholderStyle.height = props.height-10;
     }
   }
 
@@ -380,9 +394,15 @@ class MetadataViewer extends React.Component {
   }
 
   render() {
-    var self = this;
+    let self = this;
     return(
       <div className='ui segment container' style={this.placeholderStyle}>
+        <div style={this.labelContainerStyle}>
+          <div className='ui blue tiny basic label'
+               style={this.labelStyle}>
+            {this.props.userstore.getText('recolnatData')}
+          </div>
+        </div>
         <div style={this.loaderStyle} className='ui active loader'></div>
         <div style={this.noDataStyle} className='ui container'>
           <div className='ui centered header segment' style={this.titleStyle}>

@@ -24,18 +24,21 @@ class SetSelectorDisplay extends React.Component {
 
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
-      //margin: 0,
-      //padding: 0,
       height: '100%',
       width: '100%'
-      //maxWidth: '150px',
-      //minWidth: '150px'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
     };
 
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.titleStyle = {

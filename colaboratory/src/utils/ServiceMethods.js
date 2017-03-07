@@ -7,7 +7,7 @@ import SocketActions from '../actions/SocketActions';
 
 export default class ServiceMethods {
   static createRegionOfInterest(image, area, perimeter, vertices, name = null, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.createRegionOfInterest,
       image: image,
@@ -21,7 +21,7 @@ export default class ServiceMethods {
   }
 
   static createPointOfInterest(parent, x, y, name = null, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.createPointOfInterest,
       parent: parent,
@@ -34,7 +34,7 @@ export default class ServiceMethods {
   }
 
   static createTrailOfInterest(parent, length, path, name = null, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.createTrailOfInterest,
       parent: parent,
@@ -47,7 +47,7 @@ export default class ServiceMethods {
   }
 
   static createAngleOfInterest(parent, measure, vertices, name = null, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.createAngleOfInterest,
       parent: parent,
@@ -60,7 +60,7 @@ export default class ServiceMethods {
   }
 
   static addMeasureStandard(measurementId, value, unit, name, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.addMeasureStandard,
       measurement: measurementId,
@@ -73,7 +73,7 @@ export default class ServiceMethods {
   }
 
   static createSet(name, parent = null, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.createSet,
       parent: parent,
@@ -84,7 +84,7 @@ export default class ServiceMethods {
   }
 
   static deleteElementFromSet(linkId, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.deleteFromSet,
       link: linkId
@@ -94,7 +94,7 @@ export default class ServiceMethods {
   }
 
   static deleteElementFromView(linkId, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.deleteFromView,
       link: linkId
@@ -104,7 +104,7 @@ export default class ServiceMethods {
   }
 
   static linkParentToChild(parent, child, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.link,
       target: child,
@@ -115,7 +115,7 @@ export default class ServiceMethods {
   }
 
   static copy(target, destination, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.copy,
       target: target,
@@ -137,7 +137,7 @@ export default class ServiceMethods {
   }
 
   static importRecolnatSpecimen(setId, name, recolnatSpecimenUuid, images, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.importRecolnatSpecimen,
       set: setId,
@@ -150,7 +150,7 @@ export default class ServiceMethods {
   }
 
   static importExternalImage(setId, url, name, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.importExternalImage,
       set: setId,
@@ -162,7 +162,7 @@ export default class ServiceMethods {
   }
 
   static place(view, entity, x, y, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.place,
       view: view,
@@ -175,7 +175,7 @@ export default class ServiceMethods {
   }
 
   static move(view, link, entity, x, y, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.move,
       view: view,
@@ -189,7 +189,7 @@ export default class ServiceMethods {
   }
 
   static resize(view, link, entity, width, height, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.resize,
       view: view,
@@ -203,7 +203,7 @@ export default class ServiceMethods {
   }
 
   static remove(id, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.remove,
       id: id
@@ -213,7 +213,7 @@ export default class ServiceMethods {
   }
 
   static addAnnotation(entityId, text, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.addAnnotation,
       entity: entityId,
@@ -224,7 +224,7 @@ export default class ServiceMethods {
   }
 
   static editProperties(id, properties, callback = undefined) {
-    var message = {
+    let message = {
       action: ServerConstants.ActionTypes.Send.UPDATE,
       actionDetail: conf.socket.editProperties,
       entity: id,
@@ -232,6 +232,41 @@ export default class ServiceMethods {
     };
 
     window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
+  }
+
+  static createTagDefinition(key, value, callback = undefined) {
+    let message = {
+      action: ServerConstants.ActionTypes.Send.UPDATE,
+      actionDetail: conf.socket.createTagDefinition,
+      descriptorName: key,
+      descriptorValue: value
+    };
+
+    window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
+  }
+
+  static tagEntityWithTagId(tagId, entityId, callback = undefined) {
+    let message = {
+      action: ServerConstants.ActionTypes.Send.UPDATE,
+      actionDetail: conf.socket.tagEntity,
+      entity: entityId,
+      tag: tagId
+    };
+
+    window.setTimeout(SocketActions.send.bind(null, message, callback), 10);
+  }
+
+  static createAddTag(key, value, entityId, callback = undefined) {
+    ServiceMethods.createTagDefinition(key, value, ServiceMethods.createAddTagPostDefine.bind(null, entityId, callback));
+  }
+
+  static createAddTagPostDefine(entityId, callback, msg) {
+    if(msg.clientProcessError) {
+      alert('Technical problem while saving data : ' + JSON.stringify(msg));
+    }
+    else {
+      ServiceMethods.tagEntityWithTagId(msg.data.id, entityId, callback);
+    }
   }
 
   static sendFeedback(message) {

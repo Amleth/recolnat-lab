@@ -4,11 +4,12 @@
 "use strict";
 import React from "react";
 import d3 from 'd3';
-import uuid from 'node-uuid';
 
 import LineMeasure from '../impl/LineMeasure';
 
 import Tooltip from '../../components/bench/ActiveToolTooltip';
+
+import TagInput from '../../components/common/TagInput';
 
 import Globals from '../../utils/Globals';
 
@@ -18,7 +19,6 @@ import ServiceMethods from '../../utils/ServiceMethods';
 import ViewUtils from '../../utils/D3ViewUtils';
 
 import ToolActions from '../../actions/ToolActions';
-import ViewActions from '../../actions/ViewActions';
 
 import ToolsConf from '../../conf/Tools-conf';
 
@@ -92,6 +92,20 @@ class LineMeasurePopup extends React.Component {
       // height: '30px'
     };
 
+    this.headerStyle = {
+      display: 'flex',
+      alignItems: 'baseline'
+    };
+
+    this.headerTextStyle = {
+      fontSize: "10px"
+    };
+
+    this.tagListStyle = {
+      maxHeight: '30px',
+      overflow: 'auto'
+    };
+
     this.imageNameTextStyle = {
       fontSize: "10px",
       fontWeight: 'bold',
@@ -149,8 +163,19 @@ class LineMeasurePopup extends React.Component {
       refName: null,
       mmPerPx: null,
       mode: 'measure',
-      nameAssistanceFillMode: 0
+      nameAssistanceFillMode: 0,
+      tags: [],
+      inputTag: false,
+      position: {
+        top: null,
+        left: null
+      }
     };
+  }
+
+  activateTagInput() {
+    let box = React.findDOMNode(this.refs.tagHelp).getBoundingClientRect();
+    this.setState({inputTag: true, position: {top: box.top, left: box.left}});
   }
 
   getName() {
@@ -304,7 +329,7 @@ class LineMeasurePopup extends React.Component {
     for(let i = 0; i < this.state.measures.length; ++i) {
       let measure = this.state.measures[i];
       let path = [[measure.x1, measure.y1], [measure.x2, measure.y2]];
-      ServiceMethods.createTrailOfInterest(measure.image, measure.lengthInPx, path, measure.name);
+      ServiceMethods.createTrailOfInterest(measure.image, measure.lengthInPx, path, measure.name, this.saved.bind(this));
     }
     window.setTimeout(ToolActions.reset, 10);
 
@@ -320,6 +345,20 @@ class LineMeasurePopup extends React.Component {
       mmPerPx: null,
       nameAssistanceFillMode: 0
     });
+  }
+
+  saved(msg) {
+    if(msg.clientProcessError) {
+      alert('Technical problem while saving data : ' + JSON.stringify(msg));
+    }
+    else {
+      // Save tags
+      let entityId = msg.data.id;
+      for(let i = 0; i < this.state.tags.length; ++i) {
+        let tag = this.state.tags[i];
+        ServiceMethods.createAddTag(tag.key, tag.value, entityId);
+      }
+    }
   }
 
   removeMeasure(idx) {
@@ -390,9 +429,39 @@ class LineMeasurePopup extends React.Component {
     }
   }
 
+  addTag(entity, key, value) {
+    let tags = JSON.parse(JSON.stringify(this.state.tags));
+    tags.push({key: key, value: value});
+    this.setState({tags: tags});
+  }
+
+  displayTag(tag, idx) {
+    let displayName = tag.key;
+    if(tag.value) {
+      displayName = displayName + ' : ' + tag.value;
+    }
+    return (
+      <a key={'TAG-' + idx}
+         style={Styles.tag}
+         className={'ui tag label'}>{displayName}</a>
+    );
+  }
+
+  updataPopups() {
+    $(React.findDOMNode(this.refs.help)).popup({
+      popup: $(React.findDOMNode(this.refs.tooltip)),
+      target: $(React.findDOMNode(this.refs.container)),
+      position: 'left center'
+    });
+
+    $(React.findDOMNode(this.refs.tagHelp)).popup();
+    $(React.findDOMNode(this.refs.activateTag)).popup();
+  }
+
   componentDidMount() {
     this.props.userstore.addLanguageChangeListener(this._forceRender);
     this.props.toolstore.addToolDataChangeListener(this._toolDataUpdated);
+    this.updataPopups();
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -429,11 +498,7 @@ class LineMeasurePopup extends React.Component {
       }
     }
 
-    $('.ui.blue.help.circle.icon').popup({
-      popup: $(React.findDOMNode(this.refs.tooltip)),
-      target: $(React.findDOMNode(this.refs.container)),
-      position: 'left center'
-    });
+    this.updataPopups();
 
     if(this.state.measures.length !== prevState.measures.length) {
       $(React.findDOMNode(this.refs.autocompleteTrigger)).click();
@@ -458,6 +523,7 @@ class LineMeasurePopup extends React.Component {
           <div style={this.titleStyle}>{this.props.userstore.getText('newMeasure')}</div>
           <div>
             <i className='ui blue help circle icon'
+               ref='help'
                style={this.iconStyle} />
             <i className='ui minus icon'
                style={this.iconStyle}
@@ -473,7 +539,7 @@ class LineMeasurePopup extends React.Component {
                    ref='tooltip'
                    cClasses='ui popup' />
           <div className='ui segment' style={this.currentMeasurePanelStyle}>
-            <div className='title'>{this.props.userstore.getText('currentMeasure')}</div>
+            <div className='title' style={this.headerTextStyle}>{this.props.userstore.getText('currentMeasure')}</div>
             <div style={Styles.text}>
               <span style={this.imageNameTextStyle}>
                 {this.state.imageName}
@@ -484,21 +550,52 @@ class LineMeasurePopup extends React.Component {
               <div style={Styles.buttonSubText}>{this.getScaleName()}</div>
             </div>
             <a className='ui link text'
-                 style={this.nameAssistanceButtonStyle}
-                 onClick={this.cycleAssistFillModes.bind(this)}>
+               style={this.nameAssistanceButtonStyle}
+               onClick={this.cycleAssistFillModes.bind(this)}>
               {this.getAssistFillModeDisplay()}
             </a>
             <div style={this.horizontalContainerStyle}>
               {this.getForm()}
             </div>
-            <div>
+            <div  style={this.headerTextStyle}>
               {this.props.userstore.getInterpolatedText('length', [this.state.mmPerPx?(this.state.lengthInPx * this.state.mmPerPx).toFixed(2) : '**'])}
-               mm <span style={this.pixelValueDisplayStyle}>({this.state.lengthInPx.toFixed(2)} px)</span>
+              mm <span style={this.pixelValueDisplayStyle}>({this.state.lengthInPx.toFixed(2)} px)</span>
             </div>
-
           </div>
+
+          <div className='ui segment' style={this.currentMeasurePanelStyle}>
+            <div className='title' style={this.headerStyle}>
+              <div  style={this.headerTextStyle}>
+                {this.props.userstore.getText('tags')}
+              </div>
+              <i className='ui small blue help circle icon'
+                 ref='tagHelp'
+                 data-content={this.props.userstore.getText('autoTagTooltip')}
+                 style={this.iconStyle} />
+            </div>
+            <div className='ui mini labels' style={this.tagListStyle}>
+              {this.state.tags.map(this.displayTag.bind(this))}
+              <div className='ui mini label basic positive button'
+                   ref='activateTag'
+                   data-content={this.props.userstore.getText('addATag')}
+                   onClick={this.activateTagInput.bind(this)}>
+                <i className='icons'>
+                  <i className='tag icon' />
+                  <i className='corner add icon' />
+                </i>
+              </div>
+            </div>
+            {this.state.inputTag?<TagInput
+                onTagSave={this.addTag.bind(this)}
+                onClose={this.setState.bind(this, {inputTag: false}, null)}
+                top={this.state.position.top+10}
+                right={this.state.position.left-50}/> : null}
+          </div>
+
           <div className='ui segment' style={this.scrollingTableStyle}>
-            <div>{this.props.userstore.getText('newMeasuresUnsaved')}</div>
+            <div style={this.headerTextStyle}>
+              {this.props.userstore.getText('newMeasuresUnsaved')}
+            </div>
             <table className='ui celled table'  style={self.tableCellStyle}>
               <thead>
               <tr>

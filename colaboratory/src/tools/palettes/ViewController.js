@@ -17,7 +17,21 @@ class ViewController extends React.Component {
     super(props);
 
     this.compactSegmentStyle = {
-      padding: '5px 5px 5px 5px'
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.buttonStyle = {
@@ -27,11 +41,7 @@ class ViewController extends React.Component {
       fontWeight: '300'
     };
 
-    this.labelStyle = {
-      position: 'relative',
-      top: '-15px',
-      left: '10px'
-    };
+
 
     this._onViewChange = () => {
       const updateView = () => this.updateViewData(this.props.viewstore.getView());
@@ -152,9 +162,11 @@ class ViewController extends React.Component {
       style={this.compactSegmentStyle}
       className='ui container segment'
       ref='component'>
-      <div className='ui blue tiny basic label'
-           style={this.labelStyle}>
-        {this.props.userstore.getText('labBench')}
+      <div style={this.labelContainerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          {this.props.userstore.getText('labBench')}
+        </div>
       </div>
       <div className='ui three fluid buttons'>
         <button className='ui button small compact'

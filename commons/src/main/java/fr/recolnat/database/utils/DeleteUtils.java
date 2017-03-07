@@ -13,10 +13,12 @@ import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import fr.recolnat.database.model.DataModel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +49,10 @@ public class DeleteUtils {
     }
     OrientVertex vParentSet = eLink.getVertex(Direction.OUT);
     OrientVertex vChildItemOrSet = eLink.getVertex(Direction.IN);
-    
-    if(log.isDebugEnabled()) {
-    log.debug("Parent is " + vParentSet.getProperty(DataModel.Properties.name));
-    log.debug("Child is " + vChildItemOrSet.getProperty(DataModel.Properties.name));
+
+    if (log.isDebugEnabled()) {
+      log.debug("Parent is " + vParentSet.getProperty(DataModel.Properties.name));
+      log.debug("Child is " + vChildItemOrSet.getProperty(DataModel.Properties.name));
     }
 
     if (!DeleteUtils.canUserDeleteVertex(vParentSet, vUser, graph, rightsDb)) {
@@ -131,7 +133,7 @@ public class DeleteUtils {
     }
     return modified;
   }
-  
+
   public static List<String> unlinkItemFromView(String linkId, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws ObsoleteDataException, AccessForbiddenException {
     List<String> modified = new LinkedList<>();
     OrientEdge eLink = AccessUtils.getEdgeById(linkId, g);
@@ -144,11 +146,11 @@ public class DeleteUtils {
     if (!DeleteUtils.canUserDeleteVertex(vView, vUser, g, rightsDb)) {
       throw new AccessForbiddenException((String) vUser.getProperty(DataModel.Properties.id), (String) vView.getProperty(DataModel.Properties.id));
     }
-    
+
     // Create new version of the parent
     String userId = (String) vUser.getProperty(DataModel.Properties.id);
     OrientVertex vNewParent = UpdateUtils.createNewVertexVersion(vView, userId, g);
-    
+
     // Get the updated version of the link from parent using nextVerionId and remove it
 //    eLink = AccessUtils.getEdgeById(linkId, g);
     if (log.isDebugEnabled()) {
@@ -161,7 +163,7 @@ public class DeleteUtils {
     eLink.remove();
     modified.add((String) vNewParent.getProperty(DataModel.Properties.id));
     modified.add((String) vChildItemOrSet.getProperty(DataModel.Properties.id));
-    
+
     return modified;
   }
 
@@ -249,14 +251,19 @@ public class DeleteUtils {
    * @param g
    * @return
    */
-  public static List<String> delete(String id, OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws ResourceNotExistsException, AccessForbiddenException {
-    List<String> deleted = new ArrayList<>();
+  public static Set<String> delete(String id, OrientVertex user, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws ResourceNotExistsException, AccessForbiddenException {
+    Set<String> deleted = new HashSet<>();
     OrientVertex vElt = AccessUtils.getNodeById(id, g);
     if (vElt != null) {
       if (DeleteUtils.canUserDeleteSubGraph(vElt, user, g, rightsDb)) {
+        // Grab all linked vertices uids as they were modified
+        Iterator<Vertex> itLinked = vElt.getVertices(Direction.BOTH).iterator();
+        while (itLinked.hasNext()) {
+          deleted.add(itLinked.next().getProperty(DataModel.Properties.id));
+        }
         // Simply creates a new version of this Vertex which is not linked to anything, therefore inaccessible without rollbacks.
-        deleted = DeleteUtils.deleteVertex(vElt, user, g);
-      } 
+        deleted.addAll(DeleteUtils.deleteVertex(vElt, user, g));
+      }
       return deleted;
     }
 
@@ -266,7 +273,7 @@ public class DeleteUtils {
       if (DeleteUtils.canUserDeleteEdge((OrientEdge) eElt, user, g, rightsDb)) {
         // Clone both ends of the edge and remove the edge.
         deleted = DeleteUtils.deleteEdge((OrientEdge) eElt, user, g);
-      } 
+      }
       return deleted;
     }
     log.error("Id not found in database " + id);
@@ -284,18 +291,18 @@ public class DeleteUtils {
    * static method).
    * @return
    */
-  private static List<String> deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientBaseGraph g) {
-    List<String> deleted = new LinkedList<>();
+  private static Set<String> deleteVertex(OrientVertex vertexToDelete, OrientVertex user, OrientBaseGraph g) {
+    Set<String> deleted = new HashSet<>();
     // Clone node representing new version
     OrientVertex deletedVertex = (OrientVertex) g.addVertex("class:" + vertexToDelete.getProperty("@class"));
-    deletedVertex.setProperties(DataModel.Properties.id, vertexToDelete.getProperty(DataModel.Properties.id));
+    deletedVertex.setProperties(DataModel.Properties.id, vertexToDelete.getProperty(DataModel.Properties.id), DataModel.Properties.deleted, true);
 
     // Link new version to old version
     OrientEdge eVersionLink = (OrientEdge) vertexToDelete.addEdge(DataModel.Links.hasNewerVersion, deletedVertex);
     eVersionLink.setProperties(
         DataModel.Properties.id, CreatorUtils.newEdgeUUID(g),
         DataModel.Properties.creationDate, (new Date()).getTime());
-    
+
     deleted.add((String) vertexToDelete.getProperty(DataModel.Properties.id));
     return deleted;
   }
@@ -311,8 +318,8 @@ public class DeleteUtils {
    * make sure beforehand).
    * @return
    */
-  private static List<String> deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientBaseGraph g) throws AccessForbiddenException {
-    List<String> modified = new LinkedList<>();
+  private static Set<String> deleteEdge(OrientEdge edgeToDelete, OrientVertex user, OrientBaseGraph g) throws AccessForbiddenException {
+    Set<String> modified = new HashSet<>();
     String userId = user.getProperty(DataModel.Properties.id);
     OrientVertex itemToVersion = null;
     switch (edgeToDelete.getLabel()) {
@@ -612,7 +619,7 @@ public class DeleteUtils {
       // Too abstract, cannot be deleted
 //        return false;
       case DataModel.Classes.tag:
-        return true;
+        return false;
       case DataModel.Classes.tagging:
         return true;
       default:

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.resources;
+package org.dicen.recolnat.services.resources.configurators;
 
 import java.net.HttpCookie;
 import java.util.List;

@@ -23,10 +23,17 @@ class SetManagerMainButtons extends React.Component {
       borderColor: '#2185d0!important'
     };
 
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.buttonColumnStyle = {
@@ -109,10 +116,12 @@ class SetManagerMainButtons extends React.Component {
   render() {
     return(
       <div className='ui container segment' style={this.containerStyle}>
+        <div style={this.labelContainerStyle}>
         <div className='ui blue tiny basic label'
              style={this.labelStyle}>
           {this.props.userstore.getText('actions')}
         </div>
+      </div>
         <div className='ui fluid buttons'
         style={this.buttonColumnStyle}>
           <div className='ui green compact button' onClick={this.showModal.bind(this)}>

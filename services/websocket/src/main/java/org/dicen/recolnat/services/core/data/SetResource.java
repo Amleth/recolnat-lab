@@ -41,6 +41,7 @@ import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.httpclient.HttpClient;
@@ -536,6 +537,10 @@ public class SetResource {
     boolean retry = true;
     List<File> images = new LinkedList<>();
     String setName = "";
+    String uuid = UUID.randomUUID().toString();
+    String tempDirPath = Configuration.Exports.DIRECTORY + "/" + uuid + "/";
+    File temporaryDirectory = new File(tempDirPath);
+    temporaryDirectory.mkdir();
 
     while (retry) {
       retry = false;
@@ -548,7 +553,7 @@ public class SetResource {
         }
         Iterator<Vertex> itItems = vSet.getVertices(Direction.OUT, DataModel.Links.containsItem).iterator();
         while (itItems.hasNext()) {
-          SetResource.getImagesOfItem((OrientVertex) itItems.next(), images, vUser, g);
+          SetResource.getImagesOfItem((OrientVertex) itItems.next(), images, tempDirPath, vUser, g);
         }
         setName = vSet.getProperty(DataModel.Properties.name);
       } catch (OConcurrentModificationException e) {
@@ -593,27 +598,30 @@ public class SetResource {
         log.error("Error with file " + zipFileName, ex);
         return;
       }
+      
+      temporaryDirectory.delete();
 
       // Add file to list of stuff ready to export
       DatabaseAccess.exportsDb.addUserExport(user, zipFile.getName(), zipFile.getName());
     }
   }
 
-  private static void getImagesOfItem(OrientVertex vItem, List<File> accumulator, OrientVertex vUser, OrientBaseGraph g) {
+  private static void getImagesOfItem(OrientVertex vItem, List<File> accumulator, String dir, OrientVertex vUser, OrientBaseGraph g) {
     switch ((String) vItem.getProperty("@class")) {
       case DataModel.Classes.specimen:
         Iterator<Vertex> itImages = vItem.getVertices(Direction.OUT, DataModel.Links.hasImage).iterator();
         while (itImages.hasNext()) {
-          SetResource.getImagesOfItem((OrientVertex) itImages.next(), accumulator, vUser, g);
+          SetResource.getImagesOfItem((OrientVertex) itImages.next(), accumulator, dir, vUser, g);
         }
         break;
       case DataModel.Classes.image:
         String imageUrlString = vItem.getProperty(DataModel.Properties.imageUrl);
         File imageFile;
         try {
-          imageFile = File.createTempFile((String) vItem.getProperty(DataModel.Properties.name), ".jpg");
+          imageFile = new File(dir + ((String) vItem.getProperty(DataModel.Properties.name)) + ".jpg");
+          imageFile.createNewFile();
         } catch (IOException ex) {
-          log.error("Could not create temporary file.");
+          log.error("Could not create temporary file" + dir + ((String) vItem.getProperty(DataModel.Properties.name)) + ".jpg", ex);
           return;
         }
 

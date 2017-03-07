@@ -18,8 +18,9 @@ import SocketActions from '../actions/SocketActions';
 import conf from '../conf/ApplicationConfiguration';
 
 class MetadataStore extends EventEmitter {
-  constructor() {
-    super();
+  constructor(socket) {
+    super(socket);
+    this.socket = socket;
     this.metadata = {};
     this.metadataIds = {};
     this.externalMetadata = {
@@ -31,6 +32,10 @@ class MetadataStore extends EventEmitter {
     if(this.metadata[id]) {
       return JSON.parse(JSON.stringify(this.metadata[id]));
     }
+    if(this.socket.get(id)) {
+      // No need to clone it, socket already returns a clone
+      return this.socket.get(id);
+    }
     return null;
   }
 
@@ -39,10 +44,6 @@ class MetadataStore extends EventEmitter {
       return JSON.parse(JSON.stringify(this.externalMetadata[id]));
     }
     return null;
-  }
-
-  getContainingImageId(id) {
-    var metadata = this.metadata[id];
   }
 
   getAnnotationsOfEntity(id, callback) {
@@ -60,7 +61,8 @@ class MetadataStore extends EventEmitter {
 
   metadataUpdated(metadata) {
     if(metadata.forbidden || metadata.deleted) {
-      delete this.metadata[metadata.uid];
+      // Do not delete, let components update first
+      this.metadata[metadata.uid].deleted = true;
     }
     else {
       this.metadata[metadata.uid] = JSON.parse(JSON.stringify(metadata));

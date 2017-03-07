@@ -23,6 +23,8 @@ import fr.recolnat.database.model.impl.RegionOfInterest;
 import fr.recolnat.database.model.impl.SetView;
 import fr.recolnat.database.model.impl.Specimen;
 import fr.recolnat.database.model.impl.ColaboratorySet;
+import fr.recolnat.database.model.impl.Tag;
+import fr.recolnat.database.model.impl.TagDefinition;
 import fr.recolnat.database.model.impl.TrailOfInterest;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
@@ -36,6 +38,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.codehaus.jettison.json.JSONException;
 
 import javax.ws.rs.core.Response;
@@ -127,18 +130,21 @@ public class DatabaseResource {
    * @throws fr.recolnat.database.exceptions.ResourceNotExistsException
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
-  public static List<String> remove(final String entityId, final String user) throws JSONException, ResourceNotExistsException, AccessForbiddenException {
-    List<String> modified = new LinkedList<>();
+  public static ActionResult remove(final String entityId, final String user) throws JSONException, ResourceNotExistsException, AccessForbiddenException {
+    ActionResult res = new ActionResult();
+//    List<String> modified = new LinkedList<>();
     boolean retry = true;
     while (retry) {
       retry = false;
       OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-
         // Checking deletability is relegated to the method
-        modified = DeleteUtils.delete(entityId, vUser, g, DatabaseAccess.rightsDb);
+        Set<String> modified = DeleteUtils.delete(entityId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
+        for(String s: modified) {
+          res.addModifiedId(s);
+        }
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
         retry = true;
@@ -148,7 +154,7 @@ public class DatabaseResource {
       }
     }
 
-    return modified;
+    return res;
   }
 
   public static List<String> addAnnotation(final String parentObjectId, final String annotationText, final String user) throws JSONException, AccessForbiddenException {
@@ -419,6 +425,10 @@ public class DatabaseResource {
         return new SetView(v, vUser, g, DatabaseAccess.rightsDb);
       case DataModel.Classes.user:
         return new ColaboratoryUser(vUser, vUser, g, DatabaseAccess.rightsDb);
+      case DataModel.Classes.tag:
+        return new TagDefinition(v, vUser, g, DatabaseAccess.rightsDb);
+      case DataModel.Classes.tagging:
+        return new Tag(v, vUser, g, DatabaseAccess.rightsDb);
       default:
         log.warn("No specific handler for extracting metadata from vertex class " + cl);
         return new AbstractObject(v, vUser, g, DatabaseAccess.rightsDb);

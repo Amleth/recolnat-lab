@@ -6,6 +6,9 @@
 import React from 'react';
 import d3 from 'd3';
 
+import TagInput from '../../components/common/TagInput';
+import Tag from '../../components/common/Tag';
+
 import Globals from '../../utils/Globals';
 import D3ViewUtils from '../../utils/D3ViewUtils';
 import ServiceMethods from '../../utils/ServiceMethods';
@@ -17,27 +20,28 @@ class ElementInspector extends React.Component {
     this.containerStyle = {
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important',
-      height: this.props.height
-      //overflow: 'hidden'
+      height: this.props.height-10
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
     };
 
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.annotationInputStyle = {
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: 'lavender',
-      //height: 0,
-      //width: 'auto',
       overflow: 'hidden',
       maxHeight: 0
-      //display: 'fixed',
-      //left: 0,
-      //top: 0
     };
 
     this.annotationInputTitleStyle = {
@@ -68,8 +72,6 @@ class ElementInspector extends React.Component {
     };
 
     this.metadataStyle = {
-      //overflowY: 'auto',
-      //height: '80%',
       margin: 0,
       padding: 0,
       position: 'relative'
@@ -82,7 +84,6 @@ class ElementInspector extends React.Component {
     };
 
     this.entityNameStyle = {
-      //fontSize: 'large',
       fontWeight: 'bold',
       margin: 0
     };
@@ -93,9 +94,6 @@ class ElementInspector extends React.Component {
 
     this.addAnnotationStyle = {
       cursor: 'pointer'
-      //position: 'relative',
-      //right: 0,
-      //bottom: '10px'
     };
 
     this.annotationStyle = {
@@ -165,6 +163,11 @@ class ElementInspector extends React.Component {
       return processCreatorMetadata.apply(this);
     };
 
+    this._onTagChange = () => {
+      const update = () => this.processTag();
+      return update.apply(this);
+    };
+
     this._forceUpdate = () => {
       const update = () => this.setState({});
       return update.apply(this);
@@ -182,7 +185,8 @@ class ElementInspector extends React.Component {
       tags: {},
       creators: {},
       annotationTextInput: '',
-      newAnnotationActiveField: null
+      newAnnotationActiveField: null,
+      position: {}
     };
   }
 
@@ -227,6 +231,7 @@ class ElementInspector extends React.Component {
   processEntityMetadata() {
     let metadatas = {};
     let annotationsIds = [];
+    let tagsIds = [];
 
     for(let i = 0; i < this.state.entitiesIds.length; ++i) {
       let metadata = this.props.metastore.getMetadataAbout(this.state.entitiesIds[i]);
@@ -238,6 +243,9 @@ class ElementInspector extends React.Component {
         if(metadata.measurements) {
           Array.prototype.push.apply(annotationsIds, metadata.measurements);
         }
+        if(metadata.tags) {
+          Array.prototype.push.apply(tagsIds, metadata.tags);
+        }
       }
       else {
         metadatas[this.state.entitiesIds[i]] = null;
@@ -248,13 +256,17 @@ class ElementInspector extends React.Component {
     let newAnnotationIds = _.difference(annotationsIds, this.state.annotationsIds);
     //var removedAnnotationIds = _.difference(this.state.annotationsIds, annotationsIds);
     //console.log('New annotations ids: ' + JSON.stringify(newAnnotationIds));
-
     //this.clearMetadataListeners(removedAnnotationIds);
     this.addMetadataListeners(newAnnotationIds, this._onAnnotationMetadataChange);
 
+    tagsIds = _.uniq(tagsIds);
+    let newTagsIds = _.difference(tagsIds, this.state.tagsIds);
+    this.addMetadataListeners(newTagsIds, this._onTagChange);
+
     this.setState({
       entities: metadatas,
-      annotationsIds: annotationsIds
+      annotationsIds: annotationsIds,
+      tagsIds: tagsIds
     });
 
     //window.setTimeout(this._onAnnotationMetadataChange, 50);
@@ -330,6 +342,23 @@ class ElementInspector extends React.Component {
 
     this.setState({
       standards: standards
+    });
+  }
+
+  processTag() {
+    let tags = {};
+    for(let i = 0; i < this.state.tagsIds.length; ++i) {
+      let tag = this.props.metastore.getMetadataAbout(this.state.tagsIds[i]);
+      if(tag && !tag.deleted) {
+        tags[tag.uid] = tag;
+      }
+      else {
+        delete tags[this.state.tagsIds[i]];
+      }
+    }
+
+    this.setState({
+      tags: tags
     });
   }
 
@@ -438,6 +467,10 @@ class ElementInspector extends React.Component {
     }
 
     this.setState({newAnnotationActiveField: id});
+  }
+
+  addTag(id) {
+    this.setState({newTagActiveField: id});
   }
 
   cancelNewAnnotation() {
@@ -579,6 +612,15 @@ class ElementInspector extends React.Component {
       annotationInputLocalStyle.overflow = 'hidden';
     }
 
+    let tagInput = null;
+    if(this.state.newTagActiveField) {
+      tagInput = <TagInput
+        top={this.state.position.top}
+        right={this.state.position.left}
+        onClose={this.setState.bind(this, {newTagActiveField: null}, null)}
+        entity={this.state.newTagActiveField} />;
+    }
+
     return (
       <div style={this.metadataStyle}
            key={'ENTITY-' + entityId}
@@ -592,12 +634,15 @@ class ElementInspector extends React.Component {
             <i className='grey small eye icon'
                style={eyeIconStyle}
                data-content={this.props.userstore.getText('zoomOnEntity')}
-               onClick={this.centerViewOn.bind(this, entityMetadata)}
-            />
+               onClick={this.centerViewOn.bind(this, entityMetadata)} />
+            <i className='grey small tag icon'
+               style={this.addAnnotationStyle}
+               data-content={this.props.userstore.getText('addATag')}
+               onClick={this.addTag.bind(this, entityId)} />
             <i className='grey small write icon'
                style={this.addAnnotationStyle}
                data-content={this.props.userstore.getText('addAnAnnotation')}
-               onClick={this.addAnnotation.bind(this, entityId)}/>
+               onClick={this.addAnnotation.bind(this, entityId)} />
           </div>
         </div>
 
@@ -617,10 +662,29 @@ class ElementInspector extends React.Component {
             <button className='ui green button' onClick={this.saveNewAnnotation.bind(this, entityId)}>{this.props.userstore.getText('save')}</button>
           </div>
         </div>
+        {entityMetadata.tags.map(this.buildTagDisplay.bind(this))}
+        {tagInput}
         {annotations.map(this.buildAnnotationDisplay.bind(this))}
         <div className='ui horizontal divider' ></div>
       </div>
     );
+  }
+
+  buildTagDisplay(tagId) {
+    let tag = this.state.tags[tagId];
+    if(!tag) {
+      return null;
+    }
+    let display = tag.key;
+    if(tag.value) {
+      display = display + ' : ' + tag.value;
+    }
+    return (
+      <Tag key={tag.definition} tag={tag} showDelete={true} />
+    )
+    // return (
+    //   <a className='ui tiny tag label' key={'TAG-' + tagId}>{display}</a>
+    // );
   }
 
   buildMeasurementDisplay(measurementId) {
@@ -707,16 +771,21 @@ class ElementInspector extends React.Component {
     this.props.modestore.addModeChangeListener(this._forceUpdate);
     this.props.inspecstore.addContentChangeListener(this._onSelectionChange);
     this.props.userstore.addLanguageChangeListener(this._forceUpdate);
+    let pos = React.findDOMNode(this).getBoundingClientRect();
+    this.setState({position: {top: pos.top, left: pos.left}});
   }
 
   componentWillReceiveProps(props) {
     if(props.height != this.props.height) {
-      this.containerStyle.height = props.height;
+      this.containerStyle.height = props.height-10;
       this.scrollerStyle.height = props.height-35;
     }
   }
 
   componentWillUpdate(nextProps, nextState) {
+    let pos = React.findDOMNode(this).getBoundingClientRect();
+    nextState.position.top = pos.top;
+    nextState.position.left = pos.left;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -734,11 +803,12 @@ class ElementInspector extends React.Component {
   }
 
   render() {
-    var self = this;
     return <div className='ui segment container' ref='component' style={this.containerStyle}>
-      <div className='ui blue tiny basic label'
-           style={this.labelStyle}>
-        {this.props.userstore.getText('properties')}
+      <div style={this.labelContainerStyle}>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          {this.props.userstore.getText('properties')}
+        </div>
       </div>
       <div style={this.scrollerStyle}>
         {this.state.entitiesIds.map(this.buildEntityDisplay.bind(this))}

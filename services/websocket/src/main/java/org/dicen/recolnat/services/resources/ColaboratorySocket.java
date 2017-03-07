@@ -1,5 +1,6 @@
 package org.dicen.recolnat.services.resources;
 
+import org.dicen.recolnat.services.resources.configurators.ColaboratorySocketConfigurator;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.collections.MultiMap;
 import org.codehaus.jettison.json.JSONException;

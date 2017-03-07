@@ -18,9 +18,21 @@ class Toolbox extends React.Component {
     super(props);
 
     this.componentStyle = {
-      //display: "flex",
-      //flexDirection: 'column',
-      padding: '5px 5px 5px 5px'
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.buttonRowsStyle = {
@@ -39,11 +51,7 @@ class Toolbox extends React.Component {
       overflow: 'hidden'
     };
 
-    this.labelStyle = {
-      position: 'relative',
-      top: '-15px',
-      left: '10px'
-    };
+
 
     this._forceUpdate = () => {
       const update = () => this.setState({});
@@ -65,9 +73,11 @@ class Toolbox extends React.Component {
   render() {
     return (
       <div style={this.componentStyle} className='ui container segment'>
-        <div className='ui blue tiny basic label'
-             style={this.labelStyle}>
-          {this.props.userstore.getText('tools')}
+        <div style={this.labelContainerStyle}>
+          <div className='ui blue tiny basic label'
+               style={this.labelStyle}>
+            {this.props.userstore.getText('tools')}
+          </div>
         </div>
         <div style={this.hiddenButtons}>
           <NoTool

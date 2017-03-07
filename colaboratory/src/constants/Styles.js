@@ -21,5 +21,11 @@ export default {
 
   noMargin: {
     margin: 0
+  },
+
+  tag: {
+    marginBottom: 0,
+    marginRight: '1px',
+    paddingRight: '1em'
   }
 }

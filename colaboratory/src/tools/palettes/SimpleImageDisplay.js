@@ -20,15 +20,22 @@ class SimpleImageDisplay extends React.Component {
     this._isMounted = false;
 
     this.componentStyle = {
-      height: this.props.height,
+      height: this.props.height-10,
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
     };
 
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.scrollerStyle = {
@@ -181,7 +188,7 @@ class SimpleImageDisplay extends React.Component {
 
   componentWillReceiveProps(props) {
     if(props.height != this.props.height) {
-      this.componentStyle.height = props.height;
+      this.componentStyle.height = props.height-10;
       this.scrollerStyle.height = props.height-35;
     }
   }
@@ -205,9 +212,11 @@ class SimpleImageDisplay extends React.Component {
     let self = this;
 
     return <div className='ui segment container' style={this.componentStyle}>
+      <div style={this.labelContainerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
         {this.props.userstore.getText('preview')}
+      </div>
       </div>
       <div style={this.scrollerStyle}>
       <div className='ui small header centered segment'

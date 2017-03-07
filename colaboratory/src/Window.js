@@ -98,7 +98,7 @@ class Window extends React.Component {
       WebkitTransition: 'left 1s',
       transition: 'left 1s',
       overflowX: 'hidden',
-      overflowY: 'scroll',
+      overflowY: 'auto',
       WebkitBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       MozBoxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)',
       boxShadow: '3px 0px 10px -3px rgba(0,0,0,0.75)'
@@ -115,7 +115,7 @@ class Window extends React.Component {
       WebkitTransition: 'right 1s',
       transition: 'right 1s',
       overflowX: 'hidden',
-      overflowY: 'scroll',
+      overflowY: 'auto',
       //overflow: 'auto',
       WebkitBoxShadow: '-3px 0px 10px -3px rgba(0,0,0,0.75)',
       MozBoxShadow: '-3px 0px 10px -3px rgba(0,0,0,0.75)',

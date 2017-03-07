@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -36,9 +35,8 @@ public class AbstractObject {
   protected final Map<String, Object> properties = new HashMap<>();
   protected final Set<String> parents = new HashSet<>();
   protected boolean userCanDelete = false;
-  protected boolean deleted = false;
   protected final Set<String> annotations = new HashSet<>();
-  protected final Set<String> taggings = new HashSet<>();
+  protected final Set<String> tags = new HashSet<>();
   private String type = null;
 
   private final Logger log = LoggerFactory.getLogger(AbstractObject.class);
@@ -73,7 +71,7 @@ public class AbstractObject {
     if (e.getElementType().equals("Vertex")) {
       OrientVertex v = (OrientVertex) e;
       if(v.countEdges(Direction.OUT, DataModel.Links.hasNewerVersion) == 1) {
-        this.deleted = true;
+        this.properties.put(DataModel.Properties.deleted, true);
       }
       Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation).iterator();
       while (itAnnots.hasNext()) {
@@ -90,7 +88,7 @@ public class AbstractObject {
         OrientVertex vTagging = (OrientVertex) itTaggings.next();
         if(AccessUtils.isLatestVersion(vTagging)) {
           if(AccessRights.canRead(vUser, vTagging, g, rightsDb)) {
-            taggings.add(vTagging.getProperty(DataModel.Properties.id));
+            tags.add(vTagging.getProperty(DataModel.Properties.id));
           }
         }
       }
@@ -99,7 +97,7 @@ public class AbstractObject {
       if(e.getProperty(DataModel.Properties.nextVersionId) != null) {
         OrientEdge eNext = AccessUtils.getEdgeById((String) e.getProperty(DataModel.Properties.nextVersionId), g);
         if(eNext == null) {
-          this.deleted = true;
+          this.properties.put(DataModel.Properties.deleted, true);
         }
       }
     }
@@ -119,10 +117,9 @@ public class AbstractObject {
     }
     ret.put("type", this.type);
     ret.put("deletable", this.userCanDelete);
-    ret.put("deleted", this.deleted);
     ret.put("annotations", this.annotations);
     ret.put("parents", this.parents);
-    ret.put("taggings", this.taggings);
+    ret.put("tags", this.tags);
 
     return ret;
   }

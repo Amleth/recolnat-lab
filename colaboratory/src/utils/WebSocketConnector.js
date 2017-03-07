@@ -118,6 +118,13 @@ class Connector extends EventEmitter {
     }
   }
 
+  get(id) {
+    if(this.idToData[id]) {
+      return JSON.parse(JSON.stringify(this.idToData[id]));
+    }
+    return null;
+  }
+
   receiveServerMessage(message) {
     if(message.data === "PONG") {
       //console.log('PING/PONG success');

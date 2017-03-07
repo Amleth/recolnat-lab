@@ -16,7 +16,21 @@ class GroupSelector extends React.Component {
     super(props);
 
     this.compactSegmentStyle = {
-      padding: '5px 5px 5px 5px'
+      padding: '5px 5px 5px 5px',
+      borderColor: '#2185d0!important'
+    };
+
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
+    this.labelStyle = {
+      position: 'relative',
+      top: '-15px',
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.buttonStyle = {
@@ -36,11 +50,7 @@ class GroupSelector extends React.Component {
       color: 'blue'
     };
 
-    this.labelStyle = {
-      position: 'relative',
-      top: '-15px',
-      left: '10px'
-    };
+
 
     this._onLabBenchLoaded = () => {
       const getViewImages = () => this.getViewImages();
@@ -165,7 +175,7 @@ class GroupSelector extends React.Component {
         MinimapActions.initMinimap.bind(null, null, null, null, null, null), 10);
       }
       else {
-        var imageData = nextState.listOfImages[nextState.selectedImageIdx];
+        let imageData = nextState.listOfImages[nextState.selectedImageIdx];
         nextState.selectedImageName = imageData.name;
         window.setTimeout(MinimapActions.initMinimap.bind(null, imageData.thumbnail, imageData.displayWidth, imageData.displayHeight, imageData.x, imageData.y), 10);
       }
@@ -193,11 +203,13 @@ class GroupSelector extends React.Component {
   }
 
   render() {
-    var self = this;
+    let self = this;
     return <div className='ui container segment' style={this.compactSegmentStyle}>
+      <div style={this.labelContainerStyle}>
       <div className='ui blue tiny basic label'
            style={this.labelStyle}>
         {this.props.userstore.getText('groupsAndImages')}
+      </div>
       </div>
       <div className='ui tiny fluid buttons'>
         <div className='ui icon button'

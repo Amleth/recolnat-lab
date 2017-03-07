@@ -17,10 +17,17 @@ class Minimap extends React.Component {
       borderColor: '#2185d0!important'
     };
 
+    this.labelContainerStyle = {
+      position: 'relative',
+      width: 0,
+      height: '10px'
+    };
+
     this.labelStyle = {
       position: 'relative',
       top: '-15px',
-      left: '10px'
+      left: '10px',
+      whiteSpace: 'nowrap'
     };
 
     this.imageContainerStyle = {
@@ -98,7 +105,7 @@ class Minimap extends React.Component {
       if(viewData.displays[i].link == imageId) {
         let displayData = viewData.displays[i];
         window.setTimeout(
-        MinimapActions.initMinimap.bind(null, imageUrl, displayData.displayWidth, displayData.displayHeight, displayData.x, displayData.y), 10);
+          MinimapActions.initMinimap.bind(null, imageUrl, displayData.displayWidth, displayData.displayHeight, displayData.x, displayData.y), 10);
         break;
       }
     }
@@ -239,10 +246,12 @@ class Minimap extends React.Component {
       <div style={this.componentStyle}
            className='ui container segment'
            ref='component'>
-           <div className='ui blue tiny basic label'
-                style={this.labelStyle}>
-             {this.props.userstore.getText('minimap')}
-           </div>
+        <div style={this.labelContainerStyle}>
+          <div className='ui blue tiny basic label'
+               style={this.labelStyle}>
+            {this.props.userstore.getText('minimap')}
+          </div>
+        </div>
         <div style={this.imageContainerStyle}
              onClick={this.moveViewToClickLocation.bind(this)}
              onMouseDown={this.beginDragViewport.bind(this)}

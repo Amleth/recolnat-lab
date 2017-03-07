@@ -69,8 +69,8 @@ public class StructureBuilder {
       }
       catch (OSchemaException e) {
         // Happens when already exists, no error here
-        if(log.isErrorEnabled()) {
-          log.error("Error while adding vertex type " + field.get(null), e);
+        if(log.isInfoEnabled()) {
+          log.info("Class already created in database " + field.get(null).toString());
         }
       }
     }

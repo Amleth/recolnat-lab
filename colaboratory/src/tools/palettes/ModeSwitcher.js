@@ -50,7 +50,7 @@ class ModeSwitcher extends React.Component {
   }
 
   render() {
-    return <div className='ui icon menu' ref='component'>
+    return <div className='ui tiny icons menu' ref='component'>
       <a className={'blue item ' + this.isActive(ModeConstants.Modes.SET)}
          data-content={this.props.userstore.getText('setManager')}
          onClick={ModeActions.changeMode.bind(null, ModeConstants.Modes.SET)}>

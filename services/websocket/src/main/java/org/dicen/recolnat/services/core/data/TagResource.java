@@ -31,23 +31,24 @@ import org.slf4j.LoggerFactory;
  * @author dmitri
  */
 public class TagResource {
+
   private final static Logger log = LoggerFactory.getLogger(TagResource.class);
-  
+
   public static ActionResult listTags(String user) throws JSONException {
     ActionResult res = new ActionResult();
-    
+
     boolean retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         Iterator<Vertex> itTags = g.getVerticesOfClass(DataModel.Classes.tag).iterator();
         JSONArray jTags = new JSONArray();
-        while(itTags.hasNext()) {
+        while (itTags.hasNext()) {
           OrientVertex vTag = (OrientVertex) itTags.next();
-          if(AccessUtils.isLatestVersion(vTag)) {
-            if(AccessRights.canRead(vUser, vTag, g, DatabaseAccess.rightsDb)) {
+          if (AccessUtils.isLatestVersion(vTag)) {
+            if (AccessRights.canRead(vUser, vTag, g, DatabaseAccess.rightsDb)) {
               jTags.put((String) vTag.getProperty(DataModel.Properties.id));
             }
           }
@@ -58,33 +59,33 @@ public class TagResource {
         g.shutdown();
       }
     }
-    
+
     return res;
   }
-  
+
   public static ActionResult linkTagToEntity(String tagDefId, String entityId, String user) throws AccessForbiddenException, JSONException {
     ActionResult res = new ActionResult();
-    
+
     boolean retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vTagDefinition = TagUtils.getTagDefinition(tagDefId, g);
         OrientVertex vEntity = AccessUtils.getNodeById(entityId, g);
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        if(!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
+        if (!AccessRights.canRead(vUser, vEntity, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, entityId);
         }
-        if(!AccessRights.canRead(vUser, vTagDefinition, g, DatabaseAccess.rightsDb)) {
+        if (!AccessRights.canRead(vUser, vTagDefinition, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, tagDefId);
         }
-        
+
         OrientVertex vTag = TagUtils.tagEntity(vEntity, vTagDefinition, vUser.getProperty(DataModel.Properties.id), g);
         g.commit();
-        
+
         AccessRights.grantAccessRights(vUser, vTag, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
-        
+
         res.addModifiedId(tagDefId);
         res.addModifiedId(entityId);
         res.addModifiedId(vTag.getProperty(DataModel.Properties.id));
@@ -97,24 +98,28 @@ public class TagResource {
         g.shutdown();
       }
     }
-    
+
     return res;
   }
-  
+
   public static ActionResult createTagDefinition(String key, String value, String user) throws JSONException {
     ActionResult res = new ActionResult();
-    
+
     boolean retry = true;
-    while(retry) {
+    while (retry) {
       retry = false;
       OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        OrientVertex vTagDef = TagUtils.createTagDefinition(key, value, user, g);
-        g.commit();
-        
-        AccessRights.grantAccessRights(vUser, vTagDef, DataModel.Enums.AccessRights.WRITE, DatabaseAccess.rightsDb);
-        
+        OrientVertex vTagDef = TagUtils.findTag(key, value, g);
+
+        if (vTagDef == null) {
+          vTagDef = TagUtils.createTagDefinition(key, value, user, g);
+          g.commit();
+
+          AccessRights.grantPublicAccessRights(vTagDef, DataModel.Enums.AccessRights.READ, DatabaseAccess.rightsDb);
+        }
+
         res.setResponse("id", vTagDef.getProperty(DataModel.Properties.id));
       } catch (OConcurrentModificationException e) {
         log.warn("Database busy, retrying operation");
@@ -124,7 +129,7 @@ public class TagResource {
         g.shutdown();
       }
     }
-    
+
     return res;
   }
 }

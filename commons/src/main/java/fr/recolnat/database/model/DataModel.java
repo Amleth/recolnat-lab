@@ -120,6 +120,7 @@ public class DataModel {
     public static final String id = "uid";
     public static final String creationDate = "creationDate";
     public static final String branch = "branch";
+    public static final String deleted = "deleted";
     
     // Shared (used in more than one class)
     public static final String name = "name";

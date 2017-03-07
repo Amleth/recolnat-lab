@@ -139,7 +139,7 @@ class DisplayController extends React.Component {
   }
 
   render() {
-    var self = this;
+    let self = this;
     return(
       <div style={this.componentStyle}>
         <div style={this.titleTextStyle}>Taille textes &amp; symboles</div>

@@ -43,4 +43,13 @@ public class TagUtils {
     Iterator<Vertex> itTagDefs = g.getVertices(DataModel.Classes.tag, new String[] {DataModel.Properties.id}, new Object[]{uid}).iterator();
     return AccessUtils.findLatestVersion(itTagDefs, g);
   }
+  
+  public static OrientVertex findTag(String key, String value, OrientBaseGraph g) {
+    Iterator<Vertex> itTagDefs = g.getVertices(DataModel.Classes.tag, new String[] {DataModel.Properties.key, DataModel.Properties.value}, new Object[] {key, value}).iterator();
+    return AccessUtils.findLatestVersion(itTagDefs, g);
+  }
+  
+  public static Iterable<Vertex> listTagsByKey(String key, OrientBaseGraph g) {
+    return g.getVertices(DataModel.Classes.tag, new String[] {DataModel.Properties.key}, new Object[] {key});
+  }
 }

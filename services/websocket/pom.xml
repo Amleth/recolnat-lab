@@ -20,6 +20,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>1.9</version>
+        </dependency>
+                
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
@@ -86,7 +92,7 @@
             <type>jar</type>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.21</version>

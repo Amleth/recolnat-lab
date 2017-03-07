@@ -8,7 +8,6 @@ package fr.recolnat.database.model.impl;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientElement;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.RightsManagementDatabase;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
@@ -27,6 +26,9 @@ import org.codehaus.jettison.json.JSONObject;
 public class Tag extends AbstractObject {
   private String definition;
   private String resource;
+  // For convenience, get the TagDefinition's values here
+  private String key;
+  private String value;
   
   public Tag(OrientVertex vTag, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) throws AccessForbiddenException {
     super(vTag, vUser, g, rightsDb);
@@ -40,6 +42,8 @@ public class Tag extends AbstractObject {
       if(AccessUtils.isLatestVersion(vDefinition)) {
         if(AccessRights.canRead(vUser, vDefinition, g, rightsDb)) {
           this.definition = (String) vDefinition.getProperty(DataModel.Properties.id);
+          this.key = (String) vDefinition.getProperty(DataModel.Properties.key);
+          this.value = (String) vDefinition.getProperty(DataModel.Properties.value);
           break;
         }
       }
@@ -51,6 +55,7 @@ public class Tag extends AbstractObject {
       if(AccessUtils.isLatestVersion(vResource)) {
         if(AccessRights.canRead(vUser, vResource, g, rightsDb)) {
           this.resource = (String) vResource.getProperty(DataModel.Properties.id);
+          break;
         }
       }
     }
@@ -62,6 +67,8 @@ public class Tag extends AbstractObject {
   public JSONObject toJSON() throws JSONException {
     JSONObject ret = super.toJSON();
     
+    ret.put("key", this.key);
+    ret.put("value", this.value);
     ret.put("definition", this.definition);
     ret.put("resource", this.resource);
     

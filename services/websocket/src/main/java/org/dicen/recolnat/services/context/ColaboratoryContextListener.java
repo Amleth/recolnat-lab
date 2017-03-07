@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.dicen.recolnat.services.resources;
+package org.dicen.recolnat.services.context;
 
-import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import java.io.File;
 import java.io.FileNotFoundException;

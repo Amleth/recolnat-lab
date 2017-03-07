@@ -232,7 +232,8 @@ public class MessageProcessorThread implements Runnable {
                 break;
               case "remove":
                 entityId = jsonIn.getString("id");
-                modified = DatabaseResource.remove(entityId, userLogin);
+                result = DatabaseResource.remove(entityId, userLogin);
+                modified = result.getModified();
                 break;
               case "get-change-log":
                 break;
@@ -288,7 +289,7 @@ public class MessageProcessorThread implements Runnable {
                 log.error("Unhandled ORDER sub-type " + updateType);
                 break;
             }
-            return;
+            break;
           case Action.ClientActionType.FEEDBACK:
             String type = jsonIn.getString("type");
             String messageText = jsonIn.getString("text");

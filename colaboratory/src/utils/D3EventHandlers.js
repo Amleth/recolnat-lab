@@ -1,4 +1,6 @@
 /**
+ * Collection of static methods to use as D3 event handlers.
+ *
  * Created by dmitri on 27/04/16.
  */
 'use strict';
@@ -15,6 +17,11 @@ import ServiceMethods from '../utils/ServiceMethods';
 import conf from '../conf/ApplicationConfiguration';
 
 class D3EventHandlers {
+
+  /**
+   * Resize an image or other content on the bench.
+   * D3 behavior
+   */
   static dragResize() {
     return d3.behavior.drag()
       .origin(d => d)
@@ -23,6 +30,11 @@ class D3EventHandlers {
       .on('dragend', D3EventHandlers.fixImageSize);
   }
 
+  /**
+   * Begins resizing the element denoted by data 'd'.
+   * d must contain properties 'height', 'width' and 'link' (the latter is the UID of the link between a View and an Entity displayed in the View).
+   * Creates an element in bench with id=RESIZE_WINDOW which is used as shadow to display the new size.
+   */
   static startImageResize(d) {
     //console.log('resize start');
     d3.event.sourceEvent.preventDefault();
@@ -43,8 +55,11 @@ class D3EventHandlers {
       .style('fill-opacity', '0.4');
   }
 
+  /**
+   * Changes the size of an entity's shadow (RESIZE_WINDOW) while user is dragging.
+   * Minimum height & width blocked to 100px, the shadow will not go below these values in order to avoid 'image reversal' bug.
+   */
   static resizeImageBorders(d) {
-    //console.log('resize(' + d.newHeight + ')');
     var oldHeight = d.newHeight;
     if(d.newHeight + d3.event.dy > 100) {
       d.newHeight = d.newHeight + d3.event.dy;
@@ -56,10 +71,11 @@ class D3EventHandlers {
       .attr('width', d.newWidth);
   }
 
+  /**
+   * Finish resize, remove shadow and set new width & height for entity (sends message to server).
+   * Negative new height or width not allowed and results in alert (which cannot be easily localized, hence should never happen).
+   */
   static fixImageSize(d) {
-    //console.log('resize end(' + d.newHeight + ')');
-    //console.log('s dH/h=' + d.newHeight* d.displayHeight/ d.height);
-
     var link = d.link;
     var view = d.view;
     var entity = d.entity;
@@ -78,6 +94,9 @@ class D3EventHandlers {
     d.newWidth = null;
   }
 
+  /**
+   * Defines the D3 behavior used to drag entities around the lab bench.
+   */
   static dragMove() {
     return d3.behavior.drag()
       .origin(d => d)
@@ -86,6 +105,9 @@ class D3EventHandlers {
       .on('dragend', D3EventHandlers.fixImagePosition);
   }
 
+  /**
+   * Begins the drag-move by creating a new ghost image of the entity being dragged. The entity is not moved until drag finishes.
+   */
   static startImageMove(d) {
     if(d3.event.sourceEvent.which == 1) {
       d3.event.sourceEvent.preventDefault();
@@ -109,22 +131,24 @@ class D3EventHandlers {
     }
   }
 
+  /**
+   * Moves the ghost image around while user is dragging it.
+   */
   static moveImageGhost(d) {
-      //d.x = d3.event.x;
-      //d.y = d3.event.y;
       d.tx = d.tx + d3.event.dx;
       d.ty = d.ty + d3.event.dy;
 
       d3.select('#MOVE_OBJECT')
-        //.attr('transform', 'translate(' + d.tx + ',' + d.ty + ')')
         .attr('x', d.tx)
         .attr('y', d.ty);
   }
 
+  /**
+   * Removes ghost image and sends new image position to server.
+   */
   static fixImagePosition(d) {
     if(d3.event.sourceEvent.which == 1) {
       ServiceMethods.move(d.view, d.link, d.entity, d.x+ (d.tx)* d.displayHeight/ d.height, d.y+ (d.ty)* d.displayHeight/ d.height);
-      //ViewActions.moveEntity(d.view, d.entity, d.link, d.x+ (d.tx)* d.displayHeight/ d.height, d.y+ (d.ty)* d.displayHeight/ d.height);
 
       d3.select('#MOVE_OBJECT').remove();
 

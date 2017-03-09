@@ -1,3 +1,7 @@
+/**
+* Main application window (& general layout definition). Stores are created here.
+*/
+
 'use strict';
 
 import React from 'react';

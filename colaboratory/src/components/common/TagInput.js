@@ -1,4 +1,13 @@
 /**
+ * Generic repositionable draggable auto-completing tag input component.
+ *
+ * Properties:
+ *  - embedded: Boolean toggles the draggable behaviour of this component (does not work properly). If false, this input is floating and draggable and top & right properties must be provided.
+ *  - entity: String (optional) UID of the entity to which the new tag should be associated. If not provided must provide an onTagSave callback
+ *  - onClose: Function to call when the user tries to close this input
+ *  - onTagSave: Function (optional) to call instead of saving this tag when user tries to save function(entity, key, value)
+ *  - top: Preferred location of the top of this input. Component may choose to move slightly above or below this value if screen size is deemed insufficient.
+ *  - right: Preferret location of the right of this input.
  * Created by dmitri on 21/02/17.
  */
 'use strict';

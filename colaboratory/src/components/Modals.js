@@ -1,4 +1,6 @@
 /**
+ * Invisible container containing all modals available in the application. Any new modal must be placed here to be available for display.
+ *
  * Created by dmitri on 07/04/16.
  */
 'use strict';

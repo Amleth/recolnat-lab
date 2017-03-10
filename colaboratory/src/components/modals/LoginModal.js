@@ -1,4 +1,8 @@
 /**
+ * Modal requesting the user to log in or create a new account.
+ *
+ * This component does not implement AbstractModal and has its own show/hide logic. This modal's actions do not go through ModalStore. This modal cannot be closed by the user.
+ *
  * Created by dmitri on 20/04/16.
  */
 'use strict';

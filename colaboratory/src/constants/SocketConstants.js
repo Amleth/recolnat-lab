@@ -1,4 +1,6 @@
 /**
+ * Type constants for actions communicating between stores and WebSocketConnector
+ *
  * Created by dmitri on 26/08/16.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Events for metadata and lab bench
+ *
  * Created by dmitri on 05/04/16.
  */
 export default {

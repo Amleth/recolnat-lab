@@ -1,4 +1,6 @@
 /**
+ * Some inline CSS styles commonly used throughout the application.
+ *
  * Created by dmitri on 02/01/17.
  */
 "use strict";

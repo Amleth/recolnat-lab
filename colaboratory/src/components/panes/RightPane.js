@@ -1,4 +1,6 @@
 /**
+ * Right pane of the application.
+ *
  * Created by dmitri on 30/11/15.
  */
 'use strict';
@@ -7,12 +9,10 @@ import React from 'react';
 
 import MetadataViewer from '../../tools/palettes/MetadataViewer';
 import ElementInspector from './../../tools/palettes/ElementInspector';
-import TagCloud from './../../tools/palettes/TagCloud';
 import SimpleImageDisplay from './../../tools/palettes/SimpleImageDisplay';
 import AnnotationList from './../../tools/palettes/AnnotationList';
 
 import SpecimenMetadataDisplay from '../../tools/palettes/SpecimenMetadataDisplay';
-import SetMetadataDisplay from './../manager/SetMetadataDisplay';
 
 import ModeConstants from '../../constants/ModeConstants'
 

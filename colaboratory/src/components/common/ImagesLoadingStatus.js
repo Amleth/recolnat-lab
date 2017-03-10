@@ -1,3 +1,6 @@
+/**
+ * Displays how many images are loading in the background. Not displayed when all images are loaded (or have failed to load)
+ */
 'use strict';
 
 import React from 'react';

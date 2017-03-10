@@ -1,4 +1,6 @@
 /**
+ * Abstract modal component to be implemented by actual modals. Implementing classes must specify a ref='modal' reference on their components.
+ *
  * Created by dmitri on 20/04/16.
  */
 'use strict';

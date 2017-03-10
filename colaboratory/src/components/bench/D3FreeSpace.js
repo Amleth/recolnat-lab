@@ -1,3 +1,6 @@
+/**
+ * Main D3 display component
+ */
 'use strict';
 
 import {EventEmitter} from 'events';
@@ -47,18 +50,19 @@ class D3FreeSpace {
       return addFromInbox.apply(this);
     };
 
-    //this.setView = null;
     this.displayData = {
       xMin: Number.POSITIVE_INFINITY,
       xMax: Number.NEGATIVE_INFINITY,
       yMin: Number.POSITIVE_INFINITY,
       yMax: Number.NEGATIVE_INFINITY
     };
-
-// Check visible images every second and reload if necessary
-//     window.setInterval(this.updateVisibleImages.bind(this), 1500);
   }
 
+  /**
+   * Creates the root SVG container node with given properties.
+   * @param el Reference to the DOM node under which the root SVG will be created.
+   * @param props Object Height and width of the root.
+   */
   create(el, props) {
     this.el = el;
 
@@ -108,33 +112,58 @@ class D3FreeSpace {
 
   }
 
-  // External methods
+  // External methods (i.e. to be called by other components)
+  /**
+   * Clears the display. Removes all nodes except the root.
+   */
   unload() {
     this.clearDisplay();
     this.visibleImages = [];
   }
 
+  /**
+   * Same as unload() but does not remove internal references to visible images.
+   */
   clearDisplay() {
     d3.select("." + Classes.OBJECTS_CONTAINER_CLASS).selectAll("*").remove();
     d3.select("." + Classes.ACTIVE_TOOL_DISPLAY_CLASS).selectAll("*").remove();
   }
 
+  /**
+   * Set this.metadatastore
+   * @param store MetadataStore
+   */
   setMetadataStore(store) {
     this.metadatastore = store;
   }
 
+  /**
+   * Sets the benchstore
+   * @param store LabBenchStore
+   */
   setLabBenchStore(store) {
     this.benchstore = store;
   }
 
+  /**
+   * Sets the viewstore
+   * @param store ViewStore
+   */
   setViewStore(store) {
     this.viewstore = store;
   }
 
+  /**
+   * Sets the modestore
+   * @param store ModeStore
+   */
   setModeStore(store) {
     this.modestore = store;
   }
 
+  /**
+   * Resets lab bench coordinate data
+   */
   newLabBench() {
     this.displayData.xMin = Number.POSITIVE_INFINITY;
     this.displayData.xMax = Number.NEGATIVE_INFINITY;
@@ -142,17 +171,31 @@ class D3FreeSpace {
     this.displayData.yMax = Number.NEGATIVE_INFINITY;
   }
 
+  /**
+   * Loads the default View of the current Set
+   * @param viewId (not used)
+   */
   loadView(viewId) {
     //this.setView = viewId;
     this.drawChildEntities();
   }
 
+  /**
+   * Changes viewport to fit all images in it.
+   */
   fitViewportToData() {
     let view = this.viewstore.getView();
 
     D3ViewUtils.zoomToObjectBySelector('.' + Classes.ROOT_CLASS, view);
   }
 
+  /**
+   * Updates viewport to the given parameters (x,y coordinates and zoom-factor scale). Animates transition if requested.
+   * @param x
+   * @param y
+   * @param scale
+   * @param animate
+   */
   updateViewport(x, y, scale, animate) {
     if(x && Number.isFinite(x)) {
       this.view.x = x;
@@ -167,6 +210,10 @@ class D3FreeSpace {
     this.viewportTransition(animate);
   }
 
+  /**
+   * Displays a ghost image corresponding to the provided data (for example when dragging image from Inbox to View)
+   * @param data
+   */
   displayShadow(data) {
     if(d3.select('#SHADOW').empty()) {
       d3.select('svg')
@@ -197,6 +244,9 @@ class D3FreeSpace {
     }
   }
 
+  /**
+   * Removes the ghost image created by displayShadow()
+   */
   hideShadow() {
     d3.select('#SHADOW').remove();
     window.removeEventListener('dragend', this._onEndDragFromInbox);
@@ -205,6 +255,9 @@ class D3FreeSpace {
       .on('dragend', null);
   }
 
+  /**
+   * Removes the ghost image created by displayShadow() and places the actual image in the View at the location of the ghost image
+   */
   fixShadow() {
     let shadow = d3.select('#SHADOW');
     let data = shadow.datum();
@@ -221,9 +274,12 @@ class D3FreeSpace {
   }
 
 //
-// Internal methods
+// Internal methods. These are usually not called from outside this component
 //
 
+  /**
+   * Updates position of the shadow created by displayShadow() to the current mouse coordinates.
+   */
   static updateShadowPosition() {
     let container = d3.select('.' + Classes.OBJECTS_CONTAINER_CLASS);
     let coords = d3.mouse(container.node());
@@ -233,6 +289,10 @@ class D3FreeSpace {
       .attr('y', coords[1]-100);
   }
 
+  /**
+   * Initialize minimap to the given image UID. If image is not loaded yet, wait 500ms and try again.
+   * @param id
+   */
   static sendToMinimap(id) {
     let image = d3.select('#IMAGE-' + id);
     if(!image.empty()) {
@@ -253,6 +313,9 @@ class D3FreeSpace {
     })(id), 500);
   }
 
+  /**
+   * Redraws SVG element with its visible images and elements (which is recalculated when this function is called).
+   */
   updateVisibleImages() {
     // console.log("updateVisibleImages");
     let storeview = this.viewstore.getView();
@@ -276,10 +339,7 @@ class D3FreeSpace {
 
 
     d3.selectAll('.' + Classes.CHILD_GROUP_CLASS).each(function(d) {
-      // let box = this.getBoundingClientRect();
-      // if(Globals.isElementInViewport(box)) {
       if(D3ViewUtils.isElementInView(d, view)) {
-        // let url = D3ViewUtils.getImageUrlFromQuality(d, quality);
         let url = D3ViewUtils.getImageUrlFromVisibleProportion(d, view);
         visibleImagesAfter.push(url);
         if(!_.contains(self.visibleImages, url)) {
@@ -287,17 +347,17 @@ class D3FreeSpace {
           window.setTimeout(
             ViewActions.loadImage.bind(null, url, D3ViewUtils.displayLoadedImage.bind(null, d)),
             10);
-          // self.loadImage(d);
         }
       }
     });
 
-
-    // console.log('after=' + JSON.stringify(visibleImagesAfter));
-    // console.log("visible images " + visibleImagesAfterMove.length);
     this.visibleImages = visibleImagesAfter;
   }
 
+  /**
+   * Transition to the new viewport, animating the transition if necessary
+   * @param animate Boolean
+   */
   viewportTransition(animate) {
     this.updateVisibleImages();
 
@@ -317,14 +377,11 @@ class D3FreeSpace {
     }
   }
 
+  /**
+   * Draw child entities on the lab bench and fit viewport to all drawn entities. Called when initial load finishes.
+   */
   drawChildEntities() {
     let viewData = this.redrawChildEntities();
-
-    // let self = this;
-    // for(let i = 0; i < viewData.displays.length; ++i) {
-    //   let element = viewData.displays[i];
-    //   window.setTimeout(this.loadImage.bind(self, element), 10);
-    // }
 
     if(this.viewId != this.benchstore.getActiveViewId()) {
       this.viewId = this.benchstore.getActiveViewId();
@@ -332,6 +389,10 @@ class D3FreeSpace {
     }
   }
 
+  /**
+   * Redraw all child entities
+   * @returns Object containing all drawn entities
+   */
   redrawChildEntities() {
     let viewData = this.buildDisplayDataElement();
     if(!viewData) {
@@ -342,6 +403,11 @@ class D3FreeSpace {
     return viewData;
   }
 
+  /**
+   * Builds an object which contains all entities visible in provided viewport (and all their displayable sub-entities such as spatial anchors)
+   * @param iView Object (optional) containing the size of the viewport (xMin, xMax, yMin, yMax). If no data provided, will use the current viewport data
+   * @returns Object containing all entities displayed in View (excluding those outside the current viewport)
+   */
   buildDisplayDataElement(iView) {
     let viewData = this.benchstore.getActiveViewData();
 
@@ -433,11 +499,18 @@ class D3FreeSpace {
     return null;
   }
 
+  /**
+   * Stop displaying the "loading..." text. Will not stop the actual background loading.
+   */
   static endLoad() {
     window.setTimeout(function() {
       ViewActions.changeLoaderState(null)},20);
   }
 
+  /**
+   * Load an image in the background and display it when done loading.
+   * @param elt Object data element corresponding to the image to load
+   */
   loadImage(elt) {
     let storeview = this.viewstore.getView();
     let view = {
@@ -455,6 +528,11 @@ class D3FreeSpace {
       10);
   }
 
+  /**
+   * Returns all objects at the current click location
+   * @param coordinatesFromD3Origin Array [x,y] coordinates of the click location in D3 coordinate space
+   * @returns {{images: Array, aois: Array, pois: Array, rois: Array, tois: Array}}
+   */
   findObjectsAtCoords(coordinatesFromD3Origin) {
     let objects = {
       images: [],
@@ -517,6 +595,10 @@ class D3FreeSpace {
     return objects;
   }
 
+  /**
+   * Callback to be used when the user performs a left click in the lab bench. Computes all objects at click location and sends this data to the metadata display, annotation list, tag cloud, and properties pane. Also changes minimap if necessary.
+   * @param self D3FreeSpace context ('this' context is taken by click event data)
+   */
   leftClick(self) {
     let coords = d3.mouse(this);
     let objectsAtEvent = self.findObjectsAtCoords.call(self, coords);
@@ -552,6 +634,10 @@ class D3FreeSpace {
     d3.event.preventDefault();
   }
 
+  /**
+   * Callback to open the context menu at this click location. Computes objects at click for context menu.
+   * @param self D3FreeSpace
+   */
   contextMenu(self) {
     if(d3.event.defaultPrevented) {
       return;

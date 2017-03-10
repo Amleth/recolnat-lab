@@ -1,3 +1,6 @@
+/**
+ * Location placeholder for a tool's tooltip.
+ */
 'use strict';
 
 import React from 'react';

@@ -1,4 +1,6 @@
 /**
+ * Displays the name of the active Set in the lab bench.
+ *
  * Created by dmitri on 17/05/16.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Constants for the Inspector / Properties panel.
+ *
  * Created by dmitri on 24/05/16.
  */
 'use strict';

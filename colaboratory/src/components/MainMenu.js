@@ -1,4 +1,6 @@
 /**
+ * Colaboratory main menu.
+ *
  * Created by dmitri on 11/03/16.
  */
 'use strict';
@@ -17,7 +19,6 @@ class MainMenu extends React.Component {
     super(props);
 
     this.componentStyle = {
-      //position: 'fixed',
       zIndex: 99999,
       left: 0,
       top: this.props.top + 'px',
@@ -26,11 +27,6 @@ class MainMenu extends React.Component {
       maxWidth: this.props.width + 'px',
       cursor: 'default',
       pointerEvents: 'none'
-
-      //margin: '3px 3px 3px 3px',
-      //padding: '5px 5px 5px 5px'
-      //margin: 0,
-      //padding: 0
     };
 
     this.headerStyle = {

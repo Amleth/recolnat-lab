@@ -1,4 +1,9 @@
 /**
+ * Generic thin horizontal progress bar component for LabBenchStore entities.
+ *
+ * Properties:
+ *  - property: name of the property to watch progress
+ *
  * Created by dmitri on 18/01/17.
  */
 'use strict';

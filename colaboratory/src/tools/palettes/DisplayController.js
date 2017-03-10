@@ -91,13 +91,13 @@ class DisplayController extends React.Component {
   }
 
   toggleColor(color, key) {
-    var selection = d3.selectAll('.' + Classes.POI_CLASS).filter(function(d, i) {
+    let selection = d3.selectAll('.' + Classes.POI_CLASS).filter(function(d, i) {
       return d.color == '[' + color.red + ',' + color.green + ',' + color.blue + ']';
     });
 
-    var colors = this.state.colors;
-    for(var i = 0; i < colors.length; ++i) {
-      var iColor = colors[i];
+    let colors = this.state.colors;
+    for(let i = 0; i < colors.length; ++i) {
+      let iColor = colors[i];
       if(iColor.key == key) {
         if(iColor.hidden) {
           iColor.hidden = false;
@@ -118,8 +118,8 @@ class DisplayController extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    for(var i = 0; i < nextState.colors.length; ++i) {
-      var color = nextState.colors[i];
+    for(let i = 0; i < nextState.colors.length; ++i) {
+      let color = nextState.colors[i];
       if(color.hidden) {
         color.poiButtonStyle.opacity = 0.4;
       }

@@ -1,4 +1,6 @@
 /**
+ * Store for images. When a component asks for an image to be loaded in the background this is the store handling the action and storing the image. Loaded images are stored internally for later calls.
+ *
  * Created by dmitri on 29/02/16.
  */
 'use strict';
@@ -31,6 +33,11 @@ class ImageStore extends EventEmitter {
     })
   }
 
+  /**
+   * Begin loading an image. Checks if the image is already stored.
+   * @param source String url of the image
+   * @param callback Function callback for when the image finishes loading with success (or when the placeholder is loaded if the image is not available)
+   */
   loadImage(source, callback) {
     if(this.imagesLoaded[source]) {
       // Image is already loaded in store, call callback immediately (with timeout)
@@ -52,7 +59,6 @@ class ImageStore extends EventEmitter {
 
       this.imagesLoading[source].image.onload = this.imageLoaded.bind(this, source);
 
-      //console.log(this.currentlyLoadingImage.image);
       this.imagesLoading[source].image.onerror = function() {
         console.error('Could not load image ' + this.src);
         this.src = imageNotFound;
@@ -62,6 +68,10 @@ class ImageStore extends EventEmitter {
     }
   }
 
+  /**
+   * Called when an image is done loading. Checks the state of the image and calls all registered callbacks for this image.
+   * @param source String url of the image which finished loading
+   */
   imageLoaded(source) {
     this.imagesLoaded[source] = {
       image: this.imagesLoading[source].image,
@@ -81,6 +91,10 @@ class ImageStore extends EventEmitter {
     this.emit(this.imageLoadedEvent);
   }
 
+  /**
+   * Returns the number of images currently loading or waiting to be loaded.
+   * @returns {Number}
+   */
   countLoadingImages() {
     return Object.keys(this.imagesLoading).length;
   }

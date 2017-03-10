@@ -1,4 +1,6 @@
 /**
+ * ReColNat basket receiver and display component.
+ *
  * Created by dmitri on 11/01/16.
  */
 'use strict';

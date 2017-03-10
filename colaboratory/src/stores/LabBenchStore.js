@@ -1,4 +1,15 @@
 /**
+ * Loads and stores the lab bench.
+ *
+ * Loading of a bench is progressive and deep, taking into account all visible elements :
+ * - Set
+ * - Views
+ * - Specimens
+ * - Images
+ * - Anchors (PoI, RoI, AoI, ToI)
+ * - Measure Standards
+ * - Measurements
+ *
  * Created by dmitri on 08/04/16.
  */
 'use strict';
@@ -84,6 +95,11 @@ class LabBenchStore extends EventEmitter {
     });
   }
 
+  /**
+   * Returns data about any visible entity with the provided id.
+   * @param id
+   * @returns {null}
+   */
   getData(id) {
     if(this.labBench.id == id) {
       return JSON.parse(JSON.stringify(this.labBench.metadata));
@@ -121,6 +137,11 @@ class LabBenchStore extends EventEmitter {
     return null;
   }
 
+  /**
+   * Returns an array containing the displayed specimens and images in a view (list of {link,id} elements. Each element represents a View -display-> Item relationship.
+   * @param id
+   * @returns {null}
+   */
   getDisplayData(id) {
     if(this.labBench) {
       if (this.labBench.views && this.activeView) {
@@ -240,9 +261,6 @@ class LabBenchStore extends EventEmitter {
   }
 
   loadItems(ids) {
-    //console.log(JSON.stringify(ids));
-    //console.log(JSON.stringify(this.labBench));
-    //console.log(JSON.stringify(this.ids));
     for(let i = 0; i < ids.length; ++i) {
       if(!_.contains(this.ids.items, ids[i])) {
         this.socket.addResourceListener(ids[i], this.itemLoaded.bind(this), 10);
@@ -638,6 +656,10 @@ class LabBenchStore extends EventEmitter {
     }
   }
 
+  /**
+   * A lab bench is considered loaded when it, its view and images & specimens are fully loaded. Other entities keep loading in the background.
+   * @returns {boolean}
+   */
   isLoaded() {
     if(this.labBench) {
       if (this.labBench.metadata) {

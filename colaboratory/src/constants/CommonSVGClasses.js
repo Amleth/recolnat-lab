@@ -1,3 +1,6 @@
+/**
+ * List of class names to be used for SVG components
+ */
 'use strict';
 
 export default {
@@ -38,10 +41,4 @@ export default {
   PATH_CLASS: 'path',
   ROI_CLASS: 'regionOfInterest',
   AOI_CLASS: 'angleOfInterest',
-
-  // TODO check the following stuff to see if it useful
-
-  IMAGE_CONTAINER_CLASS: 'imageContainer'
-
-
 };

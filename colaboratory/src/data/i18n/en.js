@@ -1,4 +1,6 @@
 /**
+ * English interface internationalisation file.
+ *
  * Created by dmitri on 07/12/16.
  */
 'use strict';

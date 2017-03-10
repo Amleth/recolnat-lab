@@ -1,4 +1,8 @@
 /**
+ * Lists image exports available for download to the user and enables the user to add the current selected set to exports.
+ *
+ * This modal does not require data to be passed to it through ModalStore.
+ *
  * Created by dmitri on 02/12/16.
  */
 'use strict';

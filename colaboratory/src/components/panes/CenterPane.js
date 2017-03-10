@@ -1,4 +1,6 @@
 /**
+ * Central pane of the application.
+ *
  * Created by dmitri on 17/05/16.
  */
 'use strict';

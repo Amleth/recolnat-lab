@@ -1,4 +1,6 @@
 /**
+ * Component containing the lab bench which displays the 2D-space enabling the user to do most of their annotation work.
+ *
  * Created by dmitri on 30/03/15.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Events for minimap
+ *
  * Created by dmitri on 05/10/15.
  */
 'use strict';

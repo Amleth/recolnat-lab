@@ -1,4 +1,6 @@
 /**
+ * Various static callbacks for the context menu.
+ *
  * Created by dmitri on 02/03/16.
  */
 'use strict';

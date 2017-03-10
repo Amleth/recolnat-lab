@@ -1,4 +1,6 @@
 /**
+ * Column displaying the children of a Set.
+ *
  * Created by dmitri on 13/01/16.
  */
 'use strict';

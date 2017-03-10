@@ -1,11 +1,12 @@
+/**
+ * Constants for interacting with the view.
+ */
 'use strict';
 
 export default {
+  // Actions, the Server/Local distinction is inherited from the time of the REST API. No real reason to keep them separate now.
   ActionTypes: {
     Server: {
-      /**
-       * Values must be mirrored with ServerConstants for simple referral.
-       */
       VIEW_SET_DISPLAYED_SET: 20,
       VIEW_MOVE_ENTITY: 22,
       VIEW_PLACE_ENTITY: 23
@@ -18,12 +19,11 @@ export default {
       SET_ACTIVE_VIEW: 'VIEW_SET_ACTIVE_VIEW',
       VIEW_SET_SELECTION: "VIEW_SET_SELECTION",
       VIEW_FIT_ALL: "VIEW_FIT_ALL",
-      GO_TO_ITEM_IDX: "VIEW_GO_TO_ITEM_IDX",
-      // RELOAD_METADATA: "VIEW_RELOAD_METADATA",
       LOADER_CHANGE_STATE: "VIEW_LOADER_CHANGE_STATE",
       SCHEDULE_IMAGE_LOAD: "VIEW_SCHEDULE_IMAGE_LOAD"
     }
   },
+  // z-indices for various components with fixed/absolute position
   zIndices: {
     topPane: 502,
     leftPane: 500,
@@ -36,6 +36,7 @@ export default {
     modalDimmer: 10000,
     loginRequiredModal: 10001
   },
+  // Quality of images corresponds to their size (thumbnail, intermediate, original)
   imageQuality: {
     Low: 1,
     High: 2,

@@ -1,4 +1,6 @@
 /**
+ * Stores data for the Inspector / Properties panel and the List of Annotations / Tags
+ *
  * Created by dmitri on 03/05/16.
  */
 'use strict';

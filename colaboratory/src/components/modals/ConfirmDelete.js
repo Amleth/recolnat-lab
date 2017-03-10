@@ -1,4 +1,10 @@
 /**
+ * Confirm if the user wants to delete the selected link between a set/view and an item it contains. Thid modal only supports deleting links between entities, not entities themselves.
+ *
+ * Data object passed to ModalStore must contain :
+ *  - link: String UID of the link to delete
+ *  - actionType: String either 'unlink-from-view' or 'unlink-from-set'
+ *
  * Created by dmitri on 30/05/16.
  */
 'use strict';
@@ -52,7 +58,7 @@ class ConfirmDelete extends AbstractModal {
   }
 
   unlink() {
-    var data = this.props.modalstore.getTargetData();
+    let data = this.props.modalstore.getTargetData();
     console.log(JSON.stringify(data));
     switch(data.actionType) {
       case 'unlink-from-view':

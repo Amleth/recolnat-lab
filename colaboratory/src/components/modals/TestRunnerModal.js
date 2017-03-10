@@ -1,4 +1,5 @@
 /**
+ * Modal containing dev options for load-testing REST API (nothing useful at the moment).
  * Created by dmitri on 11/07/16.
  */
 'use strict';

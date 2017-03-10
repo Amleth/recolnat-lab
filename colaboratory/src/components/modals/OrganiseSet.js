@@ -1,4 +1,9 @@
 /**
+ * Organises the items in the selected set by grouping them into subsets using the name of each item as sorting criteria.
+ *
+ * Data object passed to ModalStore must contain :
+ *  - id: String UID of the Set to be sorted
+ *
  * Created by dmitri on 25/11/16.
  */
 'use strict';

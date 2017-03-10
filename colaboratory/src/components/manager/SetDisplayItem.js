@@ -1,4 +1,6 @@
 /**
+ * Entry in a SetDisplay which displays an Item (final leaf) in a Set.
+ *
  * Created by dmitri on 31/08/16.
  */
 import React from 'react';

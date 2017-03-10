@@ -1,4 +1,6 @@
 /**
+ * Events for the socket connector
+ *
  * Created by dmitri on 20/04/16.
  */
 'use strict';

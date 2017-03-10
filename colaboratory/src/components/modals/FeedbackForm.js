@@ -1,4 +1,8 @@
 /**
+ * Modal which provides a form to the user to send feedback about the Colaboratory to the server (which then stores the feedback somewhere).
+ *
+ * No data expected from ModalStore
+ *
  * Created by dmitri on 30/05/16.
  */
 'use strict';

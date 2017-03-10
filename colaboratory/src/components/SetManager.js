@@ -1,4 +1,6 @@
 /**
+ * Set Manager component providing the column-based display of Sets and their content.
+ *
  * Created by dmitri on 13/01/16.
  */
 'use strict';

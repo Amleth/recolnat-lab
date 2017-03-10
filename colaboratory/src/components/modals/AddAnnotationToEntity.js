@@ -1,4 +1,9 @@
 /**
+ * Modal with a large text field to add an annotation to a specific entity.
+ *
+ * Data object passed to ModalStore must contain :
+ *  - entity: String UID of the entity to add the annotation to
+ *
  * Created by dmitri on 07/06/16.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Events for switching modes
+ *
  * Created by dmitri on 20/04/16.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Context menu in the form of an orb.
+ *
  * Created by dmitri on 26/02/16.
  */
 'use strict';

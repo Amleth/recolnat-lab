@@ -1,4 +1,6 @@
 /**
+ * Actions types and constants for application mode.
+ *
  * Created by dmitri on 20/04/16.
  */
 

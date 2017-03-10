@@ -1,4 +1,6 @@
 /**
+ * Filters to toggle on/off display of certain entities (borders, anchors)
+ *
  * Created by dmitri on 17/01/17.
  */
 'use strict';

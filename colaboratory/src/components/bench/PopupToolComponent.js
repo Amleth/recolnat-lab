@@ -1,4 +1,6 @@
 /**
+ * Container for a tool's popup component. Not displayed when no tool is active.
+ *
  * Created by dmitri on 27/08/15.
  */
 "use strict";

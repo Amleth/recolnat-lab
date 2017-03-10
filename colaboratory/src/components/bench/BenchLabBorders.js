@@ -1,4 +1,6 @@
 /**
+ * Bench lab border arrows which can be used to move the viewport around by hovering mouse over them.
+ *
  * Created by dmitri on 02/03/16.
  */
 'use strict';
@@ -146,10 +148,10 @@ class WorkbenchBorders extends React.Component {
   }
 
   scroll(top, right, bottom, left) {
-    var viewport = this.props.viewstore.getView();
-    var newLeft = viewport.left;
-    var newTop = viewport.top;
-    var moveFactor = 1;
+    let viewport = this.props.viewstore.getView();
+    let newLeft = viewport.left;
+    let newTop = viewport.top;
+    let moveFactor = 1;
 
     if (viewport.scale < 0.1) {
       moveFactor = 2;

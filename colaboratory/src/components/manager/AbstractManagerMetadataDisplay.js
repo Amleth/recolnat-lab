@@ -1,4 +1,6 @@
 /**
+ * Displays a subset of metadata of the selected entity. Abstract component to be extended by the actual components. See palettes/SpecimenMetadataDisplay for example.
+ *
  * Created by dmitri on 25/01/16.
  */
 'use strict';
@@ -61,7 +63,7 @@ class WorkbenchManagerMetadataDisplay extends React.Component {
   }
 
   receiveMetadata() {
-    var data = this.props.metastore.getMetadataAbout(this.state.id);
+    let data = this.props.metastore.getMetadataAbout(this.state.id);
     if(data) {
       this.processCoLabMetadata(data);
     }

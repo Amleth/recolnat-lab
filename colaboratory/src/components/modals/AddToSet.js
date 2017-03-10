@@ -1,4 +1,9 @@
 /**
+ * Add entities to a set. This modal can be used to create subsets and directly import entities into it, either from the ReColNat Basket or from a CSV file.
+ *
+ * Data object passed to ModalStore must contain :
+ *  - parent: String UID of the Set to fill
+ *
  * Created by dmitri on 18/11/16.
  */
 'use strict';

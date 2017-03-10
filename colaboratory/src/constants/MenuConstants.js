@@ -1,4 +1,6 @@
 /**
+ * Constants for the context menu and Properties panel.
+ *
  * Created by dmitri on 04/01/16.
  */
 'use strict';

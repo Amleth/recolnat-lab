@@ -1,4 +1,6 @@
 /**
+ * Constants for the minimap actions.
+ *
  * Created by dmitri on 06/10/15.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Global list of tool ids. Might be more appropriate to move it into ToolConstants file instead.
+ *
  * Created by Dmitri Voitsekhovitch on 20/08/15.
  */
 "use strict";

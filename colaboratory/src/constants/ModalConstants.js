@@ -1,4 +1,6 @@
 /**
+ * Constants for modal actions and modal ids.
+ *
  * Created by dmitri on 07/04/16.
  */
 'use strict';

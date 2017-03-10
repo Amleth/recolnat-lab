@@ -1,4 +1,6 @@
 /**
+ * Entry in a SetDisplay which displays a sub-Set of a Set.
+ *
  * Created by dmitri on 31/08/16.
  */
 import React from 'react';

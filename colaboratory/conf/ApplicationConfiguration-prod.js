@@ -1,5 +1,8 @@
 'use strict';
 
+/**
+ * See ApplicationConfiguration-dev-server.js for documentation
+ */
 let Application = {
   languages: [
     {code: 'en', localized: 'English', flag: 'gb'},
@@ -10,6 +13,7 @@ let Application = {
 let Integration = {
   recolnatMenuBarOrigin: 'https://www.recolnat.org',
   recolnatMenuBarUrl: 'https://www.recolnat.org/menu',
+  recolnatBasketIframeUrl: 'https://wp5test.recolnat.org/basket',
   casLoginUrl: 'https://cas.recolnat.org/login',
   casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };

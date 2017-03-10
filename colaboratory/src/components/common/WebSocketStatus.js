@@ -1,4 +1,6 @@
 /**
+ * Indicates how many messages are expecting an answer from the WebSocket. Not displayed if no messages in queue.
+ *
  * Created by dmitri on 28/10/16.
  */
 'use strict';

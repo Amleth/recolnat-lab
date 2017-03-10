@@ -1,6 +1,10 @@
 'use strict';
 
-// Each language must have a corresponding language file defined in src/data/i18n
+/**
+ * Defines languages available in application. Each language must have a corresponding language file defined in src/data/i18n
+ * localized: The displayed name in its original language
+ * flag: Flag of the country (see Semantic-UI doc on country flags)
+ */
 let Application = {
   languages: [
     {code: 'en', localized: 'English', flag: 'gb'},
@@ -8,24 +12,37 @@ let Application = {
   ]
 };
 
+/**
+ * URLs of external elements to integrate in the interface: menu bar origin (for cross-validation) & url, CAS login & signup urls
+ */
 let Integration = {
   recolnatMenuBarOrigin: 'https://wp5test.recolnat.org',
   recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu',
+  recolnatBasketIframeUrl: 'https://wp5test.recolnat.org/basket',
   casLoginUrl: 'https://cas.recolnat.org/login',
   casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };
 
+/**
+ * Locations of service APIs & export downloads.
+ */
 let Services = {
   laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/rest',
   laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory',
   downloadsBaseURL: 'https://wp5test.recolnat.org/exports/'
 };
 
+/**
+ * Adresses of REST endpoints
+ */
 let Endpoints = {
   tagService: Services.laboratoryRESTService + '/tags',
   downloadsService: Services.laboratoryRESTService + '/downloads'
 };
 
+/**
+ * Actions available for each endpoint
+ */
 let Actions = {
   tags: {
     queryKey: Endpoints.tagService + '/query/key',
@@ -36,6 +53,9 @@ let Actions = {
   }
 };
 
+/**
+ * Actions available for the websocket (these go into the actionDetail message parameter).
+ */
 let SocketActions = {
   createRegionOfInterest: "create-roi",
   createPointOfInterest: "create-poi",

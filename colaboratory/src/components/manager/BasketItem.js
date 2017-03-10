@@ -1,4 +1,6 @@
 /**
+ * Item (image) in the ReColNat basket.
+ *
  * Created by dmitri on 19/01/16.
  */
 'use strict';
@@ -76,12 +78,7 @@ class BasketItem extends React.Component {
   }
 
   viewFullSizeModal() {
-    //if(this.props.content && this.props.content.image.length > 0) {
-    //  this.setState({modalSrc: this.props.content.image[0].url});
-    //}
-    //else {
-    //  this.setState({modalSrc: notFound});
-    //}
+
   }
 
   imageLoaded(image) {

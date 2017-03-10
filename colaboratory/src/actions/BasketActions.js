@@ -1,5 +1,7 @@
 /**
  * Created by dmitri on 22/06/16.
+ *
+ * Constants for Explore basket actions.
  */
 'use strict';
 

@@ -1,4 +1,6 @@
 /**
+ * Left pane of the application
+ *
  * Created by dmitri on 30/03/15.
  */
 'use strict';
@@ -6,18 +8,12 @@
 import React from "react";
 
 import Minimap from '../../tools/palettes/Minimap';
-import CollectionNavigator from '../../tools/palettes/CollectionNavigator';
 import Toolbox from '../../tools/palettes/Toolbox';
 import ViewController from '../../tools/palettes/ViewController';
-import Organisation from '../../tools/palettes/Organisation';
 import ModeSwitcher from '../../tools/palettes/ModeSwitcher';
 import GroupSelector from '../../tools/palettes/GroupSelector';
 import SetSelectorDisplay from '../../tools/palettes/SetSelectorDisplay';
 import SetManagerMainButtons from '../../tools/palettes/SetManagerMainButtons';
-
-import ModeConstants from '../../constants/ModeConstants'
-
-import toolboxIcon from '../../images/tools.svg';
 
 class LeftPane extends React.Component {
 

@@ -1,3 +1,6 @@
+/**
+ * Container for the D3FreeSpace and coordinates communication between stores and SVG display.
+ */
 'use strict';
 
 import React from 'react';

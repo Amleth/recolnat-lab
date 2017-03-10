@@ -1,4 +1,6 @@
 /**
+ * Constants for actions acting on user preferences.
+ *
  * Created by dmitri on 12/12/16.
  */
 'use strict';

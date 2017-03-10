@@ -1,4 +1,6 @@
 /**
+ * Constants for tool actions.
+ *
  * Created by dmitri on 08/10/15.
  */
 'use strict';

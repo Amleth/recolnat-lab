@@ -1,4 +1,6 @@
 /**
+ * Intermediary storage for entities in a Set which are not displayed in the current active View.
+ *
  * Created by dmitri on 03/02/16.
  */
 'use strict';

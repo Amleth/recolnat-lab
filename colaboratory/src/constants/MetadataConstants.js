@@ -1,13 +1,13 @@
 /**
+ * Actions for general metadata and lab bench actions.
+ *
  * Created by dmitri on 05/04/16.
  */
 'use strict';
 
 export default {
   ActionTypes: {
-    GET_EXTERNAL_METADATA: 'METADATA_GET_EXTERNAL_METADATA',
     SET_LAB_BENCH: 'METADATA_SET_LAB_BENCH',
     LOAD_LAB_BENCH: 'METADATA_LOAD_LAB_BENCH'
-    // UPDATE_LAB_BENCH: 'METADATA_UPDATE_LAB_BENCH'
   }
 };

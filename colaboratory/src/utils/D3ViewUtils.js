@@ -15,9 +15,7 @@ import ViewConstants from '../constants/ViewConstants';
 import ViewActions from '../actions/ViewActions';
 
 import markerSVG from '../images/poi.svg';
-import resizeIcon from '../images/resize_nw.svg';
 import resizeHandleIcon from '../images/resize-handle.svg';
-import moveIcon from '../images/hand_hex.svg';
 
 export default class D3ViewUtils {
   /**

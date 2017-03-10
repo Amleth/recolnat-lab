@@ -1,4 +1,6 @@
 /**
+ * Events for the ReColNat Basket
+ *
  * Created by dmitri on 22/06/16.
  */
 'use strict';

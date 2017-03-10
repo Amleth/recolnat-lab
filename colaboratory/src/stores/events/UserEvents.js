@@ -1,4 +1,6 @@
 /**
+ * Events for user and user profile actions
+ *
  * Created by dmitri on 24/11/15.
  */
 'use strict';

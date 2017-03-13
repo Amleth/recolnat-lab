@@ -1,3 +1,6 @@
+/**
+ * Implementation of AbstractTool to measure lines. Works exactly as a ToI (down to database type) but does not allow to create 'broken' lines.
+ */
 'use strict';
 
 import React from 'react';

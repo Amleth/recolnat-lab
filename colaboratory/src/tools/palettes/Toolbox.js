@@ -1,3 +1,6 @@
+/**
+ * Displays the available tools. Some of the tool access buttons are hidden, these are merely here in order to be registered within the application and be callable by other means than from this Toolbox.
+ */
 'use strict';
 
 import React from 'react';
@@ -5,8 +8,6 @@ import React from 'react';
 import LineMeasure from "../impl/LineMeasure";
 import CreatePointOfInterest from "../impl/CreatePoI";
 import MoveObject from "../impl/MoveObject.js";
-import SelectObject from '../impl/SelectObject.js';
-import MoveView from '../impl/MoveView';
 import CreatePath from '../impl/CreatePath';
 import CreateRoI from '../impl/CreateRoI';
 import CreateAngle from '../impl/CreateAngle';

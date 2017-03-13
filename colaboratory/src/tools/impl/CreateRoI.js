@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to create Regions of Interest. As this is one of the oldest tools, legacy code may exist here and some algorithms used for other tools are better documented here.
+ *
  * Created by dmitri on 17/12/15.
  */
 'use strict';

@@ -1,4 +1,6 @@
 /**
+ * Popup for the CreateRoI tool.
+ *
  * Created by hector on 31/07/15.
  */
 "use strict";

@@ -1,4 +1,6 @@
 /**
+ * Popup for the LineMeasure tool.
+ *
  * Created by dmitri on 30/09/15.
  */
 "use strict";

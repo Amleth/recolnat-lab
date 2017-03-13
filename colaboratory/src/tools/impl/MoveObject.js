@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to move images placed on the bench. When this tool is selected it creates a transparent image over each image with onDrag callbacks for moving them.
+ *
  * Created by dmitri on 28/10/15.
  */
 'use strict';

@@ -1,4 +1,8 @@
 /**
+ * This component displays Recolnat API metadata about a selected specimen/image
+ *
+ * TODO: Update the code to user getExternalMetadata of MetaStore instead of calling API directly.
+ *
  * Created by dmitri on 30/03/15.
  */
 'use strict';
@@ -10,10 +14,6 @@ import HarvestMetadataTable from './metadata/HarvestMetadataTable';
 import DeterminationMetadataTable from './metadata/DeterminationMetadataTable';
 import LocationMetadataTable from './metadata/LocationMetadataTable';
 
-import MetadataActions from '../../actions/MetadataActions';
-
-import conf from '../../conf/ApplicationConfiguration';
-
 class MetadataViewer extends React.Component {
 
   constructor(props) {
@@ -22,10 +22,7 @@ class MetadataViewer extends React.Component {
     this.placeholderStyle = {
       backgroundColor: '#F2F2F2',
       height: this.props.height-10,
-      // margin: '1%',
       padding: '5px 5px 15px 5px',
-      // overflowY: 'auto',
-      // width: '100%',
       borderColor: '#2185d0!important'
     };
 

@@ -1,4 +1,6 @@
 /**
+ * Store for modal data
+ *
  * Created by dmitri on 07/04/16.
  */
 'use strict';
@@ -24,7 +26,6 @@ class ModalStore extends EventEmitter {
     AppDispatcher.register((action) => {
       switch(action.actionType) {
         case ModalConstants.ActionTypes.SHOW_MODAL:
-          //console.log('store modal ' + action.id);
           this.displayedModalId = action.id;
           if(action.target) {
             this.targetData = JSON.parse(JSON.stringify(action.target));

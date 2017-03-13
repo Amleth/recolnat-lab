@@ -1,4 +1,6 @@
 /**
+ * Store for the data displayed in the SetManager
+ *
  * Created by dmitri on 15/01/16.
  */
 'use strict';
@@ -12,20 +14,23 @@ import ManagerConstants from '../constants/ManagerConstants';
 
 import ManagerEvents from './events/ManagerEvents';
 
-import ManagerActions from '../actions/ManagerActions';
-import ViewActions from '../actions/ViewActions';
 import SocketActions from '../actions/SocketActions';
-
-import Globals from '../utils/Globals';
-
-import conf from '../conf/ApplicationConfiguration';
 
 class ManagerStore extends EventEmitter {
   constructor() {
     super();
 
     this.setMaxListeners(500);
-    this.isVisible = true;
+
+    /**
+     * Global selected node (set or item).
+     * @field id String UID of the node (set, specimen or image UID)
+     * @field name String plain text name of the selection
+     * @field type String type of the entity in database
+     * @field parent String UID of the parent set
+     * @field linkToParent String UID of the link (edge) between this node and its parent. This is important as the same entity may appear multiple times within a Set, however each time the link UID is different.
+     * @type {{id: null, name: null, type: null, parent: null, linkToParent: null}}
+     */
     this.selectedNode = {
       id: null,
       name: null,
@@ -34,6 +39,10 @@ class ManagerStore extends EventEmitter {
       linkToParent: null
     };
 
+    /**
+     * List of sets to be displayed in the manager (and their content). Each entry in this array is one column in the manager.
+     * @type {Array}
+     */
     this.displayedSets = [];
 
     this.userCoreSet = {};
@@ -42,10 +51,6 @@ class ManagerStore extends EventEmitter {
 
     AppDispatcher.register((action) => {
       switch(action.actionType) {
-        case ManagerConstants.ActionTypes.TOGGLE_SET_MANAGER_VISIBILITY:
-          this.isVisible = action.visible;
-          this.emit(ManagerEvents.TOGGLE_SET_MANAGER_VISIBILITY);
-          break;
         case ManagerConstants.ActionTypes.SET_SELECTED_NODE:
           //console.log(JSON.stringify(action));
           if(action.id) {
@@ -57,7 +62,7 @@ class ManagerStore extends EventEmitter {
               linkToParent: action.linkToParent
             };
             if(action.type == 'Set') {
-              var parentIndex = this.indexOfDisplayedSet(action.parent);
+              let parentIndex = this.indexOfDisplayedSet(action.parent);
               this.requestGraphAround(action.id, action.type, parentIndex+1, true);
             }
           }
@@ -124,8 +129,13 @@ class ManagerStore extends EventEmitter {
     return JSON.parse(JSON.stringify(this.userCoreSet));
   }
 
+  /**
+   * Returns the index of the first displayed set corresponding to the provided id.
+   * @param id
+   * @returns {number}
+   */
   indexOfDisplayedSet(id) {
-    for(var i = 0; i < this.displayedSets.length; ++i) {
+    for(let i = 0; i < this.displayedSets.length; ++i) {
       if(this.displayedSets[i].uid == id) {
         return i;
       }
@@ -137,6 +147,11 @@ class ManagerStore extends EventEmitter {
     return JSON.parse(JSON.stringify(this.displayedSets));
   }
 
+  /**
+   * Sets the selected item in a specific set (not the global selection).
+   * @param setIdx
+   * @param itemId
+   */
   setSelected(setIdx, itemId) {
     if(setIdx == -1) {
       this.studyContainer.selectedId = itemId;
@@ -150,26 +165,25 @@ class ManagerStore extends EventEmitter {
     return this.displayedSets[index].selectedId;
   }
 
-  getManagerVisibility() {
-    return this.isVisible;
-  }
-
   getSelected() {
     return JSON.parse(JSON.stringify(this.selectedNode));
   }
 
+  /**
+   * Receives data about a Set and stores it, keeping the old local selection if any. Adds a hash to the Set in order to be able to find out easily when a set changes without parsing all of its data.
+   * @param data
+   */
   receiveSetData(data) {
-    //console.log('received set data ' + JSON.stringify(data));
-    var setIndex = this.setIdToPosition[data.uid];
+    let setIndex = this.setIdToPosition[data.uid];
     if(setIndex === undefined || setIndex === null) {
       // This set is no longer displayed, we should think about unsubscribing as well
       console.warn('Set is not in display ' + data.uid);
       return;
     }
-    var newData = JSON.parse(JSON.stringify(data));
+    let newData = JSON.parse(JSON.stringify(data));
     newData.hash = UUID.v4();
 
-    var oldData = this.displayedSets[setIndex];
+    let oldData = this.displayedSets[setIndex];
     if(oldData.uid === data.uid) {
       newData.selectedId = oldData.selectedId;
     }
@@ -177,6 +191,13 @@ class ManagerStore extends EventEmitter {
     this.emit(ManagerEvents.UPDATE_MANAGER_DISPLAY);
   }
 
+  /**
+   * Retrieve a Set from the server and store it at the given index, clearing all following indexes if necessary.
+   * @param id String UID of the Set to request
+   * @param type String type corresponding to the UID, if not 'Set' this function does nothing
+   * @param setIdx Integer (optional) index at which to store the set. If no index is provided, it will be pushed to the end.
+   * @param splice Boolean (optional) if true will remove all sets after the provided index. False by default.
+   */
   requestGraphAround(id, type, setIdx, splice = false) {
     //console.log('requestGraphAround(' + id + ',' + type + ',' + setIdx + ',' + splice +')');
     if(type !== 'Set') {
@@ -194,8 +215,8 @@ class ManagerStore extends EventEmitter {
     }
 
     if(splice) {
-      var removed = this.displayedSets.splice(setIdx);
-      for(var i =0; i < removed.length; ++i) {
+      let removed = this.displayedSets.splice(setIdx);
+      for(let i =0; i < removed.length; ++i) {
         this.setIdToPosition[removed[i].uid] = null;
         window.setTimeout(SocketActions.removeListener.bind(null, removed[i].uid, this.listenersById[removed[i].uid]), 10);
         delete this.listenersById[removed[i].uid];
@@ -215,14 +236,6 @@ class ManagerStore extends EventEmitter {
       //console.log('register listener' + id);
       window.setTimeout(SocketActions.registerListener.bind(null, id, this.receiveSetData.bind(this)), 10);
     }
-  }
-
-  addManagerVisibilityListener(callback) {
-    this.on(ManagerEvents.TOGGLE_SET_MANAGER_VISIBILITY, callback);
-  }
-
-  removeManagerVisibilityListener(callback) {
-    this.removeListener(ManagerEvents.TOGGLE_SET_MANAGER_VISIBILITY, callback);
   }
 
   addSelectionChangeListener(callback) {

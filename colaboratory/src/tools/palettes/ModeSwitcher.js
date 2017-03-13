@@ -1,4 +1,6 @@
 /**
+ * This component is used to switch the application between its supported modes (Sets, Observation, Organisation, Tabular).
+ *
  * Created by dmitri on 20/04/16.
  */
 'use strict';

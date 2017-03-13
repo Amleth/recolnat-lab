@@ -1,4 +1,6 @@
 /**
+ * This component displays the list of images in a set and shows a thumbnail of the image when it is selected.
+ *
  * Created by dmitri on 24/05/16.
  */
 'use strict';

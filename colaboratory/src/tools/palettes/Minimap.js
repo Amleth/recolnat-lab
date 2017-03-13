@@ -1,4 +1,6 @@
 /**
+ * This component displays an image's minimap and provides limited viewport controls.
+ *
  * Created by hector on 04/08/15.
  */
 "use strict";

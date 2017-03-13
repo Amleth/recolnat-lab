@@ -1,14 +1,13 @@
 /**
+ * Basic controls for the viewport (zoom, fit)
+ *
  * Created by dmitri on 21/04/16.
  */
 'use strict';
 
 import React from 'react';
-import d3 from 'd3';
 
 import ViewActions from '../../actions/ViewActions';
-
-import OrbOptions from '../../components/context-menu/options/OrbOptions';
 
 import D3ViewUtils from '../../utils/D3ViewUtils';
 

@@ -1,4 +1,6 @@
 /**
+ * This component is used to get a list of images displayed in the lab bench and to select an entity. In the future it should be updated to operate on user-created groups.
+ *
  * Created by dmitri on 22/04/16.
  */
 'use strict';

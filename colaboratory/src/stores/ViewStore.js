@@ -1,4 +1,6 @@
 /**
+ * Store for view data : viewport, object size, loader text, filters.
+ *
  * Created by dmitri on 05/10/15.
  */
 "use strict";
@@ -10,12 +12,6 @@ import AppDispatcher from "../dispatcher/AppDispatcher";
 import ViewConstants from '../constants/ViewConstants';
 
 import ViewEvents from './events/ViewEvents';
-
-import MetadataActions from '../actions/MetadataActions';
-
-import ServiceMethods from '../utils/ServiceMethods';
-
-import conf from '../conf/ApplicationConfiguration';
 
 class ViewStore extends EventEmitter {
   constructor() {
@@ -46,7 +42,6 @@ class ViewStore extends EventEmitter {
     };
 
     AppDispatcher.register((action) => {
-      //console.log("Received action " + JSON.stringify(action));
       switch (action.actionType) {
         case ViewConstants.ActionTypes.Local.UPDATE_VIEWPORT:
           this.setViewportData(action.x, action.y, action.width, action.height, action.scale, action.animate);
@@ -70,12 +65,6 @@ class ViewStore extends EventEmitter {
         case ViewConstants.ActionTypes.Local.LOADER_CHANGE_STATE:
           this.setLoaderText(action.text);
           this.emit(ViewEvents.UPDATE_LOADER);
-          break;
-        case ViewConstants.ActionTypes.Server.VIEW_PLACE_ENTITY:
-          this.sendPlaceRequest(action.viewId, action.entityId, action.x, action.y);
-          break;
-        case ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY:
-          this.sendMoveRequest(action.viewId, action.entityId, action.linkId, action.x, action.y);
           break;
         default:
           break;
@@ -153,23 +142,6 @@ class ViewStore extends EventEmitter {
     return this.viewport;
   }
 
-  sendPlaceRequest(viewId, entityId, x, y) {
-    ServiceMethods.place(viewId, entityId, x, y, undefined);
-  }
-
-  sendMoveRequest(viewId, entityId, linkId, x, y) {
-    if(!viewId) {
-      return;
-    }
-    if(!entityId) {
-      return;
-    }
-    if(!linkId) {
-      return;
-    }
-    ServiceMethods.move(viewId, linkId, entityId, x, y, undefined);
-  }
-
   addViewportListener(callback) {
     this.on(ViewEvents.UPDATE_VIEWPORT, callback);
   }
@@ -208,14 +180,6 @@ class ViewStore extends EventEmitter {
 
   removeLoaderListener(callback) {
     this.removeListener(ViewEvents.UPDATE_LOADER, callback);
-  }
-
-  addMetadataListener(callback) {
-    this.on(ViewEvents.SHOW_ENTITY_METADATA_MODAL, callback);
-  }
-
-  removeMetadataListener(callback) {
-    this.removeListener(ViewEvents.SHOW_ENTITY_METADATA_MODAL, callback);
   }
 }
 

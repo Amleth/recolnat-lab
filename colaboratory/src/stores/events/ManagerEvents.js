@@ -6,7 +6,6 @@
 'use strict';
 
 export default {
-  TOGGLE_SET_MANAGER_VISIBILITY: "manager_toggleSetManagerVisibility",
   SET_SELECTED_NODE: 'manager_setSelectedNode',
   UPDATE_MANAGER_DISPLAY: 'manager_updateManagerDisplay'
 };

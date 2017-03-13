@@ -1,4 +1,6 @@
 /**
+ * Implementation of abstract tool to create angles.
+ *
  * Created by dmitri on 08/07/16.
  */
 'use strict';
@@ -71,11 +73,6 @@ class CreateAngle extends AbstractTool {
       vertex: 'angleMeasureVertex',
       whiteDashedLine: 'angleMeasureWhiteDashedLine',
       blackLine: 'angleMeasureBlackLine'
-      //center: 'angleMeasureCenterVertex',
-      //vertex1: 'angleMeasureFirstVertex',
-      //vertex2: 'angleMeasureSecondVertex',
-      //baseLine: 'angleMeasureBaseLine',
-      //rotationLine: 'angleMeasureRotationLine'
     };
   }
 
@@ -128,7 +125,7 @@ class CreateAngle extends AbstractTool {
       .on('mouseenter', this.activateEnter)
       .on('mouseleave', this.deactivateEnter);
 
-    var popup = <Popup setDataCallback={this.setData.bind(this)}
+    let popup = <Popup setDataCallback={this.setData.bind(this)}
                        userstore={this.props.userstore}
                        toolstore={this.props.toolstore} key='CREATE-ANGLE-POPUP'/>;
     window.setTimeout(ToolActions.activeToolPopupUpdate.bind(null, popup), 10);
@@ -214,7 +211,7 @@ class CreateAngle extends AbstractTool {
   }
 
   adaptElementSizeToZoom(view) {
-    var tool = d3.select('.' + CreateAngle.svgClasses().container);
+    let tool = d3.select('.' + CreateAngle.svgClasses().container);
 
     tool.selectAll('.' + CreateAngle.svgClasses().vertex)
       .attr('r', 6/view.scale)

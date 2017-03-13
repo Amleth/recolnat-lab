@@ -1,4 +1,6 @@
 /**
+ * Popup for the CreateMeasureStandard tool.
+ *
  * Created by dmitri on 06/01/17.
  */
 'use strict';

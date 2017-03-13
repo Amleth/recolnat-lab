@@ -1,3 +1,6 @@
+/**
+ * Store for tool data and interaction
+ */
 'use strict';
 
 import {EventEmitter} from 'events';
@@ -10,9 +13,6 @@ import ViewConstants from '../constants/ViewConstants';
 import ToolEvents from "./events/ToolEvents";
 import ViewEvents from "./events/ViewEvents";
 
-import ViewActions from "../actions/ViewActions";
-import MetadataActions from '../actions/MetadataActions';
-
 class ToolStore extends EventEmitter {
   constructor() {
     super();
@@ -21,6 +21,10 @@ class ToolStore extends EventEmitter {
     this.activeTool = null;
     this.activeToolPopup = null;
     this.tooltipContent = null;
+    /**
+     * Selected image UID
+     * @type {string}
+     */
     this.imageId = null;
     this.toolData = null;
 

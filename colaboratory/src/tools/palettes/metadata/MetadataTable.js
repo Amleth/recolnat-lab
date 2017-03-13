@@ -1,4 +1,8 @@
 /**
+ * Generic metadata table display palette. Displays itself as an accordion. This one displays basic entity data received from Recolnat API.
+ *
+ * Can be easily extended to other types of data by implementing the buildDisplayTableBody function.
+ *
  * Created by dmitri on 15/02/16.
  */
 'use strict';

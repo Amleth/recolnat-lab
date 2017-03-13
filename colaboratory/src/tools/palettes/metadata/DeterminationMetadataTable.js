@@ -1,7 +1,8 @@
 /**
+ * MetadataTable extension to display Determination data received from Recolnat API.
  * Created by dmitri on 18/02/16.
  */
-'use react';
+'use strict';
 
 import React from 'react';
 

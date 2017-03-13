@@ -1,4 +1,6 @@
 /**
+ * Store for user data (such as login status and language data)
+ *
  * Created by dmitri on 24/11/15.
  */
 'use strict';
@@ -15,10 +17,6 @@ import UserConstants from '../constants/UserConstants';
 
 import conf from '../conf/ApplicationConfiguration';
 
-// import en from '../data/i18n/en';
-// import fr from '../data/i18n/fr';
-// import es from '../data/i18n/es';
-
 class UserStore extends EventEmitter {
   constructor() {
     super();
@@ -30,6 +28,10 @@ class UserStore extends EventEmitter {
     this.userLogin = null;
     this.userData = null;
 
+    /**
+     * Loads languages specified in ApplicationConfiguration
+     * @type {{}}
+     */
     this.languageMaps = {};
     for(let i = 0; i < conf.app.languages.length; ++i) {
       this.languageMaps[conf.app.languages[i].code] = require('../data/i18n/' + conf.app.languages[i].code + '.js');
@@ -56,6 +58,10 @@ class UserStore extends EventEmitter {
     window.setTimeout(SocketActions.registerListener.bind(null, 'user', this.userConnected.bind(this)), 10);
   }
 
+  /**
+   * Callback when user connection status changes.
+   * @param user Object (optional) must contain an uid and name for the user. If not provided or null, user is disconnected from Colaboratory.
+   */
   userConnected(user) {
     if(user) {
       this.userRplusId = user.uid;
@@ -73,18 +79,19 @@ class UserStore extends EventEmitter {
     }
   }
 
+  /**
+   * If the language does not exist, defaults to English
+   * @param language
+   */
   setLanguage(language) {
-    switch(language) {
-      case 'es':
-      case 'fr':
-      case 'en':
-        this.language = language;
-        this.langMap = this.languageMaps[language];
-        localStorage.setItem('lang', language);
-        break;
-      default:
-        console.warn('No language ' + language);
-        this.setLanguage('en');
+    if(this.languageMaps[language]) {
+      this.language = language;
+      this.langMap = this.languageMaps[language];
+      localStorage.setItem('lang', language);
+    }
+    else {
+      console.warn('No language ' + language);
+      this.setLanguage('en');
     }
   }
 
@@ -92,6 +99,11 @@ class UserStore extends EventEmitter {
     return this.language;
   }
 
+  /**
+   * Returns the localized text corresponding to given text id. See localization files for valids ids. If id is not valid, returns '#'.
+   * @param key
+   * @returns {*}
+   */
   getText(key) {
     if(this.langMap[key]) {
       return this.langMap[key];
@@ -107,6 +119,12 @@ class UserStore extends EventEmitter {
     }
   }
 
+  /**
+   * Returns the localized text corresponding to given text id interpolated with values provided in the text array. If id is not valid, retruns '#'
+   * @param key
+   * @param text Array list of strings to interpolate in order into text.
+   * @returns {*}
+   */
   getInterpolatedText(key, text) {
     let string = this.langMap.interpolated[key];
     if(!string) {
@@ -125,19 +143,21 @@ class UserStore extends EventEmitter {
     return string;
   }
 
+  /**
+   * Returns localized ontology (DarwinCore) text corresponding to the given id.
+   * @param key
+   * @returns {*}
+   */
   getOntologyField(key) {
-    switch(this.language) {
-      case 'es':
-        return this.langMap.darwinCore[key]?this.langMap.darwinCore[key]:this.languageMaps.en.darwinCore[key];
-      case 'fr':
-        return this.langMap.darwinCore[key]?this.langMap.darwinCore[key]:this.languageMaps.en.darwinCore[key];
-      case 'en':
-      default:
-        if(!this.languageMaps.en.darwinCore[key]) {
-          console.error('No corresponding string for key in English DarwinCore i18n: ' + key);
-        }
-        return this.languageMaps.en.darwinCore[key]?this.languageMaps.en.darwinCore[key]:'#';
+    if(this.langMap.darwinCore[key]) {
+      return this.langMap.darwinCore[key];
     }
+    console.error('No corresponding string for key in localized DarwinCore i18n: ' + key);
+    if(this.languageMaps.en.darwinCore[key]) {
+      return this.languageMaps.en.darwinCore[key];
+    }
+    console.error('No corresponding string for key in English DarwinCore i18n: ' + key);
+    return '#';
   }
 
   getUser() {

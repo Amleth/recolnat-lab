@@ -1,3 +1,6 @@
+/**
+ * Tool for editing an existing trail of interest. Called from the ToI's contextual menu. Not implemented.
+ */
 'use strict';
 
 import d3 from 'd3';

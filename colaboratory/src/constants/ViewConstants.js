@@ -8,8 +8,6 @@ export default {
   ActionTypes: {
     Server: {
       VIEW_SET_DISPLAYED_SET: 20,
-      VIEW_MOVE_ENTITY: 22,
-      VIEW_PLACE_ENTITY: 23
     },
     Local: {
       UPDATE_VIEWPORT: "VIEW_UPDATE_VIEWPORT",

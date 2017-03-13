@@ -1,3 +1,6 @@
+/**
+ * Implementation of AbstractTool which is used to deselect all tools.
+ */
 'use strict';
 
 import React from 'react';

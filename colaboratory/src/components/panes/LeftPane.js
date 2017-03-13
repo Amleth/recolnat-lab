@@ -12,7 +12,7 @@ import Toolbox from '../../tools/palettes/Toolbox';
 import ViewController from '../../tools/palettes/ViewController';
 import ModeSwitcher from '../../tools/palettes/ModeSwitcher';
 import GroupSelector from '../../tools/palettes/GroupSelector';
-import SetSelectorDisplay from '../../tools/palettes/SetSelectorDisplay';
+import SetQuickAccess from '../../tools/palettes/SetQuickAccess';
 import SetManagerMainButtons from '../../tools/palettes/SetManagerMainButtons';
 
 class LeftPane extends React.Component {
@@ -24,11 +24,6 @@ class LeftPane extends React.Component {
       height: '100%',
       width: '100%',
       marginTop: '10px'
-      //border: 'none',
-      //display: 'flex',
-      //flexDirection: 'column',
-      //boxShadow: '0 0 0 0'
-      //overflow: 'none'
     };
 
     this._onModeChange = () => {
@@ -61,8 +56,8 @@ class LeftPane extends React.Component {
             userstore={this.props.userstore}
             managerstore={this.props.managerstore}
             modestore={this.props.modestore} />
-          <SetSelectorDisplay
-            key='SetSelectorDisplay'
+          <SetQuickAccess
+            key='SetQuickAccess'
             modestore={this.props.modestore}
             userstore={this.props.userstore}
             managerstore={this.props.managerstore} />

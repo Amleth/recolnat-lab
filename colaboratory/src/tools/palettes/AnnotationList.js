@@ -1,4 +1,8 @@
 /**
+ * Lists the tags and annoations of a selected Set/Specimen/Image. The listing takes into account the entity's links with other entities. Types taken into account : Set, Specimen, Image, Anchor (* of Interest).
+ *
+ * Recursively getting annotations and tags is an expensive operation (in terms of number of entities to subscribe to). A better option may be to move the processing to server-side. It may also be better (but not ergonomic) to only show this component in its own Mode.
+ *
  * Created by dmitri on 12/10/16.
  */
 'use strict';
@@ -97,16 +101,12 @@ class AnnotationList extends React.Component {
     this.cellStyle = {
       padding: 0,
       lineHeight: 1.2,
-      //paddingLeft: 0,
-      //paddingRight: 0,
       textAlign: 'center'
     };
 
     this.cellLfAlignStyle = {
       padding: 0,
       lineHeight: 1.2,
-      //paddingLeft: 0,
-      //paddingRight: 0,
       textAlign: 'left'
     };
 

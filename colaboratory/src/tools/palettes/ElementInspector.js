@@ -1,4 +1,6 @@
 /**
+ * This component provides complete information on the selected entities (Properties panel).
+ *
  * Created by dmitri on 02/05/16.
  */
 'use strict';
@@ -675,16 +677,9 @@ class ElementInspector extends React.Component {
     if(!tag) {
       return null;
     }
-    let display = tag.key;
-    if(tag.value) {
-      display = display + ' : ' + tag.value;
-    }
     return (
       <Tag key={tag.definition} tag={tag} showDelete={true} />
-    )
-    // return (
-    //   <a className='ui tiny tag label' key={'TAG-' + tagId}>{display}</a>
-    // );
+    );
   }
 
   buildMeasurementDisplay(measurementId) {

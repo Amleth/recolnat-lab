@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to create measure standards. A measure standard is a normal ToI which is associated to a MeasureStandard when saved. This tool does both in one action. No tool exists to turn an existing trail into a measure standard.
+ *
  * Created by dmitri on 05/01/17.
  */
 'use strict';

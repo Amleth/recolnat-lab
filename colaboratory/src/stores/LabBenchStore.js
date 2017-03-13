@@ -710,6 +710,12 @@ class LabBenchStore extends EventEmitter {
     return false;
   }
 
+  /**
+   * Checks if 'data' keys contains all of the 'ids'
+   * @param ids Array of String ids
+   * @param data Object where keys should correspond to ids (actual data is unimportant as long as it is not null, undefined or 0
+   * @returns {boolean} true if all of the ids have corresponding keys and non-null data in 'data'
+   */
   isDataComplete(ids, data) {
     for(let i = 0; i < ids.length; ++i) {
       if(!data[ids[i]]) {
@@ -730,10 +736,18 @@ class LabBenchStore extends EventEmitter {
     this.removeListener(MetadataEvents.LAB_BENCH_READY, callback);
   }
 
+  /**
+   * Not used
+   * @param callback
+   */
   addActiveViewChangeListener(callback) {
     this.on(ViewEvents.ACTIVE_VIEW_CHANGE, callback);
   }
 
+  /**
+   * Not used
+   * @param callback
+   */
   removeActiveViewChangeListener(callback) {
     this.removeListener(ViewEvents.ACTIVE_VIEW_CHANGE, callback);
   }

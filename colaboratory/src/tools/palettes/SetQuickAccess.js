@@ -1,4 +1,6 @@
 /**
+ * This component is currently used to select the root set of the user. In the future it should include favorited and most accessed sets as well for quick access.
+ *
  * Created by dmitri on 13/01/16.
  */
 'use strict';
@@ -16,7 +18,7 @@ import ModeConstants from '../../constants/ModeConstants';
 
 import Globals from '../../utils/Globals';
 
-class SetSelectorDisplay extends React.Component {
+class SetQuickAccess extends React.Component {
   constructor(props) {
     super(props);
 
@@ -114,4 +116,4 @@ class SetSelectorDisplay extends React.Component {
   }
 }
 
-export default SetSelectorDisplay;
+export default SetQuickAccess;

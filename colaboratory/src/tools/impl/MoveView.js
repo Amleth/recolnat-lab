@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to move the view around. Not used but kept around it becomes necessary again.
+ *
  * Created by dmitri on 17/11/15.
  */
 'use strict';

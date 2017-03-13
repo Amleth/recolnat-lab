@@ -354,7 +354,6 @@ class Window extends React.Component {
     userstore.removeUserLogInListener(this._onUserLogIn);
     userstore.removeUserLogOutListener(this._onUserLogOut);
     userstore.removeLanguageChangeListener(this.setState.bind(this, {}));
-    managerstore.removeManagerVisibilityListener(this._onManagerVisibilityToggle);
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
 

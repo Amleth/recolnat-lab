@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to create Trails of Interest.
+ *
  * Created by dmitri on 10/12/15.
  */
 'use strict';

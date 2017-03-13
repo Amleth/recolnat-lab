@@ -1,4 +1,6 @@
 /**
+ * Implementation of AbstractTool to create Points of Interest.
+ *
  * Created by hector on 31/07/15.
  */
 

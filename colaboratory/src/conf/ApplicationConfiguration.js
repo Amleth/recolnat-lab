@@ -1,83 +1,42 @@
 'use strict';
 
-var Integration = {
-  recolnatMenuBarOrigin: 'https://wp5test.recolnat.org',
-  recolnatMenuBarUrl: 'https://wp5test.recolnat.org/menu'
+// Each language must have a corresponding language file defined in src/data/i18n
+let Application = {
+  languages: [
+    {code: 'en', localized: 'English', flag: 'gb'},
+    {code: 'fr', localized: 'Français', flag: 'fr'}
+  ]
 };
 
-var Services = {
-  laboratoryRESTService: 'https://wp5test.recolnat.org/services/labo-dev/',
-  laboratorySocketService: 'wss://wp5test.recolnat.org/services/labo-dev/websockets/colaboratory',
-  downloadsBaseURL: 'https://wp5test.recolnat.org/exports/'
+let Integration = {
+  recolnatMenuBarOrigin: 'https://www.recolnat.org',
+  recolnatMenuBarUrl: 'https://www.recolnat.org/menu',
+  casLoginUrl: 'https://cas.recolnat.org/login',
+  casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };
 
-var Endpoints = {
-  authenticationService: Services.laboratoryRESTService + '/authentication',
-  dataAccessService: Services.laboratoryRESTService + '/database',
-  imageService: Services.laboratoryRESTService + '/image',
-  setService: Services.laboratoryRESTService + '/set',
-  studyService: Services.laboratoryRESTService + '/study',
-  userProfileService: Services.laboratoryRESTService + '/user-profile',
-  viewService: Services.laboratoryRESTService + '/view',
-
-  virtualWorkbenchWebsocketService: Services.laboratorySocketService + '/virtual-workbench'
+let Services = {
+  laboratoryRESTService: 'https://wp5test.recolnat.org/services/test/rest',
+  laboratorySocketService: 'wss://wp5test.recolnat.org/services/test/websockets/colaboratory',
+  downloadsBaseURL: 'https://wp5test.recolnat.org/exports-test/'
 };
 
-var Actions = {
-  imageServiceActions: {
-    getImage: Endpoints.imageService + "/get-image",
-    getSpecimen: Endpoints.imageService + "/get-specimen",
-    createRegionOfInterest: Endpoints.imageService + "/create-roi",
-    createPointOfInterest: Endpoints.imageService + "/create-poi",
-    createTrailOfInterest: Endpoints.imageService + "/create-toi",
-    createAngleOfInterest: Endpoints.imageService + "/create-aoi",
-    addMeasureStandard: Endpoints.imageService + "/add-measure-standard"
-  },
+let Endpoints = {
+  tagService: Services.laboratoryRESTService + '/tags',
+  downloadsService: Services.laboratoryRESTService + '/downloads'
+};
 
-  setServiceActions: {
-    getSet: Endpoints.setService + "/get-set",
-    createSet: Endpoints.setService + "/create-set",
-    deleteFromSet: Endpoints.setService + "/delete-element-from-set",
-    link: Endpoints.setService + "/link",
-    copy: Endpoints.setService + "/copy",
-    cutPaste: Endpoints.setService + "/cutpaste",
-    importRecolnatSpecimen: Endpoints.setService + "/import-recolnat-specimen",
-    importExternalImages: Endpoints.setService + "/import-external-images"
+let Actions = {
+  tags: {
+    queryKey: Endpoints.tagService + '/query/key',
+    queryTag: Endpoints.tagService + '/query/tag'
   },
-
-  viewServiceActions: {
-    place: Endpoints.viewService + '/place',
-    move: Endpoints.viewService + '/move',
-    resize: Endpoints.viewService + '/resize'
-  },
-
-  studyServiceActions: {
-    listUserStudies: Endpoints.studyService + "/list-user-studies",
-    getStudy: Endpoints.studyService + "/get-study",
-    createStudy: Endpoints.studyService + "/create-study"
-  },
-
-  authenticationServiceActions: {
-    isUserAuthenticated: Endpoints.authenticationService + '/is-user-authenticated',
-    setTestCookie: Endpoints.authenticationService + '/set-test-cookie',
-    getToken: Endpoints.authenticationService + '/get-token',
-    checkToken: Endpoints.authenticationService + '/check-token'
-  },
-
-  userProfileServiceActions: {
-    getRecentActivity: Endpoints.userProfileService + '/get-recent-activity'
-  },
-
-  databaseActions: {
-    getData: Endpoints.dataAccessService + '/get-data',
-    remove: Endpoints.dataAccessService + '/remove',
-    getLog: Endpoints.dataAccessService + '/get-change-log',
-    addAnnotation: Endpoints.dataAccessService + '/add-annotation',
-    editProperties: Endpoints.dataAccessService + '/edit-properties'
+  downloads: {
+    exports: Endpoints.downloadsService + '/exports'
   }
 };
 
-var SocketActions = {
+let SocketActions = {
   createRegionOfInterest: "create-roi",
   createPointOfInterest: "create-poi",
   createTrailOfInterest: "create-toi",
@@ -98,9 +57,11 @@ var SocketActions = {
   remove: 'remove',
   addAnnotation: 'add-annotation',
   editProperties: 'edit-properties',
+  createTagDefinition: 'create-tag-definition',
+  tagEntity: 'tag-entity',
   listUserDownloads: 'list-user-downloads',
   prepareSetForDownload: 'prepare-set-for-download'
 };
 
 
-export default {wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {app: Application, wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};

@@ -8,42 +8,6 @@ import ViewConstants from '../constants/ViewConstants';
 
 export default {
   /**
-   * Places an entity in a view at the given coordinates. It is expected the entity is not in the view when this action is called.
-   * @param viewId String UID of the View
-   * @param entityId String UID of the entity to be placed
-   * @param x Integer x-coordinate where the entity should be placed (in D3 coordinate space)
-   * @param y Integer y-coordinate where the entity should be placed (in D3 coordinate space)
-   */
-  placeEntity: (viewId, entityId, x, y) => {
-    AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Server.VIEW_PLACE_ENTITY,
-      viewId: viewId,
-      entityId: entityId,
-      x: x,
-      y: y
-    });
-  },
-
-  /**
-   * Move the entity designated by {viewId, entityId, linkId} to the given coordinates (in D3 coordinate space). The entity must be already in the view to call this.
-   * @param viewId String UID of the view
-   * @param entityId String UID of the entity
-   * @param linkId String UID of the link between view and entity. This is important in the case where the entity is shown multiple times in the view.
-   * @param x Integer x-coordinate to move to
-   * @param y Integer y-coordinate to move to
-   */
-  moveEntity: (viewId, entityId, linkId, x, y) => {
-    AppDispatcher.dispatch({
-      actionType: ViewConstants.ActionTypes.Server.VIEW_MOVE_ENTITY,
-      viewId: viewId,
-      entityId: entityId,
-      linkId: linkId,
-      x: x,
-      y: y
-    });
-  },
-
-  /**
    * Sets the id of the active set in LabBenchStore
    * @param setId String UID of the Set
    */

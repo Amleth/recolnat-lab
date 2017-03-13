@@ -1,8 +1,7 @@
 /**
+ * Store for setting application mode.
+ *
  * Created by dmitri on 20/04/16.
- */
-/**
- * Created by dmitri on 05/10/15.
  */
 "use strict";
 

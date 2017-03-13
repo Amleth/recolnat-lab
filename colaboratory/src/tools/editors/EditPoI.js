@@ -1,4 +1,6 @@
 /**
+ * Tool for editing an existing PoI. Called from the contextual menu of the item.
+ *
  * Created by dmitri on 13/06/16.
  */
 'use strict';

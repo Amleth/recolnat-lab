@@ -1,4 +1,6 @@
 /**
+ * Popup for the CreateAngle tool. Provides a form to enter data and a button to save an angle.
+ *
  * Created by dmitri on 13/07/16.
  */
 "use strict";

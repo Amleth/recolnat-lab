@@ -8,16 +8,15 @@ import d3 from 'd3';
 
 import ViewActions from '../../actions/ViewActions.js';
 import MinimapActions from "../../actions/MinimapActions.js";
-import ToolActions from "../../actions/ToolActions.js";
 import MenuActions from '../../actions/MenuActions';
 import InspectorActions from '../../actions/InspectorActions';
 
 import Classes from '../../constants/CommonSVGClasses';
 import TypeConstants from '../../constants/TypeConstants';
-import ViewConstants from '../../constants/ViewConstants';
 
 import D3ViewUtils from '../../utils/D3ViewUtils';
 import Globals from '../../utils/Globals';
+import ServiceMethods from '../../utils/ServiceMethods';
 
 class D3FreeSpace {
   constructor() {
@@ -265,11 +264,7 @@ class D3FreeSpace {
     let x = parseInt(image.attr('x'))+50;
     let y = parseInt(image.attr('y'))+100;
     //console.log('setting shadow to location (' + x + ',' + y + ')');
-    ViewActions.placeEntity(this.benchstore.getActiveViewId(),
-      data.uid,
-      x,
-      y
-    );
+    ServiceMethods.place(this.benchstore.getActiveViewId(), data.uid, x, y);
     this.hideShadow();
   }
 

@@ -1,4 +1,6 @@
 /**
+ * This component provides the SetManager with buttons to operate on selection (Create, Open, Split)
+ *
  * Created by dmitri on 23/06/16.
  */
 'use strict';

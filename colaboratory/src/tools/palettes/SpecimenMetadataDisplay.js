@@ -1,4 +1,6 @@
 /**
+ * Displays the most relevant (as defined by Marc) metadata regarding a Specimen, as well as a link to the Explore page of said specimen. Does not work for non-Recolnat specimens.
+ *
  * Created by dmitri on 16/02/16.
  */
 'use strict';
@@ -91,7 +93,7 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   receiveMetadata() {
-    var data = this.props.metastore.getMetadataAbout(this.state.id);
+    let data = this.props.metastore.getMetadataAbout(this.state.id);
     if(data) {
       this.processCoLabMetadata(data);
     }

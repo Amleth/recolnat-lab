@@ -1,4 +1,6 @@
 /**
+ * Store for minimap data.
+ *
  * Created by hector on 04/08/15.
  */
 "use strict";
@@ -39,7 +41,6 @@ class MinimapStore extends EventEmitter {
   }
 
   initializeMinimap(url, imageWidth, imageHeight, xZero, yZero) {
-    //console.log('initializeMinimap(' + url + ',' + imageWidth + ',' + imageHeight + ',' + xZero + ',' + yZero + ','+ ')');
     this.image.url = url;
     this.image.height = imageHeight;
     this.image.width = imageWidth;

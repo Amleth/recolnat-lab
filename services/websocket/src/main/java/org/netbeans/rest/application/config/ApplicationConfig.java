@@ -9,7 +9,7 @@ import java.util.Set;
 import javax.ws.rs.core.Application;
 
 /**
- *
+ * Configuration of REST APIs. When creating new REST services register them in the addRestResourceClasses method
  * @author dmitri
  */
 @javax.ws.rs.ApplicationPath("rest")

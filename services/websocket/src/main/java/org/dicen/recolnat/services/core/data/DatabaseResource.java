@@ -49,10 +49,20 @@ import org.dicen.recolnat.services.core.actions.ResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Static operations for generic data actions.
+ * @author dmitri
+ */
 public class DatabaseResource {
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseResource.class);
 
+  /**
+   * Gets internal user data (such as user's root Set). If the user does not exist, it is created here;
+   * @param userLogin
+   * @return A JSONObject representing user data (see ColaboratoryUser for JSON serialization) or null if unexpected errors happened.
+   * @throws JSONException 
+   */
   public static JSONObject getUserData(String userLogin) throws JSONException {
     OrientBaseGraph g = DatabaseAccess.getReaderWriterGraph();
     boolean retry = true;
@@ -79,6 +89,14 @@ public class DatabaseResource {
     return null;
   }
 
+  /**
+   * Retrieves the data the user can access about the entity identified by the provided id. 
+   * @param entityId UID of the entity (may be an Edge or a Vertex)
+   * @param user String login of the user
+   * @return A JSONObject serializing the data of the entity accessible by this user
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static JSONObject getData(String entityId, String user) throws JSONException, AccessForbiddenException {
     if(log.isDebugEnabled()) {
       log.debug("Entering getData " + entityId + ", " + user);
@@ -119,9 +137,13 @@ public class DatabaseResource {
   }
 
   /**
-   * To be deletable: - the user must have write access to the object; - sheets
-   * are not deletable; - the object must not be shared with a group or with
-   * PUBLIC.
+   * Deletes the resource (Vertex or Edge) specified by the given UID if the user has enough rights to perform the operation.
+   * To be deletable: 
+   * - the user must have write access to the object; 
+   * - sheets are not deletable; 
+   * - the object must not be shared with a group or with PUBLIC.
+   * 
+   * As currently implemented, deleting an entity does not actually delete it but creates a copy of the appropriate entities with links and access rights removed, thus preventing anyone from having access to it. Unfortunately this is a VERY costly operation speed-wise.
    *
    * @param entityId
    * @param user
@@ -157,6 +179,16 @@ public class DatabaseResource {
     return res;
   }
 
+  /**
+   * Adds an annotation (short text message) to a given entity.
+   * 
+   * @param parentObjectId UID of the entity to be annotated
+   * @param annotationText Text of the annotation
+   * @param user
+   * @return
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static List<String> addAnnotation(final String parentObjectId, final String annotationText, final String user) throws JSONException, AccessForbiddenException {
     List<String> changes = new ArrayList<>();
     boolean retry = true;
@@ -198,6 +230,15 @@ public class DatabaseResource {
     return changes;
   }
 
+  /**
+   * Changes the properties of the entity with the provided UID. Only key/value pairs defined by the input properties object are changed. Any other key/value is kept as is. This operation is costly as it creates a new version of the object (complete with links).
+   * @param entityId UID of the entity
+   * @param properties Array of key/value pairs
+   * @param user Login of the user
+   * @return
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static List<String> editProperties(String entityId, JSONArray properties, String user) throws JSONException, AccessForbiddenException {
     List<String> changes = new LinkedList<>();
     boolean retry = true;
@@ -234,6 +275,14 @@ public class DatabaseResource {
     return changes;
   }
 
+  /**
+   * Not used. Returns a list of annotations for the given entity.
+   * @param entityId
+   * @param user
+   * @return
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult getAnnotationsOfEntity(String entityId, String user) throws JSONException, AccessForbiddenException {
     ActionResult res = new ActionResult();
     JSONArray annotations = new JSONArray();
@@ -342,6 +391,17 @@ public class DatabaseResource {
     return res;
   }
 
+  /**
+   * Not used. Adds the annotations of the given entity (Vertex) to the accumulator annotations object.
+   * @param v
+   * @param parentSet
+   * @param parentSpecimen
+   * @param parentImage
+   * @param vUser
+   * @param annotations
+   * @param g
+   * @throws JSONException 
+   */
   private static void addAnnotations(OrientVertex v, String parentSet, String parentSpecimen, String parentImage, OrientVertex vUser, JSONArray annotations, OrientBaseGraph g) throws JSONException {
     Iterator<Vertex> itAnnots = v.getVertices(Direction.OUT, DataModel.Links.hasAnnotation, DataModel.Links.hasMeasurement).iterator();
     while (itAnnots.hasNext()) {
@@ -394,6 +454,16 @@ public class DatabaseResource {
     }
   }
 
+  /**
+   * Returns the object representing the metadata of the input Vertex. When implementing new types of vertices, don't forget to add a handler here, otherwise subscribing to a resource will not work.
+   * @param v
+   * @param vUser
+   * @param g
+   * @return
+   * @throws JSONException
+   * @throws AccessDeniedException
+   * @throws AccessForbiddenException 
+   */
   private static AbstractObject getVertexMetadata(OrientVertex v, OrientVertex vUser, OrientBaseGraph g) throws JSONException, AccessDeniedException, AccessForbiddenException {
     String cl = v.getProperty("@class");
     switch (cl) {
@@ -435,6 +505,13 @@ public class DatabaseResource {
     }
   }
 
+  /**
+   * Retrieves the metadata of an Edge. Currently no edge types are supported, as such only the direct properties of the edge are returned.
+   * @param e
+   * @param vUser
+   * @param g
+   * @return 
+   */
   private static AbstractObject getEdgeMetadata(OrientEdge e, OrientVertex vUser, OrientBaseGraph g) {
     String cl = e.getProperty("@class");
     switch (cl) {

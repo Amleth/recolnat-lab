@@ -13,7 +13,7 @@ import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 
 /**
- *
+ * Runs backup operations according to a certain schedule provided in the configuration files. Currently these include backing up the 3 databases (OrientDB, UserAccessRights, Exports) and removing expired exports from the exports.
  * @author dmitri
  */
 public class BackupTask extends TimerTask {

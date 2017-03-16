@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Configurator for intercepting cookies (CASTGT in this case) and passing them to the WebSocket as user property (WebSocket cannot access HTTPS cookies without this action).
  * @author dmitri
  */
 public class ColaboratorySocketConfigurator extends ServerEndpointConfig.Configurator {

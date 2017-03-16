@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * OCommandOutputListener for database backup. Currently used to log backup status.
  * @author dmitri
  */
 public class RecolnatDatabaseBackupListener implements OCommandOutputListener {

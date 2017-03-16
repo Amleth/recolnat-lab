@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Not used. Old code used a long time ago to build the user's logbook. May not work anymore.
  * @author dmitri
  */
 public class UserProfileResource {
@@ -31,13 +31,11 @@ public class UserProfileResource {
   private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
 
   /**
-   * Returns the actions made by the user or user group.
-   *
-   * @param requestedUser May contain user login (may be a group), begin date,
-   * end date identification
-   * @param beginDate
-   * @param endDate
-   * @param user
+   * Returns the actions made by the user or user group. Not used anywhere at the moment and may no longer work as intended.
+   * @param requestedUser Login of the user whose log is requested
+   * @param beginDate Begin listing events from this date
+   * @param endDate End listing events at this date
+   * @param user Requesting user login
    * @return
    * @throws JSONException
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
@@ -65,6 +63,15 @@ public class UserProfileResource {
     }
   }
 
+  /**
+   * Save a message from the user (feedback about the application) in a local directory.
+   * @param feedbackType Short type description of the feedback type (for example: bug, suggestion)
+   * @param message Text of the message
+   * @param rsvp If the user would like a response by mail to his request.
+   * @param userLogin Login of the user providing the feedback.
+   * @throws IOException
+   * @throws JSONException 
+   */
   public static void postFeedback(String feedbackType, String message, Boolean rsvp, String userLogin) throws IOException, JSONException {
     File output = new File("./feedback/" + userLogin + "-" + dateFormat.format(new Date()));
     FileUtils.touch(output);

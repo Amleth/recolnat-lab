@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Static methods to operate on database. Used to configure databases on startup, unload resources on shutdown, obtain Graphs to execute queries against, and for running backup tasks.
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 21/05/15.
  */
 public class DatabaseAccess {
@@ -49,6 +50,15 @@ public class DatabaseAccess {
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseAccess.class);
 
+  /**
+   * Configure transactional databases from the provided configuration. Databases are of plocal type. This method must be called only once, during service startup.
+   * @param dbPath
+   * @param dbUser
+   * @param dbPass
+   * @param minPoolSize
+   * @param maxPoolSize
+   * @param backupDir 
+   */
   public static void configure(String dbPath, String dbUser, String dbPass, Integer minPoolSize, Integer maxPoolSize, String backupDir) {
     DatabaseAccess.dbPath = dbPath;
     DatabaseAccess.dbUser = dbUser;
@@ -81,7 +91,7 @@ public class DatabaseAccess {
 
   /**
    * 
-   * @param isWriter Indicates if this graph is to be used to write, in which case it comes from a separate pool.
+   * @param isWriter Indicates if this graph is to be used to write to the database, in which case it comes from a separate pool.
    * @return 
    */
   public static OrientBaseGraph getTransactionalGraph(boolean isWriter) {

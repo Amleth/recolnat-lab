@@ -14,7 +14,6 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
 import fr.recolnat.database.exceptions.ObsoleteDataException;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.model.impl.ColaboratorySet;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.BranchUtils;
@@ -30,7 +29,6 @@ import javax.imageio.ImageIO;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 import fr.recolnat.database.exceptions.ResourceNotExistsException;
 import fr.recolnat.database.model.impl.ColaboratoryImage;
 import java.io.BufferedOutputStream;
@@ -54,40 +52,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Static methods to operate on Set-type Vertices.
  * @author dmitri
  */
 public class SetResource {
-
   private static final Logger log = LoggerFactory.getLogger(SetResource.class);
 
-  public static JSONObject getSet(String setId, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException, InternalServerErrorException {
-    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-    ColaboratorySet set = null;
-    try {
-      OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-      if (setId == null) {
-        OrientVertex vCoreSet = AccessUtils.getCoreSet(vUser, g);
-        set = new ColaboratorySet(vCoreSet, vUser, g, DatabaseAccess.rightsDb);
-      } else {
-        OrientVertex vSet = AccessUtils.getNodeById(setId, g);
-        set = new ColaboratorySet(vSet, vUser, g, DatabaseAccess.rightsDb);
-      }
-    } finally {
-      g.rollback();
-      g.shutdown();
-    }
-    if (set == null) {
-      throw new ResourceNotExistsException(setId);
-    }
-    try {
-      return set.toJSON();
-    } catch (JSONException e) {
-      log.error("Could not convert message to JSON.", e);
-      throw new InternalServerErrorException("Could not serialize workbench as JSON " + setId);
-    }
-  }
-
+  /**
+   * Creates a new Set defined as child of a parent Set. Also creates the default (empty) View of the new Set.
+   * @param parentSetId UID of the parent Set. If null the new Set will be created in the user's core set.
+   * @param name Name of the new Set.
+   * @param user Login of the user
+   * @return Response includes : id of parent set (parentSet), id of new set (subSet), id of parent->new set link (link), id of the new set's default View (defaultView). Modified ids : parent set, new set, new set default view.
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult createSet(String parentSetId, String name, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createSet");
@@ -156,6 +135,14 @@ public class SetResource {
     return result;
   }
 
+  /**
+   * Deletes (unlinks) an element of a Set from the Set. The child set itself is not deleted even if it has no parents as checking connectivity would be too time-expensive (this operation is already long enough). Internally this method creates a new version of the child set and its links and removes the new version of the link.
+   * @param linkSetToElementId UID of the link between both sets
+   * @param user
+   * @return Modified ids : anything linked to the child set.
+   * @throws AccessForbiddenException
+   * @throws ObsoleteDataException 
+   */
   public static ActionResult deleteElementFromSet(String linkSetToElementId, String user) throws AccessForbiddenException, ObsoleteDataException {
     ActionResult changes = new ActionResult();
 
@@ -185,6 +172,15 @@ public class SetResource {
     return changes;
   }
 
+  /**
+   * Creates a parentToChild link between a parent Set and an entity.
+   * @param elementToCopyId UID of the child entity.
+   * @param futureParentId UID of the parent set.
+   * @param user Login of the user
+   * @return Modified ids : set, entity
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult link(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
     ActionResult changes = new ActionResult();
     boolean retry = true;
@@ -226,6 +222,15 @@ public class SetResource {
     return changes;
   }
 
+  /**
+   * Creates a deep copy of an entity and adds link the copy to a parent Set. This effectively creates a new fork of the tree of the entity, following links to : Set, Specimen, Image. Other entities (spatial anchors, annotations, etc) are not copied.
+   * @param elementToCopyId UID of the element to fork from
+   * @param futureParentId UID of the set to link the element to.
+   * @param user Login of the user
+   * @return id of the parent Set
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static List<String> copy(String elementToCopyId, String futureParentId, String user) throws JSONException, AccessForbiddenException {
     List<String> changes = new LinkedList<>();
     boolean retry = true;
@@ -271,6 +276,16 @@ public class SetResource {
     return changes;
   }
 
+  /**
+   * Adds an entity to a Set and removes it from its parent Set.
+   * @param currentParentToElementLinkId UID of the link between the current parent Set and the entity.
+   * @param futureParentId UID of the Set to link the entity to
+   * @param user Login of the user
+   * @return Modified ids : former Set, new parent Set, entity
+   * @throws JSONException
+   * @throws AccessForbiddenException
+   * @throws ObsoleteDataException 
+   */
   public static ActionResult cutPaste(String currentParentToElementLinkId, String futureParentId, String user) throws JSONException, AccessForbiddenException, ObsoleteDataException {
     ActionResult changes = new ActionResult();
     boolean retry = true;
@@ -307,8 +322,6 @@ public class SetResource {
             break;
         }
 
-//        g.commit();
-//        vTargetItemOrSet = AccessUtils.findLatestVersion(vTargetItemOrSet);
         List<String> deletionChanges = DeleteUtils.unlinkItemFromSet(currentParentToElementLinkId, vUser, g, DatabaseAccess.rightsDb);
         g.commit();
 
@@ -330,10 +343,22 @@ public class SetResource {
     return changes;
   }
 
+  /**
+   * Imports a ReColNat specimen and its images into the Colaboratory database and adds the specimen to a Set. When importing from ReColNat, if the specimen already exists only new images are imported (existing images are left as they are). Note that the Specimen linked to the Set is not the imported Specimen but a fork of it and its Images.
+   * @param setId UID of the Set
+   * @param specimenName Name of the specimen (display name).
+   * @param recolnatSpecimenUuid UUID of the specimen in the ReColNat database (i.e OriginalSource).
+   * @param images List of images associated with the specimen. Each image is a JSONObject which must contain at least an "url" and "thumburl" property.
+   * @param user Login of the user
+   * @return Response includes : UID of the ReColNat specimen (recolnatUuid), complete list of image Colaboratory ids of the specimen (images). Modified ids : set, specimen (main and fork), images (main and fork).
+   * @throws JSONException
+   * @throws AccessForbiddenException
+   * @throws InterruptedException
+   * @throws ResourceNotExistsException 
+   */
   public static ActionResult importRecolnatSpecimen(String setId, String specimenName, String recolnatSpecimenUuid, JSONArray images, String user) throws JSONException, AccessForbiddenException, InterruptedException, ResourceNotExistsException {
     String imageUrl = null;
     ActionResult result = new ActionResult();
-//    List<String> changes = new ArrayList<>();
 
     boolean retry = true;
     while (retry) {
@@ -342,7 +367,6 @@ public class SetResource {
       try {
         OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
         OrientVertex vSet = AccessUtils.getSet(setId, g);
-//        OrientVertex vPublic = AccessUtils.getPublic(g);
         if (!AccessRights.canWrite(vUser, vSet, g, DatabaseAccess.rightsDb)) {
           throw new AccessForbiddenException(user, setId);
         }
@@ -459,6 +483,17 @@ public class SetResource {
     return result;
   }
 
+  /**
+   * Imports an image from the Web using its URL into a Set. If the image already exists, uses the existing image. In both cases the image is forked and the fork is added to the Set.
+   * @param setId UID of the Set
+   * @param imageUrl URL of the image.
+   * @param imageName Display name of the image.
+   * @param user User login
+   * @return Response includes complete image data in Colaboratory (image). Modified ids : image (main and fork), set
+   * @throws JSONException
+   * @throws AccessForbiddenException
+   * @throws ResourceNotExistsException 
+   */
   public static ActionResult importExternalImage(String setId, String imageUrl, String imageName, String user) throws JSONException, AccessForbiddenException, ResourceNotExistsException {
 //    List<String> changes = new LinkedList<>();
     ActionResult result = new ActionResult();
@@ -518,6 +553,12 @@ public class SetResource {
     return result;
   }
 
+  /**
+   * Gives a list of files downloadable by user. These files result from previous Set exports.
+   * @param user Login of the user
+   * @return Response contains a list of file names available to the user (String array)
+   * @throws JSONException 
+   */
   public static ActionResult listUserDownloads(String user) throws JSONException {
     ActionResult ret = new ActionResult();
     List<String[]> files = DatabaseAccess.exportsDb.listUserExports(user);
@@ -532,6 +573,12 @@ public class SetResource {
     return ret;
   }
 
+  /**
+   * Creates a zip file in the Colaboratory's downloads directory containing the images of a Set.
+   * @param setId UID of the Set to export/download.
+   * @param user Login of the user
+   * @throws AccessForbiddenException 
+   */
   public static void prepareDownload(String setId, String user) throws AccessForbiddenException {
     // Get set data, download images
     boolean retry = true;
@@ -606,6 +653,15 @@ public class SetResource {
     }
   }
 
+  /**
+   * Internal method used by prepareDownload to retrieve image files and store them on disk.
+   * 
+   * @param vItem
+   * @param accumulator
+   * @param dir
+   * @param vUser
+   * @param g 
+   */
   private static void getImagesOfItem(OrientVertex vItem, List<File> accumulator, String dir, OrientVertex vUser, OrientBaseGraph g) {
     switch ((String) vItem.getProperty("@class")) {
       case DataModel.Classes.specimen:

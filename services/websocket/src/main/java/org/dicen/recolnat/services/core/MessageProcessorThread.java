@@ -33,7 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Runnable implementation to process messages in separate threads.
+ * 
  * @author dmitri
  */
 public class MessageProcessorThread implements Runnable {

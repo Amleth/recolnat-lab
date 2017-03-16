@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * ContextListener implementation for loading and unloading resources (configuration, databases) when the WAR is deployed or undeployed. OrientDB memory cleanup is performed here.
  * @author dmitri
  */
 @WebListener

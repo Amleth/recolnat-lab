@@ -11,7 +11,8 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 /**
- *
+ * Collection of static methods to build simple responses.
+ * 
  * @author dmitri
  */
 public class ResponseBuilder {

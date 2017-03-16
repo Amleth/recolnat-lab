@@ -15,54 +15,28 @@ import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.TagUtils;
 import java.util.Iterator;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import org.apache.commons.lang.NotImplementedException;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.dicen.recolnat.services.core.actions.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Static function to operate on tags.
  * @author dmitri
  */
 public class TagResource {
-
   private final static Logger log = LoggerFactory.getLogger(TagResource.class);
 
-  public static ActionResult listTags(String user) throws JSONException {
-    ActionResult res = new ActionResult();
-
-    boolean retry = true;
-    while (retry) {
-      retry = false;
-      OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-      try {
-        OrientVertex vUser = AccessUtils.getUserByLogin(user, g);
-        Iterator<Vertex> itTags = g.getVerticesOfClass(DataModel.Classes.tag).iterator();
-        JSONArray jTags = new JSONArray();
-        while (itTags.hasNext()) {
-          OrientVertex vTag = (OrientVertex) itTags.next();
-          if (AccessUtils.isLatestVersion(vTag)) {
-            if (AccessRights.canRead(vUser, vTag, g, DatabaseAccess.rightsDb)) {
-              jTags.put((String) vTag.getProperty(DataModel.Properties.id));
-            }
-          }
-        }
-        res.setResponse("tags", jTags);
-      } finally {
-        g.rollback();
-        g.shutdown();
-      }
-    }
-
-    return res;
-  }
-
+  /**
+   * Creates a link (TagAssociation) between an entity and a TagDefinition, effectively tagging a resource.
+   * @param tagDefId UID of the tag definition
+   * @param entityId UID of the entity
+   * @param user Login of the user
+   * @return Result contains the id of the TagAssociation (id). Modified ids : tag definition, entity, tag association
+   * @throws AccessForbiddenException
+   * @throws JSONException 
+   */
   public static ActionResult linkTagToEntity(String tagDefId, String entityId, String user) throws AccessForbiddenException, JSONException {
     ActionResult res = new ActionResult();
 
@@ -102,6 +76,15 @@ public class TagResource {
     return res;
   }
 
+  /**
+   * Creates a new tag definition based on a key-value pair. If the pair already exists WITH THE SAME EXACT WRITING (including capitalisation) this returns the existing definition and no indication that the pair already existed.
+   * All TagDefinitions are created with public read access (no private tags).
+   * @param key Left-hand side of the tag
+   * @param value Optional Right hand-side of the tag
+   * @param user Login of the user
+   * @return Result includes the id of the new definition. No existing ids are modified in this operation.
+   * @throws JSONException 
+   */
   public static ActionResult createTagDefinition(String key, String value, String user) throws JSONException {
     ActionResult res = new ActionResult();
 

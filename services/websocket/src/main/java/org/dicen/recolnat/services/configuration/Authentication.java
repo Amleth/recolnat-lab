@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Static methods for authenticating a user into the application. Currently supports only CAS authentication.
  * @author dmitri
  */
 public class Authentication {

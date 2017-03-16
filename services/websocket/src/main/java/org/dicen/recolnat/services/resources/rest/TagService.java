@@ -24,15 +24,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * REST API for accessing tags. This is a helper to integration with Semantic-UI handlers for tag autocompletion.
  * @author dmitri
  */
 @Path("/tags")
 @Produces(MediaType.APPLICATION_JSON)
 public class TagService {
-
   private final static Logger LOG = LoggerFactory.getLogger(TagService.class);
 
+  /**
+   * Autocomplete the key (left part) of a Tag. Case-insensitive. 
+   * @param begin Despite the name of this parameter, this method checks the whole tag key (with String.contains), instead of just the beginning of the key.
+   * @return Object with a "success" and "results" parameter. "results" is an array of objects using keys "name", "value" and "text". Both "name" and "text" are the text of the key. "value" is the UID of the matching Tag.
+   * @throws JSONException 
+   */
   @GET
   @Path("/query/key")
   public Response queryKey(@QueryParam("begin") String begin) throws JSONException {
@@ -70,6 +75,13 @@ public class TagService {
     return Response.ok(response.toString(), MediaType.APPLICATION_JSON_TYPE).build();
   }
 
+  /**
+   * Queries tags for values containing given text with the given key. 
+   * @param begin Text to search for (searches whole text, not just beginning)
+   * @param key Text value of the key (left part) of the Tag
+   * @return See queryKey
+   * @throws JSONException 
+   */
   @GET
   @Path("/query/tag")
   public Response queryValue(@QueryParam("begin") String begin, @QueryParam("key") String key) throws JSONException {

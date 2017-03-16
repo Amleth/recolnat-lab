@@ -15,11 +15,16 @@ import javax.ws.rs.core.Response;
 import org.dicen.recolnat.services.configuration.Configuration;
 
 /**
- *
+ * REST endpoint providing access to user downloads (exports).
  * @author dmitri
  */
 @Path("/downloads")
 public class ExportDownloadService {
+  /**
+   * Takes a filename as parameter and sends back a binary representation of the file (browser should handle it automatically as a download action).
+   * @param fileName
+   * @return 
+   */
   @GET
   @Path("/exports")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)

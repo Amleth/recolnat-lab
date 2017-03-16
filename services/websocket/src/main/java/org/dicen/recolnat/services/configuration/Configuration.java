@@ -16,14 +16,16 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- *
+ * Application configuration parameters and loader method.
+ * 
  * @author dmitri
  */
 public class Configuration {
 
   private static final Logger log = LoggerFactory.getLogger(Configuration.class);
-  
+
   public static class Server {
+
     public static Integer PORT = null;
   }
 
@@ -72,8 +74,9 @@ public class Configuration {
       public static String SERVICE_VALIDATE_URL = null;
     }
   }
-  
+
   public static class Performance {
+
     public static Integer READERS_PER_USER = 10;
     public static Integer LOWCONC_WRITERS_PER_USER = 4;
     public static Integer HIGHCONC_WRITERS_PER_USER = 1;
@@ -84,20 +87,11 @@ public class Configuration {
     InputStream input = new FileInputStream(new File(configurationFileName));
     Map conf = (Map) yaml.load(input);
     
-    // configure logging
-//    Map logConf = (Map) conf.get("logging");
-//    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", (String) logConf.get("level"));
-//    Map fineLoggersConf = (Map) logConf.get("loggers");
-//    for (Object logClass : fineLoggersConf.keySet()) {
-//      log.info((String) logClass + " set to " + (String) fineLoggersConf.get(logClass));
-//      System.setProperty("org.slf4j.simpleLogger.log." + (String) logClass, (String) fineLoggersConf.get(logClass));
-//    }
-    
     // Configure databases and backup
     Map dbConf = (Map) conf.get("database");
     Databases.UserAccess.PATH = (String) dbConf.get("pathToUserAccessDatabase");
     Databases.UserExports.PATH = (String) dbConf.get("pathToUserExportsDatabase");
-    
+
     Databases.Main.PATH = (String) dbConf.get("dbPath");
     Databases.Main.USER = (String) dbConf.get("dbUser");
     Databases.Main.PASSWORD = (String) dbConf.get("password");
@@ -107,10 +101,10 @@ public class Configuration {
     Databases.Backup.DIRECTORY = (String) backupConf.get("directory");
     Databases.Backup.FIRST_EXECUTION = (String) backupConf.get("firstExecutionDate");
     Databases.Backup.FREQUENCY = (Integer) backupConf.get("frequency");
-    
+
     Exports.DIRECTORY = (String) dbConf.get("exportsDirectory");
     new File(Exports.DIRECTORY).mkdirs();
-    
+
     Map perfConf = (Map) conf.get("performance");
     Performance.READERS_PER_USER = (Integer) perfConf.get("readThreadsPerUser");
     Performance.LOWCONC_WRITERS_PER_USER = (Integer) perfConf.get("lowConcurrencyWriteThreadsPerUser");
@@ -131,7 +125,6 @@ public class Configuration {
     Map serverConf = (Map) conf.get("server");
     Server.PORT = (Integer) serverConf.get("port");
 
-    
   }
 
   public static void configureDatabases() {

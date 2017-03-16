@@ -1,6 +1,8 @@
 package org.dicen.recolnat.services.core.actions;
 
 /**
+ * Defines Service and Client action types for the websocket. Each code here defines a generic action type which can then be further specified by message content.
+ * 
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 07/04/15.
  */
 public class Action {

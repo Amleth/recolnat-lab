@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Main endpoint WebSocket message receiver for each user session. This annotated class receives messages from a single session, checks basic validity, and creates threads to process them.
+ * 
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 09/04/15.
  */
 @ServerEndpoint(value = "/colaboratory",
@@ -34,18 +36,18 @@ public class ColaboratorySocket {
   // Map session (by id) to resources (by id) the session has subscribed to
   public static final MultiMap sessionIdToResources = new MultiValueMap();
   // Map session (by id) to user (by login)
-  public static final Map<String, String> sessionIdToUser = new HashMap<String, String>();
+  public static final Map<String, String> sessionIdToUser = new HashMap<>();
   // Map session (by id) to session data
-  public static final Map<String, Session> sessionIdToSession = new HashMap<String, Session>();
+  public static final Map<String, Session> sessionIdToSession = new HashMap<>();
   // Lock when writing to any map
   public static final Lock mapAccessLock = new ReentrantLock(false);
 
   public static final Logger log = LoggerFactory.getLogger(ColaboratorySocket.class);
 
-  // Executor for concurrency-heavy and intensive tasks (such as import or delete)
+  // Executor for concurrency-heavy and intensive tasks (such as delete)
   private final ExecutorService heavyExecutor = Executors.newFixedThreadPool(Configuration.Performance.HIGHCONC_WRITERS_PER_USER);
 
-  // Executor for short and not too concurrent tasks
+  // Executor for short and not too concurrent tasks (most of them)
   private final ExecutorService lightExecutor = Executors.newFixedThreadPool(Configuration.Performance.LOWCONC_WRITERS_PER_USER);
 
   // Executor for read-only actions and operations with no concurrency issues
@@ -220,6 +222,11 @@ public class ColaboratorySocket {
     }
   }
 
+  /**
+   * When a session is closed. Remove session data from session maps.
+   * @param session
+   * @param reason 
+   */
   @OnClose
   public void onClose(Session session, CloseReason reason) {
     log.info("Closing websocket session " + session.getId() + " due to: " + reason.getReasonPhrase());
@@ -252,11 +259,23 @@ public class ColaboratorySocket {
     roExecutor.shutdownNow();
   }
 
+  /**
+   * Currently errors are only logged and not acted upon.
+   * @param session
+   * @param t 
+   */
   @OnError
   public void onError(Session session, Throwable t) {
     log.error("Error in session " + session.getId(), t);
   }
 
+  /**
+   * When a new session tries to open, check user authentication. On failure close with code 1008. If successful, store session data and send user data.
+   * @param session
+   * @param config
+   * @throws SessionException
+   * @throws IOException 
+   */
   @OnOpen
   public void onConnect(Session session, EndpointConfig config) throws SessionException, IOException {
     log.info("Opening new websocket session " + session.getId());
@@ -288,7 +307,12 @@ public class ColaboratorySocket {
       log.error("JSON exception when sending user data on connection.");
     }
   }
-  
+
+  /**
+   * Send message to a specific session.
+   * @param message
+   * @param session 
+   */
   private void sendMessage(String message, Session session) {
     // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
     // Randomness is more frequent if not synchronized.
@@ -302,6 +326,11 @@ public class ColaboratorySocket {
     }
   }
 
+  /**
+   * Send internal server error to one session.
+   * @param session
+   * @param messageId 
+   */
   private void sendInternalServerError(Session session, Integer messageId) {
     String error;
     if(messageId == null) {

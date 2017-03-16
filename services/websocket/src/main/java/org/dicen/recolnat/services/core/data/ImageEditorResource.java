@@ -5,76 +5,44 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
-import fr.recolnat.database.model.impl.ColaboratoryImage;
-import fr.recolnat.database.model.impl.Specimen;
 import fr.recolnat.database.utils.AccessRights;
 import fr.recolnat.database.utils.AccessUtils;
 import fr.recolnat.database.utils.CreatorUtils;
 import fr.recolnat.database.utils.UpdateUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import fr.recolnat.database.exceptions.AccessForbiddenException;
-import fr.recolnat.database.model.impl.AbstractObject;
-import fr.recolnat.database.model.impl.AngleOfInterest;
-import fr.recolnat.database.model.impl.Annotation;
-import fr.recolnat.database.model.impl.MeasureStandard;
-import fr.recolnat.database.model.impl.PointOfInterest;
-import fr.recolnat.database.model.impl.RegionOfInterest;
-import fr.recolnat.database.model.impl.TrailOfInterest;
-import java.util.LinkedList;
 import org.dicen.recolnat.services.core.actions.ActionResult;
-import org.dicen.recolnat.services.core.exceptions.InternalServerErrorException;
 
+/**
+ * Static methods to operate on Vertices representing an Image.
+ * @author dmitri
+ */
 public class ImageEditorResource {
-
   private final static Logger log = LoggerFactory.getLogger(ImageEditorResource.class);
 
-  public static JSONObject getImage(String id, String user) throws InternalServerErrorException, AccessForbiddenException {
-    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-    ColaboratoryImage img = null;
-    try {
-      OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-      OrientVertex vImage = (OrientVertex) AccessUtils.getNodeById(id, g);
-      img = new ColaboratoryImage(vImage, vUser, g, DatabaseAccess.rightsDb);
-      return img.toJSON();
-    } catch (JSONException e) {
-      log.error("Unable to convert object to JSON for id " + id);
-      throw new InternalServerErrorException();
-    } finally {
-      if (!g.isClosed()) {
-        g.rollback();
-        g.shutdown();
-      }
-    }
-  }
-
-  public static JSONObject getSpecimen(String id, String user) throws InternalServerErrorException, AccessForbiddenException {
-    OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
-    try {
-      OrientVertex vUser = (OrientVertex) AccessUtils.getUserByLogin(user, g);
-      OrientVertex vSpecimen = (OrientVertex) AccessUtils.getNodeById(id, g);
-      Specimen spec = new Specimen(vSpecimen, vUser, g, DatabaseAccess.rightsDb);
-      return spec.toJSON();
-    } catch (JSONException e) {
-      log.error("Unable to convert object to JSON for id " + id);
-      throw new InternalServerErrorException();
-    } finally {
-      g.rollback();
-      g.shutdown();
-    }
-  }
-
+  /**
+   * Creates a new Region of Interest in an image, the Annotations to represent its area and perimeter and creates the required links between these.
+   * @param imageId UID of the image
+   * @param name Name of the new Region of Interest. If null a random name is generated.
+   * @param area Area of the new RoI (in px²)
+   * @param perimeter Perimeter of the new RoI (in px)
+   * @param polygonVertices Array of coordinates of the vertices defining this RoI. Each member of this array is a length 2 Array (the x,y coordinates of each vertex)
+   * @param user Login of the user
+   * @return The returned response includes : the UID of the new RoI (id). Modified Vertex ids : image, region, area, perimeter.
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult createRegionOfInterest(String imageId, String name, Double area, Double perimeter, JSONArray polygonVertices, String user) throws JSONException, AccessForbiddenException {
-    List<List<Integer>> polygon = new ArrayList<List<Integer>>();
+    List<List<Integer>> polygon = new ArrayList<>();
     for (int i = 0; i < polygonVertices.length(); ++i) {
       JSONArray polygonVertex = polygonVertices.getJSONArray(i);
-      List<Integer> coords = new ArrayList<Integer>();
+      List<Integer> coords = new ArrayList<>();
       coords.add(polygonVertex.getInt(0));
       coords.add(polygonVertex.getInt(1));
       polygon.add(coords);
@@ -142,6 +110,17 @@ public class ImageEditorResource {
     return res;
   }
 
+  /**
+   * Create a new Point of Interest in an image
+   * @param imageId UID of the image
+   * @param x x-coordinate of the PoI
+   * @param y y-coordinate of the PoI
+   * @param name Name to give the PoI. If null a random name is generated.
+   * @param user Login of the user
+   * @return Response includes the id of the new PoI. Modified ids : image, PoI
+   * @throws AccessForbiddenException
+   * @throws JSONException 
+   */
   public static ActionResult createPointOfInterest(String imageId, Integer x, Integer y, String name, String user) throws AccessForbiddenException, JSONException {
     if(name == null) {
       name = CreatorUtils.generateName("PoI ");
@@ -188,14 +167,13 @@ public class ImageEditorResource {
   }
 
   /**
-   * Unit must be mm, cm, m, in
-   *
-   * @param measurementId
-   * @param value
-   * @param unit
-   * @param name
-   * @param user
-   * @return
+   * Defines a Measurement as a MeasureStandard. Creates a new MeasureStandard vertex linked with the Measurement.
+   * @param measurementId UID of the Measurement
+   * @param value Length value of the standard
+   * @param unit Unit of the value. Accepted values are: mm, cm, m, in
+   * @param name Name of the MeasureStandard
+   * @param user Login of the user
+   * @return Response includes the id of the new standard. Modified ids : measurement, standard, trail (linked to the measurement), image
    * @throws fr.recolnat.database.exceptions.AccessForbiddenException
    */
   public static ActionResult addMeasureStandard(String measurementId, Double value, String unit, String name, String user) throws AccessForbiddenException, JSONException {
@@ -248,6 +226,17 @@ public class ImageEditorResource {
     return res;
   }
 
+  /**
+   * Creates a new Trail of Interest on an image
+   * @param parent UID of the image
+   * @param name Name of the new trail. If null a random name is generated.
+   * @param length Length in px of the trail.
+   * @param pathVertices Array of coordinates of the vertices defining this ToI. Each member of this array is a length 2 Array (the x,y coordinates of each vertex)
+   * @param user Login of the user
+   * @return Response includes id of the trail (id) and id of the measurement (measurementId). Modified ids : image, trail, measurement
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult createTrailOfInterest(String parent, String name, Double length, JSONArray pathVertices, String user) throws JSONException, AccessForbiddenException {
     if (log.isTraceEnabled()) {
       log.trace("Entering createTrailOfInterest(" + parent + ", " + name +", " + length + ", " + pathVertices + ", " + user);
@@ -329,6 +318,17 @@ public class ImageEditorResource {
     return res;
   }
 
+  /**
+   * Creates a new Angle of Interest in an image.
+   * @param parent UID of the image
+   * @param name Name of the new angle. If null, a random name is generated.
+   * @param length Measure of the angle, in degrees
+   * @param angleVertices Array (length 3) of coordinates of the vertices defining this AoI. Each member of this array is a length 2 Array (the x,y coordinates of each vertex). Order of the vertices is : angle center, first angle vertex, second angle vertex.
+   * @param user Login of the user.
+   * @return Response includes the id of the new angle (id). Modified ids : image, angle, measurement
+   * @throws JSONException
+   * @throws AccessForbiddenException 
+   */
   public static ActionResult createAngleOfInterest(String parent, String name, Double length, JSONArray angleVertices, String user) throws JSONException, AccessForbiddenException {
     // Retrieve params
     List<List<Integer>> vertices = new ArrayList<>();

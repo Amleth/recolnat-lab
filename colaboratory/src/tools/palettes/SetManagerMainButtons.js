@@ -10,6 +10,7 @@ import React from 'react';
 import ModalActions from '../../actions/ModalActions';
 import ViewActions from '../../actions/ViewActions';
 import ModeActions from '../../actions/ModeActions';
+import MetadataActions from '../../actions/MetadataActions';
 
 import ModalConstants from '../../constants/ModalConstants';
 import ModeConstants from '../../constants/ModeConstants';
@@ -83,6 +84,7 @@ class SetManagerMainButtons extends React.Component {
       return;
     }
     //console.log('request view to set active set ' + setId);
+    window.setTimeout(MetadataActions.setLabBenchId.bind(null, setId), 10);
     window.setTimeout(ViewActions.setActiveSet.bind(null, setId), 10);
     window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
   }

@@ -46,7 +46,7 @@ public class ColaboratoryContextListener implements ServletContextListener {
     
     String configurationFileName = homeDir + File.separator + "colaboratory-socket.yml";
     try {
-      Configuration.loadConfiguration(configurationFileName);
+      Configuration.loadConfiguration(configurationFileName, sce.getServletContext());
     } catch (FileNotFoundException ex) {
       sce.getServletContext().log("Unable to load configuration file.");
       return;

@@ -5,11 +5,17 @@
  */
 package org.dicen.recolnat.services.configuration;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.FileUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.logging.Level;
+import javax.servlet.ServletContext;
 import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,10 +88,30 @@ public class Configuration {
     public static Integer HIGHCONC_WRITERS_PER_USER = 1;
   }
 
-  public static void loadConfiguration(String configurationFileName) throws FileNotFoundException {
+  public static void loadConfiguration(String configurationFileName, ServletContext context) throws FileNotFoundException {
     Yaml yaml = new Yaml();
     InputStream input = new FileInputStream(new File(configurationFileName));
     Map conf = (Map) yaml.load(input);
+    
+    // Configure logging
+    Map logConf = (Map) conf.get("logging");
+    String logConfFile = (String) logConf.get("logbackConfigurationFile");
+    context.log("Using logging configuration file " + logConfFile);
+    File f = new File(logConfFile);
+    if(!f.exists()) {
+      context.log("Configuration file not availble. Falling back to default configuration. Logging may not be available.");
+    }
+    else {
+      try {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        loggerContext.reset();
+        JoranConfigurator configurator = new JoranConfigurator();
+        configurator.setContext(loggerContext);
+        configurator.doConfigure(f);
+      } catch (JoranException ex) {
+        context.log("Unable to configure loggers with provided file", ex);
+      }
+    }
     
     // Configure databases and backup
     Map dbConf = (Map) conf.get("database");

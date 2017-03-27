@@ -475,18 +475,6 @@ public class DeleteUtils {
 //      case DataModel.Classes.virtualTour:
       // TODO not defined yet
 //        throw new NotImplementedException();
-      case DataModel.Classes.study:
-        // User must be able to delete everything in the study (all subsets)
-        itLinks = vObject.getVertices(Direction.OUT, DataModel.Links.hasCoreSet).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vCoreSet = (OrientVertex) itLinks.next();
-          if (AccessUtils.isLatestVersion(vCoreSet)) {
-            if (!DeleteUtils.canUserDeleteSubGraph(vCoreSet, vUser, g, rightsDb)) {
-              return false;
-            }
-          }
-        }
-        return true;
       case DataModel.Classes.set:
         // role:root-workbench is not deletable
         if (DataModel.Globals.ROOT_SET_ROLE.equals(vObject.getProperty(DataModel.Properties.role))) {

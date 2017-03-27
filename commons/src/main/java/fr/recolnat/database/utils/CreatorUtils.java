@@ -314,22 +314,6 @@ public class CreatorUtils {
     
     return specimen;
   }
-  
-  public static OrientVertex createStudy(String name, OrientVertex creator, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
-    OrientVertex study = g.addVertex("class:" + DataModel.Classes.study);
-    
-    study.setProperties(DataModel.Properties.id, CreatorUtils.newVertexUUID(g), 
-          DataModel.Properties.creationDate, (new Date()).getTime(), 
-          DataModel.Properties.name, name,
-          DataModel.Properties.branch, DataModel.Globals.BRANCH_MAIN);
-    
-    UpdateUtils.addCreator(study, creator, g, rightsDb);
-    AccessRights.grantAccessRights(creator, study, DataModel.Enums.AccessRights.WRITE, rightsDb);
-    
-    UpdateUtils.link(creator, study, DataModel.Links.studies, (String) creator.getProperty(DataModel.Properties.id), g);
-    
-    return study;
-  }
 
   public static OrientVertex createOriginalSourceEntity(String id, String source, String type, OrientBaseGraph g) {
     Iterator<Vertex> itWb = g.getVertices(DataModel.Classes.originalSource, 

@@ -7,15 +7,10 @@ public class DataModel {
   public static class Classes {
     // Links to stuff that was imported from the outside world (i.e. ReColNat)
       public static final String originalSource = "OriginalSource";
-    
-//      public static final String abstractEntity = "Entity";
       
-//      public static final String leafEntity = "LeafEntity";
+      // Not used yet
       public static final String relationship = "Relationship";
-//      public static final String compositeEntity = "CompositeEntity";
       public static final String opinion = "Opinion";
-//      public static final String socialEntity = "SocialEntity";
-   
 
       // A Tag is the definition of a tag in the database. The TagAssociation is an intermediate node between the tag and the tagged object.
       // This distinction exists in order for each to be able to have different sharing and ownership status.
@@ -23,55 +18,52 @@ public class DataModel {
       public static final String tag = "TagDefinition";
       public static final String tagging = "TagAssociation";
       
+      // An Annotation is either a short text or a Measurement
       public static final String annotation = "Annotation";
       
-//      public static final String comment = "Comment";
-//      public static final String transcription = "Transcription";
-//      public static final String determination = "Determination";
-//      public static final String vernacularName = "VernacularName";
-//      public static final String coordinates = "GeographicCoordinates";
+      // Not used yet
       public static final String message = "Message";
+      
+      // Anchors for stuff on images
       public static final String regionOfInterest = "RegionOfInterest";
       public static final String pointOfInterest = "PointOfInterest";
       public static final String trailOfInterest = "TrailOfInterest";
       public static final String angleOfInterest = "AngleOfInterest";
+      
+      // A specific type of Annotation
       public static final String measurement = "Measurement";
+      
+      // Definition of a measure standard
       public static final String measureStandard = "MeasureStandard";
+      
+      // Image
       public static final String image = "Image";
       
-//      public static final String organisation = "Organisation";
+      // User
       public static final String user = "User";
+      
+      // Group
       public static final String group = "Group";
-//      public static final String virtualTour = "VirtualTour";
-//      public static final String herbarium = "Herbarium";
-//      public static final String herbariumSheet = "Sheet";
-//      public static final String curator = "Curator";
-//      public static final String harvester = "Harvester";
+
+      // Specimen
       public static final String specimen = "Specimen";
-//      public static final String harvest = "Harvest";
-//      public static final String collection = "Collection";
-//      public static final String sheetPart = "SheetPart";
-//      public static final String mission = "Mission";
+
+      // Not used
       public static final String discussion = "Discussion";
+      
+      // Set and its Views
       public static final String set = "Set";
       public static final String setView = "SetView";
-      public static final String study = "Study";
-      
   }
 
   public static class Links {
-    // isAbout && relatedEntities (generic links)
-    // Unused ?
-//    public static final String isLinkedTo = "isLinkedTo";
-    //static String relatedEntities = "relatedEntitites";
-    //static String isAbout = "isAbout";
     // containers && containedEntities (containment links)
-    // set -> containsSubSet -> set
+    // Set -> containsSubSet -> Set
     public static final String containsSubSet = "containsSubSet";
-    // set -> containsItem -> entity
+    // Set -> containsItem -> entity (Specimen, Image, etc)
     public static final String containsItem = "containsItem";
 //    public static final String hasChild = "hasChild";
-    // set -> hasView -> view
+    // Set -> hasView -> SetView
     public static final String hasView = "hasView";
     // view -> displays -> item in set
     public static final String displays = "displays";
@@ -84,16 +76,16 @@ public class DataModel {
     public static final String hasOriginalSource = "hasOriginalSource";
     // specimen -> hasImage -> image
     public static final String hasImage = "hasImage";
-    // user -> studies -> study
-    public static final String studies = "studies";
-    // study -> hasCoreSet -> set
+    // User -> hasCoreSet -> Set
     public static final String hasCoreSet = "hasCoreSet";
-    // Unused ?
-//    public static final String importedAs = "importedAs";
+
+    // Image -> has -> roi, poi, toi, aoi
     public static final String roi = "hasRegionOfInterest";
     public static final String poi = "hasPointOfInterest";
     public static final String toi = "hasTrailOfInterest";
     public static final String aoi = "hasAngleOfInterest";
+    
+    // entity ->hasAnnotation -> Annotation or Measurement
     public static final String hasAnnotation = "hasAnnotation";
     public static final String hasMeasurement = "hasMeasurement";
     // measurement -> definedAsMeasureStandard -> measure standard
@@ -101,13 +93,19 @@ public class DataModel {
     // image -> hasMeasureStandard -> measure standard
 //    public static final String hasMeasureStandard = "hasMeasureStandard";
     // measure standard -> definedFrom -> measurement
+    
 //    public static final String definedFrom = "definedFrom";
+    // deprecated, do NOT use
     public static final String hasAccessRights = "hasAccessRights";
+    
+    // Not used
     public static final String isMemberOfGroup = "isMemberOfGroup";
+    
     // Tags
     public static final String hasDefinition = "hasDefinition";
     public static final String isTagged = "isTagged";
-    // Discussions
+    
+    // Discussions, not used
     // entity -> hasDiscussion -> discussion
     public static final String hasDiscussion = "hasDiscussion";
     // discussion -> hasMessage -> message
@@ -124,7 +122,6 @@ public class DataModel {
     
     // Shared (used in more than one class)
     public static final String name = "name";
-//    public static final String type = "type";
     public static final String coordX = "x";
     public static final String coordY = "y";
     public static final String coordZ = "z";
@@ -157,22 +154,16 @@ public class DataModel {
     
     // Unsorted
     public static final String content = "content";
-    public static final String createdInModule = "createdInModule";
-    public static final String mnhnCatalogNumber = "catalogNum";
     public static final String vertices = "polygonVertices";
-    public static final String text = "text";
-    public static final String color = "color";
-    public static final String symbol = "symbol";
     public static final String length = "length";
     public static final String unit = "unit";
     public static final String pxValue = "valueInPx";
     public static final String opacity = "opacity";
-    public static final String letters = "letters";
     
-    // Accss rights for everyone
+    // Accss rights for everyone, deprecated
     public static final String publicAccess = "publicAccess";
     
-    // Edge-only property, level of access
+    // Edge-only property, level of access, deprecated
     public static final String accessRights = "accessRights";
     
     // Edge-only property, id of edge creator (when useful)

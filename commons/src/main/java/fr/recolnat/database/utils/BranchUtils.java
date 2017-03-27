@@ -151,19 +151,6 @@ public class BranchUtils {
           }
         }
         break;
-      case DataModel.Classes.study:
-        vBranch = BranchUtils.branchStudy(vStart, vUser, g, rightsDb);
-        // Links to process: CoreSet
-        itLinks = vStart.getVertices(Direction.OUT, DataModel.Links.hasCoreSet).iterator();
-        while (itLinks.hasNext()) {
-          OrientVertex vSet = (OrientVertex) itLinks.next();
-          if (AccessUtils.isLatestVersion(vSet)) {
-            // if you can read the study, you can read its set
-            OrientVertex vBranchedSet = BranchUtils.branchSubTree(vSet, vUser, g, rightsDb);
-            UpdateUtils.link(vBranch, vBranchedSet, DataModel.Links.hasCoreSet, null, g);
-          }
-        }
-        break;
       case DataModel.Classes.tag:
         throw new NotImplementedException();
       case DataModel.Classes.tagging:
@@ -288,17 +275,6 @@ public class BranchUtils {
     AccessRights.grantAccessRights(vUser, vSpecimenFork, DataModel.Enums.AccessRights.WRITE, rightsDb);
 
     return vSpecimenFork;
-  }
-
-  private static OrientVertex branchStudy(OrientVertex vStudy, OrientVertex vUser, OrientBaseGraph g, RightsManagementDatabase rightsDb) {
-    String name = vStudy.getProperty(DataModel.Properties.name);
-    // Rights granted internally
-    OrientVertex vStudyFork = CreatorUtils.createStudy(name, vUser, g, rightsDb);
-    vStudyFork.setProperty(DataModel.Properties.branch, DataModel.Globals.BRANCH_SIDE);
-
-    UpdateUtils.link(vStudy, vStudyFork, DataModel.Links.isForkedAs, (String) vUser.getProperty(DataModel.Properties.id), g);
-
-    return vStudyFork;
   }
 
   public static OrientVertex getMainBranchAncestor(OrientVertex v, OrientBaseGraph g) {

@@ -98,12 +98,27 @@ export default {
 
   /**
    * Change display filters (turn on or off display of spatial anchors)
-   * @param filters Object specifies which values to change, values not provided in this object are not changed. See ViewStore.displayedTypes for available filters
+   * @param filters Object specifies which values to change, values not provided in this object are not changed. See ViewStore.displayedTypes for available filters. An additional available filter is 'all', which overrides any other parameter provided.
    */
   updateDisplayFilters: (filters) => {
     AppDispatcher.dispatch({
       actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_FILTERS,
       filters: filters
+    });
+  },
+
+  /**
+   * Associate a uid to a color (to be displayed in lab bench)
+   * @param uid
+   * @param color may be null (switches to default color)
+   * @param add boolean, if true add color if false remove color
+   */
+  setDisplayColor: (uid, color, add) => {
+    AppDispatcher.dispatch({
+      actionType: ViewConstants.ActionTypes.Local.UPDATE_VIEW_COLORS,
+      id: uid,
+      color: color,
+      add: add
     });
   },
 

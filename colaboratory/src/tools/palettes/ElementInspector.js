@@ -678,7 +678,12 @@ class ElementInspector extends React.Component {
       return null;
     }
     return (
-      <Tag key={tag.definition} tag={tag} showDelete={true} />
+      <Tag key={tag.definition}
+           tag={tag}
+           modestore={this.props.modestore}
+           metastore={this.props.metastore}
+           viewstore={this.props.viewstore}
+           showDelete={true} />
     );
   }
 

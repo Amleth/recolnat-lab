@@ -33,6 +33,9 @@ class ViewStore extends EventEmitter {
     this.loader = {};
     this.loader.text = null;
 
+    // Maps uid of an entity to an array of display colors (in #XXXXXX notation)
+    this.colors = {};
+
     this.displayedTypes = {
       borders: true,
       regions: false,
@@ -66,6 +69,10 @@ class ViewStore extends EventEmitter {
           this.setLoaderText(action.text);
           this.emit(ViewEvents.UPDATE_LOADER);
           break;
+        case ViewConstants.ActionTypes.Local.UPDATE_VIEW_COLORS:
+          this.setColor(action.id, action.color, action.add);
+          this.emit(ViewEvents.UPDATE_VIEW_FILTERS);
+          break;
         default:
           break;
       }
@@ -89,6 +96,16 @@ class ViewStore extends EventEmitter {
   }
 
   setDisplayFilters(filters) {
+    if(filters.all) {
+      this.displayedTypes = {
+        borders: true,
+        regions: true,
+        points: true,
+        trails: true,
+        angles: true
+      };
+      return;
+    }
     this.displayedTypes.borders = filters.borders !== undefined?filters.borders:this.displayedTypes.borders;
     this.displayedTypes.regions = filters.regions !== undefined?filters.regions:this.displayedTypes.regions;
     this.displayedTypes.points = filters.points !== undefined?filters.points:this.displayedTypes.points;
@@ -132,6 +149,38 @@ class ViewStore extends EventEmitter {
     if(props.sizeOfTextAndObjects) {
       this.properties.sizeOfTextAndObjects = props.sizeOfTextAndObjects;
     }
+  }
+
+  setColor(id, color, add) {
+    if(add) {
+      if(!this.colors[id]) {
+        this.colors[id] = [];
+      }
+      if(_.indexOf(this.colors[id], color) < 0) {
+        this.colors[id].unshift(color);
+      }
+    }
+    else {
+      this.colors[id] = _.without(this.colors[id], color);
+      if(this.colors[id].length === 0) {
+        delete this.colors[id];
+      }
+    }
+  }
+
+  getColors() {
+    return JSON.parse(JSON.stringify(this.colors));
+  }
+
+  /**
+   * Returns the latest color associated to the given entity id
+   * @param entityId
+   */
+  getColor(entityId) {
+    if(!this.colors[entityId]) {
+      return null;
+    }
+    return JSON.parse(JSON.stringify(this.colors[entityId][0]));
   }
 
   getViewProperties() {

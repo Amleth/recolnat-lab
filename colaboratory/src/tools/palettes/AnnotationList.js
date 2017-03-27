@@ -456,7 +456,8 @@ class AnnotationList extends React.Component {
 
       updateAnnotations.push(...meta.annotations);
     }
-    else if(this.state.display === 'tags') {
+    // Download tags in all cases (so they are ready if user decides to download annotations)
+    if(meta.tags) {
       let tagIds = _.without(meta.tags, ids);
       for(let i = 0 ; i < tagIds.length; ++i) {
         this.props.metastore.addMetadataUpdateListener(tagIds[i], this._onMetadataUpdate);
@@ -873,6 +874,7 @@ class AnnotationList extends React.Component {
       setName: this.props.userstore.getText('set'),
       imageName: this.props.userstore.getText('imageName'),
       specimenDisplayName: this.props.userstore.getText('displayedSpecimenName'),
+      tags: this.props.userstore.getText('tags'),
       coordinates: this.props.userstore.getText('coordinatesWithOrigin'),
       linkToExplore: this.props.userstore.getText('specimenExplorePage')
     };
@@ -930,6 +932,21 @@ class AnnotationList extends React.Component {
           unit = '-';
 
       }
+      let tags = "";
+      if(entityData.tags) {
+        for(let i = 0; i < entityData.tags.length; ++i) {
+          let tagData = this.state.data[entityData.tags[i]];
+          if(tagData.value) {
+            tags = tags + tagData.key + ":" + tagData.value;
+          }
+          else {
+            tags = tags + tagData.key;
+          }
+          if(i < entityData.tags.length-1) {
+            tags = tags + ", ";
+          }
+        }
+      }
       //console.log(JSON.stringify(vertices));
       let data = {
         type: '"' + decoder.decode(encoder.encode(annotation.type)) + '"',
@@ -941,6 +958,7 @@ class AnnotationList extends React.Component {
         setName: '"' + decoder.decode(encoder.encode(setData.name)) + '"',
         imageName: '"' + decoder.decode(encoder.encode(imageData.name)) + '"',
         specimenDisplayName: '"' + decoder.decode(encoder.encode(specimenData.name)) + '"',
+        tags: '"' + decoder.decode(encoder.encode(tags)) + '"',
         coordinates: '"' + decoder.decode(encoder.encode(JSON.stringify(vertices))) + '"'
       };
       setName = setData.name;
@@ -1003,7 +1021,7 @@ class AnnotationList extends React.Component {
       titleCell = <td style={this.cellLfAlignStyle} data-sort-value={this.props.userstore.getText('nameUnavailable')}>{this.props.userstore.getText('nameUnavailable')}</td>;
     }
 
-    if(annotation.selected) {
+    if(this.state.selection[annotation.uid]) {
       selectionIcon = <i className='ui checkmark box icon' onClick={this.unselect.bind(this, annotation.uid)}/>;
     }
     else {
@@ -1053,7 +1071,7 @@ class AnnotationList extends React.Component {
     if(this.state.annotations.length === 0) {
       selectAllIcon = <i className='ui square icon' />;
     }
-    else if (this.state.annotations[0].selected) {
+    else if (this.state.selection[this.state.annotations[0].uid]) {
       selectAllIcon = <i className='ui checkmark box icon' onClick={this.toggleSelectAll.bind(this, false)}/>;
     }
     else {
@@ -1089,7 +1107,12 @@ class AnnotationList extends React.Component {
     return(
       <div key='TAGS' className='ui mini labels'>
         {_.chain(this.state.tags).values(this.state.tags).sortBy(t => t.key.toLowerCase()).value().map(function(tag, index) {
-          return <Tag key={tag.definition} tag={tag} showDelete={false}/>;
+          return <Tag key={tag.definition}
+                      tag={tag}
+                      modestore={self.props.modestore}
+                      metastore={self.props.metastore}
+                      viewstore={self.props.viewstore}
+                      showDelete={false}/>;
         })}
       </div>
     );
@@ -1118,6 +1141,9 @@ class AnnotationList extends React.Component {
 
     nextState.buttons.image += nextState.subject == 'image'? ' active': '';
     nextState.buttons.set += nextState.subject == 'set'? ' active': '';
+
+    nextState.buttons.measures = nextState.display === 'measures'?'active':'';
+    nextState.buttons.tags = nextState.display === 'tags'?'active':'';
 
     if(nextState.updateAnnotations.length > 0) {
       let newAnnotations = this.createAnnotations(nextState);

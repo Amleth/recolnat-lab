@@ -286,6 +286,18 @@ class GlobalFunctions {
 
     formDOMNode.onSubmit = formSubmitCallback;
   }
+
+  /**
+   * Generates a random color code (# + 6 hex)
+   */
+  static getRandomColor() {
+    let alphabet = '0123456789ABCDEF';
+    let color = '#';
+    for(let i = 0; i < 6; ++i) {
+      color += alphabet[Math.floor(Math.random()*10)];
+    }
+    return color;
+  }
 }
 
 export default GlobalFunctions;

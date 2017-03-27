@@ -22,6 +22,4 @@ authentication:
 server:
   port: 10001
 logging:
-  level: INFO
-  loggers:
-    "fr.recolnat.database": ERROR
+  logbackConfigurationFile: /path/to/logback.xml

@@ -5,12 +5,12 @@
       <file>${COLABORATORY_HOME}/logs/colaboratory-socket.log</file>
       <append>true</append>
       <encoder>
-          <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+          <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
       </encoder>
   </appender>
-  <logger name="org.dicen.recolnat.services" level="DEBUG"/>
+  <logger name="org.dicen.recolnat.services" level="INFO"/>
   <logger name="org.dicen.recolnat.services.resources.ColaboratorySocketConfigurator" level="ERROR"/>
-  <root level="DEBUG">
+  <root level="INFO">
     <appender-ref ref="FILE" />
   </root>
 </configuration>

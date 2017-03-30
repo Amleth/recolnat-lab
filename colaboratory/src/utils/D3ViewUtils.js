@@ -172,10 +172,16 @@ export default class D3ViewUtils {
         .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
         .attr('stroke-width', 4)
-        .style('pointer-events', 'none');
+        .style('pointer-events', 'none')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
       angle.exit().remove();
       angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red');
+        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
     }
     else {
       annotations.selectAll('.' + Classes.AOI_CLASS).remove();
@@ -190,10 +196,16 @@ export default class D3ViewUtils {
         .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
         .attr('stroke-width', 4)
-        .style('pointer-events', 'none');
+        .style('pointer-events', 'none')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
       path.exit().remove();
       path.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red');
+        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
     }
     else {
       annotations.selectAll('.' + Classes.PATH_CLASS).remove();
@@ -233,10 +245,16 @@ export default class D3ViewUtils {
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
         .attr('fill', d => colors[d.uid]?colors[d.uid][0]:'blue')
         .attr('fill-opacity', 0.3)
-        .style('pointer-events', 'none');
+        .style('pointer-events', 'none')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
       region.exit().remove();
       region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('fill', d => colors[d.uid]?colors[d.uid][0]:'blue');
+        .attr('fill', d => colors[d.uid]?colors[d.uid][0]:'blue')
+        .style('outline-style', d => colors[d.uid]?'solid':null)
+        .style('outline-width', 2/self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
     }
     else {
       annotations.selectAll('.' + Classes.ROI_CLASS).remove();

@@ -164,6 +164,7 @@ class FreeSpace extends React.Component {
     this.props.benchstore.removeLabBenchLoadListener(this._onBenchLoaded);
   }
 
+  // Will be called only once when mounting this component, afterwards all rerenders will be delegated to D3.
   render() {
     return (
       <div className="freespace"

@@ -116,8 +116,7 @@ class GlobalFunctions {
 
   /**
    * Returns number of mm per pixel
-   * @param imageId
-   * @param store
+   * @param imageMetadata data of an Image
    * @returns {*}
    */
   static getEXIFScalingData(imageMetadata) {
@@ -263,6 +262,12 @@ class GlobalFunctions {
     return Math.min(Math.max(pos, min), max);
   }
 
+  /**
+   * Workaround for filling the autocomplete list of a browser. Normally a page must be reloaded in order for the list to be filled. However this is not possible in a single-page application. This method uses an invisible iframe, copies a form into it and reloads the iframe.
+   * @param formDOMNode
+   * @param formSubmitCallback
+   * @param e
+   */
   static saveAutofill(formDOMNode, formSubmitCallback, e) {
     e.preventDefault();
     // e.stopPropagation();

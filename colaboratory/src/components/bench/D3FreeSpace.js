@@ -34,6 +34,8 @@ class D3FreeSpace {
       });
 
     this.viewId = null;
+
+    // Not always the same as ViewStore : may be in transition
     this.view = {};
     this.view.x = 0;
     this.view.y = 0;
@@ -385,7 +387,7 @@ class D3FreeSpace {
   }
 
   /**
-   * Redraw all child entities
+   * Redraw all child entities without changing the viewport.
    * @returns Object containing all drawn entities
    */
   redrawChildEntities() {
@@ -400,14 +402,14 @@ class D3FreeSpace {
 
   /**
    * Builds an object which contains all entities visible in provided viewport (and all their displayable sub-entities such as spatial anchors)
-   * @param iView Object (optional) containing the size of the viewport (xMin, xMax, yMin, yMax). If no data provided, will use the current viewport data
+   * @param d3FreeSpaceViewport Object (optional) containing the size of the viewport (xMin, xMax, yMin, yMax). If no data provided, will use the current viewport data
    * @returns Object containing all entities displayed in View (excluding those outside the current viewport)
    */
-  buildDisplayDataElement(iView) {
+  buildDisplayDataElement(d3FreeSpaceViewport) {
     let viewData = this.benchstore.getActiveViewData();
 
-    let view = iView;
-    if(!iView) {
+    let view = d3FreeSpaceViewport;
+    if(!d3FreeSpaceViewport) {
       let storeview = this.viewstore.getView();
       view = {
         xMin: -storeview.left / storeview.scale,

@@ -41,6 +41,8 @@ class ManagerStore extends EventEmitter {
 
     /**
      * List of sets to be displayed in the manager (and their content). Each entry in this array is one column in the manager.
+     *
+     * May be injected with a selectedId property when something inside a displayed set is or war selected (not to be confused with global selection : this.selectedNode).
      * @type {Array}
      */
     this.displayedSets = [];

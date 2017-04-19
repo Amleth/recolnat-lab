@@ -20,6 +20,8 @@ export default {
   IMAGE_CLASS: 'image',
   // Stuff that should be drawn over the child goes here
   OVER_CHILD_CLASS: 'overChild',
+
+  // Stuff in the UNDER_CHILD_CLASS
   // Class for the border (a rect)
   BORDER_CLASS: 'border',
   // The textPath along which the name is drawn (for overflow reasons)
@@ -30,13 +32,14 @@ export default {
   RESIZE_CLASS: 'imageGroupResize',
   // <rect> which, when dragged, moves an image
   MOVE_CLASS: 'imageGroupMove',
+  // End UNDER_CHILD_CLASS
 
   OBJECTS_CONTAINER_CLASS: 'objectsContainer',
 
-  ANNOTATIONS_CONTAINER_CLASS: 'annotationsContainer',
-
   ACTIVE_TOOL_DISPLAY_CLASS: 'activeToolDisplay',
 
+  // Stuff in OVER_CHILD_CLASS
+  ANNOTATIONS_CONTAINER_CLASS: 'annotationsContainer',
   POI_CLASS: "pointOfInterest",
   PATH_CLASS: 'path',
   ROI_CLASS: 'regionOfInterest',

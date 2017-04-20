@@ -74,11 +74,11 @@ export default class D3ViewUtils {
         .append('path')
         .attr('id', d => 'NAME-PATH-' + d.link)
         .attr('class', Classes.NAME_PATH_CLASS)
-        .attr('d', d => 'M 0 ' + -5 / self.view.scale + ' L ' + d.width + ' ' + -5 / self.view.scale)
+        .attr('d', d => 'M 0 ' + (-5 * d.height/d.displayHeight)/self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height/d.displayHeight)/self.view.scale)
         .style('pointer-events', 'none');
       namePath.exit().remove();
       namePath
-        .attr('d', d => 'M 0 ' + -5 / self.view.scale + ' L ' + d.width + ' ' + -5 / self.view.scale)
+        .attr('d', d => 'M 0 ' + (-5 * d.height/d.displayHeight)/self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height/d.displayHeight)/self.view.scale)
         .style('pointer-events', 'none');
 
       let name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);

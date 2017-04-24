@@ -303,6 +303,22 @@ class GlobalFunctions {
     }
     return color;
   }
+
+  /**
+   * Get image of entity, or null. Recursive. The result is returned in the accumulator as an entity might eventually belong to multiple images (for example a reused tag)
+   */
+  static getImagesOfEntity(entityId, metastore, acc) {
+    let metadata = metastore.getMetadataAbout(entityId);
+    if(metadata.type === 'Image') {
+      acc.push(entityId);
+      return;
+    }
+    if(metadata.parents) {
+      for (let i = 0; i < metadata.parents.length; ++i) {
+        GlobalFunctions.getImagesOfEntity(metadata.parents[i], metastore, acc);
+      }
+    }
+  }
 }
 
 export default GlobalFunctions;

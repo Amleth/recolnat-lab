@@ -83,6 +83,13 @@ class Tag extends React.Component {
         let tagAssocId = this.props.tag.entities[i];
         let tagAssocData = this.props.metastore.getMetadataAbout(tagAssocId);
         window.setTimeout(ViewActions.setDisplayColor.bind(null, tagAssocData.resource, color, true), 10);
+
+        // Get Image of Entity and color it in the same color
+        let images = [];
+        Globals.getImagesOfEntity(tagAssocData.resource, this.props.metastore, images);
+        for(let j = 0; j < images.length; ++j) {
+          window.setTimeout(ViewActions.setDisplayColor.bind(null, images[j], color, true), 10);
+        }
       }
     }
   }
@@ -93,6 +100,12 @@ class Tag extends React.Component {
         let tagAssocId = this.props.tag.entities[i];
         let tagAssocData = this.props.metastore.getMetadataAbout(tagAssocId);
         window.setTimeout(ViewActions.setDisplayColor.bind(null, tagAssocData.resource, this.state.color, false), 10);
+
+        let images = [];
+        Globals.getImagesOfEntity(tagAssocData.resource, this.props.metastore, images);
+        for(let j = 0; j < images.length; ++j) {
+          window.setTimeout(ViewActions.setDisplayColor.bind(null, images[j], this.state.color, false), 10);
+        }
       }
 
       window.setTimeout(ViewActions.setDisplayColor.bind(null, this.props.tag.definition, this.state.color, false), 10);

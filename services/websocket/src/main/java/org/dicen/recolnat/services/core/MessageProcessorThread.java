@@ -401,6 +401,9 @@ public class MessageProcessorThread implements Runnable {
     // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
     // Randomness is more frequent if not synchronized.
     // Randomness seems to come from using Async, so let's stick with Basic for now.
+    if(log.isDebugEnabled()) {
+      log.debug("Sending message " + message + " to session " + session.getId());
+    }
     synchronized (session) {
       try {
         session.getBasicRemote().sendText(message);

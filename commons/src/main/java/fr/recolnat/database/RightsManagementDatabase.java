@@ -52,6 +52,8 @@ public class RightsManagementDatabase {
     log.debug("getAccessRights " + user + " " + node);
     Map<String, Integer> userRights = database.treeMap(user, Serializer.STRING, Serializer.INTEGER).createOrOpen();
     Integer rights = userRights.get(node);
+    // This commit is called because createOrOpen is used earlier.
+    database.commit();
     if(rights != null) {
       return DataModel.Enums.AccessRights.fromInt(rights);
     }

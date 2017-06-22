@@ -1,0 +1,5 @@
+node_modules
+.idea
+services/websocket/target
+services/rest/target
+commons/target

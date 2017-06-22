@@ -1,8 +1,5 @@
 'use strict';
 
-/**
- * See ApplicationConfiguration-dev-server.js for documentation
- */
 let Application = {
   languages: [
     {code: 'en', localized: 'English', flag: 'gb'},
@@ -40,23 +37,23 @@ let Actions = {
 };
 
 let SocketActions = {
-  createRegionOfInterest: "create-roi",
-  createPointOfInterest: "create-poi",
-  createTrailOfInterest: "create-toi",
-  createAngleOfInterest: "create-aoi",
-  addMeasureStandard: "add-measure-standard",
-  createSet: "create-set",
-  deleteFromSet: "delete-element-from-set",
-  deleteFromView: "delete-element-from-view",
-  link: "link",
-  copy: "copy",
-  cutPaste: "cutpaste",
-  importRecolnatSpecimen: "import-recolnat-specimen",
-  importExternalImage: "import-external-image",
+  createRegionOfInterest: 'create-roi',
+  createPointOfInterest: 'create-poi',
+  createTrailOfInterest: 'create-toi',
+  createAngleOfInterest: 'create-aoi',
+  addMeasureStandard: 'add-measure-standard',
+  createSet: 'create-set',
+  deleteFromSet: 'delete-element-from-set',
+  deleteFromView: 'delete-element-from-view',
+  link: 'link',
+  copy: 'copy',
+  cutPaste: 'cutpaste',
+  importRecolnatSpecimen: 'import-recolnat-specimen',
+  importExternalImage: 'import-external-image',
   place: 'place',
   move: 'move',
   resize: 'resize',
-  createStudy: "create-study",
+  createStudy: 'create-study',
   remove: 'remove',
   addAnnotation: 'add-annotation',
   editProperties: 'edit-properties',
@@ -66,5 +63,12 @@ let SocketActions = {
   prepareSetForDownload: 'prepare-set-for-download'
 };
 
-
-export default {app: Application, wss: Services.laboratorySocketService, services: Services, urls: Endpoints, actions: Actions, integration: Integration, socket: SocketActions};
+export default {
+  app: Application,
+  wss: Services.laboratorySocketService,
+  services: Services,
+  urls: Endpoints,
+  actions: Actions,
+  integration: Integration,
+  socket: SocketActions
+};

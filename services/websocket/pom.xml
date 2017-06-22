@@ -4,7 +4,7 @@
 
     <groupId>org.dicen.recolnat.services</groupId>
     <artifactId>colaboratory-socket</artifactId>
-    
+
     <packaging>war</packaging>
     <version>0.9.3</version>
     <name>colaboratory-socket</name>
@@ -29,20 +29,20 @@
             <artifactId>jersey-container-servlet</artifactId>
             <version>2.25.1</version>
         </dependency>
-                
+
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>18.0</version>
         </dependency>
-    
+
         <dependency>
             <groupId>com.orientechnologies</groupId>
             <artifactId>orientdb-graphdb</artifactId>
@@ -53,7 +53,7 @@
             <artifactId>orientdb-client</artifactId>
             <version>${orientdb.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>fr.recolnat</groupId>
             <artifactId>database-commons</artifactId>
@@ -71,7 +71,7 @@
             <artifactId>javax.websocket-api</artifactId>
             <version>1.1</version>
         </dependency>
-        
+
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
@@ -160,6 +160,17 @@
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

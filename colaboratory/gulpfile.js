@@ -3,23 +3,14 @@ const sftp = require('gulp-sftp');
 const shell = require('gulp-shell');
 const rename = require('gulp-rename');
 
-const distSrc = ['dist/*'];
-
-//
-// Common tasks
-//
-
-gulp.task('copy', function () {
-  gulp.src('build/*', {base: 'build/'})
-    .pipe(gulp.dest('./dist'));
-});
+const distSrc = ['out/*'];
 
 //
 // Local develoment with webpack-dev-server
 //
 
 gulp.task('dev-local', ['dev-local-conf'], shell.task([
-  'webpack-dev-server --devtool eval --progress --colors --content-base build --port 8089'
+  'webpack --config webpack.config.js'
 ]));
 
 gulp.task('dev-local-conf', function () {
@@ -36,12 +27,12 @@ gulp.task('remote-dev-conf', function () {
     .pipe(gulp.dest('./src/conf'));
 });
 
-gulp.task('remote-dev-build', ['remote-dev-conf', 'copy'], shell.task([
-  'webpack --config webpack.production.config.js --progress --colors'
+gulp.task('remote-dev-build', ['remote-dev-conf'], shell.task([
+  'webpack --config webpack.config.js'
 ]));
 
-gulp.task('remote-dev-build-watch', ['remote-dev-conf', 'copy'], shell.task([
-  'webpack --config webpack.production.config.js --progress --colors --watch'
+gulp.task('remote-dev-build-watch', ['remote-dev-conf'], shell.task([
+  'webpack --config webpack.config.js --watch --colors'
 ]));
 
 gulp.task('remote-dev-deploy', [], function () {

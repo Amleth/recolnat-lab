@@ -10,7 +10,7 @@ const distSrc = ['out/*'];
 //
 
 gulp.task('dev-local', ['dev-local-conf'], shell.task([
-  'webpack --config webpack.config.js'
+  'webpack --config webpack.config.js --colors'
 ]));
 
 gulp.task('dev-local-conf', function () {
@@ -28,11 +28,11 @@ gulp.task('remote-dev-conf', function () {
 });
 
 gulp.task('remote-dev-build', ['remote-dev-conf'], shell.task([
-  'webpack --config webpack.config.js'
+  'webpack --config webpack.config.js --colors'
 ]));
 
 gulp.task('remote-dev-build-watch', ['remote-dev-conf'], shell.task([
-  'webpack --config webpack.config.js --watch --colors'
+  'webpack --config webpack.config.js --colors --watch '
 ]));
 
 gulp.task('remote-dev-deploy', [], function () {

@@ -10,12 +10,6 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import fr.recolnat.database.model.DataModel;
 import fr.recolnat.database.utils.TagUtils;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -23,8 +17,19 @@ import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 /**
  * REST API for accessing tags. This is a helper to integration with Semantic-UI handlers for tag autocompletion.
+ *
  * @author dmitri
  */
 @Path("/tags")
@@ -33,10 +38,11 @@ public class TagService {
   private final static Logger LOG = LoggerFactory.getLogger(TagService.class);
 
   /**
-   * Autocomplete the key (left part) of a Tag. Case-insensitive. 
+   * Autocomplete the key (left part) of a Tag. Case-insensitive.
+   *
    * @param begin Despite the name of this parameter, this method checks the whole tag key (with String.contains), instead of just the beginning of the key.
    * @return Object with a "success" and "results" parameter. "results" is an array of objects using keys "name", "value" and "text". Both "name" and "text" are the text of the key. "value" is the UID of the matching Tag.
-   * @throws JSONException 
+   * @throws JSONException
    */
   @GET
   @Path("/query/key")
@@ -76,11 +82,12 @@ public class TagService {
   }
 
   /**
-   * Queries tags for values containing given text with the given key. 
+   * Queries tags for values containing given text with the given key.
+   *
    * @param begin Text to search for (searches whole text, not just beginning)
-   * @param key Text value of the key (left part) of the Tag
+   * @param key   Text value of the key (left part) of the Tag
    * @return See queryKey
-   * @throws JSONException 
+   * @throws JSONException
    */
   @GET
   @Path("/query/tag")
@@ -96,22 +103,21 @@ public class TagService {
 
     OrientBaseGraph g = DatabaseAccess.getReadOnlyGraph();
     try {
-    Iterator<Vertex> itTagDefs = TagUtils.listTagsByKey(key, g).iterator();
-    while (itTagDefs.hasNext()) {
-      OrientVertex vTagDef = (OrientVertex) itTagDefs.next();
-      String value = vTagDef.getProperty(DataModel.Properties.value);
-      String uid = (String) vTagDef.getProperty(DataModel.Properties.id);
-      if (value.toLowerCase().startsWith(begin.toLowerCase()) && !matches.contains(uid)) {
-        JSONObject proposal = new JSONObject();
-        proposal.put("name", value);
-        proposal.put("value", uid);
-        proposal.put("text", value);
-        results.put(proposal);
-        matches.add(uid);
+      Iterator<Vertex> itTagDefs = TagUtils.listTagsByKey(key, g).iterator();
+      while (itTagDefs.hasNext()) {
+        OrientVertex vTagDef = (OrientVertex) itTagDefs.next();
+        String value = vTagDef.getProperty(DataModel.Properties.value);
+        String uid = (String) vTagDef.getProperty(DataModel.Properties.id);
+        if (value.toLowerCase().startsWith(begin.toLowerCase()) && !matches.contains(uid)) {
+          JSONObject proposal = new JSONObject();
+          proposal.put("name", value);
+          proposal.put("value", uid);
+          proposal.put("text", value);
+          results.put(proposal);
+          matches.add(uid);
+        }
       }
-    }
-    }
-    finally {
+    } finally {
       g.shutdown();
     }
 

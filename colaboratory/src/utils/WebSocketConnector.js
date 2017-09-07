@@ -1,7 +1,6 @@
 'use strict';
 
 import {EventEmitter} from 'events';
-import uuid from 'node-uuid';
 import _ from 'lodash';
 
 import SocketEvents from '../stores/events/SocketEvents';
@@ -27,7 +26,7 @@ class Connector extends EventEmitter {
     // Contains message ids (from messageCounter) for messages which have not been answered yet.
     this.pendingMessages = {};
 
-    this.websocketServerMethod = "";
+    this.websocketServerMethod = '';
     this.websocket = null;
     this.ping = null;
     this.user = null;
@@ -51,7 +50,7 @@ class Connector extends EventEmitter {
           this.messageCounter++;
           action.message.messageId = this.messageCounter;
           this.pendingMessages[this.messageCounter] = 'loading';
-          if(action.callback) {
+          if (action.callback) {
             this.once(this.messageCounter, action.callback);
           }
           window.setTimeout(this.sendPayloadWhenReady.bind(this, action.message), 10);
@@ -76,7 +75,7 @@ class Connector extends EventEmitter {
   }
 
   openWebsocket() {
-    if(this.websocket == null) {
+    if (this.websocket == null) {
       window.clearInterval(this.openInterval);
       let self = this;
       let websocket = new W3CWebSocket(conf.wss, this.websocketServerMethod, conf.wss);
@@ -86,21 +85,21 @@ class Connector extends EventEmitter {
       };
 
       websocket.onopen = function (message) {
-        //console.log('Client connected ' + JSON.stringify(message));
+        console.log('Client connected ' + JSON.stringify(message));
         self.messageCounter = 0;
         self.pendingMessages = {};
 
         self.ping = window.setInterval(self.sendPing.bind(self), 60000);
         // If ids are present, re-subscribe to them as it means the socket was closed prematurely
         let ids = Object.keys(self.idToData);
-        for(let i = 0; i < ids.length; ++i) {
+        for (let i = 0; i < ids.length; ++i) {
           self.subscribe(ids[i]);
         }
         self.emit(SocketEvents.STATUS_CHANGE);
       };
 
       websocket.onclose = function (message) {
-        //console.log('Connection closed ' + JSON.stringify(message));
+        console.log('Connection closed ' + JSON.stringify(message));
         window.clearInterval(self.ping);
         self.user = null;
         self.idToData['user'] = null;
@@ -119,38 +118,38 @@ class Connector extends EventEmitter {
   }
 
   get(id) {
-    if(this.idToData[id]) {
+    if (this.idToData[id]) {
       return JSON.parse(JSON.stringify(this.idToData[id]));
     }
     return null;
   }
 
   receiveServerMessage(message) {
-    if(message.data === "PONG") {
+    if (message.data === 'PONG') {
       //console.log('PING/PONG success');
       return;
     }
-    if(message.data === 500) {
-      console.error("Internal server error");
+    if (message.data === 500) {
+      console.error('Internal server error');
       return;
     }
-    console.log('got message ' + message.data);
+    //console.log('got message ' + message.data);
     let jsonMessage = JSON.parse(message.data);
-    if(jsonMessage.id) {
+    if (jsonMessage.id) {
       delete this.pendingMessages[jsonMessage.id];
       this.emit(SocketEvents.STATUS_CHANGE);
     }
-    if(jsonMessage.error) {
-      switch(jsonMessage.error) {
+    if (jsonMessage.error) {
+      switch (jsonMessage.error) {
         case 500:
-          console.error("Internal server error");
+          console.error('Internal server error');
           break;
         default:
-          console.error("No error handler for code " + jsonMessage.error);
+          console.error('No error handler for code ' + jsonMessage.error);
       }
       return;
     }
-    if(jsonMessage.forbidden) {
+    if (jsonMessage.forbidden) {
       this.idToData[jsonMessage.forbidden] = {
         uid: jsonMessage.forbidden,
         forbidden: true
@@ -159,10 +158,10 @@ class Connector extends EventEmitter {
       this.unsubscribe(jsonMessage.forbidden);
       return;
     }
-    switch(jsonMessage.action) {
+    switch (jsonMessage.action) {
       case ServerConstants.ActionTypes.Receive.RESOURCE:
         let resource = jsonMessage.resource;
-        if(resource.type === "User" && this.user === null) {
+        if (resource.type === 'User' && this.user === null) {
           console.log('User data received');
           this.idToData['user'] = resource;
           this.user = resource;
@@ -172,7 +171,7 @@ class Connector extends EventEmitter {
         this.emitResourceUpdate(resource.uid);
         break;
       case ServerConstants.ActionTypes.Receive.DONE:
-        console.log("Got OK from server");
+        //console.log('Got OK from server');
         this.emit(jsonMessage.id, jsonMessage);
         break;
       case ServerConstants.ActionTypes.Receive.DENIED:
@@ -181,14 +180,14 @@ class Connector extends EventEmitter {
         this.emit(jsonMessage.id, jsonMessage);
         break;
       default:
-        console.error("No switch implemented for action " + jsonMessage.action);
+        console.error('No switch implemented for action ' + jsonMessage.action);
         break;
     }
   }
 
   closeWebsocket() {
-    if(this.websocket) {
-      this.websocket.close(1000, "User logged out");
+    if (this.websocket) {
+      this.websocket.close(1000, 'User logged out');
       this.websocket = null;
     }
   }
@@ -219,7 +218,7 @@ class Connector extends EventEmitter {
   sendPayloadWhenReady(json) {
     if (this.websocket) {
       if (this.websocket.readyState === this.websocket.CONNECTING) {
-        //console.log("waiting for connection");
+        console.log('waiting for connection');
         window.setTimeout(this.sendPayloadWhenReady.bind(this, json), 1000, this, json);
       }
       else {
@@ -227,7 +226,7 @@ class Connector extends EventEmitter {
       }
     }
     else {
-      console.warn("Websocket not connected");
+      console.warn('Websocket not connected');
     }
   }
 
@@ -246,18 +245,18 @@ class Connector extends EventEmitter {
 
   addResourceListener(id, callback) {
     this.on(SocketEvents.RESOURCE_UPDATED + '_' + id, callback);
-    if(this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 1) {
+    if (this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 1) {
       window.setTimeout(this.subscribe.bind(this, id), 10);
     }
 
-    if(this.idToData[id]) {
+    if (this.idToData[id]) {
       window.setTimeout(this.emitResourceUpdate.bind(this, id), 10);
     }
   }
 
   removeResourceListener(id, callback) {
     this.removeListener(SocketEvents.RESOURCE_UPDATED + '_' + id, callback);
-    if(this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 0) {
+    if (this.listenerCount(SocketEvents.RESOURCE_UPDATED + '_' + id) === 0) {
       this.unsubscribe(id);
     }
   }

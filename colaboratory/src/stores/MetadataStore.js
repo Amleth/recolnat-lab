@@ -9,13 +9,14 @@ import {EventEmitter} from 'events';
 import request from 'superagent';
 
 import MetadataEvents from './events/MetadataEvents';
-
 import SocketActions from '../actions/SocketActions';
 
 class MetadataStore extends EventEmitter {
   constructor(socket) {
     super(socket);
+
     this.socket = socket;
+
     /**
      * Metadata by id.
      *
@@ -34,6 +35,7 @@ class MetadataStore extends EventEmitter {
      * @type {{}}
      */
     this.externalMetadata = {};
+
     this.setMaxListeners(1000);
   }
 
@@ -43,10 +45,11 @@ class MetadataStore extends EventEmitter {
    * @returns {null}
    */
   getMetadataAbout(id) {
-    if(this.metadata[id]) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'getMetadataAbout', 'id:', id);
+    if (this.metadata[id]) {
       return JSON.parse(JSON.stringify(this.metadata[id]));
     }
-    if(this.socket.get(id)) {
+    if (this.socket.get(id)) {
       // No need to clone it, socket already returns a clone
       return this.socket.get(id);
     }
@@ -59,10 +62,17 @@ class MetadataStore extends EventEmitter {
    * @returns {null}
    */
   getExternalMetadata(id) {
-    if(this.externalMetadata[id]) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'getExternalMetadata', 'id:', id);
+    if (this.externalMetadata[id]) {
       return JSON.parse(JSON.stringify(this.externalMetadata[id]));
     }
     return null;
+  }
+
+  setExternalMetadata(specimenId, metadata) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'setExternalMetadata', 'specimenId:', specimenId, 'metadata:', metadata);
+    this.externalMetadata[specimenId] = metadata;
+    this.emitExternalMetadataUpdateEvent(specimenId);
   }
 
   /**
@@ -92,7 +102,8 @@ class MetadataStore extends EventEmitter {
    * @param metadata
    */
   metadataUpdated(metadata) {
-    if(metadata.forbidden || metadata.deleted) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'metadataUpdated', 'metadata:', metadata);
+    if (metadata.forbidden || metadata.deleted) {
       // Do not delete, let components update first
       this.metadata[metadata.uid].deleted = true;
     }
@@ -103,59 +114,59 @@ class MetadataStore extends EventEmitter {
   }
 
   emitUpdateEvent(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'emitUpdateEvent', 'id:', id);
     // console.log('meta updated emit '+ id);
     this.emit(MetadataEvents.METADATA_UPDATE + '_' + id, id);
     this.emit(MetadataEvents.METADATA_UPDATE, id);
   }
 
   emitExternalMetadataUpdateEvent(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'emitExternalMetadataUpdateEvent', 'id:', id);
     // console.log('meta updated emit '+ id);
     this.emit(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, id);
     this.emit(MetadataEvents.EXTERNAL_METADATA_UPDATE, id);
   }
 
   getOriginalSource(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'getOriginalSource', 'id:', id);
     let meta = this.metadata[id];
-    if(!meta) {
+    if (!meta) {
       // Get metadata and restart this operation
       this.addMetadataUpdateListener(id, this.getOriginalSource.bind(this, id));
       return;
     }
-    if(meta.type === 'Specimen') {
-      if(meta.originalSource) {
+    if (meta.type === 'Specimen') {
+      if (meta.originalSource) {
         this.addMetadataUpdateListener(meta.originalSource, this.originalSourceObtained.bind(this, meta.originalSource, id));
       }
     }
   }
 
   originalSourceObtained(originalSourceId, specimenId) {
-    console.log('originalSourceObtained');
-    console.log('originalSourceId ' + originalSourceId);
-    console.log('originalSourceObtained ' + specimenId);
+    console.log('§§§§§§§§', '@@@@@@@@', 'MetadataStore', 'originalSourceObtained', {originalSourceId, specimenId});
     let meta = this.metadata[originalSourceId];
-    if(!meta) {
+    if (!meta) {
       return;
     }
     console.log(JSON.stringify(meta));
     let id = meta.idInOriginSource;
     let type = meta.typeInOriginSource;
     let source = meta.origin;
-    switch(source.toLowerCase()) {
+    switch (source.toLowerCase()) {
       case 'recolnat':
         console.log('recolnat ext');
-        switch(type.toLowerCase()) {
+        switch (type.toLowerCase()) {
           case 'specimen':
             console.log('recolnat specimen ext, calling API');
             request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
               .end((err, res) => {
-                if(err) {
+                if (err) {
                   console.error('Could not retrieve resource data from recolnat about ' + id);
                 }
                 else {
                   console.log('recolnat API received response');
                   let specimen = JSON.parse(res.text);
-                  this.externalMetadata[specimenId] = specimen;
-                  this.emitExternalMetadataUpdateEvent(specimenId);
+                  this.setExternalMetadata(specimenId, specimen);
                 }
               });
             break;
@@ -171,11 +182,14 @@ class MetadataStore extends EventEmitter {
   }
 
   addExternalMetadataUpdateListener(id, callback) {
-    if(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'addExternalMetadataUpdateListener', 'id:', id, 'callback:', callback);
+    if (id) {
       this.on(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
-      if(this.externalMetadata[id]) {
-        if(this.externalMetadata[id] !== 'loading') {
-          window.setTimeout(function(){callback(id)}, 10);
+      if (this.externalMetadata[id]) {
+        if (this.externalMetadata[id] !== 'loading') {
+          window.setTimeout(function () {
+            callback(id)
+          }, 10);
         }
       }
       else {
@@ -186,7 +200,8 @@ class MetadataStore extends EventEmitter {
   }
 
   removeExternalMetadataUpdateListener(id, callback) {
-    if(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'removeExternalMetadataUpdateListener', 'id:', id, 'callback:', callback);
+    if (id) {
       this.removeListener(MetadataEvents.EXTERNAL_METADATA_UPDATE + '_' + id, callback);
     }
     else {
@@ -195,15 +210,18 @@ class MetadataStore extends EventEmitter {
   }
 
   addMetadataUpdateListener(id, callback) {
-    if(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'addMetadataUpdateListener', 'id:', id, 'callback:', callback);
+    if (id) {
       this.on(MetadataEvents.METADATA_UPDATE + '_' + id, callback);
-      if(!this.metadataIds[id]) {
+      if (!this.metadataIds[id]) {
         this.metadataIds[id] = id;
         window.setTimeout(SocketActions.registerListener.bind(null, id, this.metadataUpdated.bind(this)), 10);
       }
       else {
         // Metadata was already available, just callback
-        window.setTimeout(function() {callback(id)}, 10);
+        window.setTimeout(function () {
+          callback(id)
+        }, 10);
       }
     }
     else {
@@ -212,7 +230,8 @@ class MetadataStore extends EventEmitter {
   }
 
   removeMetadataUpdateListener(id, callback) {
-    if(id) {
+    //console.log('§§§§§§§§', 'MetadataStore', 'removeMetadataUpdateListener', 'id:', id, 'callback:', callback);
+    if (id) {
       this.removeListener(MetadataEvents.METADATA_UPDATE + '_' + id, callback);
     }
     else {

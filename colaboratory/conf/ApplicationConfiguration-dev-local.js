@@ -8,17 +8,17 @@ let Application = {
 };
 
 let Integration = {
-  recolnatMenuBarOrigin: 'https://localhost:8443',
-  recolnatMenuBarUrl: 'https://localhost:8443/menu',
-  recolnatBasketIframeUrl: 'https://localhost:8443/basket',
+  recolnatMenuBarOrigin: 'https://localhost:8181',
+  recolnatMenuBarUrl: 'https://localhost:8181/menu',
+  recolnatBasketIframeUrl: 'https://localhost:8181/basket',
   casLoginUrl: 'https://cas.recolnat.org/login',
   casSignupUrl: 'https://api.recolnat.org/erecolnat/signup/#/register'
 };
 
 let Services = {
-  laboratoryRESTService: 'https://localhost:18443/services/labo-dev/rest',
-  laboratorySocketService: 'wss://localhost:8443/services/labo-dev/websockets/colaboratory',
-  downloadsBaseURL: 'https://localhost:18443/exports/'
+  laboratoryRESTService: 'https://localhost:8181/rest',
+  laboratorySocketService: 'wss://localhost:8181/colaboratory-socket-0.9.3/colaboratory',
+  downloadsBaseURL: 'https://localhost:18181/exports/'
 };
 
 let Endpoints = {

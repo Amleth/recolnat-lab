@@ -14,15 +14,13 @@ import AnnotationList from './../../tools/palettes/AnnotationList';
 
 import SpecimenMetadataDisplay from '../../tools/palettes/SpecimenMetadataDisplay';
 
-import ModeConstants from '../../constants/ModeConstants'
-
 class RightPane extends React.Component {
 
   constructor(props) {
     super(props);
 
-    this.setModeHeights = [3/16, 0, 5/16, 5/16, 3/16];
-    this.orgModeHeights = [0, 6/16, 0, 6/16, 4/16];
+    this.setModeHeights = [3 / 16, 0, 5 / 16, 5 / 16, 3 / 16];
+    this.orgModeHeights = [0, 6 / 16, 0, 6 / 16, 4 / 16];
 
     this.containerStyle = {
       backgroundColor: '#F2F2F2',
@@ -33,7 +31,7 @@ class RightPane extends React.Component {
     };
 
     this.state = {
-      componentHeights: [200,200,200,200,200]
+      componentHeights: [200, 200, 200, 200, 200]
     };
   }
 
@@ -42,17 +40,17 @@ class RightPane extends React.Component {
    * @param totalHeight
    */
   recalculateComponentHeight(totalHeight = undefined) {
-    if(!totalHeight) {
+    if (!totalHeight) {
       totalHeight = this.props.visibleHeight;
     }
-    if(!totalHeight) {
+    if (!totalHeight) {
       return;
     }
-    if(this.props.modestore.isInSetMode()) {
-      this.setState({componentHeights: [totalHeight*this.setModeHeights[0], totalHeight*this.setModeHeights[1], totalHeight*this.setModeHeights[2], totalHeight*this.setModeHeights[3], totalHeight*this.setModeHeights[4]]});
+    if (this.props.modestore.isInSetMode()) {
+      this.setState({componentHeights: [totalHeight * this.setModeHeights[0], totalHeight * this.setModeHeights[1], totalHeight * this.setModeHeights[2], totalHeight * this.setModeHeights[3], totalHeight * this.setModeHeights[4]]});
     }
-    else if(this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode()) {
-      this.setState({componentHeights: [totalHeight*this.orgModeHeights[0], totalHeight*this.orgModeHeights[1], totalHeight*this.orgModeHeights[2], totalHeight*this.orgModeHeights[3], totalHeight*this.orgModeHeights[4]]});
+    else if (this.props.modestore.isInObservationMode() || this.props.modestore.isInOrganisationMode()) {
+      this.setState({componentHeights: [totalHeight * this.orgModeHeights[0], totalHeight * this.orgModeHeights[1], totalHeight * this.orgModeHeights[2], totalHeight * this.orgModeHeights[3], totalHeight * this.orgModeHeights[4]]});
     }
     else {
       console.warn('Mode not handled: ' + this.props.modestore.getMode());
@@ -65,7 +63,7 @@ class RightPane extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    if(props.visibleHeight != this.props.visibleHeight) {
+    if (props.visibleHeight != this.props.visibleHeight) {
       this.recalculateComponentHeight(props.visibleHeight)
     }
   }
@@ -75,8 +73,8 @@ class RightPane extends React.Component {
   }
 
   render() {
-    if(this.props.modestore.isInSetMode()) {
-      return(
+    if (this.props.modestore.isInSetMode()) {
+      return (
         <div style={this.containerStyle}>
           <SimpleImageDisplay
             key='SimpleImageDisplay'
@@ -118,8 +116,8 @@ class RightPane extends React.Component {
         </div>
       );
     }
-    else if(this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()) {
-      return(
+    else if (this.props.modestore.isInOrganisationMode() || this.props.modestore.isInObservationMode()) {
+      return (
         <div style={this.containerStyle}>
           <MetadataViewer
             key='MetadataViewer'
@@ -163,4 +161,3 @@ class RightPane extends React.Component {
 }
 
 export default RightPane;
-

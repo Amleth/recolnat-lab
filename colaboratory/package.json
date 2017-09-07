@@ -4,13 +4,7 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
-    "local": "gulp build-dev-local",
-    "dev": "gulp build-dev",
-    "ddev": "gulp deploy-dev",
-    "test": "gulp deploy-test",
-    "build": "gulp build-prod",
-    "prod-vm": "gulp deploy-prod-vm",
-    "prod": "gulp deploy-prod"
+    "test": "jest"
   },
   "author": "DICEN",
   "license": "ISC",
@@ -36,6 +30,7 @@
     "gulp-sftp": "0.1.4",
     "gulp-shell": "0.4.0",
     "ie": "0.1.0",
+    "jest": "^21.0.1",
     "jquery": "2.1.4",
     "json-loader": "^0.5.4",
     "jsx-loader": "0.13.2",

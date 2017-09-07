@@ -1,34 +1,33 @@
 package org.dicen.recolnat.services.resources;
 
-import org.dicen.recolnat.services.resources.configurators.ColaboratorySocketConfigurator;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.collections.MultiMap;
+import org.apache.commons.collections.map.MultiValueMap;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.dicen.recolnat.services.configuration.Authentication;
+import org.dicen.recolnat.services.configuration.Configuration;
+import org.dicen.recolnat.services.core.MessageProcessorThread;
 import org.dicen.recolnat.services.core.actions.Action;
+import org.dicen.recolnat.services.core.data.DatabaseResource;
+import org.dicen.recolnat.services.resources.configurators.ColaboratorySocketConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import org.dicen.recolnat.services.core.data.DatabaseResource;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.dicen.recolnat.services.configuration.Authentication;
-import org.dicen.recolnat.services.configuration.Configuration;
-import org.dicen.recolnat.services.core.MessageProcessorThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Main endpoint WebSocket message receiver for each user session. This annotated class receives messages from a single session, checks basic validity, and creates threads to process them.
- * 
+ * <p>
  * Created by Dmitri Voitsekhovitch (dvoitsekh@gmail.com) on 09/04/15.
  */
-@ServerEndpoint(value = "/colaboratory",
-    configurator = ColaboratorySocketConfigurator.class)
+@ServerEndpoint(value = "/colaboratory", configurator = ColaboratorySocketConfigurator.class)
 public class ColaboratorySocket {
 
   // Map resource (by id) to sessions (by id) which have subscribed to it
@@ -207,7 +206,7 @@ public class ColaboratorySocket {
         return;
       case Action.ClientActionType.ORDER:
         updateType = jsonIn.getString("actionDetail");
-        switch(updateType) {
+        switch (updateType) {
           case "prepare-set-for-download":
             roExecutor.submit(t);
             break;
@@ -224,8 +223,9 @@ public class ColaboratorySocket {
 
   /**
    * When a session is closed. Remove session data from session maps.
+   *
    * @param session
-   * @param reason 
+   * @param reason
    */
   @OnClose
   public void onClose(Session session, CloseReason reason) {
@@ -253,7 +253,7 @@ public class ColaboratorySocket {
     } finally {
       ColaboratorySocket.mapAccessLock.unlock();
     }
-    
+
     heavyExecutor.shutdownNow();
     lightExecutor.shutdownNow();
     roExecutor.shutdownNow();
@@ -261,8 +261,9 @@ public class ColaboratorySocket {
 
   /**
    * Currently errors are only logged and not acted upon.
+   *
    * @param session
-   * @param t 
+   * @param t
    */
   @OnError
   public void onError(Session session, Throwable t) {
@@ -271,19 +272,27 @@ public class ColaboratorySocket {
 
   /**
    * When a new session tries to open, check user authentication. On failure close with code 1008. If successful, store session data and send user data.
+   *
    * @param session
    * @param config
    * @throws SessionException
-   * @throws IOException 
+   * @throws IOException
    */
   @OnOpen
   public void onConnect(Session session, EndpointConfig config) throws SessionException, IOException {
     log.info("Opening new websocket session " + session.getId());
-    // Check in configuration which authentication method to use
-    String user = Authentication.authenticate(config);
-    if (user == null) {
-      session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
-      return;
+
+    String user;
+
+    if (!Configuration.localdev) {
+      // Check in configuration which authentication method to use
+      user = Authentication.authenticate(config);
+      if (user == null) {
+        session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(1008), "Authentication token validation failed."));
+        return;
+      }
+    } else {
+      user = Configuration.localdevuser;
     }
 
     // User is now authenticated. Carry on as usual.
@@ -310,14 +319,15 @@ public class ColaboratorySocket {
 
   /**
    * Send message to a specific session.
+   *
    * @param message
-   * @param session 
+   * @param session
    */
   private void sendMessage(String message, Session session) {
     // If not synchronized sometimes frames can get randomly lost. No idea why. Behavior appears in Tomcat war but not in stand-alone jar.
     // Randomness is more frequent if not synchronized.
     // Randomness seems to come from using Async, so let's stick with Basic for now.
-    synchronized(session) {
+    synchronized (session) {
       try {
         session.getBasicRemote().sendText(message);
       } catch (IOException ex) {
@@ -328,18 +338,18 @@ public class ColaboratorySocket {
 
   /**
    * Send internal server error to one session.
+   *
    * @param session
-   * @param messageId 
+   * @param messageId
    */
   private void sendInternalServerError(Session session, Integer messageId) {
     String error;
-    if(messageId == null) {
+    if (messageId == null) {
       error = "{\"error\":500}";
+    } else {
+      error = "{\"error\":500,\"id\":" + messageId + "}";
     }
-    else {
-      error = "{\"error\":500,\"id\":"+ messageId + "}";
-    }
-    
+
     this.sendMessage(error, session);
   }
 }

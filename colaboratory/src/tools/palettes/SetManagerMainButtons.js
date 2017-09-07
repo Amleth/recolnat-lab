@@ -54,7 +54,10 @@ class SetManagerMainButtons extends React.Component {
     };
 
     this._forceUpdate = () => {
-      const update = () => {if(!this.mounted) return; this.setState({});};
+      const update = () => {
+        if (!this.mounted) return;
+        this.setState({});
+      };
       return update.apply(this);
     };
 
@@ -64,7 +67,7 @@ class SetManagerMainButtons extends React.Component {
   }
 
   enableOrDisableActions() {
-    if(this.props.managerstore.getSelected().type == 'Set') {
+    if (this.props.managerstore.getSelected().type == 'Set') {
       this.setState({openButton: ''});
     }
     else {
@@ -79,20 +82,20 @@ class SetManagerMainButtons extends React.Component {
 
   loadActiveSet() {
     let setId = this.props.managerstore.getSelected().id;
-    if(!setId) {
-      alert("Internal error: no set selected");
+    if (!setId) {
+      alert('Internal error: no set selected');
       return;
     }
-    //console.log('request view to set active set ' + setId);
+    // console.log('request view to set active set ' + setId);
     window.setTimeout(MetadataActions.setLabBenchId.bind(null, setId), 10);
     window.setTimeout(ViewActions.setActiveSet.bind(null, setId), 10);
-    window.setTimeout(ModeActions.changeMode.bind(null,ModeConstants.Modes.OBSERVATION),30);
+    window.setTimeout(ModeActions.changeMode.bind(null, ModeConstants.Modes.OBSERVATION), 30);
   }
 
   splitSet() {
     let setId = this.props.managerstore.getSelected().id;
-    if(!setId) {
-      alert("Internal error: no set selected");
+    if (!setId) {
+      alert('Internal error: no set selected');
       return;
     }
     window.setTimeout(ModalActions.showModal.bind(null, ModalConstants.Modals.organiseSet, {id: setId}), 10);
@@ -118,16 +121,16 @@ class SetManagerMainButtons extends React.Component {
   }
 
   render() {
-    return(
+    return (
       <div className='ui container segment' style={this.containerStyle}>
         <div style={this.labelContainerStyle}>
-        <div className='ui blue tiny basic label'
-             style={this.labelStyle}>
-          {this.props.userstore.getText('actions')}
+          <div className='ui blue tiny basic label'
+               style={this.labelStyle}>
+            {this.props.userstore.getText('actions')}
+          </div>
         </div>
-      </div>
         <div className='ui fluid buttons'
-        style={this.buttonColumnStyle}>
+             style={this.buttonColumnStyle}>
           <div className='ui green compact button' onClick={this.showModal.bind(this)}>
             <div className='ui text'>
               {this.props.userstore.getText('newSet')}
@@ -145,7 +148,7 @@ class SetManagerMainButtons extends React.Component {
             </div>
           </div>
           <div className={'ui compact button ' + this.state.openButton} onClick={this.splitSet.bind(this)}>
-          <div className='ui text'>
+            <div className='ui text'>
               {this.props.userstore.getText('organise')}
             </div>
             <div className='ui text' style={this.buttonSubTextStyle}>

@@ -1,0 +1,1 @@
+export const extractCatalogNumberFromUrl = url => url.split('/').pop().split('.')[0];

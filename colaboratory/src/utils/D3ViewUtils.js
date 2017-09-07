@@ -17,6 +17,8 @@ import ViewActions from '../actions/ViewActions';
 import markerSVG from '../images/poi.svg';
 import resizeHandleIcon from '../images/resize-handle.svg';
 
+import {extractCatalogNumberFromUrl} from '../recolnat';
+
 export default class D3ViewUtils {
   /**
    * Draws or updates the drawing of the lab bench data. This is the main rendering method for the lab bench.
@@ -36,21 +38,22 @@ export default class D3ViewUtils {
       .append('g')
       .attr('class', Classes.CHILD_GROUP_CLASS)
       .attr('id', d => 'GROUP-' + d.link)
-      .attr('transform', function(d) {
-        return d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')'});
+      .attr('transform', function (d) {
+        return d.x === null || d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')'
+      });
     children.exit().remove();
-    children.attr('transform', d => d.x === null|| d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight/d.height) + ')');
+    children.attr('transform', d => d.x === null || d.y === null || d.displayHeight === null || d.height === null ? '' : 'translate(' + d.x + ',' + d.y + ')scale(' + (d.displayHeight / d.height) + ')');
 
     // BEGIN under image update (borders, image title and actions such as drag and resize go here)
-      let under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);
-      under.enter()
-        .append('g')
-        .attr('class', d => Classes.UNDER_CHILD_CLASS)
-        .attr('id', d => 'UNDER-' + d.link);
-      under.exit().remove();
-      under.attr('id', d => 'UNDER-' + d.link);
+    let under = children.selectAll('.' + Classes.UNDER_CHILD_CLASS).data(d => [d], d => d.link);
+    under.enter()
+      .append('g')
+      .attr('class', d => Classes.UNDER_CHILD_CLASS)
+      .attr('id', d => 'UNDER-' + d.link);
+    under.exit().remove();
+    under.attr('id', d => 'UNDER-' + d.link);
 
-    if(displays.borders) {
+    if (displays.borders) {
       let borderAreas = under.selectAll('.' + Classes.BORDER_CLASS).data(d => [d], d => d.link);
       borderAreas.enter()
         .append('rect')
@@ -60,25 +63,25 @@ export default class D3ViewUtils {
         .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
         .attr('width', d => d.width + 10 / self.view.scale * d.height / d.displayHeight)
         .attr('height', d => d.height + 30 / self.view.scale * d.height / d.displayHeight)
-        .style('fill', d => colors[d.uid]?colors[d.uid][0]:'#AAAAAA');
+        .style('fill', d => colors[d.uid] ? colors[d.uid][0] : '#AAAAAA');
       borderAreas.exit().remove();
       borderAreas
         .attr('x', d => -5 / self.view.scale * d.height / d.displayHeight)
         .attr('y', d => -20 / self.view.scale * d.height / d.displayHeight)
         .attr('width', d => d.width + 10 / self.view.scale * d.height / d.displayHeight)
         .attr('height', d => d.height + 30 / self.view.scale * d.height / d.displayHeight)
-        .style('fill', d => colors[d.uid]?colors[d.uid][0]:'#AAAAAA');
+        .style('fill', d => colors[d.uid] ? colors[d.uid][0] : '#AAAAAA');
 
       let namePath = under.selectAll('.' + Classes.NAME_PATH_CLASS).data(d => [d], d => d.link);
       namePath.enter()
         .append('path')
         .attr('id', d => 'NAME-PATH-' + d.link)
         .attr('class', Classes.NAME_PATH_CLASS)
-        .attr('d', d => 'M 0 ' + (-5 * d.height/d.displayHeight)/self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height/d.displayHeight)/self.view.scale)
+        .attr('d', d => 'M 0 ' + (-5 * d.height / d.displayHeight) / self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height / d.displayHeight) / self.view.scale)
         .style('pointer-events', 'none');
       namePath.exit().remove();
       namePath
-        .attr('d', d => 'M 0 ' + (-5 * d.height/d.displayHeight)/self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height/d.displayHeight)/self.view.scale)
+        .attr('d', d => 'M 0 ' + (-5 * d.height / d.displayHeight) / self.view.scale + ' L ' + (d.width) + ' ' + (-5 * d.height / d.displayHeight) / self.view.scale)
         .style('pointer-events', 'none');
 
       let name = under.selectAll('.' + Classes.NAME_CLASS).data(d => [d], d => d.link);
@@ -97,7 +100,9 @@ export default class D3ViewUtils {
       name.attr('font-size', d => 14 / self.view.scale * d.height / d.displayHeight + 'px')
         .select('textPath')
         .style('pointer-events', 'none')
-        .text(d => d.name);
+        .text(d => {
+          return d.name;
+        });
 
       let resizer = under.selectAll('.' + Classes.RESIZE_CLASS).data(d => [d], d => d.link);
       resizer.enter()
@@ -138,19 +143,19 @@ export default class D3ViewUtils {
     image.enter().append('svg:image')
       .attr('class', Classes.IMAGE_CLASS)
       .attr('id', d => 'IMAGE-' + d.link)
-      .attr("height", d => d.height)
-      .attr("width", d => d.width)
-      .attr("x", 0)
-      .attr("y", 0);
+      .attr('height', d => d.height)
+      .attr('width', d => d.width)
+      .attr('x', 0)
+      .attr('y', 0);
     image.exit().remove();
-    image.attr("height", d => d.height)
-      .attr("width", d => d.width);
+    image.attr('height', d => d.height)
+      .attr('width', d => d.width);
 
     // BEGIN over image update (anchors, tools, etc)
     let over = children.selectAll('.' + Classes.OVER_CHILD_CLASS).data(d => [d], d => d.link);
     over.enter().append('g')
       .attr('class', Classes.OVER_CHILD_CLASS)
-      .attr('id', d=> 'OVER-' + d.link);
+      .attr('id', d => 'OVER-' + d.link);
     over.exit().remove();
 
     over = children.selectAll('.' + Classes.OVER_CHILD_CLASS);
@@ -158,103 +163,103 @@ export default class D3ViewUtils {
     let annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS).data(d => [d], d => d.link);
     annotations.enter().append('g')
       .attr('class', Classes.ANNOTATIONS_CONTAINER_CLASS)
-      .attr('id', d=> 'ANNOTATIONS-' + d.link);
+      .attr('id', d => 'ANNOTATIONS-' + d.link);
     annotations.exit().remove();
 
     annotations = over.selectAll('.' + Classes.ANNOTATIONS_CONTAINER_CLASS);
 
-    if(displays.angles) {
+    if (displays.angles) {
       let angle = annotations.selectAll('.' + Classes.AOI_CLASS).data(d => d.aois, d => d.uid);
       angle.enter().append('polyline')
         .attr('class', Classes.AOI_CLASS)
         .attr('id', d => 'AOI-' + d.uid)
         .attr('fill', 'none')
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
+        .attr('stroke', d => colors[d.uid] ? colors[d.uid][0] : 'red')
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
         .attr('stroke-width', 4)
         .style('pointer-events', 'none')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
       angle.exit().remove();
       angle.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .attr('stroke', d => colors[d.uid] ? colors[d.uid][0] : 'red')
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
     }
     else {
       annotations.selectAll('.' + Classes.AOI_CLASS).remove();
     }
 
-    if(displays.trails) {
+    if (displays.trails) {
       let path = annotations.selectAll('.' + Classes.PATH_CLASS).data(d => d.tois, d => d.uid);
       path.enter().append('polyline')
         .attr('class', Classes.PATH_CLASS)
         .attr('id', d => 'PATH-' + d.uid)
         .attr('fill', 'none')
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
+        .attr('stroke', d => colors[d.uid] ? colors[d.uid][0] : 'red')
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
         .attr('stroke-width', 4)
         .style('pointer-events', 'none')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
       path.exit().remove();
       path.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('stroke', d => colors[d.uid]?colors[d.uid][0]:'red')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .attr('stroke', d => colors[d.uid] ? colors[d.uid][0] : 'red')
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
     }
     else {
       annotations.selectAll('.' + Classes.PATH_CLASS).remove();
     }
 
-    if(displays.points) {
+    if (displays.points) {
       let point = annotations.selectAll('.' + Classes.POI_CLASS).data(d => d.pois, d => d.uid);
       let poi = point.enter().append('g')
         .attr('class', Classes.POI_CLASS)
         .attr('id', d => 'POI-' + d.uid)
         .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 4/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null)
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 4 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null)
         .style('pointer-events', 'none');
       poi.append('svg:image')
         .attr('height', 100)
         .attr('width', 60)
         .attr('xlink:href', markerSVG)
-        .attr("x", -30)
-        .attr("y", -100);
+        .attr('x', -30)
+        .attr('y', -100);
       point.exit().remove();
       point.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 4/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 4 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
     }
     else {
       annotations.selectAll('.' + Classes.POI_CLASS).remove();
     }
 
-    if(displays.regions) {
+    if (displays.regions) {
       let region = annotations.selectAll('.' + Classes.ROI_CLASS).data(d => d.rois, d => d.uid);
       region.enter().append('polygon')
         .attr('class', Classes.ROI_CLASS)
         .attr('id', d => 'ROI-' + d.uid)
         .attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('fill', d => colors[d.uid]?colors[d.uid][0]:'blue')
+        .attr('fill', d => colors[d.uid] ? colors[d.uid][0] : 'blue')
         .attr('fill-opacity', 0.3)
         .style('pointer-events', 'none')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
       region.exit().remove();
       region.attr('points', d => d.polygonVertices.replace(/\]/g, '').replace(/\[/g, '').replace(/\,/g, ' '))
-        .attr('fill', d => colors[d.uid]?colors[d.uid][0]:'blue')
-        .style('outline-style', d => colors[d.uid]?'solid':null)
-        .style('outline-width', 2/self.view.scale + 'px')
-        .style('outline-color', d => colors[d.uid]? colors[d.uid][0]:null);
+        .attr('fill', d => colors[d.uid] ? colors[d.uid][0] : 'blue')
+        .style('outline-style', d => colors[d.uid] ? 'solid' : null)
+        .style('outline-width', 2 / self.view.scale + 'px')
+        .style('outline-color', d => colors[d.uid] ? colors[d.uid][0] : null);
     }
     else {
       annotations.selectAll('.' + Classes.ROI_CLASS).remove();
@@ -268,10 +273,10 @@ export default class D3ViewUtils {
    * @param image Image after it has finished loading.
    */
   static displayLoadedImage(data, image) {
-    let group = d3.selectAll("." + Classes.CHILD_GROUP_CLASS);
+    let group = d3.selectAll('.' + Classes.CHILD_GROUP_CLASS);
 
-    group.select("#IMAGE-" + data.link)
-      .attr("xlink:href", image.src);
+    group.select('#IMAGE-' + data.link)
+      .attr('xlink:href', image.src);
   }
 
   /**
@@ -285,9 +290,9 @@ export default class D3ViewUtils {
    */
   static getImageUrlFromVisibleProportion(d, view) {
     let proportion = (d.displayHeight) / (view.yMax - view.yMin);
-    if(proportion < 0.2) {
+    if (proportion < 0.2) {
       return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.Low);
-    } else if(proportion < 0.7) {
+    } else if (proportion < 0.7) {
       return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.High);
     } else {
       return D3ViewUtils.getImageUrlFromQuality(d, ViewConstants.imageQuality.Original);
@@ -300,7 +305,7 @@ export default class D3ViewUtils {
    * @param quality One of the values provided in ViewConstants.imageQuality
    */
   static getImageUrlFromQuality(data, quality) {
-    switch(quality) {
+    switch (quality) {
       case ViewConstants.imageQuality.Low:
         return data.thumbnail;
       case ViewConstants.imageQuality.High:
@@ -324,18 +329,19 @@ export default class D3ViewUtils {
       .style('outline-style', 'solid')
       .style('outline-width', '2px');
 
-      function repeat() {
-        d3Node.style('outline-color', 'black')
-          .transition()
-          .duration(500)
-          .ease('linear')
-          .style('outline-color', 'white')
-          .transition()
-          .duration(500)
-          .ease('linear')
-          .style('outline-color', 'black')
+    function repeat() {
+      d3Node.style('outline-color', 'black')
+        .transition()
+        .duration(500)
+        .ease('linear')
+        .style('outline-color', 'white')
+        .transition()
+        .duration(500)
+        .ease('linear')
+        .style('outline-color', 'black')
         .each('end', repeat);
-      }
+    }
+
     repeat();
   }
 
@@ -359,9 +365,9 @@ export default class D3ViewUtils {
   static zoomToObject(objectData, benchstore, view) {
     let d3linkId = null;
     let coords = null;
-    switch(objectData.type) {
+    switch (objectData.type) {
       case 'Image':
-        if(objectData.link) {
+        if (objectData.link) {
           d3linkId = objectData.link;
         } else {
           let displayData = benchstore.getDisplayData(objectData.uid);
@@ -382,11 +388,11 @@ export default class D3ViewUtils {
       case 'TrailOfInterest':
         let vertices = JSON.parse(objectData.polygonVertices);
         coords = {
-          x: _.chain(vertices).map(v => v[0]).reduce((m,n) => Math.min(m,n)).value(),
-          y: _.chain(vertices).map(v => v[1]).reduce((m,n) => Math.min(m,n)).value(),
+          x: _.chain(vertices).map(v => v[0]).reduce((m, n) => Math.min(m, n)).value(),
+          y: _.chain(vertices).map(v => v[1]).reduce((m, n) => Math.min(m, n)).value(),
         };
-        coords.width = _.chain(vertices).map(v => v[0]).reduce((m,n) => Math.max(m,n)).value() - coords.x;
-        coords.height = _.chain(vertices).map(v => v[1]).reduce((m,n) => Math.max(m,n)).value() - coords.y;
+        coords.width = _.chain(vertices).map(v => v[0]).reduce((m, n) => Math.max(m, n)).value() - coords.x;
+        coords.height = _.chain(vertices).map(v => v[1]).reduce((m, n) => Math.max(m, n)).value() - coords.y;
         break;
       default:
         console.error('No handler for type ' + objectData.type);
@@ -425,22 +431,22 @@ export default class D3ViewUtils {
 
     // Calculate fitting area
     let scale = 1.0;
-    if(oldHeight > oldWidth) {
+    if (oldHeight > oldWidth) {
       scale = (view.height * oldScale) / (oldHeight);
     }
     else {
       scale = (view.width * oldScale) / (oldWidth);
     }
-    scale = scale*0.90;
+    scale = scale * 0.90;
 
     // Leave half empty screen as margin to center the object in the viewport
-    let marginX = (view.width - oldWidth*scale/view.scale)/2;
-    let marginY = (view.height - oldHeight*scale/view.scale)/2;
+    let marginX = (view.width - oldWidth * scale / view.scale) / 2;
+    let marginY = (view.height - oldHeight * scale / view.scale) / 2;
 
     // Dispatch action
     window.setTimeout(ViewActions.updateViewport.bind(null,
-      (view.left - winLoc.left + view.leftFromWindow)*scale/view.scale + marginX,
-      (view.top - winLoc.top + view.topFromWindow)*scale/view.scale + marginY,
+      (view.left - winLoc.left + view.leftFromWindow) * scale / view.scale + marginX,
+      (view.top - winLoc.top + view.topFromWindow) * scale / view.scale + marginY,
       null,
       null,
       scale,
@@ -455,9 +461,9 @@ export default class D3ViewUtils {
    */
   static isElementInView(data, view) {
     return !((data.x + data.displayWidth) < view.xMin
-    || data.x > view.xMax
-    || (data.y + data.displayHeight) < view.yMin
-    || data.y > view.yMax);
+      || data.x > view.xMax
+      || (data.y + data.displayHeight) < view.yMin
+      || data.y > view.yMax);
   }
 
   /**
@@ -465,7 +471,7 @@ export default class D3ViewUtils {
    * @param data
    */
   static findHilightD3Selector(data) {
-    switch(data.type) {
+    switch (data.type) {
       case 'Image':
         return '#BORDER-' + data.uid;
         break;

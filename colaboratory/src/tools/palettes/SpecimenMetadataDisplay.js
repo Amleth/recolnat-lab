@@ -8,20 +8,13 @@
 import React from 'react';
 import request from 'superagent';
 
-import AbstractMetadataDisplay from '../../components/manager/AbstractManagerMetadataDisplay';
-
-import MetadataActions from '../../actions/MetadataActions';
-import SocketActions from '../../actions/SocketActions';
-
-import conf from '../../conf/ApplicationConfiguration';
-
 class SpecimenMetadataDisplay extends React.Component {
   constructor(props) {
     super(props);
 
     this.containerStyle = {
       //overflowY: 'auto',
-      height: this.props.height-10,
+      height: this.props.height - 10,
       padding: '5px 5px 5px 5px',
       borderColor: '#2185d0!important'
     };
@@ -40,7 +33,7 @@ class SpecimenMetadataDisplay extends React.Component {
     };
 
     this.scrollerStyle = {
-      height: this.props.height-35,
+      height: this.props.height - 35,
       overflowY: 'auto'
     };
 
@@ -84,7 +77,7 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   downloadMetadata(id) {
-    if(this.state.id) {
+    if (this.state.id) {
       this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
     }
     this.props.metastore.addMetadataUpdateListener(id, this.receiveMetadata.bind(this));
@@ -94,17 +87,17 @@ class SpecimenMetadataDisplay extends React.Component {
 
   receiveMetadata() {
     let data = this.props.metastore.getMetadataAbout(this.state.id);
-    if(data) {
+    if (data) {
       this.processCoLabMetadata(data);
     }
   }
 
   processCoLabMetadata(metadata) {
-    if(metadata.type == 'Specimen') {
+    if (metadata.type == 'Specimen') {
       this.setState(this.initialState());
       //console.log(JSON.stringify(metadata));
-      if(metadata.originalSource) {
-        if(this.state.metadata) {
+      if (metadata.originalSource) {
+        if (this.state.metadata) {
           this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
         }
         this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onOriginalSourceMetadataAvailable);
@@ -116,14 +109,14 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   getMetadataFromSource(colabMetadata) {
-    if(!colabMetadata) {
+    if (!colabMetadata) {
       return;
     }
 
     let id = colabMetadata.idInOriginSource;
     let type = colabMetadata.typeInOriginSource;
     let source = colabMetadata.origin;
-    switch(source.toLowerCase()) {
+    switch (source.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
         break;
@@ -135,7 +128,7 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   getRecolnatMetadata(id, type) {
-    switch(type.toLowerCase()) {
+    switch (type.toLowerCase()) {
       case 'specimen':
         this.getRecolnatSpecimenMetadata(id);
         break;
@@ -146,13 +139,14 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   getRecolnatSpecimenMetadata(id) {
+    console.log('§§§§§§§§', '@@@@@@@@', 'SpecimenMetadataDisplay', 'getRecolnatSpecimenMetadata', {id});
     // Example id 3A160E6F-8ED3-4ED3-A46A-D6737893E844
     // https://api.recolnat.org/erecolnat/v1/specimens/3a160e6f-8ed3-4ed3-a46a-d6737893e844
     // Then go to determination(s)
     request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
-      //.withCredentials()
+    //.withCredentials()
       .end((err, res) => {
-        if(err) {
+        if (err) {
           console.error('Could not retrieve resource data from recolnat about ' + id);
           this.setState({
             type: 'specimen',
@@ -165,10 +159,10 @@ class SpecimenMetadataDisplay extends React.Component {
           let specimen = JSON.parse(res.text);
           let institCode = this.props.userstore.getText('insitutionCodeUnavailable');
           let catalogNum = this.props.userstore.getText('catalogNumberUnavailable');
-          if(specimen.institutioncode) {
+          if (specimen.institutioncode) {
             institCode = specimen.institutioncode
           }
-          if(specimen.catalognumber) {
+          if (specimen.catalognumber) {
             catalogNum = specimen.catalognumber;
           }
           this.setState({
@@ -181,9 +175,9 @@ class SpecimenMetadataDisplay extends React.Component {
       });
 
     request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/determinations')
-      //.withCredentials()
+    //.withCredentials()
       .end((err, res) => {
-        if(err) {
+        if (err) {
           console.error('Error requesting determinations about ' + id);
           this.setState({
             scientificName: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
@@ -196,15 +190,15 @@ class SpecimenMetadataDisplay extends React.Component {
           let scNameAuth = this.props.userstore.getText('dataUnavailable');
           let determinationStatusWarning = 'warning';
           //console.log('determinations=' + res.text);
-          for(let i = 0; i < determinations.length; ++i) {
+          for (let i = 0; i < determinations.length; ++i) {
             let determination = determinations[i];
-            if(determination.taxon.scientificName) {
+            if (determination.taxon.scientificName) {
               scName = determination.taxon.scientificName;
             }
-            if(determination.taxon.scientificNameAuthorship) {
+            if (determination.taxon.scientificNameAuthorship) {
               scNameAuth = determination.taxon.scientificNameAuthorship;
             }
-            if(determination.identificationverificationstatus == 1) {
+            if (determination.identificationverificationstatus == 1) {
               //console.log('determination1=' + JSON.stringify(determination));
               determinationStatusWarning = null;
               break;
@@ -219,9 +213,9 @@ class SpecimenMetadataDisplay extends React.Component {
       });
 
     request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id + '/recolte')
-      //.withCredentials()
+    //.withCredentials()
       .end((err, res) => {
-        if(err) {
+        if (err) {
           console.error('Error requesting harvest data about ' + id);
           this.setState({
             harvestVerbatimLocality: this.props.userstore.getText('dataUnavailableDueToNetworkError'),
@@ -236,13 +230,13 @@ class SpecimenMetadataDisplay extends React.Component {
           let fieldNum = this.props.userstore.getText('dataUnavailable');
           let verbatimLoc = this.props.userstore.getText('dataUnavailable');
 
-          if(harvest.recordedBy) {
+          if (harvest.recordedBy) {
             recBy = harvest.recordedBy;
           }
-          if(harvest.localisation.verbatimlocality) {
+          if (harvest.localisation.verbatimlocality) {
             verbatimLoc = harvest.localisation.verbatimlocality;
           }
-          if(harvest.fieldnumber) {
+          if (harvest.fieldnumber) {
             fieldNum = harvest.fieldnumber;
           }
           this.setState({
@@ -260,37 +254,44 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   createMetadataTable() {
-    if(!this.state.linkToExplore) {
+    if (!this.state.linkToExplore) {
       return null;
     }
 
-      // Name, Species, Harvester, Location, Collection, Link-to-Explore
-      return (
-        <table className='ui selectable striped structured very compact table'>
-          <thead>
-          <tr>
-            <th colSpan='2' className='center aligned'><i className={'ui yellow ' + this.state.determinationStatusWarning + ' icon'} ref='warning' data-content={this.props.userstore.getText('noDeterminationAccepted')}/><i>{this.state.scientificName}</i> {this.state.scientificNameAuthorship}</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td className='right aligned'>{this.props.userstore.getText('harvester')}</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.harvestRecordedBy} {this.state.harvestFieldNumber}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>{this.props.userstore.getText('harvestLocation')}</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.harvestVerbatimLocality}</td>
-          </tr>
-          <tr>
-            <td className='right aligned'>{this.props.userstore.getText('catalogNumber')}</td>
-            <td className='left aligned' style={this.textStyle}>{this.state.institutionCode} {this.state.catalogNumber}</td>
-          </tr>
-          <tr>
-            <td className='center aligned' style={this.textStyle} colSpan='2'><a href={this.state.linkToExplore} target='_blank'>{this.props.userstore.getText('specimenExplorePage')}</a></td>
-          </tr>
-          </tbody>
-        </table>
-      );
+    // Name, Species, Harvester, Location, Collection, Link-to-Explore
+    return (
+      <table className='ui selectable striped structured very compact table'>
+        <thead>
+        <tr>
+          <th colSpan='2' className='center aligned'><i
+            className={'ui yellow ' + this.state.determinationStatusWarning + ' icon'} ref='warning'
+            data-content={this.props.userstore.getText('noDeterminationAccepted')}/><i>{this.state.scientificName}</i> {this.state.scientificNameAuthorship}
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td className='right aligned'>{this.props.userstore.getText('harvester')}</td>
+          <td className='left aligned'
+              style={this.textStyle}>{this.state.harvestRecordedBy} {this.state.harvestFieldNumber}</td>
+        </tr>
+        <tr>
+          <td className='right aligned'>{this.props.userstore.getText('harvestLocation')}</td>
+          <td className='left aligned' style={this.textStyle}>{this.state.harvestVerbatimLocality}</td>
+        </tr>
+        <tr>
+          <td className='right aligned'>{this.props.userstore.getText('catalogNumber')}</td>
+          <td className='left aligned'
+              style={this.textStyle}>{this.state.institutionCode} {this.state.catalogNumber}</td>
+        </tr>
+        <tr>
+          <td className='center aligned' style={this.textStyle} colSpan='2'><a href={this.state.linkToExplore}
+                                                                               target='_blank'>{this.props.userstore.getText('specimenExplorePage')}</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    );
 
   }
 
@@ -301,9 +302,9 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    if(props.height != this.props.height) {
-      this.containerStyle.height = props.height-10;
-      this.scrollerStyle.height = props.height-35;
+    if (props.height != this.props.height) {
+      this.containerStyle.height = props.height - 10;
+      this.scrollerStyle.height = props.height - 35;
     }
   }
 
@@ -311,16 +312,16 @@ class SpecimenMetadataDisplay extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.determinationStatusWarning) {
+    if (this.state.determinationStatusWarning) {
       $(this.refs.warning.getDOMNode()).popup();
     }
   }
 
   componentWillUnmount() {
-    if(this.state.id) {
+    if (this.state.id) {
       this.props.metastore.removeMetadataUpdateListener(this.state.id, this.receiveMetadata.bind(this));
     }
-    if(this.state.metadata) {
+    if (this.state.metadata) {
       this.props.metastore.removeMetadataUpdateListener(this.state.metadata.originalSource, this._onOriginalSourceMetadataAvailable);
     }
     this.props.managerstore.removeSelectionChangeListener(this._onSelectionChange);
@@ -331,14 +332,14 @@ class SpecimenMetadataDisplay extends React.Component {
   render() {
     return (<div style={this.containerStyle} className='ui segment container'>
       <div style={this.labelContainerStyle}>
-      <div className='ui blue tiny basic label'
-           style={this.labelStyle}>
-        Specimen
-      </div>
+        <div className='ui blue tiny basic label'
+             style={this.labelStyle}>
+          Specimen
+        </div>
       </div>
       <div style={this.scrollerStyle}>
-      {this.createMetadataTable()}
-        </div>
+        {this.createMetadataTable()}
+      </div>
     </div>)
   }
 }

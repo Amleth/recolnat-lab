@@ -8,7 +8,7 @@
     </session-config>
     <listener>  
         <listener-class>
-            org.dicen.recolnat.services.resources.ColaboratoryContextListener
+            org.dicen.recolnat.services.context.ColaboratoryContextListener
         </listener-class>
     </listener> 
 </web-app>

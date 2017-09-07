@@ -1,5 +1,5 @@
-var path = require('path');
-var TimestampWebpackPlugin = require('timestamp-webpack-plugin');
+const path = require('path');
+const TimestampWebpackPlugin = require('timestamp-webpack-plugin');
 
 module.exports = {
   entry: path.resolve(__dirname, 'src/main.js'),
@@ -9,10 +9,15 @@ module.exports = {
   },
   module: {
     loaders: [
-      {test: /\.js$/, exclude: /node_modules\/(?!react-router).*/, loader: 'babel-loader?experimental&optional=runtime'},
+      {
+        test: /\.js$/,
+        exclude: /node_modules\/(?!react-router).*/,
+        loader: 'babel-loader?experimental&optional=runtime'
+      },
       {test: /\.css$/, loader: 'style-loader!css-loader'},
       {test: /\.(png|jpg|svg)$/, loader: 'url-loader?limit=8192'},
-      {test: /\.scss$/, loader: "style!css!sass"}
+      {test: /\.scss$/, loader: 'style!css!sass'},
+      {test: /\.json$/, loader: 'json'}
     ]
   },
   node: {

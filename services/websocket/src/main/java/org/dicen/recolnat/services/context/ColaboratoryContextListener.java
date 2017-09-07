@@ -6,15 +6,6 @@
 package org.dicen.recolnat.services.context;
 
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Timer;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
 import org.apache.commons.lang.time.DateUtils;
 import org.dicen.recolnat.services.configuration.Configuration;
 import org.dicen.recolnat.services.core.backup.BackupTask;
@@ -22,28 +13,39 @@ import org.dicen.recolnat.services.core.data.DatabaseAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Timer;
+
 /**
  * ContextListener implementation for loading and unloading resources (configuration, databases) when the WAR is deployed or undeployed. OrientDB memory cleanup is performed here.
+ *
  * @author dmitri
  */
 @WebListener
 public class ColaboratoryContextListener implements ServletContextListener {
   private static final Logger LOG = LoggerFactory.getLogger(ColaboratoryContextListener.class);
-  
+
   private static final Timer BACKUP_TIMER = new Timer();
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
-    
+
     OGlobalConfiguration.RID_BAG_EMBEDDED_TO_SBTREEBONSAI_THRESHOLD.setValue(-1);
     String homeDir = System.getenv("COLABORATORY_HOME");
-    if(homeDir == null) {
+    if (homeDir == null) {
       sce.getServletContext().log("ERROR. No COLABORATORY_HOME environment variable. Application will fail.");
       return;
     }
     sce.getServletContext().log("COLABORATORY_HOME=" + homeDir);
     sce.getServletContext().log("Looking for configuration file colaboratory-socket.yml in COLABORATORY_HOME");
-    
+
     String configurationFileName = homeDir + File.separator + "colaboratory-socket.yml";
     try {
       Configuration.loadConfiguration(configurationFileName, sce.getServletContext());
@@ -51,18 +53,18 @@ public class ColaboratoryContextListener implements ServletContextListener {
       sce.getServletContext().log("Unable to load configuration file.");
       return;
     }
-    
+
     LOG.info("Configuring databases");
-//    Orient.instance().startup();
-//    Orient.instance().removeShutdownHook();
+    // Orient.instance().startup();
+    // Orient.instance().removeShutdownHook();
     Configuration.configureDatabases();
     LOG.info("Configuring authentication methods");
     Configuration.configureUserAuthentication();
-    
+
     // Configure periodic backup
     LOG.info("Setting up automatic backup");
     SimpleDateFormat dateParser = new SimpleDateFormat("u-HH:mm");
-    
+
     Date firstBackupDate;
     try {
       firstBackupDate = dateParser.parse(Configuration.Databases.Backup.FIRST_EXECUTION);
@@ -78,13 +80,13 @@ public class ColaboratoryContextListener implements ServletContextListener {
       return;
     }
     long delay = firstBackupDate.getTime() - now.getTime();
-    if(delay < 0) {
-      delay += 7*DateUtils.MILLIS_PER_DAY;
+    if (delay < 0) {
+      delay += 7 * DateUtils.MILLIS_PER_DAY;
     }
-    
+
     LOG.info("Backups will begin in " + delay + " milliseconds");
     LOG.info("Backup will run every " + Configuration.Databases.Backup.FREQUENCY + " days");
-    
+
     BACKUP_TIMER.scheduleAtFixedRate(new BackupTask(), delay, Configuration.Databases.Backup.FREQUENCY * DateUtils.MILLIS_PER_DAY);
   }
 
@@ -94,7 +96,7 @@ public class ColaboratoryContextListener implements ServletContextListener {
     BACKUP_TIMER.cancel();
     LOG.info("Shutting down databases.");
     DatabaseAccess.shutdown();
-//    Orient.instance().shutdown();
+    // Orient.instance().shutdown();
   }
-  
+
 }

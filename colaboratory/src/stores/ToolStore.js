@@ -5,13 +5,13 @@
 
 import {EventEmitter} from 'events';
 
-import AppDispatcher from "../dispatcher/AppDispatcher";
+import AppDispatcher from '../dispatcher/AppDispatcher';
 
-import ToolConstants from "../constants/ToolConstants";
+import ToolConstants from '../constants/ToolConstants';
 import ViewConstants from '../constants/ViewConstants';
 
-import ToolEvents from "./events/ToolEvents";
-import ViewEvents from "./events/ViewEvents";
+import ToolEvents from './events/ToolEvents';
+import ViewEvents from './events/ViewEvents';
 
 class ToolStore extends EventEmitter {
   constructor() {
@@ -47,7 +47,7 @@ class ToolStore extends EventEmitter {
           this.runTool(action.x, action.y, action.misc);
           break;
         case ViewConstants.ActionTypes.Local.VIEW_SET_SELECTION:
-          if(this.imageId != action.selection.id) {
+          if (this.imageId != action.selection.id) {
             this.resetActiveTool();
             this.imageId = action.selection.id;
             this.emit(ViewEvents.SELECTION_CHANGE);
@@ -69,13 +69,14 @@ class ToolStore extends EventEmitter {
           this.emit(ToolEvents.TOOLTIP_CONTENT_UPDATE);
           break;
         case ToolConstants.ActionTypes.TOOL_UPDATE_DATA:
-          this.toolData = action.data?JSON.parse(JSON.stringify(action.data)): null;
+          this.toolData = action.data ? JSON.parse(JSON.stringify(action.data)) : null;
           this.emit(ToolEvents.TOOL_DATA_CHANGED);
           break;
       }
     });
 
-    this.register("null", function() {}, null);
+    this.register('null', function () {
+    }, null);
   }
 
   getToolData() {
@@ -91,24 +92,24 @@ class ToolStore extends EventEmitter {
   }
 
   resetActiveTool() {
-    if(this.activeTool) {
-      if(this.activeTool.component) {
+    if (this.activeTool) {
+      if (this.activeTool.component) {
         this.activeTool.component.reset();
       }
     }
   }
 
   finishActiveTool() {
-    if(this.activeTool) {
-      if(this.activeTool.component) {
+    if (this.activeTool) {
+      if (this.activeTool.component) {
         this.activeTool.component.finish();
       }
     }
   }
 
   beginActiveTool() {
-    if(this.activeTool) {
-      if(this.activeTool.component) {
+    if (this.activeTool) {
+      if (this.activeTool.component) {
         this.activeTool.component.begin();
       }
     }
@@ -124,7 +125,7 @@ class ToolStore extends EventEmitter {
   }
 
   getOnClickAction() {
-    if(this.activeTool) {
+    if (this.activeTool) {
       if (this.activeTool.component) {
         return this.activeTool.onClickAction;
       }
@@ -136,7 +137,7 @@ class ToolStore extends EventEmitter {
   }
 
   getToolName() {
-    if(this.activeTool) {
+    if (this.activeTool) {
       return this.activeTool.name;
     }
     else return null;
@@ -151,23 +152,23 @@ class ToolStore extends EventEmitter {
   }
 
   runTool(x, y, misc) {
-    if(this.activeTool) {
-      if(this.activeTool.component) {
+    if (this.activeTool) {
+      if (this.activeTool.component) {
         this.activeTool.component.click.call(this.activeTool.component, this.activeTool.component, x, y, misc);
       }
     }
   }
 
   canSave() {
-    if(this.activeTool.component) {
+    if (this.activeTool.component) {
       return this.activeTool.component.canSave();
     }
     return false;
   }
 
   saveToolData() {
-    if(this.activeTool) {
-      if(this.activeTool.component.canSave()) {
+    if (this.activeTool) {
+      if (this.activeTool.component.canSave()) {
         this.activeTool.component.save();
       }
     }
@@ -199,8 +200,10 @@ class ToolStore extends EventEmitter {
 
   addSelectionChangeListener(callback) {
     this.on(ViewEvents.SELECTION_CHANGE, callback);
-    if(this.imageId) {
-      window.setTimeout(function(){callback();}, 10);
+    if (this.imageId) {
+      window.setTimeout(function () {
+        callback();
+      }, 10);
     }
   }
 

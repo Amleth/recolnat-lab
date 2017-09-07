@@ -21,7 +21,7 @@ class MetadataViewer extends React.Component {
 
     this.placeholderStyle = {
       backgroundColor: '#F2F2F2',
-      height: this.props.height-10,
+      height: this.props.height - 10,
       padding: '5px 5px 15px 5px',
       borderColor: '#2185d0!important'
     };
@@ -104,20 +104,20 @@ class MetadataViewer extends React.Component {
   }
 
   loadMetadata() {
-    //console.log('loadMetadata');
+    //console.log('§§§§§§§§', 'MetadataViewer', 'loadMetadata');
     let imageLinkId = this.props.toolstore.getSelectedImageId();
     let view = this.props.benchstore.getActiveViewData();
     let imageId = null;
 
     //console.log(imageLinkId);
-    if(!view) {
+    if (!view) {
       return;
     }
 
-    for(let i = 0; i < view.displays.length; ++i) {
+    for (let i = 0; i < view.displays.length; ++i) {
       let dEntity = view.displays[i];
       //console.log(JSON.stringify(dEntity));
-      if(dEntity.link == imageLinkId) {
+      if (dEntity.link == imageLinkId) {
         imageId = dEntity.entity;
         break;
       }
@@ -125,17 +125,17 @@ class MetadataViewer extends React.Component {
 
     //console.log('fetching metadata for image ' + imageId);
 
-    if(imageId != this.state.imageCoLabId) {
-      if(this.state.imageCoLabId) {
+    if (imageId != this.state.imageCoLabId) {
+      if (this.state.imageCoLabId) {
         this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onImageMetadataUpdated);
       }
-      if(this.state.specimenCoLabId) {
+      if (this.state.specimenCoLabId) {
         this.props.metastore.removeMetadataUpdateListener(this.state.specimenCoLabId, this._onSpecimenMetadataUpdated);
       }
-      if(this.state.originalSourceCoLabId) {
+      if (this.state.originalSourceCoLabId) {
         this.props.metastore.removeMetadataUpdateListener(this.state.originalSourceCoLabId, this._onSourceMetadataUpdated);
       }
-      if(imageId) {
+      if (imageId) {
         this.props.metastore.addMetadataUpdateListener(imageId, this._onImageMetadataUpdated);
       }
       this.setState({
@@ -153,17 +153,18 @@ class MetadataViewer extends React.Component {
         loadingSpecimen: true,
         loadingDeterminations: true,
         loadingHarvest: true,
-        loadingLocation: true});
+        loadingLocation: true
+      });
     }
 
     //window.setTimeout(this._onImageMetadataUpdated, 50);
   }
 
   displayImageMetadata() {
-    //console.log('displayImageMetadata');
+    //console.log('§§§§§§§§', 'MetadataViewer', 'displayImageMetadata');
     let id = this.state.imageCoLabId;
     //console.log(id);
-    if(!id) {
+    if (!id) {
       this.setState({loading: false, noContent: true});
       return;
     }
@@ -172,10 +173,10 @@ class MetadataViewer extends React.Component {
     let specimenId = null;
     let loading = false;
     //console.log(JSON.stringify(metadata));
-    if(metadata.specimens) {
-      if(metadata.specimens.length > 0) {
+    if (metadata.specimens) {
+      if (metadata.specimens.length > 0) {
         loading = true;
-        if(metadata.specimens.length > 1) {
+        if (metadata.specimens.length > 1) {
           console.warn('Multiple specimens for image ' + id);
         }
         specimenId = metadata.specimens[0];
@@ -190,15 +191,15 @@ class MetadataViewer extends React.Component {
   }
 
   displaySpecimenMetadata() {
-    //console.log('displaySpecimenMetadata');
-    if(!this.state.specimenCoLabId) {
+    //console.log('§§§§§§§§', 'MetadataViewer', 'displaySpecimenMetadata');
+    if (!this.state.specimenCoLabId) {
       this.setState({loading: false});
       return;
     }
     let metadata = this.props.metastore.getMetadataAbout(this.state.specimenCoLabId);
     this.setState({coLabSpecimenMetadata: metadata});
 
-    if(metadata.originalSource) {
+    if (metadata.originalSource) {
       this.setState({originalSourceCoLabId: metadata.originalSource});
       this.props.metastore.addMetadataUpdateListener(metadata.originalSource, this._onSourceMetadataUpdated);
     }
@@ -207,15 +208,15 @@ class MetadataViewer extends React.Component {
   }
 
   displayOriginalSourceMetadata() {
-    //console.log('displayOriginalSourceMetadata');
+    console.log('§§§§§§§§', 'MetadataViewer', 'displayOriginalSourceMetadata');
     let metadata = this.props.metastore.getMetadataAbout(this.state.originalSourceCoLabId);
-    if(!metadata) {
+    if (!metadata) {
       return;
     }
     let origin = metadata.origin;
     let type = metadata.typeInOriginSource;
     let id = metadata.idInOriginSource;
-    switch(origin.toLowerCase()) {
+    switch (origin.toLowerCase()) {
       case 'recolnat':
         this.getRecolnatMetadata(id, type);
         break;
@@ -227,7 +228,8 @@ class MetadataViewer extends React.Component {
   }
 
   getRecolnatMetadata(id, type) {
-    switch(type.toLowerCase()) {
+    console.log('§§§§§§§§', 'MetadataViewer', 'getRecolnatMetadata', 'id:', id, 'type:', type);
+    switch (type.toLowerCase()) {
       case 'specimen':
         this.getRecolnatSpecimenMetadata(id);
         break;
@@ -238,96 +240,105 @@ class MetadataViewer extends React.Component {
   }
 
   getRecolnatSpecimenMetadata(id) {
+    console.log('§§§§§§§§', '@@@@@@@@', 'MetadataViewer', 'getRecolnatSpecimenMetadata', {id});
     // Example id 3A160E6F-8ED3-4ED3-A46A-D6737893E844
     // https://api.recolnat.org/erecolnat/v1/specimens/3a160e6f-8ed3-4ed3-a46a-d6737893e844
     // Then go to determination(s)
     //console.log('getting recolnat data about ' + id);
-    if(this.state.loadingSpecimen) {
-    request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
+    if (this.state.loadingSpecimen) {
+      request.get('https://api.recolnat.org/erecolnat/v1/specimens/' + id)
       //.withCredentials()
-      .end((err, res) => {
-        if(err) {
-          console.error('Could not retrieve resource data from recolnat about ' + id + ' -> ' + err);
-          alert(this.props.userstore.getText('cannotRetrieveRecolnatData') + ' https://api.recolnat.org/erecolnat/v1/specimens/' + id);
-          this.setState({
-            specimen: null,
-            loadingSpecimen: false
-          });
-        }
-        else {
-          let specimen = JSON.parse(res.text);
-          //console.log('specimen=' + res.text);
-          this.setState({
-            specimen: specimen,
-            loadingSpecimen: false
-          });
+        .end((err, res) => {
+          if (err) {
+            console.error('Could not retrieve resource data from recolnat about ' + id + ' -> ' + err);
+            alert(this.props.userstore.getText('cannotRetrieveRecolnatData') + ' https://api.recolnat.org/erecolnat/v1/specimens/' + id);
+            this.setState({
+              specimen: null,
+              loadingSpecimen: false
+            });
+          }
+          else {
+            let specimen = JSON.parse(res.text);
+            //console.log('specimen=' + res.text);
+            this.setState({
+              specimen: specimen,
+              loadingSpecimen: false
+            });
+            this.props.metastore.setExternalMetadata(id, specimen);
 
-          if(specimen.links) {
-            for(let i = 0; i < specimen.links.length; ++i) {
-              let link = specimen.links[i];
-              switch(link.rel) {
-                case "determinations":
-                if(this.state.loadingDeterminations) {
-                  request.get(link.href)
-                    //.withCredentials()
-                    .end((err, res) => {
-                      if(err) {
-                        console.error('Error requesting determinations about ' + id + ' -> ' + err);
-                        this.setState({
-                          determinations: [],
-                          loadingDeterminations: false
+            if (specimen.links) {
+              for (let i = 0; i < specimen.links.length; ++i) {
+                let link = specimen.links[i];
+                switch (link.rel) {
+                  case 'determinations':
+                    if (this.state.loadingDeterminations) {
+                      request.get(link.href)
+                      //.withCredentials()
+                        .end((err, res) => {
+                          if (err) {
+                            console.error('Error requesting determinations about ' + id + ' -> ' + err);
+                            this.setState({
+                              determinations: [],
+                              loadingDeterminations: false
+                            });
+                          }
+                          else {
+                            let determinations = JSON.parse(res.text);
+                            //console.log('determinations=' + res.text);
+                            this.setState({
+                              determinations: determinations,
+                              loadingDeterminations: false
+                            });
+                          }
                         });
-                      }
-                      else {
-                        let determinations = JSON.parse(res.text);
-                        //console.log('determinations=' + res.text);
-                        this.setState({determinations: determinations,
-                          loadingDeterminations: false});
-                      }
-                    });
-                  }
-                  else {
-                    this.setState({
-                      determinations: [],
-                      loadingDeterminations: false
-                    });
-                  }
-                break;
-                case "recoltes":
-                if(this.state.loadingHarvest) {
-                  request.get(link.href)
-                    //.withCredentials()
-                    .end((err, res) => {
-                      if(err) {
-                        console.error('Error requesting harvest data about ' + id + ' -> ' + err);
-                        this.setState({
-                          harvest: null,
-                          loadingHarvest: false,
-                          loadingLocation: false
+                    }
+                    else {
+                      this.setState({
+                        determinations: [],
+                        loadingDeterminations: false
+                      });
+                    }
+                    break;
+                  case 'recoltes':
+                    if (this.state.loadingHarvest) {
+                      request.get(link.href)
+                      //.withCredentials()
+                        .end((err, res) => {
+                          if (err) {
+                            console.error('Error requesting harvest data about ' + id + ' -> ' + err);
+                            this.setState({
+                              harvest: null,
+                              loadingHarvest: false,
+                              loadingLocation: false
+                            });
+                          }
+                          else {
+                            let harvest = JSON.parse(res.text);
+                            //console.log('harvest=' + res.text);
+                            this.setState({
+                              harvest: harvest,
+                              location: harvest.localisation,
+                              loadingHarvest: false,
+                              loadingLocation: false
+                            });
+                          }
                         });
-                      }
-                      else {
-                        let harvest = JSON.parse(res.text);
-                        //console.log('harvest=' + res.text);
-                        this.setState({harvest: harvest, location: harvest.localisation, loadingHarvest: false, loadingLocation: false});
-                      }
-                    });
-                  }
-                  else {
-                  this.setState({
-                    harvest: null,
-                    loadingHarvest: false,
-                    loadingLocation: false
-                  });
-                  }
-                break;
-                default:
-                break;
+                    }
+                    else {
+                      this.setState({
+                        harvest: null,
+                        loadingHarvest: false,
+                        loadingLocation: false
+                      });
+                    }
+                    break;
+                  default:
+                    break;
+                }
               }
             }
           }
-        }
-      });
+        });
     }
 
     this.setState({
@@ -336,8 +347,8 @@ class MetadataViewer extends React.Component {
   }
 
   displaySelectedName() {
-    if(this.state.coLabSpecimenMetadata) {
-      if(this.state.coLabSpecimenMetadata.name) {
+    if (this.state.coLabSpecimenMetadata) {
+      if (this.state.coLabSpecimenMetadata.name) {
         return this.state.coLabSpecimenMetadata.name;
       }
       return this.props.userstore.getText('nameUnavailable');
@@ -346,7 +357,7 @@ class MetadataViewer extends React.Component {
   }
 
   componentDidMount() {
-    if(this.refs.accordion) {
+    if (this.refs.accordion) {
       $(this.refs.accordion.getDOMNode()).accordion({
         exclusive: false
       });
@@ -358,22 +369,22 @@ class MetadataViewer extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    if(props.height != this.props.height) {
-      this.placeholderStyle.height = props.height-10;
+    if (props.height != this.props.height) {
+      this.placeholderStyle.height = props.height - 10;
     }
   }
 
   componentWillUpdate(nextProps, nextState) {
     nextState.noContent = !nextState.coLabImageMetadata;
 
-      this.loaderStyle.display = 'none';
-      this.noDataStyle.display = 'none';
+    this.loaderStyle.display = 'none';
+    this.noDataStyle.display = 'none';
     this.tableStyle.display = '';
 
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.loading == false && this.state.noContent == false) {
+    if (this.state.loading == false && this.state.noContent == false) {
       $(this.refs.accordion.getDOMNode()).accordion('refresh');
     }
   }
@@ -381,10 +392,10 @@ class MetadataViewer extends React.Component {
   componentWillUnmount() {
     this.props.toolstore.removeSelectionChangeListener(this._onChangeSelection);
     this.props.modestore.removeModeChangeListener(this._forceUpdate);
-    if(this.state.imageCoLabId) {
+    if (this.state.imageCoLabId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onImageMetadataUpdated);
     }
-    if(this.state.specimenCoLabId) {
+    if (this.state.specimenCoLabId) {
       this.props.metastore.removeMetadataUpdateListener(this.state.imageCoLabId, this._onSpecimenMetadataUpdated);
     }
     this.props.userstore.removeLanguageChangeListener(this._forceUpdate);
@@ -392,7 +403,7 @@ class MetadataViewer extends React.Component {
 
   render() {
     let self = this;
-    return(
+    return (
       <div className='ui segment container' style={this.placeholderStyle}>
         <div style={this.labelContainerStyle}>
           <div className='ui blue tiny basic label'
@@ -415,12 +426,12 @@ class MetadataViewer extends React.Component {
                                  userstore={this.props.userstore}
                                  metadata={this.state.specimen}
                                  title={this.props.userstore.getText('specimen')}/>
-          {this.state.determinations.map(function(determination, index) {
+          {this.state.determinations.map(function (determination, index) {
             return <DeterminationMetadataTable key={'META-DET-' + index}
                                                userstore={self.props.userstore}
                                                loading={self.state.loadingDeterminations}
                                                metadata={determination}
-                                               title={self.props.userstore.getText('determination') + ' ' + (index+1)}/>
+                                               title={self.props.userstore.getText('determination') + ' ' + (index + 1)}/>
           })}
           <HarvestMetadataTable userstore={this.props.userstore}
                                 metadata={this.state.harvest}

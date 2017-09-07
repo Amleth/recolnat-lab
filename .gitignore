@@ -6,3 +6,5 @@ commons/target
 /colaboratory-socket.yml
 /logback.xml
 *.iml
+/colaboratory/nbproject/private/
+carnet_de_bord.md

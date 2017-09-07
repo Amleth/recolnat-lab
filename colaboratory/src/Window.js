@@ -1,11 +1,10 @@
 /**
-* Main application window (& general layout definition). Stores are created here.
-*/
+ * Main application window (& general layout definition). Stores are created here.
+ */
 
 'use strict';
 
 import React from 'react';
-
 //import VirtualBenchLab from './components/VirtualBenchLab';
 import LeftPane from './components/panes/LeftPane';
 import CenterPane from './components/panes/CenterPane';
@@ -35,7 +34,6 @@ import OrbalContextMenu from './components/context-menu/OrbalContextMenu';
 import WebSocketStatus from './components/common/WebSocketStatus';
 
 import ViewActions from './actions/ViewActions';
-import MetadataActions from './actions/MetadataActions';
 import ModalActions from './actions/ModalActions';
 
 import ViewConstants from './constants/ViewConstants';
@@ -216,13 +214,13 @@ class Window extends React.Component {
   }
 
   receiveMessage(event) {
-    if(event.origin.indexOf(conf.integration.recolnatMenuBarOrigin) == 0) {
-      if(event.data.source) {
+    if (event.origin.indexOf(conf.integration.recolnatMenuBarOrigin) == 0) {
+      if (event.data.source) {
         if (event.data.source.indexOf('react') === 0) {
           return;
         }
       }
-      switch(event.data.action) {
+      switch (event.data.action) {
         case 'login':
           this.redirectCASLogin();
           break;
@@ -233,8 +231,8 @@ class Window extends React.Component {
           alert(userstore.getText('operationNotAvailableInVersion'));
           break;
         default:
-          //console.log('Unknown event action ' + event.data.action);
-          //console.log(JSON.stringify(event.data));
+        //console.log('Unknown event action ' + event.data.action);
+        //console.log(JSON.stringify(event.data));
       }
     }
   }
@@ -248,7 +246,7 @@ class Window extends React.Component {
   }
 
   toggleLeftMenu() {
-    if(this.state.leftSidebar) {
+    if (this.state.leftSidebar) {
       this.setState({leftSidebar: false, leftSidebarIcon: 'right'});
     }
     else {
@@ -257,7 +255,7 @@ class Window extends React.Component {
   }
 
   toggleRightMenu() {
-    if(this.state.rightSidebar) {
+    if (this.state.rightSidebar) {
       this.setState({rightSidebar: false, rightSidebarIcon: 'left'});
     }
     else {
@@ -271,7 +269,7 @@ class Window extends React.Component {
 
   displayTestModal(event) {
     //console.log('key pressed ' + event.keyCode);
-    if(event.ctrlKey && event.altKey && event.keyCode === 84) {
+    if (event.ctrlKey && event.altKey && event.keyCode === 84) {
       event.preventDefault();
       event.stopPropagation();
       ModalActions.showModal(ModalConstants.Modals.testRunnerModal);
@@ -284,7 +282,7 @@ class Window extends React.Component {
 
   componentWillMount() {
     var locationParts = window.location.href.split(/[?#]/);
-    if(locationParts.length > 1) {
+    if (locationParts.length > 1) {
       window.location.href = locationParts[0];
     }
   }
@@ -293,11 +291,11 @@ class Window extends React.Component {
     userstore.addUserLogInListener(this._onUserLogIn);
     userstore.addUserLogOutListener(this._onUserLogOut);
     userstore.addLanguageChangeListener(this.setState.bind(this, {}));
-    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth-this.leftPaneWidth + this.rightPaneWidth, window.innerHeight -this.menuHeight, null), 10);
+    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, window.innerWidth - this.leftPaneWidth + this.rightPaneWidth, window.innerHeight - this.menuHeight, null), 10);
     window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, this.leftPaneWidth), 10);
     window.addEventListener('resize', this.handleResize.bind(this));
     // Add recolnat-menu listeners
-    window.addEventListener("message", this.receiveMessage.bind(this));
+    window.addEventListener('message', this.receiveMessage.bind(this));
     window.addEventListener('keyup', this.displayTestModal.bind(this));
   }
 
@@ -309,10 +307,10 @@ class Window extends React.Component {
     this.containerStyle.height = height;
     this.containerStyle.width = width;
 
-    this.leftButtonStyle.top = height/10;
-    this.rightButtonStyle.top = height/10;
+    this.leftButtonStyle.top = height / 10;
+    this.rightButtonStyle.top = height / 10;
 
-    if(nextState.leftSidebar) {
+    if (nextState.leftSidebar) {
       width = width - this.leftPaneWidth;
       left = this.leftPaneWidth;
       this.columnLeftSideStyle.left = '0px';
@@ -323,10 +321,10 @@ class Window extends React.Component {
       this.leftButtonStyle.left = '0px';
     }
 
-    if(nextState.rightSidebar) {
+    if (nextState.rightSidebar) {
       this.columnRightSideStyle.right = '0px';
       this.rightButtonStyle.right = this.rightPaneWidth + 'px';
-      width = width -this.rightPaneWidth;
+      width = width - this.rightPaneWidth;
     }
     else {
       this.columnRightSideStyle.right = -this.rightPaneWidth + 'px';
@@ -339,14 +337,18 @@ class Window extends React.Component {
     this.columnRightSideStyle.height = (window.innerHeight - this.menuHeight) + 'px';
     this.columnMiddleStyle.height = (window.innerHeight - this.menuHeight) + 'px';
 
-    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, width, window.innerHeight-this.menuHeight, null), 10);
+    window.setTimeout(ViewActions.updateViewport.bind(null, null, null, width, window.innerHeight - this.menuHeight, null), 10);
     window.setTimeout(ViewActions.updateViewportLocation.bind(null, this.menuHeight, left), 10);
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if(this.state.userLoggedIn) {
+    if (this.state.userLoggedIn) {
       var frame = this.refs.recolnatMenu.getDOMNode().contentWindow;
-      frame.postMessage({type: "user", username: userstore.getUser().login, userProfile: ''}, conf.integration.recolnatMenuBarUrl);
+      frame.postMessage({
+        type: 'user',
+        username: userstore.getUser().login,
+        userProfile: ''
+      }, conf.integration.recolnatMenuBarUrl);
     }
   }
 
@@ -358,16 +360,16 @@ class Window extends React.Component {
   }
 
   render() {
-    return(
+    return (
       <div style={this.containerStyle}>
 
-          <iframe id="recolnatMenu"
-                  ref='recolnatMenu'
-                  style={this.recolnatMenuStyle}
-                  seamless="seamless"
-                  scrolling="no"
-                  onLoad={this.signalIframeReady.bind(this)}
-                  src={conf.integration.recolnatMenuBarUrl}></iframe>
+        <iframe id="recolnatMenu"
+                ref='recolnatMenu'
+                style={this.recolnatMenuStyle}
+                seamless="seamless"
+                scrolling="no"
+                onLoad={this.signalIframeReady.bind(this)}
+                src={conf.integration.recolnatMenuBarUrl}></iframe>
 
         <Modals userstore={userstore}
                 viewstore={viewstore}
@@ -381,7 +383,7 @@ class Window extends React.Component {
                 inspecstore={inspecstore}
                 imagestore={imagestore}
                 basketstore={basketstore}
-                managerstore={managerstore} />
+                managerstore={managerstore}/>
         <MainMenu top={this.menuHeight}
                   width={300}
                   userstore={userstore}
@@ -393,7 +395,7 @@ class Window extends React.Component {
                   metastore={metastore}
                   modestore={modestore}
                   inspecstore={inspecstore}
-                  managerstore={managerstore} />
+                  managerstore={managerstore}/>
         <OrbalContextMenu
           menustore={menustore}
           userstore={userstore}
@@ -422,9 +424,11 @@ class Window extends React.Component {
               managerstore={managerstore}
               dragstore={dragstore}
               inspecstore={inspecstore}
-              />
+            />
           </div>
-          <div className="ui right attached button mini compact" style={this.leftButtonStyle} onClick={this.toggleLeftMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.leftSidebarIcon} /></div>
+          <div className="ui right attached button mini compact" style={this.leftButtonStyle}
+               onClick={this.toggleLeftMenu.bind(this)}><i
+            className={'ui icon chevron circle ' + this.state.leftSidebarIcon}/></div>
           <div style={this.columnMiddleStyle}>
             <CenterPane
               imagestore={imagestore}
@@ -442,7 +446,9 @@ class Window extends React.Component {
               inspecstore={inspecstore}
             />
           </div>
-          <div className="ui left attached button mini compact" style={this.rightButtonStyle} onClick={this.toggleRightMenu.bind(this)}><i className={'ui icon chevron circle ' + this.state.rightSidebarIcon} /></div>
+          <div className="ui left attached button mini compact" style={this.rightButtonStyle}
+               onClick={this.toggleRightMenu.bind(this)}><i
+            className={'ui icon chevron circle ' + this.state.rightSidebarIcon}/></div>
           <div style={this.columnRightSideStyle}>
             <RightPane
               visibleHeight={window.innerHeight - this.menuHeight}
@@ -458,7 +464,7 @@ class Window extends React.Component {
               managerstore={managerstore}
               dragstore={dragstore}
               inspecstore={inspecstore}
-              />
+            />
           </div>
         </div>
       </div>

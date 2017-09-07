@@ -5,51 +5,51 @@
  */
 package org.dicen.recolnat.services.resources.configurators;
 
-import java.net.HttpCookie;
-import java.util.List;
-import javax.servlet.http.HttpSession;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.server.HandshakeRequest;
-import javax.websocket.server.ServerEndpointConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.HandshakeResponse;
+import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpointConfig;
+import java.net.HttpCookie;
+import java.util.List;
+
 /**
  * Configurator for intercepting cookies (CASTGT in this case) and passing them to the WebSocket as user property (WebSocket cannot access HTTPS cookies without this action).
+ *
  * @author dmitri
  */
 public class ColaboratorySocketConfigurator extends ServerEndpointConfig.Configurator {
   private static final Logger LOG = LoggerFactory.getLogger(ColaboratorySocketConfigurator.class);
-  
+
   @Override
   public void modifyHandshake(ServerEndpointConfig config, HandshakeRequest request, HandshakeResponse response) {
     List<String> cookiesStr = request.getHeaders().get("Cookie");
     LOG.trace("Listing cookies as strings");
-    for(int i = 0; i < cookiesStr.size(); ++i) {
+    for (int i = 0; i < cookiesStr.size(); ++i) {
       LOG.trace(cookiesStr.get(i));
     }
-    
+
     String token = null;
-    String [] cookieStrArray = cookiesStr.get(0).split(";");
+    String[] cookieStrArray = cookiesStr.get(0).split(";");
     LOG.trace("Listing cookies");
-    for(int i = 0; i < cookieStrArray.length; ++i) {
+    for (int i = 0; i < cookieStrArray.length; ++i) {
       List<HttpCookie> cookies = HttpCookie.parse(cookieStrArray[i]);
       HttpCookie c = cookies.get(0);
       LOG.trace(c.getName() + "=" + c.getValue());
-      if(c.getName().equals("CASTGC")) {
+      if (c.getName().equals("CASTGC")) {
         token = c.getValue();
         break;
-      
+
+      }
     }
-    }
-    
-    if(token == null) {
+
+    if (token == null) {
       LOG.info("No CASTGC cookie found");
-    }
-    else {
+    } else {
       LOG.debug("Token found " + token);
       config.getUserProperties().put("CASTGC", token);
     }
   }
-  
+
 }

@@ -1,132 +1,160 @@
-var gulp = require('gulp');
-var sftp = require('gulp-sftp');
-var shell = require('gulp-shell');
-var rename = require('gulp-rename');
+const gulp = require('gulp');
+const sftp = require('gulp-sftp');
+const shell = require('gulp-shell');
+const rename = require('gulp-rename');
 
-var distSrc = ['dist/*'];
-
-//
-// DEV LOCAL
-//
-
-gulp.task('build-dev-local', ['conf-dev-local'], shell.task([
-  'webpack-dev-server --devtool eval --progress --colors --content-base build --port 8089'
-]));
-
-gulp.task('conf-dev-local', function () {
-  gulp.src('./conf/ApplicationConfiguration-dev-local.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
+const distSrc = ['dist/*'];
 
 //
-// DEV
+// Common tasks
 //
 
-gulp.task('build-dev', ['conf-dev'], shell.task([
-  'webpack-dev-server --devtool eval --progress --colors --content-base build --port 8089'
-]));
-
-gulp.task('conf-dev', function () {
-  gulp.src('./conf/ApplicationConfiguration-dev.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
-
-//
-// DEV SERVER
-//
 gulp.task('copy', function () {
   gulp.src('build/*', {base: 'build/'})
     .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('build-deploy-dev', ['conf-deploy-dev', 'copy'], shell.task([
-  'webpack -d --config webpack.production.config.js --progress --colors'
+//
+// Local develoment with webpack-dev-server
+//
+
+gulp.task('dev-local', ['dev-local-conf'], shell.task([
+  'webpack-dev-server --devtool eval --progress --colors --content-base build --port 8089'
 ]));
 
-gulp.task('conf-deploy-dev', function () {
+gulp.task('dev-local-conf', function () {
+  gulp.src('./conf/ApplicationConfiguration-dev-local.js')
+    .pipe(rename('ApplicationConfiguration.js'))
+    .pipe(gulp.dest('./src/conf'));
+});
+
+// Build & deploy on remote development server
+
+gulp.task('remote-dev-conf', function () {
   gulp.src('./conf/ApplicationConfiguration-dev.js')
     .pipe(rename('ApplicationConfiguration.js'))
     .pipe(gulp.dest('./src/conf'));
 });
 
-gulp.task('deploy-dev', ['build-deploy-dev'], function () {
+gulp.task('remote-dev-build', ['remote-dev-conf', 'copy'], shell.task([
+  'webpack --config webpack.production.config.js --progress --colors'
+]));
+
+gulp.task('remote-dev-build-watch', ['remote-dev-conf', 'copy'], shell.task([
+  'webpack --config webpack.production.config.js --progress --colors --watch'
+]));
+
+gulp.task('remote-dev-deploy', [], function () {
   gulp.src(distSrc)
     .pipe(sftp({
       host: 'wp5test.recolnat.org',
       remotePath: '/home/cnamuser/www/labo-dev',
       user: 'cnamuser',
-      pass: ''
+      pass: process.env.DEV_SERVER_PASSWORD
     }));
 });
 
-//
-// TEST
-//
+/*
 
-gulp.task('build-test', ['conf-test', 'copy'], shell.task([
-  'webpack -p --config webpack.production.config.js --progress --colors'
-]));
+ //
+ // DEV SERVER
+ //
 
-gulp.task('conf-test', function () {
-  gulp.src('./conf/ApplicationConfiguration-test.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
+ gulp.task('copy', function () {
+ gulp.src('build/*', {base: 'build/'})
+ .pipe(gulp.dest('./dist'));
+ });
 
-gulp.task('deploy-test', ['build-test'], function () {
-  gulp.src(distSrc)
-    .pipe(sftp({
-      host: 'wp5test.recolnat.org',
-      remotePath: '/home/cnamuser/www/labo-test',
-      user: 'cnamuser',
-      pass: ''
-    }));
-});
+ gulp.task('build-deploy-dev', ['conf-deploy-dev', 'copy'], shell.task([
+ 'webpack -d --config webpack.production.config.js --progress --colors'
+ ]));
 
-//
-// PROD-VM
-//
-gulp.task('build-prod-vm', ['conf-prod-vm', 'copy'], shell.task([
-  'webpack -p --config webpack.production.config.js --progress --colors'
-]));
+ gulp.task('conf-deploy-dev', function () {
+ gulp.src('./conf/ApplicationConfiguration-dev.js')
+ .pipe(rename('ApplicationConfiguration.js'))
+ .pipe(gulp.dest('./src/conf'));
+ });
 
-gulp.task('conf-prod-vm', function () {
-  gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
+ gulp.task('deploy-dev', ['build-deploy-dev'], function () {
+ gulp.src(distSrc)
+ .pipe(sftp({
+ host: 'wp5test.recolnat.org',
+ remotePath: '/home/cnamuser/www/labo-dev',
+ user: 'cnamuser',
+ pass: process.env.DEV_SERVER_PASSWORD
+ }));
+ });
 
-gulp.task('deploy-prod-vm', ['build-prod-vm'], function () {
-  gulp.src(distSrc)
-    .pipe(sftp({
-      host: 'wp5test.recolnat.org',
-      remotePath: '/apps/recolnat/lab/vm/www',
-      user: 'cnamuser',
-      pass: ''
-    }));
-});
+ //
+ // TEST
+ //
 
-//
-// PROD
-//
-gulp.task('build-prod', ['conf-prod', 'copy'], shell.task([
-  'webpack -p --config webpack.production.config.js --progress --colors'
-]));
+ gulp.task('build-test', ['conf-test', 'copy'], shell.task([
+ 'webpack -p --config webpack.production.config.js --progress --colors'
+ ]));
 
-gulp.task('conf-prod', function () {
-  gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
-    .pipe(rename('ApplicationConfiguration.js'))
-    .pipe(gulp.dest('./src/conf'));
-});
+ gulp.task('conf-test', function () {
+ gulp.src('./conf/ApplicationConfiguration-test.js')
+ .pipe(rename('ApplicationConfiguration.js'))
+ .pipe(gulp.dest('./src/conf'));
+ });
 
-gulp.task('deploy-prod', ['build-prod'], function () {
-  gulp.src(distSrc)
-    .pipe(sftp({
-      host: 'wp5prod.recolnat.org',
-      remotePath: '/path/to/www/recolnat',
-      user: '',
-      pass: ''
-    }));
-});
+ gulp.task('deploy-test', ['build-test'], function () {
+ gulp.src(distSrc)
+ .pipe(sftp({
+ host: 'wp5test.recolnat.org',
+ remotePath: '/home/cnamuser/www/labo-test',
+ user: 'cnamuser',
+ pass: process.env.DEV_SERVER_PASSWORD
+ }));
+ });
+
+ //
+ // PROD-VM
+ //
+
+ gulp.task('build-prod-vm', ['conf-prod-vm', 'copy'], shell.task([
+ 'webpack -p --config webpack.production.config.js --progress --colors'
+ ]));
+
+ gulp.task('conf-prod-vm', function () {
+ gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
+ .pipe(rename('ApplicationConfiguration.js'))
+ .pipe(gulp.dest('./src/conf'));
+ });
+
+ gulp.task('deploy-prod-vm', ['build-prod-vm'], function () {
+ gulp.src(distSrc)
+ .pipe(sftp({
+ host: 'wp5test.recolnat.org',
+ remotePath: '/apps/recolnat/lab/vm/www',
+ user: 'cnamuser',
+ pass: process.env.PROD_SERVER_PASSWORD
+ }));
+ });
+
+ //
+ // PROD
+ //
+
+ gulp.task('build-prod', ['conf-prod', 'copy'], shell.task([
+ 'webpack -p --config webpack.production.config.js --progress --colors'
+ ]));
+
+ gulp.task('conf-prod', function () {
+ gulp.src('./conf/ApplicationConfiguration-prod-vm.js')
+ .pipe(rename('ApplicationConfiguration.js'))
+ .pipe(gulp.dest('./src/conf'));
+ });
+
+ gulp.task('deploy-prod', ['build-prod'], function () {
+ gulp.src(distSrc)
+ .pipe(sftp({
+ host: 'wp5prod.recolnat.org',
+ remotePath: '/path/to/www/recolnat',
+ user: '',
+ pass: process.env.PROD_SERVER_PASSWORD
+ }));
+ });
+
+ */

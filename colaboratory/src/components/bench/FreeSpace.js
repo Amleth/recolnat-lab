@@ -4,16 +4,13 @@
 'use strict';
 
 import React from 'react';
-import _ from 'lodash';
 
 import D3FreeSpace from './D3FreeSpace';
 
-import MinimapActions from "../../actions/MinimapActions";
+import MinimapActions from '../../actions/MinimapActions';
 import MetadataActions from '../../actions/MetadataActions';
 import ViewActions from '../../actions/ViewActions';
 import ToolActions from '../../actions/ToolActions';
-
-import ModeConstants from '../../constants/ModeConstants';
 
 import ToolConf from '../../conf/Tools-conf';
 
@@ -69,16 +66,19 @@ class FreeSpace extends React.Component {
     d3Component.newLabBench();
     // var id = this.props.managerstore.getSelected().id;
     let sets = this.props.managerstore.getSets();
-    let id = sets[sets.length-1].uid;
+    let id = sets[sets.length - 1].uid;
     window.setTimeout(MetadataActions.loadLabBench.bind(null, null), 10);
     window.setTimeout(MinimapActions.unsetMinimap, 10);
   }
 
   displayLabBench() {
-    if(this.props.benchstore.getActiveViewId()) {
+    if (this.props.benchstore.getActiveViewId()) {
+      // Fetch all specimens catalog numbers
+      // TODO
+
       d3Component.loadView(this.props.benchstore.getActiveViewId());
 
-      if(this.props.modestore.isInOrganisationMode()) {
+      if (this.props.modestore.isInOrganisationMode()) {
         window.setTimeout(
           ToolActions.setTool.bind(null, ToolConf.moveObject.id), 500
         );
@@ -91,7 +91,7 @@ class FreeSpace extends React.Component {
   }
 
   displayDragged(event) {
-    if(this.props.drag.getType() == 'inboxMove') {
+    if (this.props.drag.getType() == 'inboxMove') {
       event.preventDefault();
       d3Component.displayShadow(this.props.drag.getData());
     }
@@ -110,20 +110,20 @@ class FreeSpace extends React.Component {
   }
 
   pinchZoom(event) {
-    if(event.touches.length == 2) {
-      let length = Math.pow((event.touches[0].screenX - event.touches[1].screenX),2) + Math.pow((event.touches[0].screenY - event.touches[1].screenY), 2);
+    if (event.touches.length == 2) {
+      let length = Math.pow((event.touches[0].screenX - event.touches[1].screenX), 2) + Math.pow((event.touches[0].screenY - event.touches[1].screenY), 2);
       if (this.state.pinchLength) {
         let view = this.props.viewstore.getView();
-        if(this.state.pinchLength < length) {
+        if (this.state.pinchLength < length) {
           // User zooming out
-          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale*0.99), 10);
+          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale * 0.99), 10);
         }
         else {
           // User zooming in
-          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale*1.01), 10);
+          window.setTimeout(ViewActions.updateViewport.bind(null, null, null, null, null, view.scale * 1.01), 10);
         }
       }
-        this.setState({pinchLength: length});
+      this.setState({pinchLength: length});
     }
   }
 

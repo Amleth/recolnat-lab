@@ -15,7 +15,7 @@ class SpecimenMetadataTable extends MetadataTable {
   }
 
   buildDisplayTableBody() {
-    if(this.props.loading) {
+    if (this.props.loading) {
       return <tbody>
       <tr>
         <td colSpan='2' className='ui center aligned'>{this.props.userstore.getText('loading')}</td>
@@ -23,158 +23,157 @@ class SpecimenMetadataTable extends MetadataTable {
       </tbody>
     }
     return <tbody>
-
     <tr>
       <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('basisOfRecord')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.basisofrecord}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('lifeStage')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.lifestage}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('sex')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.sex}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('associatedTaxa')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.associatedTaxa}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('occurrenceRemarks')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.occurrenceremarks}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('institutionCode')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.institutioncode}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('ownerInstitutionCode')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.ownerinstitutionCode}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('collectionCode')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.collectioncode}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getText('catalogNumber')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.catalognumber}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('recordNumber')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.recordnumber}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('bibliographicCitation')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.bibliographiccitation}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('associatedReferences')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.associatedReferences}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('rightsHolder')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.rightsholder}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getText('creationDate')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {new Date(this.state.metadata.created).toLocaleString()}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getText('lastModified')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {new Date(this.state.metadata.modified).toLocaleString()}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('rights')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.rights}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('accessRights')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.accessrights}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('associatedMedia')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.associatedmedia}
-        </td>
+      </td>
     </tr>
     <tr>
-      <td className='ui right aligned' style={this.labelStyle} >
+      <td className='ui right aligned' style={this.labelStyle}>
         {this.props.userstore.getOntologyField('disposition')}
       </td>
       <td style={this.textStyle} className='ui left aligned'>
         {this.state.metadata.disposition}
-        </td>
+      </td>
     </tr>
     </tbody>
   }
